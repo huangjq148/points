@@ -17,6 +17,66 @@ interface ITaskUpdateData {
   completedAt?: Date;
 }
 
+async function generateRecurringTasks(userId: string) {
+  const recurringTasks = await Task.find({ 
+    userId, 
+    recurrence: { $in: ['daily', 'weekly'] } 
+  });
+
+  const now = new Date();
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const dayOfWeek = now.getDay();
+  const dayOfMonth = now.getDate();
+
+  for (const template of recurringTasks) {
+    let shouldCreate = false;
+
+    if (template.recurrence === 'daily') {
+      shouldCreate = true;
+    } else if (template.recurrence === 'weekly') {
+      // Default to Sunday (0) if not specified, or skip?
+      // If recurrenceDay is present, match it.
+      if (template.recurrenceDay !== undefined && template.recurrenceDay === dayOfWeek) {
+        shouldCreate = true;
+      }
+    } else if (template.recurrence === 'monthly') {
+      if (template.recurrenceDay !== undefined && template.recurrenceDay === dayOfMonth) {
+        shouldCreate = true;
+      }
+    }
+
+    if (!shouldCreate) continue;
+
+    // Check if template itself was created today (to avoid double creation on creation day)
+    if (template.createdAt >= startOfToday) continue;
+
+    // Check for existing instance created TODAY
+    const instance = await Task.findOne({
+      originalTaskId: template._id,
+      createdAt: { $gte: startOfToday }
+    });
+
+    if (!instance) {
+      await Task.create({
+        userId: template.userId,
+        childId: template.childId,
+        name: template.name,
+        description: template.description,
+        points: template.points,
+        type: template.type,
+        icon: template.icon,
+        requirePhoto: template.requirePhoto,
+        imageUrl: template.imageUrl,
+        status: 'pending',
+        recurrence: 'none',
+        originalTaskId: template._id
+      });
+    }
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
@@ -26,6 +86,10 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+
+    if (userId) {
+      await generateRecurringTasks(userId);
+    }
 
     const query: ITaskQuery = {};
     if (childId) query.childId = childId;
@@ -52,7 +116,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { userId, childId, name, description, points, type, icon, requirePhoto } = body;
+    const { userId, childId, name, description, points, type, icon, requirePhoto, imageUrl, recurrence, recurrenceDay } = body;
 
     if (!userId || !childId || !name || points === undefined) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });
@@ -67,7 +131,10 @@ export async function POST(request: NextRequest) {
       type: type || 'daily',
       icon: icon || '⭐',
       requirePhoto: requirePhoto || false,
-      status: 'pending'
+      status: 'pending',
+      imageUrl,
+      recurrence: recurrence || 'none',
+      recurrenceDay
     });
 
     return NextResponse.json({ success: true, task });

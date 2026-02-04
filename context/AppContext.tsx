@@ -4,8 +4,11 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 export interface User {
   id: string;
-  phone: string;
-  pin: string;
+  username: string;
+  password: string;
+  role?: string;
+  inviteCode?: string;
+  familyId?: string;
 }
 
 export interface ChildProfile {
@@ -21,13 +24,14 @@ export interface AppContextType {
   currentChild: ChildProfile | null;
   childList: ChildProfile[];
   mode: "parent" | "child";
-  login: (phone: string, pin: string) => Promise<boolean>;
-  loginWithChild: (phone: string, pin: string, childId: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  loginWithChild: (username: string, password: string, childId: string) => Promise<boolean>;
   logout: () => void;
   switchToChild: (child: ChildProfile) => void;
-  switchToParent: (pin?: string) => Promise<boolean>;
+  switchToParent: (password?: string) => Promise<boolean>;
   addChild: (nickname: string) => Promise<void>;
   refreshChildren: () => Promise<void>;
+  updateChildPoints: (childId: string, newPoints: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -88,16 +92,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [currentUser, currentChild, mode]);
 
-  const login = async (phone: string, pin: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin, action: "login" }),
+        body: JSON.stringify({ username, password, action: "login" }),
       });
       const data = await res.json();
       if (data.success) {
-        const user = { id: data.user.id, phone: data.user.phone, pin: data.user.pin };
+        const user = {
+          id: data.user.id,
+          username: data.user.username,
+          password: password,
+          role: data.user.role,
+          inviteCode: data.user.inviteCode,
+          familyId: data.user.familyId
+        };
         setCurrentUser(user);
         setChildList(data.children);
         setMode("parent");
@@ -105,25 +116,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (typeof window !== "undefined") {
           window.location.href = "/parent";
         }
-        return true;
+        return { success: true };
       }
-      return false;
+      return { success: false, message: data.message };
     } catch (_error: unknown) {
       console.error("Login error:", _error);
-      return false;
+      return { success: false, message: "System error" };
     }
   };
 
-  const loginWithChild = async (phone: string, pin: string, childId: string): Promise<boolean> => {
+  const loginWithChild = async (username: string, password: string, childId: string): Promise<boolean> => {
     try {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, pin, action: "login" }),
+        body: JSON.stringify({ username, password, action: "login" }),
       });
       const data = await res.json();
       if (data.success) {
-        const user = { id: data.user.id, phone: data.user.phone, pin: data.user.pin };
+        const user = {
+          id: data.user.id,
+          username: data.user.username,
+          password: password,
+          role: data.user.role,
+          inviteCode: data.user.inviteCode,
+          familyId: data.user.familyId
+        };
         const child = data.children.find((c: ChildProfile) => c.id === childId);
         if (child) {
           setCurrentUser(user);
@@ -161,14 +179,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMode("child");
   };
 
-  const switchToParent = async (pin?: string): Promise<boolean> => {
+  const switchToParent = async (password?: string): Promise<boolean> => {
     if (!currentUser) return false;
     try {
-      const verifyPin = pin || currentUser.pin;
+      const verifyPassword = password || currentUser.password;
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: currentUser.phone, pin: verifyPin, action: "verify-pin" }),
+        body: JSON.stringify({ username: currentUser.username, password: verifyPassword, action: "verify-password" }),
       });
       const data = await res.json();
       if (data.success) {
@@ -191,8 +209,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: currentUser.phone,
-          pin: currentUser.pin,
+          username: currentUser.username,
+          password: currentUser.password,
           action: "add-child",
           childId: nickname,
         }),
@@ -212,7 +230,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: currentUser.phone, pin: currentUser.pin, action: "login" }),
+        body: JSON.stringify({ username: currentUser.username, password: currentUser.password, action: "login" }),
       });
       const data = await res.json();
       if (data.success) {
@@ -220,6 +238,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     } catch (_error) {
       console.error("Refresh children error:", _error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      refreshChildren();
+    }
+  }, [currentUser?.username, currentUser?.password]);
+
+  const updateChildPoints = (childId: string, newPoints: number) => {
+    setChildList((prevChildList) =>
+      prevChildList.map((child) =>
+        child.id === childId ? { ...child, availablePoints: newPoints } : child
+      )
+    );
+    if (currentChild && currentChild.id === childId) {
+      setCurrentChild((prevCurrentChild) => {
+        if (prevCurrentChild) {
+          return { ...prevCurrentChild, availablePoints: newPoints };
+        }
+        return null;
+      });
     }
   };
 
@@ -237,6 +277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         switchToParent,
         addChild,
         refreshChildren,
+        updateChildPoints,
       }}
     >
       {children}

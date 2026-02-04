@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IChild extends Document {
   userId: mongoose.Types.ObjectId;
+  familyId?: mongoose.Types.ObjectId;
   nickname: string;
   avatar: string;
   totalPoints: number;
@@ -13,6 +14,7 @@ export interface IChild extends Document {
 const ChildSchema = new Schema<IChild>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    familyId: { type: Schema.Types.ObjectId },
     nickname: { type: String, required: true },
     avatar: { type: String, default: '🦊' },
     totalPoints: { type: Number, default: 0 },

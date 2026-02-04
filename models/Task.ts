@@ -11,6 +11,10 @@ export interface ITask extends Document {
   requirePhoto: boolean;
   status: 'pending' | 'submitted' | 'approved' | 'rejected';
   photoUrl?: string;
+  imageUrl?: string; // Task illustration image
+  recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
+  recurrenceDay?: number; // 0-6 for Weekly, 1-31 for Monthly
+  originalTaskId?: mongoose.Types.ObjectId;
   submittedAt?: Date;
   approvedAt?: Date;
   completedAt?: Date;
@@ -29,6 +33,10 @@ const TaskSchema = new Schema<ITask>({
   requirePhoto: { type: Boolean, default: false },
   status: { type: String, enum: ['pending', 'submitted', 'approved', 'rejected'], default: 'pending' },
   photoUrl: { type: String },
+  imageUrl: { type: String },
+  recurrence: { type: String, enum: ['none', 'daily', 'weekly', 'monthly'], default: 'none' },
+  recurrenceDay: { type: Number },
+  originalTaskId: { type: Schema.Types.ObjectId, ref: 'Task' },
   submittedAt: { type: Date },
   approvedAt: { type: Date },
   completedAt: { type: Date },
