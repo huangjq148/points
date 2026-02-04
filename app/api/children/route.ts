@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Child from '@/models/Child';
+import Child, { IChild } from '@/models/Child';
+
+interface ChildPostRequest {
+  userId: string;
+  nickname: string;
+  avatar?: string;
+}
+
+interface ChildPutRequest {
+  childId: string;
+  nickname?: string;
+  avatar?: string;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +36,7 @@ export async function GET(request: NextRequest) {
       totalPoints: child.totalPoints,
       availablePoints: child.availablePoints
     }});
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
@@ -33,7 +45,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { userId, nickname, avatar } = await request.json();
+    const { userId, nickname, avatar }: ChildPostRequest = await request.json();
 
     const child = await Child.create({
       userId,
@@ -44,7 +56,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, child });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
@@ -53,7 +65,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
-    const { childId, nickname, avatar } = await request.json();
+    const { childId, nickname, avatar }: ChildPutRequest = await request.json();
 
     const child = await Child.findByIdAndUpdate(
       childId,
@@ -72,7 +84,7 @@ export async function PUT(request: NextRequest) {
       totalPoints: child.totalPoints,
       availablePoints: child.availablePoints
     }});
-  } catch (error) {
+  } catch (error: any) {
     console.error('Update child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }

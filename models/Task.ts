@@ -1,6 +1,24 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const TaskSchema = new Schema({
+export interface ITask extends Document {
+  userId: mongoose.Types.ObjectId;
+  childId: mongoose.Types.ObjectId;
+  name: string;
+  description: string;
+  points: number;
+  type: 'daily' | 'advanced' | 'challenge';
+  icon: string;
+  requirePhoto: boolean;
+  status: 'pending' | 'submitted' | 'approved' | 'rejected';
+  photoUrl?: string;
+  submittedAt?: Date;
+  approvedAt?: Date;
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const TaskSchema = new Schema<ITask>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   childId: { type: Schema.Types.ObjectId, ref: 'Child', required: true },
   name: { type: String, required: true },
@@ -16,6 +34,6 @@ const TaskSchema = new Schema({
   completedAt: { type: Date },
 }, { timestamps: true });
 
-const TaskModel = mongoose.models.Task || mongoose.model('Task', TaskSchema);
+const TaskModel = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
 
 export default TaskModel;

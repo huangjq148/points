@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useApp } from '@/context/AppContext';
+import { useApp, ChildProfile } from '@/context/AppContext';
 import { Button } from '@/components/ui';
 
 export default function Login() {
@@ -12,7 +12,7 @@ export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
   const [newChildName, setNewChildName] = useState('');
   const [showAddChild, setShowAddChild] = useState(false);
-  const [childList, setChildList] = useState<any[]>([]);
+  const [childList, setChildList] = useState<ChildProfile[]>([]);
   const [selectedChildId, setSelectedChildId] = useState<string>('');
   const [error, setError] = useState('');
 
@@ -99,7 +99,7 @@ export default function Login() {
       } else {
         setError('登录失败，请检查手机号和PIN码');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('获取孩子列表失败');
     }
   };

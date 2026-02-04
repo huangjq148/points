@@ -10,7 +10,7 @@ interface PinVerificationProps {
 }
 
 export default function PinVerification({ onVerified, onCancel }: PinVerificationProps) {
-  const { currentUser, switchToParent } = useApp();
+  const { switchToParent } = useApp();
   const [pin, setPin] = useState('');
   const [showMathChallenge, setShowMathChallenge] = useState(false);
   const [num1] = useState(() => Math.floor(Math.random() * 9) + 1);
@@ -51,8 +51,8 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content text-center" onClick={(e) => e.stopPropagation()}>
-        <div className="text-5xl mb-4">🔐</div>
+      <div className="modal-content text-center" onClick={(_e) => _e.stopPropagation()}>
+        <Lock size={48} className="mx-auto mb-4 text-blue-600" />
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
           {showMathChallenge ? '数学挑战' : '家长验证'}
         </h2>

@@ -1,11 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Order from '@/models/Order';
-import Reward from '@/models/Reward';
-import Child from '@/models/Child';
+import Order, { IOrder } from '@/models/Order';
+import Reward, { IReward } from '@/models/Reward';
+import Child, { IChild } from '@/models/Child';
+import mongoose from 'mongoose';
 
-function generateCode() {
+function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+interface OrderGetQuery {
+  userId?: string;
+  childId?: string;
+  status?: string;
+}
+
+interface OrderPostRequest {
+  userId: mongoose.Types.ObjectId;
+  childId: mongoose.Types.ObjectId;
+  rewardId: mongoose.Types.ObjectId;
+}
+
+interface OrderPutRequest {
+  orderId: mongoose.Types.ObjectId;
+  action: 'verify' | 'cancel';
 }
 
 export async function GET(request: NextRequest) {
@@ -16,29 +34,33 @@ export async function GET(request: NextRequest) {
     const childId = searchParams.get('childId');
     const status = searchParams.get('status');
 
-    const query: any = {};
+    const query: OrderGetQuery = {};
     if (userId) query.userId = userId;
     if (childId) query.childId = childId;
     if (status) query.status = status;
 
-    const orders = await Order.find(query).sort({ createdAt: -1 });
+    const orders: IOrder[] = await Order.find(query).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ success: true, orders });
-  } catch (error: any) {
-    console.error('Get orders error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Get orders error:', error);
+      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+    console.error('Get orders error:', String(error));
+    return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { userId, childId, rewardId } = await request.json();
+    const { userId, childId, rewardId }: OrderPostRequest = await request.json();
 
     if (!userId || !childId || !rewardId) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });
     }
 
-    const reward = await Reward.findById(rewardId);
+    const reward: IReward | null = await Reward.findById(rewardId);
     if (!reward) {
       return NextResponse.json({ success: false, message: '奖励不存在' }, { status: 404 });
     }
@@ -51,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '该奖励已售罄' }, { status: 400 });
     }
 
-    const child = await Child.findById(childId);
+    const child: IChild | null = await Child.findById(childId);
     if (!child) {
       return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
     }
@@ -60,9 +82,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '积分不足' }, { status: 400 });
     }
 
-    const verificationCode = generateCode();
+    const verificationCode: string = generateCode();
 
-    const order = await Order.create({
+    const order: IOrder = await Order.create({
       userId,
       childId,
       rewardId,
@@ -88,22 +110,26 @@ export async function POST(request: NextRequest) {
       order,
       verificationCode
     });
-  } catch (error: any) {
-    console.error('Create order error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Create order error:', error);
+      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+    console.error('Create order error:', String(error));
+    return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
-    const { orderId, action } = await request.json();
+    const { orderId, action }: OrderPutRequest = await request.json();
 
     if (!orderId) {
       return NextResponse.json({ success: false, message: '缺少orderId' }, { status: 400 });
     }
 
-    const order = await Order.findById(orderId);
+    const order: IOrder | null = await Order.findById(orderId);
     if (!order) {
       return NextResponse.json({ success: false, message: '订单不存在' }, { status: 404 });
     }
@@ -126,8 +152,12 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, order });
-  } catch (error: any) {
-    console.error('Update order error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Update order error:', error);
+      return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    }
+    console.error('Update order error:', String(error));
+    return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }

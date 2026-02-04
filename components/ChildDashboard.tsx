@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { 
-  Home, Gift, Wallet, Lock, Star, CheckCircle, 
-  Circle, Trophy, Sparkles, ChevronRight, Camera
+import {
+  Home, Gift, Wallet, Lock, Star,
+  Trophy, Sparkles, ChevronRight, Camera, User
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -18,6 +19,7 @@ interface Task {
   requirePhoto: boolean;
   photoUrl?: string;
   rejectionReason?: string;
+  createdAt?: string;
 }
 
 interface Reward {
@@ -29,12 +31,23 @@ interface Reward {
   stock: number;
 }
 
+interface ChildProfile {
+  id: string;
+  nickname: string;
+  avatar: string;
+  availablePoints: number;
+  totalPoints: number;
+}
+
 export default function ChildDashboard() {
-  const { currentUser, currentChild, switchToParent } = useApp();
+  const { currentUser, currentChild, childList, switchToParent, switchToChild } = useApp();
+  const router = useRouter();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'store' | 'wallet'>('home');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showChildSwitcher, setShowChildSwitcher] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
@@ -43,18 +56,31 @@ export default function ChildDashboard() {
   const [showMessage, setShowMessage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (currentChild) {
-      fetchTasks();
-      fetchRewards();
-    }
-  }, [currentChild]);
+  // 分页加载状态
+  const [taskPage, setTaskPage] = useState(1);
+  const [hasMoreTasks, setHasMoreTasks] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const taskListRef = useRef<HTMLDivElement>(null);
 
-  const fetchTasks = async () => {
-    const res = await fetch(`/api/tasks?childId=${currentChild?.id}`);
+  // 搜索状态
+  const [taskSearchQuery, setTaskSearchQuery] = useState('');
+  const [rewardSearchQuery, setRewardSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [filteredRewards, setFilteredRewards] = useState<Reward[]>([]);
+
+  const fetchTasks = async (page: number = 1, append: boolean = false) => {
+    if (!currentChild) return;
+    const limit = 10;
+    const res = await fetch(`/api/tasks?childId=${currentChild.id}&page=${page}&limit=${limit}`);
     const data = await res.json();
     if (data.success) {
-      setTasks(data.tasks);
+      if (append) {
+        setTasks(prev => [...prev, ...data.tasks]);
+      } else {
+        setTasks(data.tasks);
+      }
+      setHasMoreTasks(data.tasks.length === limit);
     }
   };
 
@@ -63,8 +89,78 @@ export default function ChildDashboard() {
     const data = await res.json();
     if (data.success) {
       setRewards(data.rewards);
+      setFilteredRewards(data.rewards);
     }
   };
+
+  // 加载更多任务
+  const loadMoreTasks = async () => {
+    if (isLoadingMore || !hasMoreTasks) return;
+    setIsLoadingMore(true);
+    const nextPage = taskPage + 1;
+    await fetchTasks(nextPage, true);
+    setTaskPage(nextPage);
+    setIsLoadingMore(false);
+  };
+
+  // 滚动监听
+  useEffect(() => {
+    const handleScroll = () => {
+      if (activeTab !== 'tasks' || !taskListRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = taskListRef.current;
+      if (scrollTop + clientHeight >= scrollHeight - 50) {
+        loadMoreTasks();
+      }
+    };
+
+    const listElement = taskListRef.current;
+    if (listElement) {
+      listElement.addEventListener('scroll', handleScroll);
+      return () => listElement.removeEventListener('scroll', handleScroll);
+    }
+  }, [activeTab, taskPage, hasMoreTasks, isLoadingMore]);
+
+  // 任务搜索过滤
+  useEffect(() => {
+    let filtered = tasks;
+    if (taskSearchQuery) {
+      filtered = filtered.filter(t =>
+        t.name.toLowerCase().includes(taskSearchQuery.toLowerCase())
+      );
+    }
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter).toDateString();
+      filtered = filtered.filter(t => {
+        if (!t.createdAt) return false;
+        return new Date(t.createdAt).toDateString() === filterDate;
+      });
+    }
+    setFilteredTasks(filtered);
+  }, [tasks, taskSearchQuery, dateFilter]);
+
+  // 奖励搜索过滤
+  useEffect(() => {
+    if (rewardSearchQuery) {
+      const filtered = rewards.filter(r =>
+        r.name.toLowerCase().includes(rewardSearchQuery.toLowerCase())
+      );
+      setFilteredRewards(filtered);
+    } else {
+      setFilteredRewards(rewards);
+    }
+  }, [rewards, rewardSearchQuery]);
+
+  useEffect(() => {
+    if (currentChild) {
+      setTaskPage(1);
+      setTasks([]);
+      fetchTasks(1, false);
+      fetchRewards();
+      setTaskSearchQuery('');
+      setDateFilter('');
+      setRewardSearchQuery('');
+    }
+  }, [currentChild]);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -128,6 +224,11 @@ export default function ChildDashboard() {
     setTimeout(() => setShowMessage(false), 3000);
   };
 
+  const handleSwitchChild = (child: ChildProfile) => {
+    switchToChild(child);
+    setShowChildSwitcher(false);
+  };
+
   const handleRedeemReward = async (reward: Reward) => {
     if ((currentChild?.availablePoints || 0) < reward.points) {
       setMessage("积分不足，继续加油！💪");
@@ -173,6 +274,46 @@ export default function ChildDashboard() {
           onVerified={() => setShowPinModal(false)}
           onCancel={() => setShowPinModal(false)}
         />
+      )}
+
+      {showChildSwitcher && (
+        <div className="modal-overlay" onClick={() => setShowChildSwitcher(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">🔄</div>
+              <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
+              <p className="text-gray-600">选择要切换的孩子</p>
+            </div>
+            <div className="space-y-3 mb-4">
+              {childList.map((child) => (
+                <div
+                  key={child.id}
+                  onClick={() => handleSwitchChild(child)}
+                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${
+                    child.id === currentChild?.id
+                      ? 'bg-blue-100 border-2 border-blue-400'
+                      : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                  }`}
+                >
+                  <div className="text-3xl">{child.avatar}</div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-800">{child.nickname}</p>
+                    <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
+                  </div>
+                  {child.id === currentChild?.id && (
+                    <span className="text-blue-500 font-bold">当前</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowChildSwitcher(false)}
+              className="w-full py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
+            >
+              取消
+            </button>
+          </div>
+        </div>
       )}
 
       {showMessage && (
@@ -229,18 +370,33 @@ export default function ChildDashboard() {
 
       <header className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <button
+              onClick={() => setShowChildSwitcher(true)}
+              className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+            >
+              <User size={20} className="text-blue-600" />
+            </button>
+            {childList.length > 1 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">
+                {childList.length}
+              </span>
+            )}
+          </div>
+          <div>
+            <p className="text-sm text-blue-700 hidden md:block">{pathname}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setShowPinModal(true)}
-            className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm"
+            className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
           >
             <Lock size={20} className="text-blue-600" />
           </button>
-          <div>
-            <p className="text-sm text-blue-700 hidden md:block">切换到家长</p>
+          <div className="points-display-child">
+            🪙 {currentChild?.availablePoints || 0}
           </div>
-        </div>
-        <div className="points-display-child">
-          🪙 {currentChild?.availablePoints || 0}
         </div>
       </header>
 
@@ -315,10 +471,35 @@ export default function ChildDashboard() {
 
         {activeTab === 'tasks' && (
           <>
-            <h2 className="text-xl md:text-2xl font-bold text-blue-700 mb-4">任务大厅</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setActiveTab('home')}
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+              >
+                <ChevronRight size={24} className="text-blue-600 rotate-180" />
+              </button>
+              <h2 className="text-xl md:text-2xl font-bold text-blue-700">任务大厅</h2>
+            </div>
 
-            <div className="space-y-3">
-              {tasks.filter(t => t.status === 'pending').map((task) => (
+            {/* 搜索栏 */}
+            <div className="mb-4 space-y-2">
+              <input
+                type="text"
+                placeholder="搜索任务..."
+                value={taskSearchQuery}
+                onChange={(e) => setTaskSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+              />
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+              />
+            </div>
+
+            <div ref={taskListRef} className="space-y-3 max-h-[60vh] overflow-y-auto">
+              {filteredTasks.filter(t => t.status === 'pending').map((task) => (
                 <div key={task._id} className="task-card">
                   <div className="task-icon">{task.icon}</div>
                   <div className="flex-1">
@@ -334,11 +515,17 @@ export default function ChildDashboard() {
                 </div>
               ))}
               
-              {tasks.filter(t => t.status === 'pending').length === 0 && (
+              {filteredTasks.filter(t => t.status === 'pending').length === 0 && (
                 <div className="text-center py-12 text-blue-600">
                   <Sparkles size={48} className="mx-auto mb-2 opacity-50" />
                   <p>暂时没有任务啦！</p>
                   <p className="text-sm">可以让家长添加新任务~</p>
+                </div>
+              )}
+
+              {isLoadingMore && (
+                <div className="text-center py-4">
+                  <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
             </div>
@@ -397,19 +584,42 @@ export default function ChildDashboard() {
 
         {activeTab === 'store' && (
           <>
-            <h2 className="text-xl md:text-2xl font-bold text-blue-700 mb-4">积分商城</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setActiveTab('home')}
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+              >
+                <ChevronRight size={24} className="text-blue-600 rotate-180" />
+              </button>
+              <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分商城</h2>
+            </div>
+
+            {/* 搜索栏 */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="搜索礼物..."
+                value={rewardSearchQuery}
+                onChange={(e) => setRewardSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              {rewards.map((reward) => (
-                <div key={reward._id} className="reward-card flex-col text-center">
+              {filteredRewards.map((reward) => (
+                <div key={reward._id} className={`reward-card flex-col text-center ${reward.stock <= 0 ? 'opacity-50' : ''}`}>
                   <div className="reward-icon mx-auto mb-3">{reward.icon}</div>
                   <p className="font-bold text-gray-800">{reward.name}</p>
                   <p className="text-lg text-yellow-600 font-bold my-2">🪙 {reward.points}</p>
-                  <p className="text-xs text-gray-500 mb-3">{reward.type === 'physical' ? '实物奖励' : '特权奖励'}</p>
+                  <p className={`text-xs mb-3 ${reward.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    库存: {reward.stock}
+                  </p>
                   <button
                     onClick={() => handleRedeemReward(reward)}
-                    className="btn-child py-2 px-4 text-sm w-full"
+                    disabled={reward.stock <= 0}
+                    className={`btn-child py-2 px-4 text-sm w-full ${reward.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    兑换
+                    {reward.stock > 0 ? '兑换' : '已售罄'}
                   </button>
                 </div>
               ))}
@@ -419,7 +629,15 @@ export default function ChildDashboard() {
 
         {activeTab === 'wallet' && (
           <>
-            <h2 className="text-xl md:text-2xl font-bold text-blue-700 mb-4">积分账本</h2>
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setActiveTab('home')}
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+              >
+                <ChevronRight size={24} className="text-blue-600 rotate-180" />
+              </button>
+              <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分账本</h2>
+            </div>
             <div className="card-child mb-4">
               <div className="text-center">
                 <p className="text-blue-600 mb-2">当前余额</p>
@@ -443,19 +661,43 @@ export default function ChildDashboard() {
       </main>
 
       <nav className="nav-bar">
-        <button onClick={() => setActiveTab('home')} className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}>
+        <button
+          onClick={() => {
+            setActiveTab('home');
+            router.push(`/child/${currentChild?.id}`);
+          }}
+          className={`nav-item ${activeTab === 'home' ? 'active' : ''}`}
+        >
           <Home size={24} />
           <span className="text-xs">首页</span>
         </button>
-        <button onClick={() => setActiveTab('tasks')} className={`nav-item ${activeTab === 'tasks' ? 'active' : ''}`}>
+        <button
+          onClick={() => {
+            setActiveTab('tasks');
+            router.push(`/child/${currentChild?.id}/tasks`);
+          }}
+          className={`nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+        >
           <Star size={24} />
           <span className="text-xs">任务</span>
         </button>
-        <button onClick={() => setActiveTab('store')} className={`nav-item ${activeTab === 'store' ? 'active' : ''}`}>
+        <button
+          onClick={() => {
+            setActiveTab('store');
+            router.push(`/child/${currentChild?.id}/store`);
+          }}
+          className={`nav-item ${activeTab === 'store' ? 'active' : ''}`}
+        >
           <Gift size={24} />
           <span className="text-xs">商城</span>
         </button>
-        <button onClick={() => setActiveTab('wallet')} className={`nav-item ${activeTab === 'wallet' ? 'active' : ''}`}>
+        <button
+          onClick={() => {
+            setActiveTab('wallet');
+            router.push(`/child/${currentChild?.id}/wallet`);
+          }}
+          className={`nav-item ${activeTab === 'wallet' ? 'active' : ''}`}
+        >
           <Wallet size={24} />
           <span className="text-xs">钱包</span>
         </button>
@@ -470,8 +712,11 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
   const [error, setError] = useState('');
 
   const handleSubmit = async () => {
-    if (pin.length !== 4) return;
-    const success = await switchToParent();
+    if (pin.length !== 4) {
+      setError('请输入4位PIN码');
+      return;
+    }
+    const success = await switchToParent(pin);
     if (success) {
       onVerified();
     } else {

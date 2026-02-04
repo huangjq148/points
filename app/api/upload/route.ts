@@ -23,8 +23,12 @@ export async function POST(request: NextRequest) {
 
     const url = `/uploads/${filename}`;
     return NextResponse.json({ success: true, url });
-  } catch (error) {
-    console.error('Upload error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Upload error:', error);
+    } else {
+      console.error('Upload error:', String(error));
+    }
     return NextResponse.json({ success: false, message: '上传失败' }, { status: 500 });
   }
 }

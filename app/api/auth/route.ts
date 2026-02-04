@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
-import Child from '@/models/Child';
+import Child, { IChild } from '@/models/Child';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         success: true, 
         user: { id: user._id, phone: user.phone, pin: user.pin },
-        children: children.map((c: any) => ({
-          id: c._id,
-          nickname: c.nickname,
-          avatar: c.avatar,
-          availablePoints: c.availablePoints
-        }))
+        children: children.map((c: IChild) => ({
+            id: c._id.toString(),
+            nickname: c.nickname,
+            avatar: c.avatar,
+            availablePoints: c.availablePoints
+          }))
       });
     }
 
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
       const children = await Child.find({ userId: user._id });
       return NextResponse.json({ 
         success: true,
-        children: children.map((c: any) => ({
-          id: c._id,
+        children: children.map((c: IChild) => ({
+          id: c._id.toString(),
           nickname: c.nickname,
           avatar: c.avatar,
           availablePoints: c.availablePoints
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
         totalPoints: 0,
         availablePoints: 0
       });
-      user.children.push(child._id as any);
+      user.children.push(child._id);
       await user.save();
       return NextResponse.json({ success: true, child });
     }

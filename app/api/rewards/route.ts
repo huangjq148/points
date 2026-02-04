@@ -1,22 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Reward from '@/models/Reward';
+import Reward, { IReward, RewardType } from '@/models/Reward';
+import mongoose from 'mongoose';
+
+interface RewardGetQuery {
+  userId?: string;
+  isActive?: boolean;
+}
+
+interface RewardPostRequest {
+  userId: mongoose.Types.ObjectId;
+  name: string;
+  description?: string;
+  points: number;
+  type: RewardType;
+  icon?: string;
+  stock?: number;
+}
+
+interface RewardPutRequest {
+  rewardId: string;
+  name?: string;
+  description?: string;
+  points?: number;
+  type?: RewardType;
+  icon?: string;
+  stock?: number;
+  isActive?: boolean;
+}
 
 export async function GET(request: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const isActive = searchParams.get('isActive');
+    const isActiveParam = searchParams.get('isActive');
 
-    const query: any = {};
+    const query: RewardGetQuery = {};
     if (userId) query.userId = userId;
-    if (isActive !== null) query.isActive = isActive === 'true';
+    if (isActiveParam !== null) query.isActive = isActiveParam === 'true';
 
-    const rewards = await Reward.find(query).sort({ points: 1 });
+    const rewards = await Reward.find(query).sort({ points: 1 }).lean();
     return NextResponse.json({ success: true, rewards });
-  } catch (error) {
-    console.error('Get rewards error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Get rewards error:', error);
+    } else {
+      console.error('Get rewards error:', String(error));
+    }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
@@ -24,7 +55,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { userId, name, description, points, type, icon, stock } = await request.json();
+    const { userId, name, description, points, type, icon, stock }: RewardPostRequest = await request.json();
 
     const reward = await Reward.create({
       userId,
@@ -38,8 +69,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, reward });
-  } catch (error) {
-    console.error('Create reward error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Create reward error:', error);
+    } else {
+      console.error('Create reward error:', String(error));
+    }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
@@ -47,9 +82,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectDB();
-    const { rewardId, name, description, points, type, icon, stock, isActive } = await request.json();
+    const { rewardId, name, description, points, type, icon, stock, isActive }: RewardPutRequest = await request.json();
 
-    const updateData: any = {};
+    const updateData: Partial<IReward> = {};
     if (name) updateData.name = name;
     if (description !== undefined) updateData.description = description;
     if (points) updateData.points = points;
@@ -65,8 +100,12 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, reward });
-  } catch (error) {
-    console.error('Update reward error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Update reward error:', error);
+    } else {
+      console.error('Update reward error:', String(error));
+    }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
@@ -83,8 +122,12 @@ export async function DELETE(request: NextRequest) {
 
     await Reward.findByIdAndDelete(rewardId);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Delete reward error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Delete reward error:', error);
+    } else {
+      console.error('Delete reward error:', String(error));
+    }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }

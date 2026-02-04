@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Child from '@/models/Child';
+import Child, { IChild } from '@/models/Child';
+
+interface PointsPostRequest {
+  childId: string;
+  points: number;
+  reason?: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { childId, points, reason } = await request.json();
+    const { childId, points, reason }: PointsPostRequest = await request.json();
 
     if (!childId || points === undefined) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });
     }
 
-    const child = await Child.findById(childId);
+    const child: IChild | null = await Child.findById(childId);
     if (!child) {
       return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
     }
@@ -23,7 +29,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    const updatedChild = await Child.findById(childId);
+    const updatedChild: IChild | null = await Child.findById(childId);
 
     return NextResponse.json({ 
       success: true, 
@@ -35,8 +41,12 @@ export async function POST(request: NextRequest) {
         availablePoints: updatedChild?.availablePoints
       }
     });
-  } catch (error) {
-    console.error('Adjust points error:', error);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Adjust points error:', error);
+    } else {
+      console.error('Adjust points error:', String(error));
+    }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
