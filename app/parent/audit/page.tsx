@@ -7,11 +7,20 @@ import { Check, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui";
+import Select, { SelectOption } from "@/components/ui/Select";
 
 export default function AuditPage() {
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
   const { currentUser, childList, logout, switchToChild, addChild } = useApp();
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
+
+  const childOptions: SelectOption[] = [
+    { value: "all", label: "全部孩子" },
+    ...childList.map((child) => ({
+      value: child.id.toString(),
+      label: child.nickname,
+    })),
+  ];
 
   const pendingTasks =
     selectedChildFilter === "all"
@@ -79,18 +88,18 @@ export default function AuditPage() {
     <Layout>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-800">任务审核</h2>
-        <select
-          value={selectedChildFilter}
-          onChange={(e) => setSelectedChildFilter(e.target.value)}
-          className="input-field w-auto px-4 py-2"
-        >
-          <option value="all">全部孩子</option>
-          {childList.map((child) => (
-            <option key={child.id as string} value={child.id as string}>
-              {child.nickname}
-            </option>
-          ))}
-        </select>
+        <div className="w-40">
+          <Select
+            value={childOptions.find((opt) => opt.value === selectedChildFilter) || childOptions[0]}
+            onChange={(option) => {
+              if (option) {
+                setSelectedChildFilter(option.value.toString());
+              }
+            }}
+            options={childOptions}
+            placeholder="选择孩子"
+          />
+        </div>
       </div>
       {pendingTasks.length === 0 ? (
         <div className="card text-center py-12 text-gray-500">

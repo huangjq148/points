@@ -2,8 +2,8 @@
 
 import { IDisplayedOrder, PlainOrder } from "@/app/typings";
 import Layout from "@/components/Layouts";
-import ParentDashboard from "@/components/ParentDashboard";
 import { Button } from "@/components/ui";
+import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { Ticket } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -12,6 +12,14 @@ export default function OrdersPage() {
   const { currentUser, childList, logout, switchToChild, addChild } = useApp();
   const [orders, setOrders] = useState<IDisplayedOrder[]>([]);
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
+
+  const childOptions: SelectOption[] = [
+    { value: "all", label: "全部孩子" },
+    ...childList.map((child) => ({
+      value: child.id.toString(),
+      label: child.nickname,
+    })),
+  ];
 
   const pendingOrders =
     selectedChildFilter === "all"
@@ -73,18 +81,18 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-800">兑换核销</h2>
         <div className="flex items-center gap-3">
-          <select
-            value={selectedChildFilter}
-            onChange={(e) => setSelectedChildFilter(e.target.value)}
-            className="input-field w-auto px-4 py-2"
-          >
-            <option value="all">全部孩子</option>
-            {childList.map((child) => (
-              <option key={child.id.toString()} value={child.id.toString()}>
-                {child.nickname}
-              </option>
-            ))}
-          </select>
+          <div className="w-40">
+            <Select
+              value={childOptions.find((opt) => opt.value === selectedChildFilter) || childOptions[0]}
+              onChange={(option) => {
+                if (option) {
+                  setSelectedChildFilter(option.value.toString());
+                }
+              }}
+              options={childOptions}
+              placeholder="选择孩子"
+            />
+          </div>
           <span className="text-sm text-gray-500">{pendingOrders.length} 个待核销</span>
         </div>
       </div>
@@ -107,13 +115,12 @@ export default function OrdersPage() {
                   </div>
                 </div>
                 <span
-                  className={`status-badge ${
-                    order.status === "pending"
-                      ? "status-submitted"
-                      : order.status === "verified"
-                        ? "status-verified"
-                        : "status-rejected"
-                  }`}
+                  className={`status-badge ${order.status === "pending"
+                    ? "status-submitted"
+                    : order.status === "verified"
+                      ? "status-verified"
+                      : "status-rejected"
+                    }`}
                 >
                   {order.status === "pending" ? "待核销" : order.status === "verified" ? "已核销" : "已取消"}
                 </span>

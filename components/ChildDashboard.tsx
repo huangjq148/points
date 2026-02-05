@@ -10,7 +10,7 @@ import {
 import confetti from 'canvas-confetti';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { registerLocale } from  "react-datepicker";
+import { registerLocale } from "react-datepicker";
 import { zhCN } from 'date-fns/locale';
 import ConfirmModal from './ConfirmModal';
 import Button from '@/components/ui/Button';
@@ -280,12 +280,12 @@ export default function ChildDashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ taskId: selectedTask._id, status: 'submitted', photoUrl }),
     });
-    
+
     setShowSubmitModal(false);
     setPhotoFile(null);
     setPhotoPreview('');
     setSelectedTask(null);
-    
+
     fetchTasks();
     setMessage("提交成功！等待家长审核~");
     setShowMessage(true);
@@ -379,11 +379,10 @@ export default function ChildDashboard() {
                 <div
                   key={child.id}
                   onClick={() => handleSwitchChild(child)}
-                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${
-                    child.id === currentChild?.id
-                      ? 'bg-blue-100 border-2 border-blue-400'
-                      : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
-                  }`}
+                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${child.id === currentChild?.id
+                    ? 'bg-blue-100 border-2 border-blue-400'
+                    : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                    }`}
                 >
                   <div className="text-3xl">{child.avatar}</div>
                   <div className="flex-1">
@@ -479,20 +478,19 @@ export default function ChildDashboard() {
               <h3 className="text-2xl font-bold text-gray-800 mb-1">{showTaskDetail.name}</h3>
               <div className="flex justify-center gap-2 mb-4">
                 <span className="badge badge-primary">+{showTaskDetail.points} 积分</span>
-                <span className={`badge ${
-                  showTaskDetail.status === 'approved' ? 'badge-success' :
+                <span className={`badge ${showTaskDetail.status === 'approved' ? 'badge-success' :
                   showTaskDetail.status === 'rejected' ? 'badge-error' :
-                  showTaskDetail.status === 'submitted' ? 'badge-info' : 'badge-warning'
-                }`}>
+                    showTaskDetail.status === 'submitted' ? 'badge-info' : 'badge-warning'
+                  }`}>
                   {showTaskDetail.status === 'approved' ? '已完成' :
-                   showTaskDetail.status === 'rejected' ? '需修改' :
-                   showTaskDetail.status === 'submitted' ? '审核中' : '待完成'}
+                    showTaskDetail.status === 'rejected' ? '需修改' :
+                      showTaskDetail.status === 'submitted' ? '审核中' : '待完成'}
                 </span>
               </div>
               {showTaskDetail.imageUrl && (
-                <img 
-                  src={showTaskDetail.imageUrl} 
-                  alt="任务配图" 
+                <img
+                  src={showTaskDetail.imageUrl}
+                  alt="任务配图"
                   className="w-full max-h-48 object-cover rounded-xl mb-4 shadow-sm"
                 />
               )}
@@ -576,13 +574,13 @@ export default function ChildDashboard() {
         {activeTab === 'tasks' && (
           <>
             <div className="text-center mb-6">
-               <div className="text-6xl md:text-8xl mb-2">{currentChild?.avatar}</div>
-               <h1 className="text-2xl md:text-3xl font-bold text-blue-700">{currentChild?.nickname}</h1>
-               <p className="text-blue-600">小小奋斗者 🌟</p>
+              <div className="text-6xl md:text-8xl mb-2">{currentChild?.avatar}</div>
+              <h1 className="text-2xl md:text-3xl font-bold text-blue-700">{currentChild?.nickname}</h1>
+              <p className="text-blue-600">小小奋斗者 🌟</p>
             </div>
 
             {/* Points Mall Banner */}
-            <div 
+            <div
               onClick={() => setActiveTab('store')}
               className="mb-6 bg-gradient-to-r from-yellow-100 to-orange-100 p-4 rounded-2xl flex items-center justify-between cursor-pointer shadow-sm hover:shadow-md transition"
             >
@@ -607,11 +605,10 @@ export default function ChildDashboard() {
                   key={tab}
                   onClick={() => setActiveTaskTab(tab)}
                   variant="ghost"
-                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${
-                    activeTaskTab === tab
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-500 hover:text-blue-500'
-                  }`}
+                  className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTaskTab === tab
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-500 hover:text-blue-500'
+                    }`}
                 >
                   {tab === 'all' ? '全部' : tab === 'uncompleted' ? '未完成' : '已完成'}
                 </Button>
@@ -646,8 +643,8 @@ export default function ChildDashboard() {
 
             <div ref={taskListRef} className="space-y-3 max-h-[60vh] overflow-y-auto">
               {filteredTasks.map((task) => (
-                <div 
-                  key={task._id} 
+                <div
+                  key={task._id}
                   className={`task-card cursor-pointer ${['approved', 'submitted'].includes(task.status) ? 'opacity-75' : ''}`}
                   onClick={() => setShowTaskDetail(task)}
                 >
@@ -657,22 +654,21 @@ export default function ChildDashboard() {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <p className="font-bold text-gray-800">{task.name}</p>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        task.status === 'approved' ? 'bg-green-100 text-green-700' :
+                      <span className={`text-xs px-2 py-1 rounded-full ${task.status === 'approved' ? 'bg-green-100 text-green-700' :
                         task.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                        task.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
+                          task.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-yellow-100 text-yellow-700'
+                        }`}>
                         {task.status === 'approved' ? '已完成' :
-                         task.status === 'submitted' ? '审核中' :
-                         task.status === 'rejected' ? '需修改' : '待完成'}
+                          task.status === 'submitted' ? '审核中' :
+                            task.status === 'rejected' ? '需修改' : '待完成'}
                       </span>
                     </div>
                     <p className="text-sm text-blue-600 mt-1">+{task.points} 积分</p>
                   </div>
                 </div>
               ))}
-              
+
               {filteredTasks.length === 0 && (
                 <div className="text-center py-12 text-blue-600">
                   <Sparkles size={48} className="mx-auto mb-2 opacity-50" />
@@ -714,25 +710,32 @@ export default function ChildDashboard() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {filteredRewards.map((reward) => (
-                <div key={reward._id} className={`reward-card flex-col text-center ${reward.stock <= 0 ? 'opacity-50' : ''}`}>
-                  <div className="reward-icon mx-auto mb-3">{reward.icon}</div>
-                  <p className="font-bold text-gray-800">{reward.name}</p>
-                  <p className="text-lg text-yellow-600 font-bold my-2">🪙 {reward.points}</p>
-                  <p className={`text-xs mb-3 ${reward.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    库存: {reward.stock}
-                  </p>
-                  <Button
-                    onClick={() => handleRedeemReward(reward)}
-                    disabled={reward.stock <= 0}
-                    variant={reward.stock > 0 ? 'primary' : 'ghost'}
-                    size="sm"
-                    fullWidth
-                  >
-                    {reward.stock > 0 ? '兑换' : '已售罄'}
-                  </Button>
+              {filteredRewards.length > 0 ? (
+                filteredRewards.map((reward) => (
+                  <div key={reward._id} className={`reward-card flex-col text-center ${reward.stock <= 0 ? 'opacity-50' : ''}`}>
+                    <div className="reward-icon mx-auto mb-3">{reward.icon}</div>
+                    <p className="font-bold text-gray-800">{reward.name}</p>
+                    <p className="text-lg text-yellow-600 font-bold my-2">🪙 {reward.points}</p>
+                    <p className={`text-xs mb-3 ${reward.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      库存: {reward.stock}
+                    </p>
+                    <Button
+                      onClick={() => handleRedeemReward(reward)}
+                      disabled={reward.stock <= 0}
+                      variant={reward.stock > 0 ? 'primary' : 'ghost'}
+                      size="sm"
+                      fullWidth
+                    >
+                      {reward.stock > 0 ? '兑换' : '已售罄'}
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 card text-center py-12 text-gray-500">
+                  <Gift size={48} className="mx-auto mb-2 opacity-50" />
+                  <p>暂无商品</p>
                 </div>
-              ))}
+              )}
             </div>
           </>
         )}
@@ -758,49 +761,49 @@ export default function ChildDashboard() {
 
             {/* Filters */}
             <div className="mb-4 space-y-2">
-               <div className="flex gap-2">
-                 <div className="relative flex-1">
-                   <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
-                   <DatePicker
-                      selected={ledgerStartDate}
-                      onChange={(date: Date | null) => setLedgerStartDate(date)}
-                      locale="zh-CN"
-                      dateFormat="yyyy-MM-dd"
-                      placeholderText="开始日期"
-                      className="w-full pl-8 pr-2 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none"
-                      isClearable
-                    />
-                  </div>
-                  <div className="relative flex-1">
-                     <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
-                     <DatePicker
-                       selected={ledgerEndDate}
-                       onChange={(date: Date | null) => setLedgerEndDate(date)}
-                       locale="zh-CN"
-                       dateFormat="yyyy-MM-dd"
-                       placeholderText="结束日期"
-                       className="w-full pl-8 pr-2 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none"
-                       isClearable
-                     />
-                 </div>
-               </div>
-               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                 <input
-                   type="text"
-                   placeholder="搜索记录..."
-                   value={ledgerKeyword}
-                   onChange={(e) => setLedgerKeyword(e.target.value)}
-                   className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
-                 />
-               </div>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
+                  <DatePicker
+                    selected={ledgerStartDate}
+                    onChange={(date: Date | null) => setLedgerStartDate(date)}
+                    locale="zh-CN"
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="开始日期"
+                    className="w-full pl-8 pr-2 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none"
+                    isClearable
+                  />
+                </div>
+                <div className="relative flex-1">
+                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
+                  <DatePicker
+                    selected={ledgerEndDate}
+                    onChange={(date: Date | null) => setLedgerEndDate(date)}
+                    locale="zh-CN"
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="结束日期"
+                    className="w-full pl-8 pr-2 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none"
+                    isClearable
+                  />
+                </div>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                <input
+                  type="text"
+                  placeholder="搜索记录..."
+                  value={ledgerKeyword}
+                  onChange={(e) => setLedgerKeyword(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+                />
+              </div>
             </div>
 
             <div className="space-y-3">
               {ledgerLoading ? (
-                 <div className="text-center py-8">
-                   <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                 </div>
+                <div className="text-center py-8">
+                  <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                </div>
               ) : (
                 <>
                   {ledgerData.length > 0 ? (
@@ -811,7 +814,7 @@ export default function ChildDashboard() {
                         </div>
                         <div className="flex-1">
                           <p className="font-medium text-gray-800">{item.name}</p>
-                          <p className="text-xs text-gray-500">{new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                          <p className="text-xs text-gray-500">{new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
                         <span className={`font-bold ${item.type === 'income' ? 'text-blue-600' : 'text-orange-600'}`}>
                           {item.type === 'income' ? '+' : '-'}{item.points}
@@ -825,7 +828,7 @@ export default function ChildDashboard() {
                   {/* Pagination */}
                   {Math.ceil(ledgerTotal / ledgerLimit) > 1 && (
                     <div className="flex justify-center gap-2 mt-4">
-                      <Button 
+                      <Button
                         onClick={() => fetchLedger(ledgerPage - 1)}
                         disabled={ledgerPage === 1}
                         variant="secondary"
@@ -835,7 +838,7 @@ export default function ChildDashboard() {
                         上一页
                       </Button>
                       <span className="px-3 py-1 text-gray-600">{ledgerPage} / {Math.ceil(ledgerTotal / ledgerLimit)}</span>
-                      <Button 
+                      <Button
                         onClick={() => fetchLedger(ledgerPage + 1)}
                         disabled={ledgerPage === Math.ceil(ledgerTotal / ledgerLimit)}
                         variant="secondary"

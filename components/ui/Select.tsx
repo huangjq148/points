@@ -1,11 +1,11 @@
-import Select, { StylesConfig, SingleValue, ActionMeta } from "react-select";
+import Select, { StylesConfig, SingleValue, ActionMeta, GroupBase } from "react-select";
 
-type SelectOption = {
+export type SelectOption = {
   value: string | number;
   label: string;
 };
 
-const customSelectStyles: StylesConfig = {
+const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
   control: (provided) => ({
     ...provided,
     backgroundColor: "rgba(255, 255, 255, 0.5)",
@@ -51,15 +51,16 @@ export default function CustomSelect({
   value: SingleValue<SelectOption>;
   onChange: (value: SingleValue<SelectOption>, actionMeta: ActionMeta<SelectOption>) => void;
   placeholder?: string;
-  styles?: StylesConfig;
+  styles?: StylesConfig<SelectOption, false, GroupBase<SelectOption>>;
 }) {
   return (
-    <Select
+    <Select<SelectOption, false, GroupBase<SelectOption>>
       options={options}
       value={value}
       onChange={onChange}
       placeholder={placeholder}
       styles={{ ...customSelectStyles, ...styles }}
+      instanceId="custom-select"
     />
   );
 }

@@ -69,24 +69,13 @@ const Layout = ({ children }: { children: ReactNode }) => {
         </div>
 
         <div className="mt-auto">
-          <div
-            onClick={() => {
-              if (confirm("确定要退出登录吗？")) {
-                logout();
-              }
-            }}
-            className="desktop-nav-item text-red-600"
-          >
-            <LogOut size={22} />
-            <span>退出登录</span>
-          </div>
         </div>
       </aside>
 
       {/* Main Content */}
       <div className="main-content">
         {/* Mobile Header */}
-        <header className="lg:hidden bg-white/80 backdrop-blur-lg px-4 py-3 flex items-center justify-between sticky top-0 z-40 rounded-2xl m-4 shadow-sm">
+        <header className="lg:hidden bg-white/80 backdrop-blur-lg px-4 py-3 flex items-center justify-between sticky top-0 z-40 rounded-2xl mb-4 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🌟</span>
             <span className="font-bold text-blue-600">小小奋斗者</span>

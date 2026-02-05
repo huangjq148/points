@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import Child from '@/models/Child';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       ]
     });
   } catch (error) {
-    console.error('Get family members error:', error);
+    console.error('Get family error:', error);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
   }
 }
@@ -55,54 +56,46 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { username, password, role, identity, familyId } = await request.json();
+    const { action, targetUsername, currentUserId } = await request.json();
 
-    if (!familyId && role !== 'admin') {
-      // If not familyId provided, it creates a standalone user.
-      // Allow this for "Add User" feature as requested.
-      // But maybe we should warn? 
-      // User said: "添加用户时，不应当自动加入当前家庭"
-      // So we just allow it.
+    if (action === 'invite_by_username') {
+      if (!targetUsername || !currentUserId) {
+        return NextResponse.json({ success: false, message: 'Missing parameters' });
+      }
+
+      const currentUser = await User.findById(currentUserId);
+      if (!currentUser) {
+        return NextResponse.json({ success: false, message: 'Current user not found' });
+      }
+
+      // Ensure current user has a familyId
+      if (!currentUser.familyId) {
+        currentUser.familyId = new mongoose.Types.ObjectId();
+        await currentUser.save();
+      }
+
+      const targetUser = await User.findOne({ username: targetUsername });
+      if (!targetUser) {
+        return NextResponse.json({ success: false, message: '找不到该用户' });
+      }
+
+      if (targetUser.familyId) {
+        if (targetUser.familyId.toString() === currentUser.familyId.toString()) {
+            return NextResponse.json({ success: false, message: '该用户已在您的家庭中' });
+        }
+        return NextResponse.json({ success: false, message: '该用户已加入其他家庭' });
+      }
+
+      targetUser.familyId = currentUser.familyId;
+      await targetUser.save();
+
+      return NextResponse.json({ success: true, message: '邀请成功' });
     }
 
-    const exist = await User.findOne({ username });
-    if (exist) return NextResponse.json({ success: false, message: '用户名已存在' });
-
-    const user = await User.create({
-      username,
-      password: password || '123456',
-      role: role || 'parent',
-      identity,
-      familyId,
-      children: []
-    });
-
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({ success: false, message: 'Invalid action' });
   } catch (e) {
-    console.error('Add family member error:', e);
-    return NextResponse.json({ success: false, message: (e as Error).message || 'Error' });
-  }
-}
-
-export async function PUT(request: NextRequest) {
-  try {
-    await connectDB();
-    const { id, username, role, identity } = await request.json();
-    
-    // Ensure we are updating a user who is part of a family (or any user, but this API implies family context)
-    // For now, we just update the user.
-    const user = await User.findById(id);
-    if (!user) return NextResponse.json({ success: false, message: 'User not found' });
-
-    if (username) user.username = username;
-    if (role) user.role = role;
-    if (identity !== undefined) user.identity = identity;
-
-    await user.save();
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error('Update family member error:', e);
-    return NextResponse.json({ success: false, message: 'Error' });
+    console.error('Invite error:', e);
+    return NextResponse.json({ success: false, message: 'Server error' });
   }
 }
 
@@ -117,7 +110,7 @@ export async function DELETE(request: NextRequest) {
     const user = await User.findById(id);
     if (!user) return NextResponse.json({ success: false, message: 'User not found' });
 
-    // Instead of deleting the user, we just remove them from the family
+    // Remove from family
     user.familyId = undefined;
     await user.save();
 

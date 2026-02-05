@@ -2,42 +2,31 @@
 
 import { FamilyMember } from "@/app/typings";
 import Layout from "@/components/Layouts";
-import ParentDashboard from "@/components/ParentDashboard";
 import { Button } from "@/components/ui";
-import { Settings, Trash2, Users } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import Input from "@/components/ui/Input";
+import Modal from "@/components/ui/Modal";
+import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
+import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { Copy, Settings, Trash2, Users } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function FamilyPage() {
-  const { currentUser, childList, logout, switchToChild, addChild } = useApp();
+  const { currentUser, logout } = useApp();
+  const toast = useToast();
+
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteCodeInput, setInviteCodeInput] = useState("");
+  const [inviteUsernameInput, setInviteUsernameInput] = useState("");
+
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
 
-  const [alertState, setAlertState] = useState<{
-    isOpen: boolean;
-    message: string;
-    type: "success" | "error" | "info";
-  }>({
-    isOpen: false,
-    message: "",
-    type: "info",
-  });
-  const showAlert = (message: string, type: "success" | "error" | "info" = "info") => {
-    setAlertState({ isOpen: true, message, type });
-  };
-
-  const tableData = useMemo(() => {
-    return familyMembers;
-  }, [familyMembers]);
-
-  const columnHelper = createColumnHelper<FamilyMember>();
   const fetchFamilyMembers = useCallback(() => {
     if (!currentUser) return;
-    fetch(`/api/family/members?userId=${currentUser.id}`)
+    fetch(`/api/family?userId=${currentUser.id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -51,20 +40,86 @@ export default function FamilyPage() {
       })
       .catch((e) => console.error(e));
   }, [currentUser, logout]);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchFamilyMembers();
+    }
+  }, [currentUser, fetchFamilyMembers]);
+
   const handleDeleteAccount = useCallback(
     async (id: string) => {
       if (!confirm("确定删除该账号吗？")) return;
-      const res = await fetch(`/api/family/members?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/family?id=${id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        showAlert("删除成功", "success");
+        toast.success("删除成功");
         fetchFamilyMembers();
       } else {
-        showAlert("删除失败", "error");
+        toast.error("删除失败");
       }
     },
-    [fetchFamilyMembers],
+    [fetchFamilyMembers, toast],
   );
+
+  const handleInviteByUsername = async () => {
+    if (!inviteUsernameInput.trim()) return;
+    try {
+      const res = await fetch("/api/family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "invite_by_username",
+          targetUsername: inviteUsernameInput.trim(),
+          currentUserId: currentUser?.id,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("邀请成功");
+        setInviteUsernameInput("");
+        fetchFamilyMembers();
+      } else {
+        toast.error(data.message || "邀请失败");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("邀请失败");
+    }
+  };
+
+  const handleJoinFamily = async () => {
+    if (!inviteCodeInput) return;
+    if (!currentUser) return;
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: currentUser.username,
+          password: currentUser.password, // Ensure password is sent if needed, or fix logic
+          action: "join-family",
+          inviteCode: inviteCodeInput.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("加入成功！请重新登录以刷新数据");
+        setTimeout(logout, 2000);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("加入失败");
+    }
+  };
+
+  const tableData = useMemo(() => {
+    return familyMembers;
+  }, [familyMembers]);
+
+  const columnHelper = createColumnHelper<FamilyMember>();
   const columns = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cols: ColumnDef<FamilyMember, any>[] = [
@@ -198,6 +253,124 @@ export default function FamilyPage() {
           </table>
         </div>
       </div>
+
+      <Modal
+        isOpen={showEditAccountModal}
+        onClose={() => setShowEditAccountModal(false)}
+        title="编辑账号"
+      >
+        <div className="space-y-4">
+          <Input
+            label="账号"
+            value={accountForm.username}
+            onChange={(e) => setAccountForm({ ...accountForm, username: e.target.value })}
+          />
+          <Input
+            label="密码 (留空不修改)"
+            value={accountForm.password}
+            onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}
+            placeholder="******"
+          />
+          <Input
+            label="身份"
+            value={accountForm.identity}
+            onChange={(e) => setAccountForm({ ...accountForm, identity: e.target.value })}
+            placeholder="请输入身份标识"
+          />
+          <Button
+            onClick={async () => {
+              if (!editingMember) return;
+              const res = await fetch("/api/user", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: editingMember.id, ...accountForm }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                toast.success("更新成功");
+                setShowEditAccountModal(false);
+                fetchFamilyMembers();
+              } else {
+                toast.error(data.message);
+              }
+            }}
+            fullWidth
+            className="mt-2"
+          >
+            保存修改
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        title="邀请与加入"
+      >
+        <div className="space-y-6">
+          <div className="bg-blue-50 p-4 rounded-xl">
+            <p className="text-sm text-blue-800 font-medium mb-1">您的家庭邀请码</p>
+            <div className="flex items-center gap-2">
+              <code className="text-2xl font-mono font-bold text-blue-600">
+                {currentUser?.inviteCode || "Loading..."}
+              </code>
+              <Button
+                onClick={() => {
+                  if (currentUser?.inviteCode) {
+                    navigator.clipboard.writeText(currentUser.inviteCode);
+                    toast.success("复制成功");
+                  }
+                }}
+                variant="ghost"
+                className="p-2 hover:bg-blue-100 rounded-lg text-blue-600"
+              >
+                <Copy size={20} />
+              </Button>
+            </div>
+            <p className="text-xs text-blue-600 mt-2">其他家长可以使用此邀请码加入您的家庭，共同管理孩子。</p>
+          </div>
+
+          <div className="border-t pt-6">
+            <h4 className="font-bold text-gray-800 mb-4">邀请用户加入</h4>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Input
+                  value={inviteUsernameInput}
+                  onChange={(e) => setInviteUsernameInput(e.target.value)}
+                  placeholder="请输入对方用户名"
+                />
+              </div>
+              <Button onClick={handleInviteByUsername} disabled={!inviteUsernameInput}>
+                邀请
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              对方将直接加入您的家庭（前提是对方尚未加入任何家庭）。
+            </p>
+          </div>
+
+          <div className="border-t pt-6">
+            <h4 className="font-bold text-gray-800 mb-4">加入其他家庭</h4>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">输入邀请码</label>
+                <Input
+                  value={inviteCodeInput}
+                  onChange={(e) => setInviteCodeInput(e.target.value.toUpperCase())}
+                  placeholder="请输入6位邀请码"
+                  maxLength={6}
+                />
+              </div>
+              <Button onClick={handleJoinFamily} disabled={!inviteCodeInput} fullWidth>
+                加入家庭
+              </Button>
+              <p className="text-xs text-gray-500 text-center">
+                注意：加入新家庭后，您将退出当前家庭，且需要重新登录。
+              </p>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </Layout>
   );
 }

@@ -792,6 +792,25 @@ body {
     flex-direction: column;
     gap: 6px;
     margin-top: 24px;
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+    min-height: 0; /* Important for flex child scroll */
+  }
+
+  /* Custom Scrollbar for desktop-nav */
+  .desktop-nav::-webkit-scrollbar {
+    width: 4px;
+  }
+  .desktop-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .desktop-nav::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.3);
+    border-radius: 2px;
+  }
+  .desktop-nav::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(107, 114, 128, 0.5);
   }
 }
 
