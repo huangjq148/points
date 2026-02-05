@@ -3,9 +3,14 @@ import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import Child from '@/models/Child';
 import mongoose from 'mongoose';
+import { getUserIdFromToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -55,6 +60,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { action, targetUsername, currentUserId } = await request.json();
 
@@ -81,7 +90,7 @@ export async function POST(request: NextRequest) {
 
       if (targetUser.familyId) {
         if (targetUser.familyId.toString() === currentUser.familyId.toString()) {
-            return NextResponse.json({ success: false, message: '该用户已在您的家庭中' });
+          return NextResponse.json({ success: false, message: '该用户已在您的家庭中' });
         }
         return NextResponse.json({ success: false, message: '该用户已加入其他家庭' });
       }
@@ -101,10 +110,14 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    
+
     if (!id) return NextResponse.json({ success: false, message: 'Missing id' }, { status: 400 });
 
     const user = await User.findById(id);

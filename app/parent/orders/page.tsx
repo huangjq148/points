@@ -27,12 +27,21 @@ export default function OrdersPage() {
       : orders.filter((o) => o.status === "pending" && o.childId.toString() === selectedChildFilter);
 
   const fetchOrders = useCallback(async () => {
-    const res = await fetch(`/api/orders?userId=${currentUser?.id}`);
+    if (!currentUser?.token) return [];
+    const res = await fetch(`/api/orders?userId=${currentUser?.id}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data: { success: boolean; orders: PlainOrder[] } = await res.json();
     if (data.success) {
       const ordersWithNames: IDisplayedOrder[] = await Promise.all(
         data.orders.map(async (order: PlainOrder) => {
-          const childRes = await fetch(`/api/children?childId=${order.childId}`);
+          const childRes = await fetch(`/api/children?childId=${order.childId}`, {
+            headers: {
+              "Authorization": `Bearer ${currentUser.token}`
+            }
+          });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
             ...order,
@@ -47,9 +56,13 @@ export default function OrdersPage() {
   }, [currentUser]);
 
   const handleVerifyOrder = async (orderId: string) => {
+    if (!currentUser?.token) return;
     await fetch("/api/orders", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.token}`
+      },
       body: JSON.stringify({ orderId, action: "verify" }),
     });
     const updatedOrders = await fetchOrders();
@@ -57,9 +70,13 @@ export default function OrdersPage() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
+    if (!currentUser?.token) return;
     await fetch("/api/orders", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.token}`
+      },
       body: JSON.stringify({ orderId, action: "cancel" }),
     });
     const updatedOrders = await fetchOrders();

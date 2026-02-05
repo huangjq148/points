@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
+import { eachDayOfIntervalWithOptions } from 'date-fns/fp';
+import { getUserIdFromToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -29,6 +35,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { username, password, role, identity, familyId } = await request.json();
 
@@ -53,6 +63,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { id, username, password, role, identity } = await request.json();
 
@@ -67,12 +81,17 @@ export async function PUT(request: NextRequest) {
     await user.save();
     return NextResponse.json({ success: true });
   } catch (e) {
+    console.error(e)
     return NextResponse.json({ success: false, message: 'Error' });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

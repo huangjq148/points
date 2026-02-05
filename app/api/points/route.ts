@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Child, { IChild } from '@/models/Child';
+import { getUserIdFromToken } from '@/lib/auth';
 
 interface PointsPostRequest {
   childId: string;
@@ -10,6 +11,10 @@ interface PointsPostRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { childId, points, reason }: PointsPostRequest = await request.json();
 
@@ -23,16 +28,16 @@ export async function POST(request: NextRequest) {
     }
 
     await Child.findByIdAndUpdate(childId, {
-      $inc: { 
+      $inc: {
         totalPoints: points,
-        availablePoints: points 
+        availablePoints: points
       }
     });
 
     const updatedChild: IChild | null = await Child.findById(childId);
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       child: {
         id: updatedChild?._id,
         nickname: updatedChild?.nickname,

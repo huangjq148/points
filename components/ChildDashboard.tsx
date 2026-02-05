@@ -110,9 +110,13 @@ export default function ChildDashboard() {
   const [ledgerKeyword, setLedgerKeyword] = useState('');
 
   const fetchTasks = async (page: number = 1, append: boolean = false) => {
-    if (!currentChild) return;
+    if (!currentChild || !currentUser?.token) return;
     const limit = 10;
-    const res = await fetch(`/api/tasks?childId=${currentChild.id}&page=${page}&limit=${limit}`);
+    const res = await fetch(`/api/tasks?childId=${currentChild.id}&page=${page}&limit=${limit}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data = await res.json();
     if (data.success) {
       if (append) {
@@ -125,7 +129,7 @@ export default function ChildDashboard() {
   };
 
   const fetchLedger = async (page = 1) => {
-    if (!currentChild) return;
+    if (!currentChild || !currentUser?.token) return;
     setLedgerLoading(true);
     try {
       const params = new URLSearchParams({
@@ -137,7 +141,11 @@ export default function ChildDashboard() {
       if (ledgerEndDate) params.append('endDate', ledgerEndDate.toISOString());
       if (ledgerKeyword) params.append('keyword', ledgerKeyword);
 
-      const res = await fetch(`/api/ledger?${params.toString()}`);
+      const res = await fetch(`/api/ledger?${params.toString()}`, {
+        headers: {
+          "Authorization": `Bearer ${currentUser.token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         setLedgerData(data.data);

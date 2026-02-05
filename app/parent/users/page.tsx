@@ -30,8 +30,12 @@ export default function UsersPage() {
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
 
   const fetchUsers = useCallback(() => {
-    if (!currentUser) return;
-    fetch(`/api/user?userId=${currentUser.id}`)
+    if (!currentUser || !currentUser.token) return;
+    fetch(`/api/user?userId=${currentUser.id}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -60,7 +64,10 @@ export default function UsersPage() {
 
     const res = await fetch("/api/user", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser?.token}`
+      },
       body: JSON.stringify(payload),
     });
     const data = await res.json();
@@ -78,7 +85,10 @@ export default function UsersPage() {
     if (!editingMember) return;
     const res = await fetch("/api/user", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.token}`
+      },
       body: JSON.stringify({ id: editingMember.id, ...accountForm }),
     });
     const data = await res.json();
@@ -94,7 +104,13 @@ export default function UsersPage() {
   const handleDeleteAccount = useCallback(
     async (id: string) => {
       if (!confirm("确定删除该账号吗？")) return;
-      const res = await fetch(`/api/user?id=${id}`, { method: "DELETE" });
+      if (!currentUser?.token) return;
+      const res = await fetch(`/api/user?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${currentUser.token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         toast.success("删除成功");

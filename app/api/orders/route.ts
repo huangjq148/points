@@ -4,6 +4,7 @@ import Order, { IOrder } from '@/models/Order';
 import Reward, { IReward } from '@/models/Reward';
 import Child, { IChild } from '@/models/Child';
 import mongoose from 'mongoose';
+import { getUserIdFromToken } from '@/lib/auth';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -28,6 +29,10 @@ interface OrderPutRequest {
 
 export async function GET(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -53,6 +58,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { userId, childId, rewardId }: OrderPostRequest = await request.json();
 
@@ -105,8 +114,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       order,
       verificationCode
     });
@@ -122,6 +131,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { orderId, action }: OrderPutRequest = await request.json();
 
@@ -142,11 +155,11 @@ export async function PUT(request: NextRequest) {
       await Child.findByIdAndUpdate(order.childId, {
         $inc: { availablePoints: order.pointsSpent }
       });
-      
+
       await Reward.findByIdAndUpdate(order.rewardId, {
         $inc: { stock: 1 }
       });
-      
+
       order.status = 'cancelled';
       await order.save();
     }

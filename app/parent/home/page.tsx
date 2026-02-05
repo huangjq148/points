@@ -98,9 +98,14 @@ export default function HomePage() {
   };
 
   const handleDeleteTask = async () => {
-    if (!taskToDelete) return;
+    if (!taskToDelete || !currentUser?.token) return;
     try {
-      const res = await fetch(`/api/tasks?taskId=${taskToDelete}`, { method: "DELETE" });
+      const res = await fetch(`/api/tasks?taskId=${taskToDelete}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${currentUser.token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         showAlert("任务删除成功", "success");
@@ -117,12 +122,21 @@ export default function HomePage() {
   };
 
   const fetchTasks = useCallback(async () => {
-    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`);
+    if (!currentUser?.token) return [];
+    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data: { success: boolean; tasks: PlainTask[] } = await res.json();
     if (data.success) {
       const tasksWithNames: IDisplayedTask[] = await Promise.all(
         data.tasks.map(async (task: PlainTask) => {
-          const childRes = await fetch(`/api/children?childId=${task.childId}`);
+          const childRes = await fetch(`/api/children?childId=${task.childId}`, {
+            headers: {
+              "Authorization": `Bearer ${currentUser.token}`
+            }
+          });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
             ...task,
@@ -154,7 +168,12 @@ export default function HomePage() {
   }, [currentUser?.id]);
 
   const fetchRewards = useCallback(async () => {
-    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&t=${Date.now()}`);
+    if (!currentUser?.token) return [];
+    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&t=${Date.now()}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data: { success: boolean; rewards: PlainReward[] } = await res.json();
     if (data.success) {
       return data.rewards;
@@ -163,12 +182,21 @@ export default function HomePage() {
   }, [currentUser?.id]);
 
   const fetchOrders = useCallback(async () => {
-    const res = await fetch(`/api/orders?userId=${currentUser?.id}`);
+    if (!currentUser?.token) return [];
+    const res = await fetch(`/api/orders?userId=${currentUser?.id}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data: { success: boolean; orders: PlainOrder[] } = await res.json();
     if (data.success) {
       const ordersWithNames: IDisplayedOrder[] = await Promise.all(
         data.orders.map(async (order: PlainOrder) => {
-          const childRes = await fetch(`/api/children?childId=${order.childId}`);
+          const childRes = await fetch(`/api/children?childId=${order.childId}`, {
+            headers: {
+              "Authorization": `Bearer ${currentUser.token}`
+            }
+          });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
             ...order,
@@ -257,7 +285,7 @@ export default function HomePage() {
                 >
                   <div className="text-3xl">{child.avatar}</div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{child.nickname}</p>
+                    <p className="font-semibold text-gray-800">{child.username}</p>
                     <p className="text-sm text-gray-500 flex flex-wrap gap-2 mt-1">
                       <span>积分: {child.availablePoints}</span>
                       <span

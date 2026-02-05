@@ -25,8 +25,12 @@ export default function FamilyPage() {
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
 
   const fetchFamilyMembers = useCallback(() => {
-    if (!currentUser) return;
-    fetch(`/api/family?userId=${currentUser.id}`)
+    if (!currentUser || !currentUser.token) return;
+    fetch(`/api/family?userId=${currentUser.id}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -50,7 +54,13 @@ export default function FamilyPage() {
   const handleDeleteAccount = useCallback(
     async (id: string) => {
       if (!confirm("确定删除该账号吗？")) return;
-      const res = await fetch(`/api/family?id=${id}`, { method: "DELETE" });
+      if (!currentUser?.token) return;
+      const res = await fetch(`/api/family?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${currentUser.token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         toast.success("删除成功");
@@ -65,9 +75,13 @@ export default function FamilyPage() {
   const handleInviteByUsername = async () => {
     if (!inviteUsernameInput.trim()) return;
     try {
+      if (!currentUser?.token) return;
       const res = await fetch("/api/family", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           action: "invite_by_username",
           targetUsername: inviteUsernameInput.trim(),
@@ -280,9 +294,13 @@ export default function FamilyPage() {
           <Button
             onClick={async () => {
               if (!editingMember) return;
+              if (!currentUser?.token) return;
               const res = await fetch("/api/user", {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${currentUser.token}`
+                },
                 body: JSON.stringify({ id: editingMember.id, ...accountForm }),
               });
               const data = await res.json();

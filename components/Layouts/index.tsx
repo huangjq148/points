@@ -9,7 +9,7 @@ type NavItemId = "home" | "audit" | "tasks" | "orders" | "rewards" | "family" | 
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
-  const { currentUser, childList, logout, switchToChild, addChild } = useApp();
+  const { currentUser, logout } = useApp();
   const router = useRouter();
   const navItems: { id: NavItemId; icon: React.ElementType; label: string; badge?: number }[] = [
     { id: "home", icon: Home, label: "首页" },

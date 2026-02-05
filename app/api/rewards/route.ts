@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Reward, { IReward, RewardType } from '@/models/Reward';
 import mongoose from 'mongoose';
+import { getUserIdFromToken } from '@/lib/auth';
 
 interface RewardGetQuery {
   userId?: string;
@@ -31,6 +32,10 @@ interface RewardPutRequest {
 
 export async function GET(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -54,6 +59,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { userId, name, description, points, type, icon, stock }: RewardPostRequest = await request.json();
 
@@ -81,6 +90,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { rewardId, name, description, points, type, icon, stock, isActive }: RewardPutRequest = await request.json();
 
@@ -112,6 +125,10 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const rewardId = searchParams.get('rewardId');

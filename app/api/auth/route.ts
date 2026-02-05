@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import Child, { IChild } from '@/models/Child';
 import mongoose from 'mongoose';
+import { signToken } from '@/lib/auth';
 
 function generateInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -112,8 +113,17 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Generate JWT Token
+      const token = signToken({
+        userId: user._id.toString(),
+        username: user.username,
+        role: user.role,
+        familyId: user.familyId?.toString()
+      });
+
       return NextResponse.json({
         success: true,
+        token,
         user: {
           id: user._id,
           username: user.username,

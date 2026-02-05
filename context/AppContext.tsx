@@ -10,11 +10,14 @@ export interface User {
   inviteCode?: string;
   familyId?: string;
   pin?: string;
+  children?: ChildProfile[];
+  token?: string;
 }
 
 export interface ChildProfile {
   id: string;
   nickname: string;
+  username?: string;
   avatar: string;
   availablePoints: number;
   totalPoints: number;
@@ -76,6 +79,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    const verifyToken = async () => {
+      if (typeof window === "undefined") return;
+
+      const publicPaths = ["/", "/login"];
+      const isPublicPath = publicPaths.includes(window.location.pathname);
+
+      if (!currentUser?.token) {
+        if (!isPublicPath) {
+          window.location.href = "/login";
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/auth/current", {
+          headers: {
+            Authorization: `Bearer ${currentUser.token}`,
+          },
+        });
+
+        if (res.status === 401) {
+          logout();
+          return;
+        }
+
+        const data = await res.json();
+        if (data.success && data.user) {
+          setCurrentUser((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              ...data.user,
+              token: prev.token // Keep token
+            };
+          });
+          setChildList(data.user.children || []);
+        }
+      } catch (error) {
+        console.error("Token verification failed:", error);
+      }
+    };
+
+    verifyToken();
+  }, []); // Run once on mount
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       if (currentUser) {
         localStorage.setItem("little_achievers_user", JSON.stringify(currentUser));
@@ -102,42 +151,75 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (data.success) {
-        const user = {
+        // First set basic user info from login response
+        let user: User = {
           id: data.user.id,
           username: data.user.username,
           password: password,
           role: data.user.role,
           inviteCode: data.user.inviteCode,
-          familyId: data.user.familyId
+          familyId: data.user.familyId,
+          children: data.children || [],
+          token: data.token
         };
+
+        // Then fetch detailed info from /api/auth/current
+        try {
+          const headers: Record<string, string> = {};
+          if (data.token) {
+            headers['Authorization'] = `Bearer ${data.token}`;
+          }
+
+          const currentRes = await fetch(`/api/auth/current`, {
+            headers
+          });
+          const currentData = await currentRes.json();
+          if (currentData.success && currentData.user) {
+            user = {
+              ...user,
+              ...currentData.user,
+              password: password, // Keep password as it might not be returned
+              token: data.token // Ensure token is preserved
+            };
+          }
+        } catch (e) {
+          console.error("Fetch current user info failed", e);
+        }
+
         setCurrentUser(user);
-        setChildList(data.children);
-        
-        if (data.user.role === 'child' ) {
-            setMode("child");
-            // If the user is a child (children role), we might want to auto-select the first child profile or handle it.
-            
-            if (data.children && data.children.length > 0) {
-                 const firstChild = data.children[0];
-                 setCurrentChild(firstChild);
-                 setMode("child");
-                 if (typeof window !== "undefined") {
-                   window.location.href = `/child/${firstChild.id}`;
-                 }
-            } else {
-                // Fallback if no child profile found, though unusual for 'children' role
-                 setMode("child");
-                 if (typeof window !== "undefined") {
-                   console.warn("Logged in as child role but no child profile found.");
-                   // window.location.href = "/parent"; // Fallback
-                 }
-            }
-        } else {
-            setMode("parent");
-            setCurrentChild(null);
+        setChildList(user.children || []);
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("little_achievers_user", JSON.stringify(user));
+        }
+
+        if (user.role === 'child') {
+          setMode("child");
+          if (typeof window !== "undefined") {
+            localStorage.setItem("little_achievers_mode", "child");
+          }
+          if (user.id) {
+            const childProfile: ChildProfile = {
+              id: user.id,
+              nickname: user.username,
+              avatar: '🦊',
+              availablePoints: 0,
+              totalPoints: 0
+            };
+            setCurrentChild(childProfile);
             if (typeof window !== "undefined") {
-              window.location.href = "/parent";
+              localStorage.setItem("little_achievers_current_child", JSON.stringify(childProfile));
+              window.location.href = `/child/${user.id}`;
             }
+          }
+        } else {
+          setMode("parent");
+          setCurrentChild(null);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("little_achievers_mode", "parent");
+            localStorage.removeItem("little_achievers_current_child");
+            window.location.href = "/parent/home";
+          }
         }
         return { success: true };
       }
@@ -163,7 +245,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           password: password,
           role: data.user.role,
           inviteCode: data.user.inviteCode,
-          familyId: data.user.familyId
+          familyId: data.user.familyId,
+          token: data.token
         };
         const child = data.children.find((c: ChildProfile) => c.id === childId);
         if (child) {
@@ -172,6 +255,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setCurrentChild(child);
           setMode("child");
           if (typeof window !== "undefined") {
+            localStorage.setItem("little_achievers_user", JSON.stringify(user));
+            localStorage.setItem("little_achievers_current_child", JSON.stringify(child));
+            localStorage.setItem("little_achievers_mode", "child");
             window.location.href = `/child/${child.id}`;
           }
           return true;
@@ -226,16 +312,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addChild = async (nickname: string) => {
-    if (!currentUser) return;
+    if (!currentUser || !currentUser.token) return;
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetch("/api/children", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
-          username: currentUser.username,
-          password: currentUser.password,
-          action: "add-child",
-          childId: nickname,
+          userId: currentUser.id,
+          nickname,
+          avatar: '🦊' // Default avatar
         }),
       });
       const data = await res.json();
@@ -248,16 +336,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshChildren = async () => {
-    if (!currentUser) return;
+    if (!currentUser || !currentUser.token) return;
     try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser.username, password: currentUser.password, action: "login" }),
+      const res = await fetch("/api/auth/current", {
+        headers: {
+          "Authorization": `Bearer ${currentUser.token}`
+        }
       });
       const data = await res.json();
-      if (data.success) {
-        setChildList(data.children);
+      if (data.success && data.user) {
+        setChildList(data.user.children || []);
       }
     } catch (_error) {
       console.error("Refresh children error:", _error);
@@ -265,10 +353,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (currentUser) {
-      refreshChildren();
-    }
-  }, [currentUser?.username, currentUser?.password]);
+    // Removed redundant refreshChildren call
+  }, []);
 
   const updateChildPoints = (childId: string, newPoints: number) => {
     setChildList((prevChildList) =>

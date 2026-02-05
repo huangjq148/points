@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Task, { ITask } from '@/models/Task';
 import Child, { IChild } from '@/models/Child';
+import { getUserIdFromToken } from '@/lib/auth';
 
 interface ITaskQuery {
   childId?: string;
@@ -18,9 +19,9 @@ interface ITaskUpdateData {
 }
 
 async function generateRecurringTasks(userId: string) {
-  const recurringTasks = await Task.find({ 
-    userId, 
-    recurrence: { $in: ['daily', 'weekly'] } 
+  const recurringTasks = await Task.find({
+    userId,
+    recurrence: { $in: ['daily', 'weekly'] }
   });
 
   const now = new Date();
@@ -79,6 +80,10 @@ async function generateRecurringTasks(userId: string) {
 
 export async function GET(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const childId = searchParams.get('childId');
@@ -102,9 +107,9 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit)
       .lean();
-    
+
     const total = await Task.countDocuments(query);
-    
+
     return NextResponse.json({ success: true, tasks, total, page, limit });
   } catch (error: any) {
     console.error('Get tasks error:', error);
@@ -114,6 +119,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const body = await request.json();
     const { userId, childId, name, description, points, type, icon, requirePhoto, imageUrl, recurrence, recurrenceDay, deadline } = body;
@@ -147,6 +156,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const body = await request.json();
     const { taskId, status, photoUrl, name, description, points, type, icon, requirePhoto, imageUrl, deadline } = body;
@@ -156,7 +169,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const updateData: Partial<ITask> = {};
-    
+
     // Status update logic
     if (status) {
       updateData.status = status;
@@ -166,7 +179,7 @@ export async function PUT(request: NextRequest) {
         updateData.completedAt = new Date();
       }
     }
-    
+
     // Regular field updates
     if (name) updateData.name = name;
     if (description !== undefined) updateData.description = description;
@@ -200,6 +213,10 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const authHeader = request.headers.get('Authorization');
+    const authUserId = getUserIdFromToken(authHeader);
+    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
     await connectDB();
     const { searchParams } = new URL(request.url);
     const taskId = searchParams.get('taskId');

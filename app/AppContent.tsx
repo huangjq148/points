@@ -39,7 +39,7 @@ export default function AppContent() {
       if (mode === 'child' && currentChild) {
         router.push(`/child/${currentChild.id}`);
       } else {
-        router.push('/parent');
+        router.push('/parent/home');
       }
     } else if (!currentUser && pathname !== '/login') {
       router.push('/login');

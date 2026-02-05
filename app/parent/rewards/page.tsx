@@ -31,7 +31,12 @@ export default function RewardsPage() {
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
 
   const fetchRewards = useCallback(async () => {
-    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&t=${Date.now()}`);
+    if (!currentUser?.token) return [];
+    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&t=${Date.now()}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data: { success: boolean; rewards: PlainReward[] } = await res.json();
     if (data.success) {
       setRewards(data.rewards);
@@ -55,10 +60,14 @@ export default function RewardsPage() {
 
   const handleUpdateReward = async () => {
     if (!editingReward) return;
+    if (!currentUser?.token) return;
     try {
       const res = await fetch("/api/rewards", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           rewardId: editingReward._id,
           ...editingRewardData,
@@ -78,10 +87,14 @@ export default function RewardsPage() {
     }
   };
   const handleToggleRewardStatus = async (reward: PlainReward) => {
+    if (!currentUser?.token) return;
     try {
       const res = await fetch("/api/rewards", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           rewardId: reward._id,
           isActive: !reward.isActive,
@@ -101,9 +114,14 @@ export default function RewardsPage() {
   };
 
   const handleDeleteReward = async () => {
-    if (!rewardToDelete) return;
+    if (!rewardToDelete || !currentUser?.token) return;
     try {
-      const res = await fetch(`/api/rewards?rewardId=${rewardToDelete}`, { method: "DELETE" });
+      const res = await fetch(`/api/rewards?rewardId=${rewardToDelete}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${currentUser.token}`
+        }
+      });
       const data = await res.json();
       if (data.success) {
         toast.success("奖励删除成功");
@@ -122,10 +140,14 @@ export default function RewardsPage() {
       toast.error("请先登录");
       return;
     }
+    if (!currentUser?.token) return;
 
     const res = await fetch("/api/rewards", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.token}`
+      },
       body: JSON.stringify({ ...newReward, userId: currentUser.id }),
     });
 

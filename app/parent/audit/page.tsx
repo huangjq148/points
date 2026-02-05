@@ -28,9 +28,13 @@ export default function AuditPage() {
       : tasks.filter((t) => t.status === "submitted" && t.childId.toString() === selectedChildFilter);
 
   const handleApproveTask = async (taskId: string, status: "approved" | "rejected", rejectionReason?: string) => {
+    if (!currentUser?.token) return;
     await fetch("/api/tasks", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.token}`
+      },
       body: JSON.stringify({ taskId, status, rejectionReason }),
     });
     const updatedTasks = await fetchTasks();
@@ -38,12 +42,21 @@ export default function AuditPage() {
   };
 
   const fetchTasks = useCallback(async () => {
-    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`);
+    if (!currentUser?.token) return [];
+    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
+      headers: {
+        "Authorization": `Bearer ${currentUser.token}`
+      }
+    });
     const data: { success: boolean; tasks: PlainTask[] } = await res.json();
     if (data.success) {
       const tasksWithNames: IDisplayedTask[] = await Promise.all(
         data.tasks.map(async (task: PlainTask) => {
-          const childRes = await fetch(`/api/children?childId=${task.childId}`);
+          const childRes = await fetch(`/api/children?childId=${task.childId}`, {
+            headers: {
+              "Authorization": `Bearer ${currentUser.token}`
+            }
+          });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
             ...task,

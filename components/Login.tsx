@@ -41,7 +41,7 @@ export default function Login() {
     setShowAddChild(false);
     setNewChildName('');
     setIsRegister(false);
-    window.location.href = '/parent';
+    window.location.href = '/parent/home';
   };
 
   return (
@@ -128,7 +128,7 @@ export default function Login() {
             <Button onClick={handleAddChild} fullWidth size="lg" style={{ marginTop: '24px' }}>创建孩子档案</Button>
             <Button
               type="button"
-              onClick={() => window.location.href = '/parent'}
+              onClick={() => window.location.href = '/parent/home'}
               variant="ghost"
               fullWidth
               style={{ color: 'var(--primary)', fontWeight: '500', marginTop: '16px', fontSize: '14px' }}
