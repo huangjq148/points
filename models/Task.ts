@@ -18,6 +18,7 @@ export interface ITask extends Document {
   submittedAt?: Date;
   approvedAt?: Date;
   completedAt?: Date;
+  deadline?: Date; // Deadline for the task
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +41,7 @@ const TaskSchema = new Schema<ITask>({
   submittedAt: { type: Date },
   approvedAt: { type: Date },
   completedAt: { type: Date },
+  deadline: { type: Date },
 }, { timestamps: true });
 
 const TaskModel = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

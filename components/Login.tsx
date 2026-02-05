@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Button } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
 
 export default function Login() {
   const { login, addChild } = useApp();
@@ -57,23 +57,21 @@ export default function Login() {
           <>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', color: 'var(--primary)', fontWeight: '600', marginBottom: '8px', fontSize: '14px' }}>账号</label>
-                <input
+                <Input
+                  label="账号"
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="input"
                   placeholder="请输入账号"
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', color: 'var(--primary)', fontWeight: '600', marginBottom: '8px', fontSize: '14px' }}>密码</label>
-                <input
+                <Input
+                  label="密码"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="input"
                   placeholder="请输入密码"
                 />
               </div>
@@ -90,13 +88,14 @@ export default function Login() {
             </form>
 
             <div style={{ marginTop: '24px', textAlign: 'center' }}>
-              <button
+              <Button
                 type="button"
                 onClick={() => setIsRegister(!isRegister)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontWeight: '500', fontSize: '14px' }}
+                variant="ghost"
+                style={{ color: 'var(--primary)', fontWeight: '500', fontSize: '14px' }}
               >
                 {isRegister ? '已有账号？去登录' : '新用户？点击注册'}
-              </button>
+              </Button>
             </div>
 
             {isRegister && (
@@ -127,7 +126,15 @@ export default function Login() {
             </div>
 
             <Button onClick={handleAddChild} fullWidth size="lg" style={{ marginTop: '24px' }}>创建孩子档案</Button>
-            <button type="button" onClick={() => window.location.href = '/parent'} style={{ width: '100%', padding: '12px', border: 'none', background: 'transparent', color: 'var(--primary)', cursor: 'pointer', fontWeight: '500', marginTop: '16px', fontSize: '14px' }}>跳过</button>
+            <Button
+              type="button"
+              onClick={() => window.location.href = '/parent'}
+              variant="ghost"
+              fullWidth
+              style={{ color: 'var(--primary)', fontWeight: '500', marginTop: '16px', fontSize: '14px' }}
+            >
+              跳过
+            </Button>
           </>
         )}
       </div>

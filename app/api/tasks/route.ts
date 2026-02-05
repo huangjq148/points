@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     const total = await Task.countDocuments(query);
     
     return NextResponse.json({ success: true, tasks, total, page, limit });
-  } catch (error: Error) {
+  } catch (error: any) {
     console.error('Get tasks error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { userId, childId, name, description, points, type, icon, requirePhoto, imageUrl, recurrence, recurrenceDay } = body;
+    const { userId, childId, name, description, points, type, icon, requirePhoto, imageUrl, recurrence, recurrenceDay, deadline } = body;
 
     if (!userId || !childId || !name || points === undefined) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });
@@ -134,11 +134,12 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       imageUrl,
       recurrence: recurrence || 'none',
-      recurrenceDay
+      recurrenceDay,
+      deadline: deadline ? new Date(deadline) : undefined
     });
 
     return NextResponse.json({ success: true, task });
-  } catch (error: Error) {
+  } catch (error: any) {
     console.error('Create task error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
@@ -148,19 +149,34 @@ export async function PUT(request: NextRequest) {
   try {
     await connectDB();
     const body = await request.json();
-    const { taskId, status, photoUrl } = body;
+    const { taskId, status, photoUrl, name, description, points, type, icon, requirePhoto, imageUrl, deadline } = body;
 
     if (!taskId) {
       return NextResponse.json({ success: false, message: '缺少taskId' }, { status: 400 });
     }
 
-    const updateData: ITaskUpdateData = { status };
-    if (photoUrl) updateData.photoUrl = photoUrl;
-    if (status === 'submitted') updateData.submittedAt = new Date();
-    if (status === 'approved') {
-      updateData.approvedAt = new Date();
-      updateData.completedAt = new Date();
+    const updateData: Partial<ITask> = {};
+    
+    // Status update logic
+    if (status) {
+      updateData.status = status;
+      if (status === 'submitted') updateData.submittedAt = new Date();
+      if (status === 'approved') {
+        updateData.approvedAt = new Date();
+        updateData.completedAt = new Date();
+      }
     }
+    
+    // Regular field updates
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (points !== undefined) updateData.points = points;
+    if (type) updateData.type = type;
+    if (icon) updateData.icon = icon;
+    if (requirePhoto !== undefined) updateData.requirePhoto = requirePhoto;
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (photoUrl) updateData.photoUrl = photoUrl;
+    if (deadline) updateData.deadline = new Date(deadline);
 
     const task = await Task.findByIdAndUpdate(taskId, updateData, { new: true });
 
@@ -168,6 +184,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: '任务不存在' }, { status: 404 });
     }
 
+    // Handle point transaction only if status is changing to approved
     if (status === 'approved') {
       await Child.findByIdAndUpdate(task.childId, {
         $inc: { totalPoints: task.points, availablePoints: task.points }
@@ -175,8 +192,31 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, task });
-  } catch (error: Error) {
+  } catch (error: any) {
     console.error('Update task error:', error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await connectDB();
+    const { searchParams } = new URL(request.url);
+    const taskId = searchParams.get('taskId');
+
+    if (!taskId) {
+      return NextResponse.json({ success: false, message: '缺少taskId' }, { status: 400 });
+    }
+
+    const task = await Task.findByIdAndDelete(taskId);
+
+    if (!task) {
+      return NextResponse.json({ success: false, message: '任务不存在' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: '任务删除成功' });
+  } catch (error: any) {
+    console.error('Delete task error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

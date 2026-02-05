@@ -13,6 +13,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from  "react-datepicker";
 import { zhCN } from 'date-fns/locale';
 import ConfirmModal from './ConfirmModal';
+import Button from '@/components/ui/Button';
 
 registerLocale('zh-CN', zhCN);
 
@@ -46,6 +47,15 @@ interface ChildProfile {
   avatar: string;
   availablePoints: number;
   totalPoints: number;
+}
+
+interface LedgerItem {
+  _id: string;
+  type: 'income' | 'expense';
+  name: string;
+  points: number;
+  date: string;
+  icon: string;
 }
 
 export default function ChildDashboard() {
@@ -90,7 +100,7 @@ export default function ChildDashboard() {
   const [filteredRewards, setFilteredRewards] = useState<Reward[]>([]);
 
   // Ledger State
-  const [ledgerData, setLedgerData] = useState<any[]>([]);
+  const [ledgerData, setLedgerData] = useState<LedgerItem[]>([]);
   const [ledgerPage, setLedgerPage] = useState(1);
   const [ledgerTotal, setLedgerTotal] = useState(0);
   const [ledgerLimit] = useState(10);
@@ -386,12 +396,13 @@ export default function ChildDashboard() {
                 </div>
               ))}
             </div>
-            <button
+            <Button
               onClick={() => setShowChildSwitcher(false)}
-              className="w-full py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
+              variant="secondary"
+              fullWidth
             >
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -434,15 +445,16 @@ export default function ChildDashboard() {
             )}
 
             <div className="flex gap-3">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => { setShowSubmitModal(false); setPhotoPreview(''); }}
                 className="flex-1 py-3 text-gray-600"
               >
                 取消
-              </button>
-              <button onClick={handleSubmitTask} className="flex-1 btn-child">
+              </Button>
+              <Button onClick={handleSubmitTask} className="flex-1 btn-child">
                 确认提交
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -498,23 +510,24 @@ export default function ChildDashboard() {
             </div>
 
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => setShowTaskDetail(null)}
-                className="flex-1 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition"
+                variant="ghost"
+                className="flex-1 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
               >
                 关闭
-              </button>
+              </Button>
               {['pending', 'rejected'].includes(showTaskDetail.status) && (
-                <button
+                <Button
                   onClick={() => {
                     setSelectedTask(showTaskDetail);
                     setShowTaskDetail(null);
                     setShowSubmitModal(true);
                   }}
-                  className="flex-1 btn-child"
+                  className="flex-1"
                 >
                   {showTaskDetail.status === 'rejected' ? '重新提交' : '去完成'}
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -524,12 +537,13 @@ export default function ChildDashboard() {
       <header className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <button
+            <Button
               onClick={() => setShowChildSwitcher(true)}
-              className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+              variant="ghost"
+              className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0"
             >
               <User size={20} className="text-blue-600" />
-            </button>
+            </Button>
             {childList.length > 1 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">
                 {childList.length}
@@ -538,18 +552,20 @@ export default function ChildDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button
+          <Button
             onClick={() => setShowPinModal(true)}
-            className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+            variant="ghost"
+            className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0"
           >
             <Lock size={20} className="text-blue-600" />
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleLogout}
-            className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+            variant="ghost"
+            className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0"
           >
             <LogOut size={20} className="text-gray-600" />
-          </button>
+          </Button>
           <div className="points-display-child transform scale-90 origin-right">
             🪙 {currentChild?.availablePoints || 0}
           </div>
@@ -587,9 +603,10 @@ export default function ChildDashboard() {
             {/* Tabs */}
             <div className="flex p-1 bg-white/50 backdrop-blur rounded-xl mb-4 border border-blue-100">
               {(['all', 'uncompleted', 'completed'] as const).map((tab) => (
-                <button
+                <Button
                   key={tab}
                   onClick={() => setActiveTaskTab(tab)}
+                  variant="ghost"
                   className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${
                     activeTaskTab === tab
                       ? 'bg-white text-blue-600 shadow-sm'
@@ -597,7 +614,7 @@ export default function ChildDashboard() {
                   }`}
                 >
                   {tab === 'all' ? '全部' : tab === 'uncompleted' ? '未完成' : '已完成'}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -675,12 +692,13 @@ export default function ChildDashboard() {
         {activeTab === 'store' && (
           <>
             <div className="flex items-center gap-2 mb-4">
-              <button
+              <Button
                 onClick={() => setActiveTab('tasks')}
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+                variant="ghost"
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
               >
                 <ChevronRight size={24} className="text-blue-600 rotate-180" />
-              </button>
+              </Button>
               <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分商城</h2>
             </div>
 
@@ -704,13 +722,15 @@ export default function ChildDashboard() {
                   <p className={`text-xs mb-3 ${reward.stock > 0 ? 'text-green-500' : 'text-red-500'}`}>
                     库存: {reward.stock}
                   </p>
-                  <button
+                  <Button
                     onClick={() => handleRedeemReward(reward)}
                     disabled={reward.stock <= 0}
-                    className={`btn-child py-2 px-4 text-sm w-full ${reward.stock <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    variant={reward.stock > 0 ? 'primary' : 'ghost'}
+                    size="sm"
+                    fullWidth
                   >
                     {reward.stock > 0 ? '兑换' : '已售罄'}
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -720,12 +740,13 @@ export default function ChildDashboard() {
         {activeTab === 'wallet' && (
           <>
             <div className="flex items-center gap-2 mb-4">
-              <button
+              <Button
                 onClick={() => setActiveTab('tasks')}
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition"
+                variant="ghost"
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
               >
                 <ChevronRight size={24} className="text-blue-600 rotate-180" />
-              </button>
+              </Button>
               <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分账本</h2>
             </div>
             <div className="card-child mb-4">
@@ -804,21 +825,25 @@ export default function ChildDashboard() {
                   {/* Pagination */}
                   {Math.ceil(ledgerTotal / ledgerLimit) > 1 && (
                     <div className="flex justify-center gap-2 mt-4">
-                      <button 
+                      <Button 
                         onClick={() => fetchLedger(ledgerPage - 1)}
                         disabled={ledgerPage === 1}
-                        className="px-3 py-1 rounded-lg bg-white border border-blue-200 disabled:opacity-50"
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 px-3 py-1 rounded-lg"
                       >
                         上一页
-                      </button>
+                      </Button>
                       <span className="px-3 py-1 text-gray-600">{ledgerPage} / {Math.ceil(ledgerTotal / ledgerLimit)}</span>
-                      <button 
+                      <Button 
                         onClick={() => fetchLedger(ledgerPage + 1)}
                         disabled={ledgerPage === Math.ceil(ledgerTotal / ledgerLimit)}
-                        className="px-3 py-1 rounded-lg bg-white border border-blue-200 disabled:opacity-50"
+                        variant="secondary"
+                        size="sm"
+                        className="h-8 px-3 py-1 rounded-lg"
                       >
                         下一页
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </>
@@ -829,36 +854,39 @@ export default function ChildDashboard() {
       </main>
 
       <nav className="nav-bar">
-        <button
+        <Button
           onClick={() => {
             setActiveTab('tasks');
             router.push(`/child/${currentChild?.id}/tasks`);
           }}
-          className={`nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          variant="ghost"
+          className={`nav-item ${activeTab === 'tasks' ? 'active' : ''} flex-col h-auto p-2`}
         >
           <Star size={24} />
           <span className="text-xs">任务</span>
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             setActiveTab('store');
             router.push(`/child/${currentChild?.id}/store`);
           }}
-          className={`nav-item ${activeTab === 'store' ? 'active' : ''}`}
+          variant="ghost"
+          className={`nav-item ${activeTab === 'store' ? 'active' : ''} flex-col h-auto p-2`}
         >
           <Gift size={24} />
           <span className="text-xs">商城</span>
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             setActiveTab('wallet');
             router.push(`/child/${currentChild?.id}/wallet`);
           }}
-          className={`nav-item ${activeTab === 'wallet' ? 'active' : ''}`}
+          variant="ghost"
+          className={`nav-item ${activeTab === 'wallet' ? 'active' : ''} flex-col h-auto p-2`}
         >
           <Wallet size={24} />
           <span className="text-xs">钱包</span>
-        </button>
+        </Button>
       </nav>
     </div>
   );
@@ -902,38 +930,42 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
 
         <div className="grid grid-cols-3 gap-2 mb-6">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-            <button
+            <Button
               key={num}
               onClick={() => pin.length < 4 && setPin(pin + num.toString())}
-              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200"
+              variant="ghost"
+              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none"
             >
               {num}
-            </button>
+            </Button>
           ))}
-          <button
+          <Button
             onClick={() => setPin(pin.slice(0, -1))}
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200"
+            variant="ghost"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none"
           >
             删除
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => pin.length < 4 && setPin(pin + '0')}
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200"
+            variant="ghost"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none"
           >
             0
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setPin('')}
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200"
+            variant="ghost"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none"
           >
             清空
-          </button>
+          </Button>
         </div>
 
         {error && <div className="bg-red-100 text-red-600 px-4 py-2 rounded-xl text-center mb-4">{error}</div>}
 
-        <button onClick={handleSubmit} className="btn-child w-full mb-3">确认</button>
-        <button onClick={onCancel} className="w-full py-3 text-gray-500">取消</button>
+        <Button onClick={handleSubmit} variant="primary" fullWidth className="mb-3">确认</Button>
+        <Button onClick={onCancel} variant="ghost" fullWidth className="text-gray-500">取消</Button>
       </div>
     </div>
   );

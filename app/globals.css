@@ -21,6 +21,8 @@
   --warning: #f59e0b;
   --error: #ef4444;
   --info: #3b82f6;
+  --z-modal: 50;
+  --z-alert: 200;
 }
 
 @theme inline {
@@ -595,7 +597,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   animation: fadeIn 0.3s ease;
   padding: 16px;
 }
@@ -620,10 +622,50 @@ body {
   max-width: 95%;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  flex-shrink: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+}
+
+.modal-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+.modal-footer {
+  flex-shrink: 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Custom Scrollbar for modal body */
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.5);
 }
 
 @keyframes slideUp {
@@ -801,7 +843,11 @@ body {
 }
 
 .file-upload {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   position: relative;
   border: 2px dashed rgba(59, 130, 246, 0.3);
   border-radius: 20px;
@@ -1056,13 +1102,13 @@ body {
 }
 
 .status-pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: #b45309;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--primary-dark);
 }
 
 .status-submitted {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--primary-dark);
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
 }
 
 .status-approved {

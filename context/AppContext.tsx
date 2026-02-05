@@ -9,6 +9,7 @@ export interface User {
   role?: string;
   inviteCode?: string;
   familyId?: string;
+  pin?: string;
 }
 
 export interface ChildProfile {
@@ -111,10 +112,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
         };
         setCurrentUser(user);
         setChildList(data.children);
-        setMode("parent");
-        setCurrentChild(null);
-        if (typeof window !== "undefined") {
-          window.location.href = "/parent";
+        
+        if (data.user.role === 'child' ) {
+            setMode("child");
+            // If the user is a child (children role), we might want to auto-select the first child profile or handle it.
+            
+            if (data.children && data.children.length > 0) {
+                 const firstChild = data.children[0];
+                 setCurrentChild(firstChild);
+                 setMode("child");
+                 if (typeof window !== "undefined") {
+                   window.location.href = `/child/${firstChild.id}`;
+                 }
+            } else {
+                // Fallback if no child profile found, though unusual for 'children' role
+                 setMode("child");
+                 if (typeof window !== "undefined") {
+                   console.warn("Logged in as child role but no child profile found.");
+                   // window.location.href = "/parent"; // Fallback
+                 }
+            }
+        } else {
+            setMode("parent");
+            setCurrentChild(null);
+            if (typeof window !== "undefined") {
+              window.location.href = "/parent";
+            }
         }
         return { success: true };
       }

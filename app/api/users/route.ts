@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, user });
   } catch (e) {
-    return NextResponse.json({ success: false, message: 'Error' });
+    console.error('Create user API error:', e);
+    return NextResponse.json({ success: false, message: (e as Error).message || 'Error' });
   }
 }
 

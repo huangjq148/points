@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Lock, Calculator } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 interface PinVerificationProps {
   onVerified: () => void;
@@ -75,9 +76,9 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
                 autoFocus
               />
             </div>
-            <button onClick={handleMathSubmit} className="btn-primary w-full">
+            <Button onClick={handleMathSubmit} className="w-full mt-4" variant="primary">
               确认
-            </button>
+            </Button>
           </>
         ) : (
           <>
@@ -94,37 +95,41 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
 
             <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-4">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                <button
+                <Button
                   key={num}
                   onClick={() => pin.length < 4 && setPin(pin + num.toString())}
-                  className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition"
+                  variant="ghost"
+                  className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition p-0 shadow-none"
                 >
                   {num}
-                </button>
+                </Button>
               ))}
-              <button
+              <Button
                 onClick={() => setPin(pin.slice(0, -1))}
-                className="w-16 h-16 bg-gray-100 rounded-xl text-lg font-medium hover:bg-gray-200 transition"
+                variant="ghost"
+                className="w-16 h-16 bg-gray-100 rounded-xl text-lg font-medium hover:bg-gray-200 transition p-0 shadow-none"
               >
                 删除
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => pin.length < 4 && setPin(pin + '0')}
-                className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition"
+                variant="ghost"
+                className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition p-0 shadow-none"
               >
                 0
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setPin('')}
-                className="w-16 h-16 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 transition"
+                variant="ghost"
+                className="w-16 h-16 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 transition p-0 shadow-none"
               >
                 清空
-              </button>
+              </Button>
             </div>
 
-            <button onClick={handlePinSubmit} className="btn-primary w-full">
+            <Button onClick={handlePinSubmit} className="w-full mt-4" variant="primary">
               确认
-            </button>
+            </Button>
           </>
         )}
 
@@ -134,19 +139,21 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
           </div>
         )}
 
-        <button
+        <Button
           onClick={toggleMethod}
-          className="mt-4 text-green-600 hover:text-green-700 font-medium"
+          variant="ghost"
+          className="mt-4 text-green-600 hover:text-green-700 font-medium bg-transparent border-none cursor-pointer shadow-none hover:bg-transparent"
         >
           {showMathChallenge ? '使用PIN码验证' : '换个方式：数学挑战'}
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={onCancel}
-          className="mt-4 w-full py-3 text-gray-500 hover:text-gray-600"
+          variant="ghost"
+          className="mt-4 w-full text-gray-500 hover:text-gray-600"
         >
           取消
-        </button>
+        </Button>
       </div>
     </div>
   );
