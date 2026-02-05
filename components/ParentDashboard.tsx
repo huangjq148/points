@@ -18,7 +18,7 @@ import {
   Trash2,
   UserCog,
   Users,
-  X
+  X,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -28,42 +28,6 @@ import AlertModal from "./AlertModal";
 interface SelectOption {
   value: string | number;
   label: string;
-}
-
-interface PlainTask {
-  _id: string;
-  userId: string;
-  childId: string;
-  name: string;
-  description: string;
-  points: number;
-  type: "daily" | "advanced" | "challenge";
-  icon: string;
-  requirePhoto: boolean;
-  status: "pending" | "submitted" | "approved" | "rejected";
-  photoUrl?: string;
-  imageUrl?: string;
-  submittedAt?: string;
-  approvedAt?: string;
-  completedAt?: string;
-  deadline?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PlainOrder {
-  _id: string;
-  userId: string;
-  childId: string;
-  rewardId: string;
-  rewardName: string;
-  rewardIcon?: string;
-  pointsSpent: number;
-  status: "pending" | "verified" | "cancelled";
-  verificationCode: string;
-  verifiedAt?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface FamilyMember {
@@ -76,26 +40,8 @@ interface FamilyMember {
   identity?: string;
 }
 
-interface IDisplayedTask extends PlainTask {
-  childName: string;
-  childAvatar?: string;
-}
-
-interface IDisplayedOrder extends PlainOrder {
-  rewardName: string;
-  rewardIcon?: string;
-  childName: string;
-  childAvatar: string;
-}
-
-interface ChildStats {
-  pendingTasks: number;
-  submittedTasks: number;
-  pendingOrders: number;
-}
-
 export default function ParentDashboard() {
-  const { currentUser, childList, logout, switchToChild, addChild } = useApp();
+  const { currentUser, logout } = useApp();
   const router = useRouter();
   const pathname = usePathname();
   const initialTab = (() => {

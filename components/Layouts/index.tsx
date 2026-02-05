@@ -1,20 +1,11 @@
 "use client";
 import Button from "@/components/ui/Button";
 import { useApp } from "@/context/AppContext";
-import {
-  FileText,
-  Gift,
-  Home,
-  LogOut,
-  Star,
-  Ticket,
-  UserCog,
-  Users
-} from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
 
-type NavItemId = "home" | "audit" | "tasks" | "orders" | "rewards";
+type NavItemId = "home" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
@@ -28,6 +19,8 @@ const Layout = ({ children }: { children: ReactNode }) => {
     { id: "orders", icon: Ticket, label: "核销" },
     // { id: "orders", icon: Ticket, label: "核销", badge: pendingOrders.length },
     { id: "rewards", icon: Gift, label: "商城" },
+    { id: "family", icon: Users, label: "家庭管理" },
+    { id: "users", icon: UserCog, label: "用户管理" },
   ];
   const initialTab = (() => {
     const pathSegments = pathname.split("/");
@@ -73,20 +66,6 @@ const Layout = ({ children }: { children: ReactNode }) => {
               {item.badge !== undefined && item.badge > 0 && <span className="badge">{item.badge}</span>}
             </div>
           ))}
-          <div
-            onClick={() => setActiveTab("users")}
-            className={`desktop-nav-item ${activeTab === "users" ? "active" : ""}`}
-          >
-            <UserCog size={22} />
-            <span>用户管理</span>
-          </div>
-          <div
-            onClick={() => setActiveTab("family")}
-            className={`desktop-nav-item ${activeTab === "family" ? "active" : ""}`}
-          >
-            <Users size={22} />
-            <span>家庭管理</span>
-          </div>
         </div>
 
         <div className="mt-auto">
