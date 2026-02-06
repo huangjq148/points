@@ -40,13 +40,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const isActiveParam = searchParams.get('isActive');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
 
     const query: RewardGetQuery = {};
     if (userId) query.userId = userId;
     if (isActiveParam !== null) query.isActive = isActiveParam === 'true';
 
-    const rewards = await Reward.find(query).sort({ points: 1 }).lean();
-    return NextResponse.json({ success: true, rewards });
+    const skip = (page - 1) * limit;
+    const rewards = await Reward.find(query)
+      .sort({ points: 1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+      
+    const total = await Reward.countDocuments(query);
+    
+    return NextResponse.json({ success: true, rewards, total, page, limit });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error('Get rewards error:', error);

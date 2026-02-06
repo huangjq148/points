@@ -1,9 +1,9 @@
 "use client";
 
-import ConfirmModal from "@/components/ConfirmModal";
-import Button from "@/components/ui/Button";
+import { Button, Pagination } from "@/components/ui";
 import Select from "@/components/ui/Select";
 import { User, useApp } from "@/context/AppContext";
+import ConfirmModal from "@/components/ConfirmModal";
 
 import AlertModal from "@/components/AlertModal";
 import Input from "@/components/ui/Input";
@@ -63,6 +63,10 @@ export default function TasksPage() {
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [taskPhotoPreview, setTaskPhotoPreview] = useState<string>("");
   const [editingTask, setEditingTask] = useState<PlainTask | null>(null);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
+  
   const [newTask, setNewTask] = useState({
     name: "",
     points: 5,
@@ -279,14 +283,30 @@ export default function TasksPage() {
     setShowEditTaskModal(true);
   };
 
-  const fetchTasks = useCallback(async () => {
+  const fetchTasks = useCallback(async (pageNum: number = 1) => {
     if (!currentUser?.token) return [];
-    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
+    
+    let statusFilter = "";
+    if (activeTaskFilter === "uncompleted") {
+      statusFilter = "pending,submitted,rejected";
+    } else if (activeTaskFilter === "completed") {
+      statusFilter = "approved";
+    }
+    
+    let url = `/api/tasks?userId=${currentUser?.id}&page=${pageNum}&limit=${limit}`;
+    if (statusFilter) {
+      url += `&status=${statusFilter}`;
+    }
+    if (selectedChildTaskFilter !== "all") {
+      url += `&childId=${selectedChildTaskFilter}`;
+    }
+
+    const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${currentUser.token}`,
       },
     });
-    const data: { success: boolean; tasks: PlainTask[] } = await res.json();
+    const data: { success: boolean; tasks: PlainTask[]; total: number } = await res.json();
     if (data.success) {
       const tasksWithNames: IDisplayedTask[] = await Promise.all(
         data.tasks.map(async (task: PlainTask) => {
@@ -304,36 +324,26 @@ export default function TasksPage() {
         }),
       );
 
-      // Sort: Pending tasks at the end
-      tasksWithNames.sort((a, b) => {
-        // Priority 1: Pending last
-        const isAPending = a.status === "pending";
-        const isBPending = b.status === "pending";
-        if (isAPending && !isBPending) return 1;
-        if (!isAPending && isBPending) return -1;
-
-        // Priority 2: Approved first
-        const isACompleted = a.status === "approved";
-        const isBCompleted = b.status === "approved";
-        if (isACompleted && !isBCompleted) return -1;
-        if (!isACompleted && isBCompleted) return 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-
+      setTotal(data.total);
       return tasksWithNames;
     }
     return [];
-  }, [currentUser?.id]);
+  }, [currentUser?.id, currentUser?.token, activeTaskFilter, selectedChildTaskFilter]);
 
   useEffect(() => {
     const loadData = async () => {
       if (currentUser) {
-        const fetchedTasks = await fetchTasks();
+        const fetchedTasks = await fetchTasks(page);
         setTasks(fetchedTasks);
       }
     };
     loadData();
-  }, [currentUser]);
+  }, [currentUser, fetchTasks, page]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [activeTaskFilter, selectedChildTaskFilter]);
 
   return (
     <Layout>
@@ -378,15 +388,7 @@ export default function TasksPage() {
         </div>
 
         <div className="space-y-3">
-          {tasks
-            .filter((task) => {
-              if (selectedChildTaskFilter !== "all" && task.childId.toString() !== selectedChildTaskFilter)
-                return false;
-              if (activeTaskFilter === "completed") return task.status === "approved";
-              if (activeTaskFilter === "uncompleted") return ["pending", "submitted", "rejected"].includes(task.status);
-              return true;
-            })
-            .map((task) => (
+          {tasks.map((task) => (
               <div key={task._id} className="card flex items-center gap-4 group">
                 <div className="text-2xl">{task.icon}</div>
                 <div className="flex-1">
@@ -437,12 +439,16 @@ export default function TasksPage() {
                 </span>
               </div>
             ))}
-          {tasks.filter((task) => {
-            if (selectedChildTaskFilter !== "all" && task.childId.toString() !== selectedChildTaskFilter) return false;
-            if (activeTaskFilter === "completed") return task.status === "approved";
-            if (activeTaskFilter === "uncompleted") return ["pending", "submitted", "rejected"].includes(task.status);
-            return true;
-          }).length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
+          {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
+          
+          {total > limit && (
+            <Pagination
+              currentPage={page}
+              totalItems={total}
+              pageSize={limit}
+              onPageChange={setPage}
+            />
+          )}
         </div>
 
         {/* Add Task Modal */}

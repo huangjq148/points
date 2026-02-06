@@ -39,13 +39,67 @@ export async function GET(request: NextRequest) {
     const childId = searchParams.get('childId');
     const status = searchParams.get('status');
 
-    const query: OrderGetQuery = {};
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+
+    const query: Record<string, unknown> = {};
     if (userId) query.userId = userId;
     if (childId) query.childId = childId;
-    if (status) query.status = status;
+    if (status) {
+      if (status.includes(',')) {
+        query.status = { $in: status.split(',') };
+      } else {
+        query.status = status;
+      }
+    }
 
-    const orders: IOrder[] = await Order.find(query).sort({ createdAt: -1 }).lean();
-    return NextResponse.json({ success: true, orders });
+    // Logic to handle family orders
+    // If userId is provided, we try to find all children belonging to this parent (family)
+    // and include their orders as well, in case the userId on the order is incorrect (e.g. set to childId)
+    if (userId) {
+      const parentUser = await User.findById(userId);
+      if (parentUser && parentUser.familyId) {
+         // Find all children in this family
+         const familyChildren = await User.find({ familyId: parentUser.familyId, role: 'child' });
+         const childIds = familyChildren.map(c => c._id);
+         
+         // Modify query to be: (userId match) OR (childId in familyChildren)
+         // We use $or to be safe
+         delete query.userId; // Remove strict userId check
+         delete query.childId; // If childId was set, we might override it? 
+         // Actually if childId was set specifically, we should respect it.
+         
+         const baseQuery: Record<string, unknown> = {};
+         if (status) baseQuery.status = query.status;
+         
+         const orConditions: Record<string, unknown>[] = [{ userId: userId }];
+         if (childIds.length > 0) {
+           orConditions.push({ childId: { $in: childIds } });
+         }
+         
+         if (childId) {
+            // If specific child requested, we just use that and ensure it's in the family
+            query.childId = childId;
+            // But we still want to fix the "userId might be wrong" issue.
+            // So we search: childId == requestedChildId AND (userId == parent OR userId == childId OR whatever)
+            // Actually if childId is specified, we just trust it?
+            // Let's stick to the $or logic for the general list case.
+         } else {
+            query.$or = orConditions;
+         }
+      }
+    }
+
+    const skip = (page - 1) * limit;
+    const orders: IOrder[] = await Order.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+      
+    const total = await Order.countDocuments(query);
+    
+    return NextResponse.json({ success: true, orders, total, page, limit });
   } catch (error: unknown) {
     if (error instanceof Error) {
       console.error('Get orders error:', error);
@@ -63,7 +117,21 @@ export async function POST(request: NextRequest) {
     if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     await connectDB();
-    const { userId, childId, rewardId }: OrderPostRequest = await request.json();
+    const body: OrderPostRequest = await request.json();
+    let { userId } = body;
+    const { childId, rewardId } = body;
+
+    // Fix: If userId is same as childId (Child created order), try to find the Parent ID
+    if (userId === childId) {
+       const childUser = await User.findById(childId);
+       if (childUser && childUser.familyId) {
+          // Find parent in the same family
+          const parentUser = await User.findOne({ familyId: childUser.familyId, role: 'parent' });
+          if (parentUser) {
+             userId = parentUser._id as mongoose.Types.ObjectId;
+          }
+       }
+    }
 
     if (!userId || !childId || !rewardId) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });

@@ -3,3 +3,4 @@ export { default as Input } from './Input';
 export { default as PasswordInput } from './PasswordInput';
 export { default as Select } from './Select';
 export { default as Modal } from './Modal';
+export { default as Pagination } from './Pagination';

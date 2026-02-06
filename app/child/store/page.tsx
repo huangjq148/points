@@ -1,11 +1,12 @@
  "use client";
  
- import { useState, useEffect } from "react";
+ import { useState, useEffect, useCallback } from "react";
  import { useApp } from "@/context/AppContext";
  import { useChild } from "@/components/ChildShell";
  import { useRouter } from "next/navigation";
  import { Gift, ChevronRight, Wallet } from "lucide-react";
  import Button from "@/components/ui/Button";
+ import { Pagination } from "@/components/ui";
  import ConfirmModal from "@/components/ConfirmModal";
  import confetti from "canvas-confetti";
  
@@ -27,10 +28,13 @@
    const [rewardSearchQuery, setRewardSearchQuery] = useState("");
   // Derived rewards
    const [showConfirmRedeem, setShowConfirmRedeem] = useState<Reward | null>(null);
+   const [page, setPage] = useState(1);
+   const [total, setTotal] = useState(0);
+   const limit = 10;
  
-   const fetchRewards = async () => {
+   const fetchRewards = useCallback(async (pageNum: number = 1) => {
      if (!currentUser) return;
-     const res = await fetch(`/api/rewards?isActive=true`, {
+     const res = await fetch(`/api/rewards?isActive=true&page=${pageNum}&limit=${limit}`, {
        headers: {
          Authorization: `Bearer ${currentUser?.token}`,
        },
@@ -38,16 +42,15 @@
      const data = await res.json();
     if (data.success) {
       setRewards(data.rewards);
+      setTotal(data.total);
     }
-   };
+   }, [currentUser]);
  
   useEffect(() => {
     if (currentUser) {
-      // 把数据拉取逻辑移到事件回调或初始化时，避免在 effect 中直接 setState
-      // 这里保持调用即可，实际 setState 在 fetchRewards 内部，由调用方控制时机
-      fetchRewards();
+      fetchRewards(page);
     }
-  }, [currentUser?.token]);
+  }, [currentUser?.token, fetchRewards, page]);
  
   const filteredRewards = (() => {
     if (rewardSearchQuery) {
@@ -152,36 +155,45 @@
        </div>
  
        <div className="grid grid-cols-2 gap-4">
-         {filteredRewards.length > 0 ? (
-           filteredRewards.map((reward) => (
-             <div
-               key={reward._id}
-               className={`reward-card flex-col text-center ${reward.stock <= 0 ? "opacity-50" : ""}`}
-             >
-               <div className="reward-icon mx-auto mb-3">{reward.icon}</div>
-               <p className="font-bold text-gray-800">{reward.name}</p>
-               <p className="text-lg text-yellow-600 font-bold my-2">🪙 {reward.points}</p>
-               <p className={`text-xs mb-3 ${reward.stock > 0 ? "text-green-500" : "text-red-500"}`}>
-                 库存: {reward.stock}
-               </p>
-               <Button
-                 onClick={() => setShowConfirmRedeem(reward)}
-                 disabled={reward.stock <= 0}
-                 variant={reward.stock > 0 ? "primary" : "ghost"}
-                 size="sm"
-                 fullWidth
-               >
-                 {reward.stock > 0 ? "兑换" : "已售罄"}
-               </Button>
-             </div>
-           ))
-         ) : (
-           <div className="col-span-2 card text-center py-12 text-gray-500">
-             <Gift size={48} className="mx-auto mb-2 opacity-50" />
-             <p>暂无商品</p>
-           </div>
-         )}
-       </div>
+        {filteredRewards.length > 0 ? (
+          filteredRewards.map((reward) => (
+            <div
+              key={reward._id}
+              className={`reward-card flex-col text-center ${reward.stock <= 0 ? "opacity-50" : ""}`}
+            >
+              <div className="reward-icon mx-auto mb-3">{reward.icon}</div>
+              <p className="font-bold text-gray-800">{reward.name}</p>
+              <p className="text-lg text-yellow-600 font-bold my-2">🪙 {reward.points}</p>
+              <p className={`text-xs mb-3 ${reward.stock > 0 ? "text-green-500" : "text-red-500"}`}>
+                库存: {reward.stock}
+              </p>
+              <Button
+                onClick={() => setShowConfirmRedeem(reward)}
+                disabled={reward.stock <= 0}
+                variant={reward.stock > 0 ? "primary" : "ghost"}
+                size="sm"
+                fullWidth
+              >
+                {reward.stock > 0 ? "兑换" : "已售罄"}
+              </Button>
+            </div>
+          ))
+        ) : (
+          <div className="col-span-2 card text-center py-12 text-gray-500">
+            <Gift size={48} className="mx-auto mb-2 opacity-50" />
+            <p>暂无商品</p>
+          </div>
+        )}
+      </div>
+      
+      {total > limit && (
+        <Pagination
+          currentPage={page}
+          totalItems={total}
+          pageSize={limit}
+          onPageChange={setPage}
+        />
+      )}
      </>
    );
  }

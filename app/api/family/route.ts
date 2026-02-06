@@ -23,12 +23,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
 
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+
     if (!user.familyId) {
-      return NextResponse.json({ success: true, members: [] });
+      return NextResponse.json({ success: true, members: [], total: 0, page, limit });
     }
 
     // Fetch all family members (parents and children) from User collection
-    const familyMembers = await User.find({ familyId: user.familyId });
+    const skip = (page - 1) * limit;
+    const familyMembers = await User.find({ familyId: user.familyId })
+      .skip(skip)
+      .limit(limit);
+      
+    const total = await User.countDocuments({ familyId: user.familyId });
 
     return NextResponse.json({
       success: true,
@@ -42,7 +50,10 @@ export async function GET(request: NextRequest) {
         avatar: m.avatar,
         totalPoints: m.totalPoints,
         availablePoints: m.availablePoints
-      }))
+      })),
+      total,
+      page,
+      limit
     });
   } catch (error) {
     console.error('Get family error:', error);

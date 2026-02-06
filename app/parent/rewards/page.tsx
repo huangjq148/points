@@ -10,11 +10,15 @@ import { useApp } from "@/context/AppContext";
 import { Edit2, Eye, EyeOff, Gift, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
+import { Pagination } from "@/components/ui";
 
 export default function RewardsPage() {
   const { currentUser } = useApp();
   const toast = useToast();
   const [rewards, setRewards] = useState<PlainReward[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
   const [showAddReward, setShowAddReward] = useState(false);
   const [newReward, setNewReward] = useState({ name: "", points: 50, type: "physical", icon: "🎁", stock: 10 });
   // Reward Edit/Delete States
@@ -30,20 +34,19 @@ export default function RewardsPage() {
   });
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
 
-  const fetchRewards = useCallback(async () => {
-    if (!currentUser?.token) return [];
-    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&t=${Date.now()}`, {
+  const fetchRewards = useCallback(async (pageNum: number = 1) => {
+    if (!currentUser?.token) return;
+    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&page=${pageNum}&limit=${limit}`, {
       headers: {
         "Authorization": `Bearer ${currentUser.token}`
       }
     });
-    const data: { success: boolean; rewards: PlainReward[] } = await res.json();
+    const data: { success: boolean; rewards: PlainReward[]; total: number } = await res.json();
     if (data.success) {
       setRewards(data.rewards);
-      return data.rewards;
+      setTotal(data.total);
     }
-    return [];
-  }, [currentUser?.id]);
+  }, [currentUser]);
 
   const handleEditReward = (reward: PlainReward) => {
     setEditingReward(reward);
@@ -78,7 +81,7 @@ export default function RewardsPage() {
         toast.success("奖励更新成功");
         setShowEditRewardModal(false);
         setEditingReward(null);
-        fetchRewards();
+        fetchRewards(page);
       } else {
         toast.error(data.message);
       }
@@ -103,8 +106,7 @@ export default function RewardsPage() {
       const data = await res.json();
       if (data.success) {
         toast.success(reward.isActive ? "奖励已下架" : "奖励已上架");
-        const updatedRewards = await fetchRewards();
-        setRewards(updatedRewards);
+        fetchRewards(page);
       } else {
         toast.error(data.message);
       }
@@ -126,7 +128,7 @@ export default function RewardsPage() {
       if (data.success) {
         toast.success("奖励删除成功");
         setRewardToDelete(null);
-        fetchRewards();
+        fetchRewards(page);
       } else {
         toast.error(data.message);
       }
@@ -155,8 +157,7 @@ export default function RewardsPage() {
     if (data.success) {
       setShowAddReward(false);
       setNewReward({ name: "", points: 50, type: "physical", icon: "🎁", stock: 10 });
-      const updatedRewards = await fetchRewards();
-      setRewards(updatedRewards);
+      fetchRewards(page);
     } else {
       toast.error("添加失败: " + data.message);
     }
@@ -165,12 +166,11 @@ export default function RewardsPage() {
   useEffect(() => {
     const loadData = async () => {
       if (currentUser) {
-        const fetchedRewards = await fetchRewards();
-        setRewards(fetchedRewards);
+        fetchRewards(page);
       }
     };
     loadData();
-  }, [currentUser, fetchRewards]);
+  }, [currentUser, fetchRewards, page]);
 
   return (
     <Layout>
@@ -242,6 +242,16 @@ export default function RewardsPage() {
           ))}
         </div>
       )}
+
+      {total > limit && (
+        <Pagination
+          currentPage={page}
+          totalItems={total}
+          pageSize={limit}
+          onPageChange={setPage}
+        />
+      )}
+
       {/* Add Reward Modal */}
       <Modal
         isOpen={showAddReward}

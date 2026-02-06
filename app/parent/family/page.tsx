@@ -10,6 +10,7 @@ import { useApp } from "@/context/AppContext";
 import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Copy, Settings, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Pagination } from "@/components/ui";
 
 export default function FamilyPage() {
   const { currentUser, logout, refreshChildren } = useApp();
@@ -20,6 +21,10 @@ export default function FamilyPage() {
   const [inviteUsernameInput, setInviteUsernameInput] = useState("");
 
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
+  
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
@@ -300,6 +305,15 @@ export default function FamilyPage() {
             </tbody>
           </table>
         </div>
+        
+        {total > limit && (
+          <Pagination
+            currentPage={page}
+            totalItems={total}
+            pageSize={limit}
+            onPageChange={setPage}
+          />
+        )}
       </div>
 
       <Modal

@@ -6,7 +6,7 @@ import { useApp } from "@/context/AppContext";
 import { Check, X, Image as ImageIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { Button, Input, Modal } from "@/components/ui";
+import { Button, Input, Modal, Pagination } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 
 export default function AuditPage() {
@@ -15,6 +15,9 @@ export default function AuditPage() {
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [selectedTask, setSelectedTask] = useState<IDisplayedTask | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
 
   const childOptions: SelectOption[] = [
     { value: "all", label: "全部孩子" },
@@ -24,35 +27,22 @@ export default function AuditPage() {
     })),
   ];
 
-  const pendingTasks =
-    selectedChildFilter === "all"
-      ? tasks.filter((t) => t.status === "submitted")
-      : tasks.filter((t) => t.status === "submitted" && t.childId.toString() === selectedChildFilter);
+  const pendingTasks = tasks;
 
-  const handleApproveTask = async (taskId: string, status: "approved" | "rejected", rejectionReason?: string) => {
+  const fetchTasks = useCallback(async (pageNum: number = 1) => {
     if (!currentUser?.token) return;
-    await fetch("/api/tasks", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-      body: JSON.stringify({ taskId, status, rejectionReason }),
-    });
-    const updatedTasks = await fetchTasks();
-    setTasks(updatedTasks);
-    setSelectedTask(null);
-    setRejectionReason("");
-  };
+    
+    let url = `/api/tasks?userId=${currentUser?.id}&status=submitted&page=${pageNum}&limit=${limit}`;
+    if (selectedChildFilter !== "all") {
+      url += `&childId=${selectedChildFilter}`;
+    }
 
-  const fetchTasks = useCallback(async () => {
-    if (!currentUser?.token) return [];
-    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
+    const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${currentUser.token}`,
       },
     });
-    const data: { success: boolean; tasks: PlainTask[] } = await res.json();
+    const data: { success: boolean; tasks: PlainTask[]; total: number } = await res.json();
     if (data.success) {
       const tasksWithNames: IDisplayedTask[] = await Promise.all(
         data.tasks.map(async (task: PlainTask) => {
@@ -70,36 +60,36 @@ export default function AuditPage() {
         }),
       );
 
-      // Sort: Pending tasks at the end
-      tasksWithNames.sort((a, b) => {
-        // Priority 1: Pending last
-        const isAPending = a.status === "pending";
-        const isBPending = b.status === "pending";
-        if (isAPending && !isBPending) return 1;
-        if (!isAPending && isBPending) return -1;
-
-        // Priority 2: Approved first
-        const isACompleted = a.status === "approved";
-        const isBCompleted = b.status === "approved";
-        if (isACompleted && !isBCompleted) return -1;
-        if (!isACompleted && isBCompleted) return 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-
-      return tasksWithNames;
+      setTasks(tasksWithNames);
+      setTotal(data.total);
     }
-    return [];
-  }, [currentUser]);
+  }, [currentUser, selectedChildFilter]);
 
   useEffect(() => {
-    const loadData = async () => {
-      if (currentUser) {
-        const fetchedTasks = await fetchTasks();
-        setTasks(fetchedTasks);
-      }
-    };
-    loadData();
-  }, [currentUser, fetchTasks]);
+    if (currentUser) {
+      fetchTasks(page);
+    }
+  }, [currentUser, fetchTasks, page]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedChildFilter]);
+
+  const handleApproveTask = async (taskId: string, status: "approved" | "rejected", rejectionReason?: string) => {
+    if (!currentUser?.token) return;
+    await fetch("/api/tasks", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${currentUser.token}`,
+      },
+      body: JSON.stringify({ taskId, status, rejectionReason }),
+    });
+    await fetchTasks(page);
+    setSelectedTask(null);
+    setRejectionReason("");
+  };
 
   return (
     <Layout>
@@ -179,6 +169,9 @@ export default function AuditPage() {
           ))}
         </div>
       )}
+      <div className="mt-4 flex justify-end">
+        <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
+      </div>
       <Modal
         isOpen={!!selectedTask}
         onClose={() => {

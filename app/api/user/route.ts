@@ -12,8 +12,18 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    
     const query: Record<string, unknown> = {};
-    const users = await User.find(query);
+    const skip = (page - 1) * limit;
+    
+    const users = await User.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+      
+    const total = await User.countDocuments(query);
 
     return NextResponse.json({
       success: true,
@@ -26,6 +36,9 @@ export async function GET(request: NextRequest) {
         type: "parent", // Consistent with frontend expectations
         isMe: u._id.toString() === userId,
       })),
+      total,
+      page,
+      limit
     });
   } catch (error: unknown) {
     return NextResponse.json({ success: false, message: (error as Error).message || "Server error" }, { status: 500 });

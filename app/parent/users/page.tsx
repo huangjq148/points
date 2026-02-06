@@ -13,11 +13,16 @@ import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTab
 import { FileText, Gift, Home, Plus, Settings, Star, Ticket, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
+import { Pagination } from "@/components/ui";
 
 export default function UsersPage() {
   const { currentUser, logout } = useApp();
   const toast = useToast();
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 10;
+  
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
@@ -264,6 +269,15 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
+        
+        {total > limit && (
+          <Pagination
+            currentPage={page}
+            totalItems={total}
+            pageSize={limit}
+            onPageChange={setPage}
+          />
+        )}
       </div>
       {/* Add Account Modal */}
       <Modal
