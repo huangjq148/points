@@ -11,6 +11,7 @@ export interface ITask extends Document {
   requirePhoto: boolean;
   status: 'pending' | 'submitted' | 'approved' | 'rejected';
   photoUrl?: string;
+  rejectionReason?: string;
   imageUrl?: string; // Task illustration image
   recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
   recurrenceDay?: number; // 0-6 for Weekly, 1-31 for Monthly
@@ -34,6 +35,7 @@ const TaskSchema = new Schema<ITask>({
   requirePhoto: { type: Boolean, default: false },
   status: { type: String, enum: ['pending', 'submitted', 'approved', 'rejected'], default: 'pending' },
   photoUrl: { type: String },
+  rejectionReason: { type: String },
   imageUrl: { type: String },
   recurrence: { type: String, enum: ['none', 'daily', 'weekly', 'monthly'], default: 'none' },
   recurrenceDay: { type: Number },
@@ -43,6 +45,11 @@ const TaskSchema = new Schema<ITask>({
   completedAt: { type: Date },
   deadline: { type: Date },
 }, { timestamps: true });
+
+// Prevent OverwriteModelError in development
+if (process.env.NODE_ENV === 'development') {
+  delete mongoose.models.Task;
+}
 
 const TaskModel = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
 
