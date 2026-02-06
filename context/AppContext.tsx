@@ -15,9 +15,18 @@ export interface User {
   token?: string;
 }
 
+interface ChildAPIResponse {
+  id?: string;
+  _id?: string;
+  username: string;
+  nickname?: string;
+  avatar?: string;
+  availablePoints?: number;
+  totalPoints?: number;
+}
+
 export interface AppContextType {
   currentUser: User | null;
-  currentChild: User | null;
   childList: User[];
   mode: "parent" | "child";
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
@@ -27,7 +36,6 @@ export interface AppContextType {
   switchToParent: (password?: string) => Promise<boolean>;
   addChild: (nickname: string) => Promise<void>;
   refreshChildren: () => Promise<void>;
-  updateChildPoints: (childId: string, newPoints: number) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -46,19 +54,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     return null;
   });
-  const [currentChild, setCurrentChild] = useState<User | null>(() => {
-    if (typeof window !== "undefined") {
-      const savedChild = localStorage.getItem("little_achievers_current_child");
-      if (savedChild) {
-        try {
-          return JSON.parse(savedChild);
-        } catch (error: unknown) {
-          localStorage.removeItem("little_achievers_current_child");
-        }
-      }
-    }
-    return null;
-  });
   const [childList, setChildList] = useState<User[]>([]);
   const [mode, setMode] = useState<"parent" | "child">(() => {
     if (typeof window !== "undefined") {
@@ -72,12 +67,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setCurrentUser(null);
-    setCurrentChild(null);
     setChildList([]);
     setMode("parent");
     if (typeof window !== "undefined") {
       localStorage.removeItem("little_achievers_user");
-      localStorage.removeItem("little_achievers_current_child");
       localStorage.removeItem("little_achievers_mode");
     }
     window.location.href = "/";
@@ -137,15 +130,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("little_achievers_user");
       }
 
-      if (currentChild) {
-        localStorage.setItem("little_achievers_current_child", JSON.stringify(currentChild));
-      } else {
-        localStorage.removeItem("little_achievers_current_child");
-      }
-
       localStorage.setItem("little_achievers_mode", mode);
     }
-  }, [currentUser, currentChild, mode]);
+  }, [currentUser, mode]);
 
   const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
@@ -191,16 +178,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         setCurrentUser(user);
-        
+
         // Map children to User objects
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const childrenAsUsers: User[] = (data.children || []).map((c: any) => ({
-             id: c.id || c._id,
-             username: c.username || c.nickname,
-             role: "child",
-             avatar: c.avatar,
-             availablePoints: c.availablePoints,
-             totalPoints: c.totalPoints
+        const childrenAsUsers: User[] = (data.children || []).map((c: ChildAPIResponse) => ({
+          id: c.id || c._id || "",
+          username: c.username || c.nickname || "",
+          role: "child",
+          avatar: c.avatar,
+          availablePoints: c.availablePoints,
+          totalPoints: c.totalPoints,
         }));
         setChildList(childrenAsUsers);
 
@@ -214,25 +200,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("little_achievers_mode", "child");
           }
           if (user.id) {
-            const childUser: User = {
-              ...user,
-              role: "child",
-              avatar: user.avatar || "🦊",
-              availablePoints: user.availablePoints || 0,
-              totalPoints: user.totalPoints || 0,
-            };
-            setCurrentChild(childUser);
             if (typeof window !== "undefined") {
-              localStorage.setItem("little_achievers_current_child", JSON.stringify(childUser));
-              window.location.href = `/child/${user.id}`;
+              window.location.href = `/child/task`;
             }
           }
         } else {
           setMode("parent");
-          setCurrentChild(null);
           if (typeof window !== "undefined") {
             localStorage.setItem("little_achievers_mode", "parent");
-            localStorage.removeItem("little_achievers_current_child");
             window.location.href = "/parent/home";
           }
         }
@@ -263,36 +238,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
           familyId: data.user.familyId,
           token: data.token,
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const childData = data.children?.find((c: any) => (c.id || c._id) === childId);
-        
-        if (childData) {
-            const childUser: User = {
-                id: childData.id || childData._id,
-                username: childData.username || childData.nickname,
-                role: "child",
-                avatar: childData.avatar,
-                availablePoints: childData.availablePoints,
-                totalPoints: childData.totalPoints
-            };
+        const childData = data.children?.find((c: ChildAPIResponse) => (c.id || c._id) === childId);
 
+        if (childData) {
           setCurrentUser(user);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setChildList((data.children || []).map((c: any) => ({
-             id: c.id || c._id,
-             username: c.username || c.nickname,
-             role: "child",
-             avatar: c.avatar,
-             availablePoints: c.availablePoints,
-             totalPoints: c.totalPoints
-          })));
-          setCurrentChild(childUser);
+          setChildList(
+            (data.children || []).map((c: User) => ({
+              id: c.id,
+              username: c.username,
+              role: "child",
+              avatar: c.avatar,
+              availablePoints: c.availablePoints,
+              totalPoints: c.totalPoints,
+            })),
+          );
           setMode("child");
           if (typeof window !== "undefined") {
             localStorage.setItem("little_achievers_user", JSON.stringify(user));
-            localStorage.setItem("little_achievers_current_child", JSON.stringify(childUser));
             localStorage.setItem("little_achievers_mode", "child");
-            window.location.href = `/child/${childUser.id}`;
+            window.location.href = `/child/task`;
           }
           return true;
         }
@@ -305,7 +270,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const switchToChild = (child: User) => {
-    setCurrentChild(child);
     setMode("child");
   };
 
@@ -321,7 +285,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const data = await res.json();
       if (data.success) {
         setMode("parent");
-        setCurrentChild(null);
         setChildList(data.children || []);
         return true;
       }
@@ -344,7 +307,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           nickname, // API uses nickname as username
           avatar: "🦊", // Default avatar
-          password: "123456" // Default password for child user
+          password: "123456", // Default password for child user
         }),
       });
       const data = await res.json();
@@ -366,32 +329,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setChildList((data.user.children || []).map((c: any) => ({
-             id: c.id || c._id,
-             username: c.username || c.nickname,
-             role: "child",
-             avatar: c.avatar,
-             availablePoints: c.availablePoints,
-             totalPoints: c.totalPoints
-        })));
+        setChildList(
+          (data.user.children || []).map((c: ChildAPIResponse) => ({
+            id: c.id || c._id || "",
+            username: c.username || c.nickname || "",
+            role: "child",
+            avatar: c.avatar,
+            availablePoints: c.availablePoints,
+            totalPoints: c.totalPoints,
+          })),
+        );
       }
     } catch (_error) {
       console.error("Refresh children error:", _error);
-    }
-  };
-
-  const updateChildPoints = (childId: string, newPoints: number) => {
-    setChildList((prevChildList) =>
-      prevChildList.map((child) => (child.id === childId ? { ...child, availablePoints: newPoints } : child)),
-    );
-    if (currentChild && currentChild.id === childId) {
-      setCurrentChild((prevCurrentChild) => {
-        if (prevCurrentChild) {
-          return { ...prevCurrentChild, availablePoints: newPoints };
-        }
-        return null;
-      });
     }
   };
 
@@ -399,7 +349,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         currentUser,
-        currentChild,
         childList,
         mode,
         login,
@@ -409,7 +358,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         switchToParent,
         addChild,
         refreshChildren,
-        updateChildPoints,
       }}
     >
       {children}

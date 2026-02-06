@@ -47,8 +47,7 @@ export async function POST(request: NextRequest) {
 
         try {
           user = await createUser();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
+          } catch (err: unknown) {
           console.error('Create user error:', err);
           return NextResponse.json({ success: false, message: '注册失败，请稍后重试' });
         }

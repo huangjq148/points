@@ -396,25 +396,6 @@ export default function TasksPage() {
                   </div>
                   <p className="text-sm text-gray-500">+{task.points} 积分</p>
                 </div>
-                <span
-                  className={`status-badge ${
-                    task.status === "approved"
-                      ? "status-approved"
-                      : task.status === "submitted"
-                        ? "status-submitted"
-                        : task.status === "rejected"
-                          ? "status-rejected"
-                          : "status-pending"
-                  }`}
-                >
-                  {task.status === "approved"
-                    ? "已完成"
-                    : task.status === "submitted"
-                      ? "待审核"
-                      : task.status === "rejected"
-                        ? "已驳回"
-                        : "待完成"}
-                </span>
 
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
@@ -434,6 +415,26 @@ export default function TasksPage() {
                     <Trash2 size={18} />
                   </Button>
                 </div>
+                
+                <span
+                  className={`status-badge ${
+                    task.status === "approved"
+                      ? "status-approved"
+                      : task.status === "submitted"
+                        ? "status-submitted"
+                        : task.status === "rejected"
+                          ? "status-rejected"
+                          : "status-pending"
+                  }`}
+                >
+                  {task.status === "approved"
+                    ? "已完成"
+                    : task.status === "submitted"
+                      ? "待审核"
+                      : task.status === "rejected"
+                        ? "已驳回"
+                        : "待完成"}
+                </span>
               </div>
             ))}
           {tasks.filter((task) => {

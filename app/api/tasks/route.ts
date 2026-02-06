@@ -80,9 +80,34 @@ async function generateRecurringTasks(userId: string) {
 
 export async function GET(request: NextRequest) {
   try {
+    // For GET method, if auth fails, we might still want to allow access for child dashboard
+    // But child dashboard requests usually include the token of the logged-in user (parent or child)
+    // If the child is logged in, they have a token. If the parent is viewing, they have a token.
+    
+    // The issue might be that child requests are not sending the token properly or the token is invalid.
+    // However, if we look at the ChildDashboard component, it sends the token:
+    // headers: { "Authorization": `Bearer ${currentUser.token}` }
+    
+    // If 401 happens, it means getUserIdFromToken returned null.
+    
     const authHeader = request.headers.get('Authorization');
     const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    
+    // Allow if we have a valid childId query param and it matches a public/shared view scenario?
+    // But for now, strict auth is safer.
+    
+    if (!authUserId) {
+      // Allow access if childId is present (public read-only for child dashboard scenario if needed, OR strict)
+      // The requirement says "Child page API returns 401". 
+      // If the child is visiting their page, they should be logged in as a child user (role: child).
+      // If they are logged in, getUserIdFromToken should return their ID.
+      
+      // If the token is missing or invalid, we return 401.
+      // However, if we want to allow viewing tasks without strict auth (e.g. via a shared link?), we could relax this.
+      // But typically, the child logs in with username/password.
+      
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
 
     await connectDB();
     const { searchParams } = new URL(request.url);
@@ -111,9 +136,9 @@ export async function GET(request: NextRequest) {
     const total = await Task.countDocuments(query);
 
     return NextResponse.json({ success: true, tasks, total, page, limit });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get tasks error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: (error as Error).message }, { status: 500 });
   }
 }
 
@@ -148,9 +173,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, task });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create task error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: (error as Error).message }, { status: 500 });
   }
 }
 
@@ -205,9 +230,9 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, task });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update task error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: (error as Error).message }, { status: 500 });
   }
 }
 
@@ -232,8 +257,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, message: '任务删除成功' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Delete task error:', error);
-    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: (error as Error).message }, { status: 500 });
   }
 }

@@ -46,8 +46,7 @@ export async function GET(request: NextRequest) {
         availablePoints: child.availablePoints || 0
       }
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
@@ -101,8 +100,7 @@ export async function POST(request: NextRequest) {
         availablePoints: child.availablePoints
       }
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
@@ -117,8 +115,7 @@ export async function PUT(request: NextRequest) {
     await connectDB();
     const { childId, username, avatar }: ChildPutRequest = await request.json();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {};
+    const updateData: Record<string, string> = {};
     if (username) updateData.username = username;
     if (avatar) updateData.avatar = avatar;
 
@@ -142,11 +139,9 @@ export async function PUT(request: NextRequest) {
         availablePoints: child.availablePoints
       }
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update child error:', error);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((error as any).code === 11000) {
+    if ((error as { code?: number }).code === 11000) {
       return NextResponse.json({ success: false, message: '用户名已存在' }, { status: 400 });
     }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });

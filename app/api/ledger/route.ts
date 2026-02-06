@@ -5,6 +5,42 @@ import Order from '@/models/Order';
 import mongoose from 'mongoose';
 import { getUserIdFromToken } from '@/lib/auth';
 
+interface DateFilter {
+  $gte?: Date;
+  $lte?: Date;
+}
+
+interface TaskQuery {
+  childId: mongoose.Types.ObjectId;
+  status: string;
+  updatedAt?: DateFilter;
+  name?: { $regex: string; $options: string };
+}
+
+interface OrderQuery {
+  childId: mongoose.Types.ObjectId;
+  status: { $in: string[] };
+  createdAt?: DateFilter;
+  rewardName?: { $regex: string; $options: string };
+}
+
+interface LedgerTask {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  points: number;
+  approvedAt?: Date;
+  updatedAt: Date;
+  icon?: string;
+}
+
+interface LedgerOrder {
+  _id: mongoose.Types.ObjectId;
+  rewardName: string;
+  pointsSpent: number;
+  createdAt: Date;
+  rewardIcon?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
@@ -27,20 +63,20 @@ export async function GET(request: NextRequest) {
     const objectId = new mongoose.Types.ObjectId(childId);
 
     // Build date filter
-    const dateFilter: any = {};
+    const dateFilter: DateFilter = {};
     if (startDate) {
       dateFilter.$gte = new Date(startDate);
     }
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      if (!dateFilter.$gte) dateFilter.$gte = undefined; // Ensure structure
+      if (!dateFilter.$gte) delete dateFilter.$gte;
       dateFilter.$lte = end;
     }
     const hasDateFilter = startDate || endDate;
 
     // Build Task Query
-    const taskQuery: any = {
+    const taskQuery: TaskQuery = {
       childId: objectId,
       status: 'approved'
     };
@@ -52,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build Order Query
-    const orderQuery: any = {
+    const orderQuery: OrderQuery = {
       childId: objectId,
       status: { $in: ['pending', 'verified'] }
     };
@@ -71,7 +107,7 @@ export async function GET(request: NextRequest) {
 
     // Normalize and merge
     const ledger = [
-      ...tasks.map((t: any) => ({
+      ...(tasks as unknown as LedgerTask[]).map((t) => ({
         _id: t._id,
         type: 'income',
         name: t.name,
@@ -79,7 +115,7 @@ export async function GET(request: NextRequest) {
         date: t.approvedAt || t.updatedAt,
         icon: t.icon || '⭐'
       })),
-      ...orders.map((o: any) => ({
+      ...(orders as unknown as LedgerOrder[]).map((o) => ({
         _id: o._id,
         type: 'expense',
         name: o.rewardName,

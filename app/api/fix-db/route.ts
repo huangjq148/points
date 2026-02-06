@@ -4,6 +4,12 @@ import User from '@/models/User';
 import mongoose from 'mongoose';
 import { getUserIdFromToken } from '@/lib/auth';
 
+interface IndexInfo {
+  name: string;
+  key: Record<string, number>;
+  [key: string]: unknown;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
@@ -18,9 +24,9 @@ export async function GET(request: NextRequest) {
     console.log('Current indexes:', indexes);
 
     // Drop phone_1 index if it exists
-    const phoneIndex = indexes.find((idx: any) => idx.name === 'phone_1' || idx.key.phone);
+    const phoneIndex = (indexes as IndexInfo[]).find((idx) => idx.name === 'phone_1' || idx.key.phone);
 
-    if (phoneIndex) {
+    if (phoneIndex && typeof phoneIndex.name === 'string') {
       await collection.dropIndex(phoneIndex.name);
       return NextResponse.json({ success: true, message: 'Dropped phone_1 index', indexes_before: indexes });
     }

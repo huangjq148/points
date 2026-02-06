@@ -1,0 +1,187 @@
+ "use client";
+ 
+ import { useState, useEffect } from "react";
+ import { useApp } from "@/context/AppContext";
+ import { useChild } from "@/components/ChildShell";
+ import { useRouter } from "next/navigation";
+ import { Gift, ChevronRight, Wallet } from "lucide-react";
+ import Button from "@/components/ui/Button";
+ import ConfirmModal from "@/components/ConfirmModal";
+ import confetti from "canvas-confetti";
+ 
+ export interface Reward {
+   _id: string;
+   name: string;
+   icon: string;
+   points: number;
+   type: string;
+   stock: number;
+ }
+ 
+ export default function StorePage() {
+   const { currentUser } = useApp();
+   const { showMessage } = useChild();
+   const router = useRouter();
+   
+   const [rewards, setRewards] = useState<Reward[]>([]);
+   const [rewardSearchQuery, setRewardSearchQuery] = useState("");
+  // Derived rewards
+   const [showConfirmRedeem, setShowConfirmRedeem] = useState<Reward | null>(null);
+ 
+   const fetchRewards = async () => {
+     if (!currentUser) return;
+     const res = await fetch(`/api/rewards?isActive=true`, {
+       headers: {
+         Authorization: `Bearer ${currentUser?.token}`,
+       },
+     });
+     const data = await res.json();
+    if (data.success) {
+      setRewards(data.rewards);
+    }
+   };
+ 
+  useEffect(() => {
+    if (currentUser) {
+      // 把数据拉取逻辑移到事件回调或初始化时，避免在 effect 中直接 setState
+      // 这里保持调用即可，实际 setState 在 fetchRewards 内部，由调用方控制时机
+      fetchRewards();
+    }
+  }, [currentUser?.token]);
+ 
+  const filteredRewards = (() => {
+    if (rewardSearchQuery) {
+      return rewards.filter((r) => r.name.toLowerCase().includes(rewardSearchQuery.toLowerCase()));
+    }
+    return rewards;
+  })();
+ 
+   const handleRedeemReward = async () => {
+     if (!showConfirmRedeem) return;
+     const reward = showConfirmRedeem;
+ 
+     if ((currentUser?.availablePoints || 0) < reward.points) {
+       showMessage("积分不足，继续加油！💪");
+       setShowConfirmRedeem(null);
+       return;
+     }
+ 
+     const res = await fetch("/api/orders", {
+       method: "POST",
+       headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentUser?.token}` },
+       body: JSON.stringify({
+         userId: currentUser?.id,
+         childId: currentUser?.id,
+         rewardId: reward._id,
+       }),
+     });
+     const data = await res.json();
+     if (data.success) {
+       confetti({
+         particleCount: 100,
+         spread: 70,
+         origin: { y: 0.6 },
+         colors: ["#22c55e", "#fde047", "#fbbf24"],
+       });
+       showMessage(`兑换成功！找爸妈领取吧~\n核销码: ${data.verificationCode}`);
+       
+       // Refresh rewards to update stock
+       fetchRewards();
+     } else {
+       showMessage(data.message);
+     }
+     setShowConfirmRedeem(null);
+   };
+ 
+   // navigate helper
+   const navigateTo = (path: string) => router.push(`/child/${path}`);
+ 
+   return (
+     <>
+       <ConfirmModal
+         isOpen={!!showConfirmRedeem}
+         onClose={() => setShowConfirmRedeem(null)}
+         onConfirm={handleRedeemReward}
+         title="兑换确认"
+         message={`确定要消耗 ${showConfirmRedeem?.points} 积分兑换 "${showConfirmRedeem?.name}" 吗？`}
+         confirmText="确认兑换"
+         cancelText="我再想想"
+         type="info"
+       />
+ 
+       <div className="flex items-center gap-2 mb-4">
+         <Button
+           onClick={() => navigateTo("task")}
+           variant="ghost"
+           className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
+         >
+           <ChevronRight size={24} className="text-blue-600 rotate-180" />
+         </Button>
+         <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分商城</h2>
+         <div className="ml-auto flex gap-2">
+           <Button
+             onClick={() => navigateTo("gift")}
+             variant="secondary"
+             size="sm"
+             className="bg-orange-100 text-orange-700 hover:bg-orange-200"
+           >
+             <Gift size={16} className="mr-1" />
+             我的礼物
+           </Button>
+           <Button
+             onClick={() => navigateTo("wallet")}
+             variant="secondary"
+             size="sm"
+             className="bg-green-100 text-green-700 hover:bg-green-200"
+           >
+             <Wallet size={16} className="mr-1" />
+             钱包
+           </Button>
+         </div>
+       </div>
+ 
+       {/* 搜索栏 */}
+       <div className="mb-4">
+         <input
+           type="text"
+           placeholder="搜索礼物..."
+           value={rewardSearchQuery}
+           onChange={(e) => setRewardSearchQuery(e.target.value)}
+           className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+         />
+       </div>
+ 
+       <div className="grid grid-cols-2 gap-4">
+         {filteredRewards.length > 0 ? (
+           filteredRewards.map((reward) => (
+             <div
+               key={reward._id}
+               className={`reward-card flex-col text-center ${reward.stock <= 0 ? "opacity-50" : ""}`}
+             >
+               <div className="reward-icon mx-auto mb-3">{reward.icon}</div>
+               <p className="font-bold text-gray-800">{reward.name}</p>
+               <p className="text-lg text-yellow-600 font-bold my-2">🪙 {reward.points}</p>
+               <p className={`text-xs mb-3 ${reward.stock > 0 ? "text-green-500" : "text-red-500"}`}>
+                 库存: {reward.stock}
+               </p>
+               <Button
+                 onClick={() => setShowConfirmRedeem(reward)}
+                 disabled={reward.stock <= 0}
+                 variant={reward.stock > 0 ? "primary" : "ghost"}
+                 size="sm"
+                 fullWidth
+               >
+                 {reward.stock > 0 ? "兑换" : "已售罄"}
+               </Button>
+             </div>
+           ))
+         ) : (
+           <div className="col-span-2 card text-center py-12 text-gray-500">
+             <Gift size={48} className="mx-auto mb-2 opacity-50" />
+             <p>暂无商品</p>
+           </div>
+         )}
+       </div>
+     </>
+   );
+ }

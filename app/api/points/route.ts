@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Child, { IChild } from '@/models/Child';
+import User, { IUser } from '@/models/User';
 import { getUserIdFromToken } from '@/lib/auth';
 
 interface PointsPostRequest {
@@ -22,25 +22,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });
     }
 
-    const child: IChild | null = await Child.findById(childId);
+    const child: IUser | null = await User.findById(childId);
     if (!child) {
       return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
     }
 
-    await Child.findByIdAndUpdate(childId, {
+    await User.findByIdAndUpdate(childId, {
       $inc: {
         totalPoints: points,
         availablePoints: points
       }
     });
 
-    const updatedChild: IChild | null = await Child.findById(childId);
+    const updatedChild: IUser | null = await User.findById(childId);
 
     return NextResponse.json({
       success: true,
       child: {
         id: updatedChild?._id,
-        nickname: updatedChild?.nickname,
+        nickname: updatedChild?.username,
         avatar: updatedChild?.avatar,
         totalPoints: updatedChild?.totalPoints,
         availablePoints: updatedChild?.availablePoints

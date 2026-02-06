@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     const users = await User.find(query);
 
     return NextResponse.json({
