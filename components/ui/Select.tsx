@@ -1,5 +1,4 @@
-import React from "react";
-import Select, { StylesConfig, SingleValue, ActionMeta, GroupBase } from "react-select";
+import Select, { GroupBase, StylesConfig } from "react-select";
 
 export type SelectOption = {
   value: string | number;

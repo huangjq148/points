@@ -44,7 +44,7 @@ import Layout from "@/components/Layouts";
 
 export default function TasksPage() {
   const [selectedChildTaskFilter, setSelectedChildTaskFilter] = useState<string>("all");
-  const { currentUser, childList, logout, switchToChild, addChild } = useApp();
+  const { currentUser, childList } = useApp();
   const [showAddTask, setShowAddTask] = useState(false);
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [activeTaskFilter, setActiveTaskFilter] = useState<"all" | "completed" | "uncompleted">("all");
@@ -124,7 +124,7 @@ export default function TasksPage() {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${currentUser?.token}`
+            Authorization: `Bearer ${currentUser?.token}`,
           },
           body: formData,
         });
@@ -142,7 +142,7 @@ export default function TasksPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser?.token}`
+          Authorization: `Bearer ${currentUser?.token}`,
         },
         body: JSON.stringify({
           ...newTask,
@@ -188,7 +188,7 @@ export default function TasksPage() {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${currentUser?.token}`
+            Authorization: `Bearer ${currentUser?.token}`,
           },
           body: formData,
         });
@@ -206,7 +206,7 @@ export default function TasksPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser?.token}`
+          Authorization: `Bearer ${currentUser?.token}`,
         },
         body: JSON.stringify({
           taskId: editingTask._id,
@@ -237,8 +237,8 @@ export default function TasksPage() {
       const res = await fetch(`/api/tasks?taskId=${taskToDelete}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${currentUser.token}`
-        }
+          Authorization: `Bearer ${currentUser.token}`,
+        },
       });
       const data = await res.json();
       if (data.success) {
@@ -283,8 +283,8 @@ export default function TasksPage() {
     if (!currentUser?.token) return [];
     const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
       headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
+        Authorization: `Bearer ${currentUser.token}`,
+      },
     });
     const data: { success: boolean; tasks: PlainTask[] } = await res.json();
     if (data.success) {
@@ -292,8 +292,8 @@ export default function TasksPage() {
         data.tasks.map(async (task: PlainTask) => {
           const childRes = await fetch(`/api/children?childId=${task.childId}`, {
             headers: {
-              "Authorization": `Bearer ${currentUser.token}`
-            }
+              Authorization: `Bearer ${currentUser.token}`,
+            },
           });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
@@ -348,9 +348,7 @@ export default function TasksPage() {
             <div className="w-40">
               <Select
                 value={selectedChildTaskFilter}
-                onChange={(value) =>
-                  setSelectedChildTaskFilter((value as string) || "all")
-                }
+                onChange={(value) => setSelectedChildTaskFilter((value as string) || "all")}
                 options={[
                   { value: "all", label: "全部孩子" },
                   ...childList.map((child) => ({ value: child.id, label: child.username })),
@@ -370,8 +368,9 @@ export default function TasksPage() {
               key={tab}
               onClick={() => setActiveTaskFilter(tab)}
               variant="ghost"
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                }`}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
+                activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}
             >
               {tab === "all" ? "全部" : tab === "uncompleted" ? "未完成" : "已完成"}
             </Button>
@@ -398,14 +397,15 @@ export default function TasksPage() {
                   <p className="text-sm text-gray-500">+{task.points} 积分</p>
                 </div>
                 <span
-                  className={`status-badge ${task.status === "approved"
-                    ? "status-approved"
-                    : task.status === "submitted"
-                      ? "status-submitted"
-                      : task.status === "rejected"
-                        ? "status-rejected"
-                        : "status-pending"
-                    }`}
+                  className={`status-badge ${
+                    task.status === "approved"
+                      ? "status-approved"
+                      : task.status === "submitted"
+                        ? "status-submitted"
+                        : task.status === "rejected"
+                          ? "status-rejected"
+                          : "status-pending"
+                  }`}
                 >
                   {task.status === "approved"
                     ? "已完成"
@@ -534,10 +534,11 @@ export default function TasksPage() {
                         key={type}
                         onClick={() => setNewTask({ ...newTask, type: type as "daily" | "advanced" | "challenge" })}
                         variant="ghost"
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${newTask.type === type
-                          ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100"
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                          }`}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                          newTask.type === type
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                        }`}
                       >
                         {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
                       </Button>
@@ -591,9 +592,7 @@ export default function TasksPage() {
                     <div className="mt-2">
                       <Select
                         value={newTask.recurrenceDay}
-                        onChange={(val) =>
-                          setNewTask({ ...newTask, recurrenceDay: val as number })
-                        }
+                        onChange={(val) => setNewTask({ ...newTask, recurrenceDay: val as number })}
                         options={[
                           { value: 1, label: "周一" },
                           { value: 2, label: "周二" },
@@ -612,9 +611,7 @@ export default function TasksPage() {
                     <div className="mt-2">
                       <Select
                         value={newTask.recurrenceDay}
-                        onChange={(val) =>
-                          setNewTask({ ...newTask, recurrenceDay: val as number })
-                        }
+                        onChange={(val) => setNewTask({ ...newTask, recurrenceDay: val as number })}
                         options={Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: `${i + 1}号` }))}
                         placeholder="选择日期"
                       />
@@ -712,10 +709,11 @@ export default function TasksPage() {
                           setEditingTaskData({ ...editingTaskData, type: type as "daily" | "advanced" | "challenge" })
                         }
                         variant="ghost"
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${editingTaskData.type === type
-                          ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100"
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                          }`}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                          editingTaskData.type === type
+                            ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                        }`}
                       >
                         {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
                       </Button>
