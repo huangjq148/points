@@ -4,77 +4,11 @@ import Button from "@/components/ui/Button";
 import { ChildProfile, useApp } from "@/context/AppContext";
 import { Check, ChevronRight, Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 
+import { ChildStats, IDisplayedOrder, IDisplayedTask, PlainOrder, PlainTask } from "@/app/typings";
 import Layout from "@/components/Layouts";
-
-interface ChildStats {
-  pendingTasks: number;
-  submittedTasks: number;
-  pendingOrders: number;
-}
-
-interface PlainTask {
-  _id: string;
-  userId: string;
-  childId: string;
-  name: string;
-  description: string;
-  points: number;
-  type: "daily" | "advanced" | "challenge";
-  icon: string;
-  requirePhoto: boolean;
-  status: "pending" | "submitted" | "approved" | "rejected";
-  photoUrl?: string;
-  imageUrl?: string;
-  submittedAt?: string;
-  approvedAt?: string;
-  completedAt?: string;
-  deadline?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface PlainOrder {
-  _id: string;
-  userId: string;
-  childId: string;
-  rewardId: string;
-  rewardName: string;
-  rewardIcon?: string;
-  pointsSpent: number;
-  status: "pending" | "verified" | "cancelled";
-  verificationCode: string;
-  verifiedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-interface PlainReward {
-  _id: string;
-  userId: string;
-  name: string;
-  description: string;
-  points: number;
-  type: "physical" | "privilege";
-  icon: string;
-  stock: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface IDisplayedTask extends PlainTask {
-  childName: string;
-  childAvatar?: string;
-}
-
-interface IDisplayedOrder extends PlainOrder {
-  rewardName: string;
-  rewardIcon?: string;
-  childName: string;
-  childAvatar: string;
-}
 
 export default function HomePage() {
   const router = useRouter();
@@ -82,51 +16,13 @@ export default function HomePage() {
   const [orders, setOrders] = useState<IDisplayedOrder[]>([]);
   const { currentUser, childList, switchToChild, addChild } = useApp();
   const [childStats, setChildStats] = useState<Record<string, ChildStats>>({});
-  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
-  const [alertState, setAlertState] = useState<{
-    isOpen: boolean;
-    message: string;
-    type: "success" | "error" | "info";
-  }>({
-    isOpen: false,
-    message: "",
-    type: "info",
-  });
 
-  const showAlert = (message: string, type: "success" | "error" | "info" = "info") => {
-    setAlertState({ isOpen: true, message, type });
-  };
-
-  const handleDeleteTask = async () => {
-    if (!taskToDelete || !currentUser?.token) return;
-    try {
-      const res = await fetch(`/api/tasks?taskId=${taskToDelete}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${currentUser.token}`
-        }
-      });
-      const data = await res.json();
-      if (data.success) {
-        showAlert("任务删除成功", "success");
-        setTaskToDelete(null);
-        const updatedTasks = await fetchTasks();
-        setTasks(updatedTasks);
-      } else {
-        showAlert(data.message, "error");
-      }
-    } catch (e) {
-      console.error(e);
-      showAlert("删除失败", "error");
-    }
-  };
-
-  const fetchTasks = useCallback(async () => {
+  const fetchTasks = async () => {
     if (!currentUser?.token) return [];
     const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
       headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
+        Authorization: `Bearer ${currentUser.token}`,
+      },
     });
     const data: { success: boolean; tasks: PlainTask[] } = await res.json();
     if (data.success) {
@@ -134,8 +30,8 @@ export default function HomePage() {
         data.tasks.map(async (task: PlainTask) => {
           const childRes = await fetch(`/api/children?childId=${task.childId}`, {
             headers: {
-              "Authorization": `Bearer ${currentUser.token}`
-            }
+              Authorization: `Bearer ${currentUser.token}`,
+            },
           });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
@@ -165,28 +61,13 @@ export default function HomePage() {
       return tasksWithNames;
     }
     return [];
-  }, [currentUser?.id]);
-
-  const fetchRewards = useCallback(async () => {
-    if (!currentUser?.token) return [];
-    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&t=${Date.now()}`, {
-      headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
-    });
-    const data: { success: boolean; rewards: PlainReward[] } = await res.json();
-    if (data.success) {
-      return data.rewards;
-    }
-    return [];
-  }, [currentUser?.id]);
-
-  const fetchOrders = useCallback(async () => {
+  };
+  const fetchOrders = async () => {
     if (!currentUser?.token) return [];
     const res = await fetch(`/api/orders?userId=${currentUser?.id}`, {
       headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
+        Authorization: `Bearer ${currentUser.token}`,
+      },
     });
     const data: { success: boolean; orders: PlainOrder[] } = await res.json();
     if (data.success) {
@@ -194,8 +75,8 @@ export default function HomePage() {
         data.orders.map(async (order: PlainOrder) => {
           const childRes = await fetch(`/api/children?childId=${order.childId}`, {
             headers: {
-              "Authorization": `Bearer ${currentUser.token}`
-            }
+              Authorization: `Bearer ${currentUser.token}`,
+            },
           });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
@@ -208,7 +89,7 @@ export default function HomePage() {
       return ordersWithNames;
     }
     return [];
-  }, [currentUser?.id]);
+  };
 
   // 计算每个孩子的统计
   useEffect(() => {
@@ -236,7 +117,7 @@ export default function HomePage() {
       }
     };
     loadData();
-  }, [currentUser, fetchOrders, fetchRewards, fetchTasks]);
+  }, [currentUser]);
 
   return (
     <Layout>

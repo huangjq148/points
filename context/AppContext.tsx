@@ -78,6 +78,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return "parent";
   });
 
+  const logout = () => {
+    setCurrentUser(null);
+    setCurrentChild(null);
+    setChildList([]);
+    setMode("parent");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("little_achievers_user");
+      localStorage.removeItem("little_achievers_current_child");
+      localStorage.removeItem("little_achievers_mode");
+    }
+    window.location.href = "/";
+  };
+
   useEffect(() => {
     const verifyToken = async () => {
       if (typeof window === "undefined") return;
@@ -111,7 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             return {
               ...prev,
               ...data.user,
-              token: prev.token // Keep token
+              token: prev.token, // Keep token
             };
           });
           setChildList(data.user.children || []);
@@ -160,18 +173,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
           inviteCode: data.user.inviteCode,
           familyId: data.user.familyId,
           children: data.children || [],
-          token: data.token
+          token: data.token,
         };
 
         // Then fetch detailed info from /api/auth/current
         try {
           const headers: Record<string, string> = {};
           if (data.token) {
-            headers['Authorization'] = `Bearer ${data.token}`;
+            headers["Authorization"] = `Bearer ${data.token}`;
           }
 
           const currentRes = await fetch(`/api/auth/current`, {
-            headers
+            headers,
           });
           const currentData = await currentRes.json();
           if (currentData.success && currentData.user) {
@@ -179,7 +192,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               ...user,
               ...currentData.user,
               password: password, // Keep password as it might not be returned
-              token: data.token // Ensure token is preserved
+              token: data.token, // Ensure token is preserved
             };
           }
         } catch (e) {
@@ -193,7 +206,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("little_achievers_user", JSON.stringify(user));
         }
 
-        if (user.role === 'child') {
+        if (user.role === "child") {
           setMode("child");
           if (typeof window !== "undefined") {
             localStorage.setItem("little_achievers_mode", "child");
@@ -202,9 +215,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const childProfile: ChildProfile = {
               id: user.id,
               nickname: user.username,
-              avatar: '🦊',
+              avatar: "🦊",
               availablePoints: 0,
-              totalPoints: 0
+              totalPoints: 0,
             };
             setCurrentChild(childProfile);
             if (typeof window !== "undefined") {
@@ -246,7 +259,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           role: data.user.role,
           inviteCode: data.user.inviteCode,
           familyId: data.user.familyId,
-          token: data.token
+          token: data.token,
         };
         const child = data.children.find((c: ChildProfile) => c.id === childId);
         if (child) {
@@ -268,19 +281,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       console.error("Login error:", _error);
       return false;
     }
-  };
-
-  const logout = () => {
-    setCurrentUser(null);
-    setCurrentChild(null);
-    setChildList([]);
-    setMode("parent");
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("little_achievers_user");
-      localStorage.removeItem("little_achievers_current_child");
-      localStorage.removeItem("little_achievers_mode");
-    }
-    window.location.href = "/";
   };
 
   const switchToChild = (child: ChildProfile) => {
@@ -318,12 +318,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser.token}`
+          Authorization: `Bearer ${currentUser.token}`,
         },
         body: JSON.stringify({
           userId: currentUser.id,
           nickname,
-          avatar: '🦊' // Default avatar
+          avatar: "🦊", // Default avatar
         }),
       });
       const data = await res.json();
@@ -340,8 +340,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/auth/current", {
         headers: {
-          "Authorization": `Bearer ${currentUser.token}`
-        }
+          Authorization: `Bearer ${currentUser.token}`,
+        },
       });
       const data = await res.json();
       if (data.success && data.user) {
@@ -358,9 +358,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const updateChildPoints = (childId: string, newPoints: number) => {
     setChildList((prevChildList) =>
-      prevChildList.map((child) =>
-        child.id === childId ? { ...child, availablePoints: newPoints } : child
-      )
+      prevChildList.map((child) => (child.id === childId ? { ...child, availablePoints: newPoints } : child)),
     );
     if (currentChild && currentChild.id === childId) {
       setCurrentChild((prevCurrentChild) => {

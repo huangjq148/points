@@ -33,7 +33,7 @@ export default function AuditPage() {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${currentUser.token}`
+        Authorization: `Bearer ${currentUser.token}`,
       },
       body: JSON.stringify({ taskId, status, rejectionReason }),
     });
@@ -45,8 +45,8 @@ export default function AuditPage() {
     if (!currentUser?.token) return [];
     const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
       headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
+        Authorization: `Bearer ${currentUser.token}`,
+      },
     });
     const data: { success: boolean; tasks: PlainTask[] } = await res.json();
     if (data.success) {
@@ -54,8 +54,8 @@ export default function AuditPage() {
         data.tasks.map(async (task: PlainTask) => {
           const childRes = await fetch(`/api/children?childId=${task.childId}`, {
             headers: {
-              "Authorization": `Bearer ${currentUser.token}`
-            }
+              Authorization: `Bearer ${currentUser.token}`,
+            },
           });
           const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
           return {
