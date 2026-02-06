@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
-import Child from '@/models/Child';
 import mongoose from 'mongoose';
 import { getUserIdFromToken } from '@/lib/auth';
 
@@ -28,29 +27,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, members: [] });
     }
 
-    const members = await User.find({ familyId: user.familyId });
-    const children = await Child.find({ familyId: user.familyId });
+    // Fetch all family members (parents and children) from User collection
+    const familyMembers = await User.find({ familyId: user.familyId });
 
     return NextResponse.json({
       success: true,
-      members: [
-        ...members.map(m => ({
-          id: m._id.toString(),
-          username: m.username,
-          role: m.role || 'parent',
-          identity: m.identity || '',
-          type: 'parent',
-          isMe: m._id.toString() === userId
-        })),
-        ...children.map(c => ({
-          id: c._id.toString(),
-          username: c.nickname,
-          role: 'child',
-          identity: '孩子',
-          type: 'child',
-          isMe: false
-        }))
-      ]
+      members: familyMembers.map(m => ({
+        id: m._id.toString(),
+        username: m.username,
+        role: m.role || 'parent', // 'parent' | 'child'
+        identity: m.identity || (m.role === 'child' ? '孩子' : '家长'),
+        type: m.role === 'child' ? 'child' : 'parent', // specific type for frontend
+        isMe: m._id.toString() === userId,
+        avatar: m.avatar,
+        totalPoints: m.totalPoints,
+        availablePoints: m.availablePoints
+      }))
     });
   } catch (error) {
     console.error('Get family error:', error);
@@ -66,6 +58,22 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     const { action, targetUsername, currentUserId } = await request.json();
+
+    if (action === 'create_family') {
+      const currentUser = await User.findById(currentUserId);
+      if (!currentUser) {
+        return NextResponse.json({ success: false, message: 'Current user not found' });
+      }
+
+      if (currentUser.familyId) {
+        return NextResponse.json({ success: false, message: '您已有家庭' });
+      }
+
+      currentUser.familyId = new mongoose.Types.ObjectId();
+      await currentUser.save();
+
+      return NextResponse.json({ success: true, message: '创建家庭成功', familyId: currentUser.familyId });
+    }
 
     if (action === 'invite_by_username') {
       if (!targetUsername || !currentUserId) {

@@ -18,7 +18,7 @@ export default function AuditPage() {
     { value: "all", label: "全部孩子" },
     ...childList.map((child) => ({
       value: child.id.toString(),
-      label: child.nickname,
+      label: child.username,
     })),
   ];
 
@@ -103,10 +103,10 @@ export default function AuditPage() {
         <h2 className="text-lg font-bold text-gray-800">任务审核</h2>
         <div className="w-40">
           <Select
-            value={childOptions.find((opt) => opt.value === selectedChildFilter) || childOptions[0]}
-            onChange={(option) => {
-              if (option) {
-                setSelectedChildFilter(option.value.toString());
+            value={selectedChildFilter}
+            onChange={(value) => {
+              if (value) {
+                setSelectedChildFilter(value.toString());
               }
             }}
             options={childOptions}

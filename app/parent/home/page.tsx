@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
-import { ChildProfile, useApp } from "@/context/AppContext";
+import { User, useApp } from "@/context/AppContext";
 import { Check, ChevronRight, Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -109,7 +109,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadData = async () => {
-      if (currentUser) {
+      if (currentUser?.token && currentUser?.id) {
         const fetchedTasks = await fetchTasks();
         setTasks(fetchedTasks);
         const fetchedOrders = await fetchOrders();
@@ -117,7 +117,8 @@ export default function HomePage() {
       }
     };
     loadData();
-  }, [currentUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.token, currentUser?.id]);
 
   return (
     <Layout>
@@ -156,7 +157,7 @@ export default function HomePage() {
         <div className="mb-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">孩子档案</h2>
           <div className="flex flex-col gap-3">
-            {childList.map((child: ChildProfile) => {
+            {childList.map((child: User) => {
               const stats = childStats[child.id] || { pendingTasks: 0, submittedTasks: 0, pendingOrders: 0 };
               return (
                 <div
@@ -217,6 +218,20 @@ export default function HomePage() {
                   添加孩子
                 </Button>
               </div>
+            )}
+            {childList.length > 0 && (
+                 <Button
+                  variant="ghost"
+                  className="w-full border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+                  onClick={() => {
+                    const nickname = prompt("请输入孩子昵称");
+                    if (nickname) {
+                      addChild(nickname.trim());
+                    }
+                  }}
+                >
+                  + 添加更多孩子
+                </Button>
             )}
           </div>
         </div>

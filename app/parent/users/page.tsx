@@ -10,15 +10,9 @@ import Select from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { Copy, FileText, Gift, Home, Plus, Settings, Star, Ticket, Trash2, Users, X } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { FileText, Gift, Home, Plus, Settings, Star, Ticket, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
-
-interface SelectOption {
-  value: string | number;
-  label: string;
-}
 
 export default function UsersPage() {
   const { currentUser, logout } = useApp();
@@ -293,19 +287,9 @@ export default function UsersPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
             <Select
-              value={{
-                value: accountForm.role,
-                label:
-                  accountForm.role === "parent"
-                    ? "家长"
-                    : accountForm.role === "child"
-                      ? "孩子"
-                      : accountForm.role === "admin"
-                        ? "管理员"
-                        : "未知",
-              }}
-              onChange={(option) =>
-                setAccountForm({ ...accountForm, role: (option as SelectOption).value as string })
+              value={accountForm.role}
+              onChange={(value) =>
+                setAccountForm({ ...accountForm, role: (value as string) || "parent" })
               }
               options={[
                 { value: "parent", label: "家长" },
@@ -342,23 +326,13 @@ export default function UsersPage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
             <Select
-              value={{
-                value: accountForm.role,
-                label:
-                  accountForm.role === "parent"
-                    ? "家长"
-                    : accountForm.role === "child"
-                      ? "孩子"
-                      : accountForm.role === "admin"
-                        ? "管理员"
-                        : "未知",
-              }}
-              onChange={(option) =>
-                setAccountForm({ ...accountForm, role: (option as SelectOption).value as string })
+              value={accountForm.role}
+              onChange={(value) =>
+                setAccountForm({ ...accountForm, role: (value as string) || "parent" })
               }
               options={[
                 { value: "parent", label: "家长" },
-                { value: "children", label: "孩子" },
+                { value: "child", label: "孩子" },
                 { value: "admin", label: "管理员" },
               ]}
               placeholder="选择角色"

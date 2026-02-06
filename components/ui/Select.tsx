@@ -1,8 +1,9 @@
+import React from "react";
 import Select, { StylesConfig, SingleValue, ActionMeta, GroupBase } from "react-select";
 
 export type SelectOption = {
   value: string | number;
-  label: string;
+  label: string | number;
 };
 
 const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
@@ -48,16 +49,20 @@ export default function CustomSelect({
   styles,
 }: {
   options: SelectOption[];
-  value: SingleValue<SelectOption>;
-  onChange: (value: SingleValue<SelectOption>, actionMeta: ActionMeta<SelectOption>) => void;
+  value: string | number | null | undefined;
+  onChange: (value: string | number | undefined) => void;
   placeholder?: string;
   styles?: StylesConfig<SelectOption, false, GroupBase<SelectOption>>;
 }) {
+  const selectedOption = options.find((opt) => opt.value === value) || null;
+
   return (
     <Select<SelectOption, false, GroupBase<SelectOption>>
       options={options}
-      value={value}
-      onChange={onChange}
+      value={selectedOption}
+      onChange={(newValue) => {
+        onChange(newValue?.value);
+      }}
       placeholder={placeholder}
       styles={{ ...customSelectStyles, ...styles }}
       instanceId="custom-select"

@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Child, { IChild } from '@/models/Child';
+import User from '@/models/User';
 import { getUserIdFromToken } from '@/lib/auth';
+import mongoose from 'mongoose';
 
 interface ChildPostRequest {
-  userId: string;
-  nickname: string;
+  username: string;
+  nickname?: string;
   avatar?: string;
+  password?: string;
 }
 
 interface ChildPutRequest {
   childId: string;
-  nickname?: string;
+  username?: string;
   avatar?: string;
 }
 
@@ -29,7 +31,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: '缺少childId' }, { status: 400 });
     }
 
-    const child = await Child.findById(childId);
+    const child = await User.findById(childId);
     if (!child) {
       return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
     }
@@ -37,12 +39,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true, child: {
         id: child._id,
-        nickname: child.nickname,
+        nickname: child.identity || child.username,
+        username: child.username,
         avatar: child.avatar,
-        totalPoints: child.totalPoints,
-        availablePoints: child.availablePoints
+        totalPoints: child.totalPoints || 0,
+        availablePoints: child.availablePoints || 0
       }
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Get child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
@@ -56,17 +60,48 @@ export async function POST(request: NextRequest) {
     if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     await connectDB();
-    const { userId, nickname, avatar }: ChildPostRequest = await request.json();
+    const { username, nickname, avatar, password }: ChildPostRequest = await request.json();
 
-    const child = await Child.create({
-      userId,
-      nickname,
+    const parentUser = await User.findById(authUserId);
+    if (!parentUser) {
+      return NextResponse.json({ success: false, message: '家长账户不存在' }, { status: 404 });
+    }
+
+    // Ensure parent has a familyId
+    if (!parentUser.familyId) {
+      parentUser.familyId = new mongoose.Types.ObjectId();
+      await parentUser.save();
+    }
+
+    // Check if username exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return NextResponse.json({ success: false, message: '该用户名已存在，请换一个' }, { status: 400 });
+    }
+
+    const child = await User.create({
+      username: username || nickname,
+      password: password || '123456', // Default password
+      role: 'child',
+      familyId: parentUser.familyId,
       avatar: avatar || '🦊',
       totalPoints: 0,
-      availablePoints: 0
+      availablePoints: 0,
+      identity: nickname || '孩子'
     });
 
-    return NextResponse.json({ success: true, child });
+    return NextResponse.json({ 
+      success: true, 
+      child: {
+        id: child._id,
+        nickname: child.identity || child.username,
+        username: child.username,
+        avatar: child.avatar,
+        totalPoints: child.totalPoints,
+        availablePoints: child.availablePoints
+      }
+    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Create child error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
@@ -80,11 +115,16 @@ export async function PUT(request: NextRequest) {
     if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     await connectDB();
-    const { childId, nickname, avatar }: ChildPutRequest = await request.json();
+    const { childId, username, avatar }: ChildPutRequest = await request.json();
 
-    const child = await Child.findByIdAndUpdate(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateData: any = {};
+    if (username) updateData.username = username;
+    if (avatar) updateData.avatar = avatar;
+
+    const child = await User.findByIdAndUpdate(
       childId,
-      { nickname, avatar },
+      updateData,
       { new: true }
     );
 
@@ -95,14 +135,20 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       success: true, child: {
         id: child._id,
-        nickname: child.nickname,
+        nickname: child.identity || child.username,
+        username: child.username,
         avatar: child.avatar,
         totalPoints: child.totalPoints,
         availablePoints: child.availablePoints
       }
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Update child error:', error);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((error as any).code === 11000) {
+      return NextResponse.json({ success: false, message: '用户名已存在' }, { status: 400 });
+    }
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }

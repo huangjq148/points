@@ -3,7 +3,7 @@
 import ConfirmModal from "@/components/ConfirmModal";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
-import { ChildProfile, useApp } from "@/context/AppContext";
+import { User, useApp } from "@/context/AppContext";
 
 import AlertModal from "@/components/AlertModal";
 import Input from "@/components/ui/Input";
@@ -18,10 +18,6 @@ interface IDisplayedTask extends PlainTask {
   childAvatar?: string;
 }
 
-interface SelectOption {
-  value: string | number;
-  label: string;
-}
 interface PlainTask {
   _id: string;
   userId: string;
@@ -343,23 +339,21 @@ export default function TasksPage() {
     <Layout>
       <>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-800">任务管理</h2>
+          <h2 className="text-lg font-bold text-gray-800">
+            {selectedChildTaskFilter === "all"
+              ? "任务管理"
+              : childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知"}
+          </h2>
           <div className="flex gap-2">
             <div className="w-40">
               <Select
-                value={{
-                  value: selectedChildTaskFilter,
-                  label:
-                    selectedChildTaskFilter === "all"
-                      ? "全部孩子"
-                      : childList.find((c) => c.id === selectedChildTaskFilter)?.nickname || "未知",
-                }}
-                onChange={(option: unknown) =>
-                  setSelectedChildTaskFilter(((option as SelectOption)?.value as string) || "all")
+                value={selectedChildTaskFilter}
+                onChange={(value) =>
+                  setSelectedChildTaskFilter((value as string) || "all")
                 }
                 options={[
                   { value: "all", label: "全部孩子" },
-                  ...childList.map((child) => ({ value: child.id, label: child.nickname })),
+                  ...childList.map((child) => ({ value: child.id, label: child.username })),
                 ]}
               />
             </div>
@@ -461,14 +455,14 @@ export default function TasksPage() {
                 <div>
                   <label className="block text-sm text-gray-600 mb-2">选择孩子</label>
                   <div className="child-selector">
-                    {childList.map((child: ChildProfile) => (
+                    {childList.map((child: User) => (
                       <div
                         key={child.id}
                         onClick={() => toggleChild(child.id)}
                         className={`child-chip ${newTask.selectedChildren.includes(child.id) ? "selected" : ""}`}
                       >
                         <span className="avatar">{child.avatar}</span>
-                        <span className="name">{child.nickname}</span>
+                        <span className="name">{child.username}</span>
                       </div>
                     ))}
                   </div>
@@ -576,19 +570,8 @@ export default function TasksPage() {
                 <div>
                   <label className="block text-sm text-gray-600 mb-2">自动创建（重复）</label>
                   <Select
-                    value={{
-                      value: newTask.recurrence,
-                      label:
-                        newTask.recurrence === "none"
-                          ? "不重复"
-                          : newTask.recurrence === "daily"
-                            ? "每天"
-                            : newTask.recurrence === "weekly"
-                              ? "每周"
-                              : "每月",
-                    }}
-                    onChange={(newValue) => {
-                      const val = (newValue as SelectOption | null)?.value;
+                    value={newTask.recurrence}
+                    onChange={(val) => {
                       const r =
                         typeof val === "string" && ["none", "daily", "weekly", "monthly"].includes(val)
                           ? (val as "none" | "daily" | "weekly" | "monthly")
@@ -607,16 +590,9 @@ export default function TasksPage() {
                   {newTask.recurrence === "weekly" && (
                     <div className="mt-2">
                       <Select
-                        value={
-                          newTask.recurrenceDay !== undefined
-                            ? {
-                              value: newTask.recurrenceDay,
-                              label: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"][newTask.recurrenceDay],
-                            }
-                            : null
-                        }
-                        onChange={(option: unknown) =>
-                          setNewTask({ ...newTask, recurrenceDay: (option as SelectOption)?.value as number })
+                        value={newTask.recurrenceDay}
+                        onChange={(val) =>
+                          setNewTask({ ...newTask, recurrenceDay: val as number })
                         }
                         options={[
                           { value: 1, label: "周一" },
@@ -635,13 +611,9 @@ export default function TasksPage() {
                   {newTask.recurrence === "monthly" && (
                     <div className="mt-2">
                       <Select
-                        value={
-                          newTask.recurrenceDay
-                            ? { value: newTask.recurrenceDay, label: `${newTask.recurrenceDay}号` }
-                            : null
-                        }
-                        onChange={(newValue) =>
-                          setNewTask({ ...newTask, recurrenceDay: (newValue as { value: number } | null)?.value })
+                        value={newTask.recurrenceDay}
+                        onChange={(val) =>
+                          setNewTask({ ...newTask, recurrenceDay: val as number })
                         }
                         options={Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: `${i + 1}号` }))}
                         placeholder="选择日期"

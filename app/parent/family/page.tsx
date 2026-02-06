@@ -12,7 +12,7 @@ import { Copy, Settings, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function FamilyPage() {
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, refreshChildren } = useApp();
   const toast = useToast();
 
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -53,7 +53,7 @@ export default function FamilyPage() {
 
   const handleDeleteAccount = useCallback(
     async (id: string) => {
-      if (!confirm("确定删除该账号吗？")) return;
+      if (!confirm("确定将该成员移出家庭吗？")) return;
       if (!currentUser?.token) return;
       const res = await fetch(`/api/family?id=${id}`, {
         method: "DELETE",
@@ -71,6 +71,33 @@ export default function FamilyPage() {
     },
     [fetchFamilyMembers, toast],
   );
+
+  const handleCreateFamily = async () => {
+    if (!currentUser?.token) return;
+    try {
+      const res = await fetch("/api/family", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
+        body: JSON.stringify({
+          action: "create_family",
+          currentUserId: currentUser.id
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("家庭创建成功");
+        window.location.reload(); 
+      } else {
+        toast.error(data.message || "创建失败");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("创建失败");
+    }
+  };
 
   const handleInviteByUsername = async () => {
     if (!inviteUsernameInput.trim()) return;
@@ -93,6 +120,7 @@ export default function FamilyPage() {
         toast.success("邀请成功");
         setInviteUsernameInput("");
         fetchFamilyMembers();
+        refreshChildren();
       } else {
         toast.error(data.message || "邀请失败");
       }
@@ -227,9 +255,15 @@ export default function FamilyPage() {
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">家庭成员管理 </h2>
           <div className="flex gap-2">
-            <Button onClick={() => setShowInviteModal(true)} variant="success" className="flex items-center gap-2">
-              <Users size={20} /> 邀请家长
-            </Button>
+            {!currentUser?.familyId ? (
+              <Button onClick={handleCreateFamily} className="flex items-center gap-2">
+                <Users size={20} /> 创建家庭
+              </Button>
+            ) : (
+              <Button onClick={() => setShowInviteModal(true)} variant="success" className="flex items-center gap-2">
+                <Users size={20} /> 邀请成员
+              </Button>
+            )}
           </div>
         </div>
 
@@ -345,7 +379,7 @@ export default function FamilyPage() {
                 <Copy size={20} />
               </Button>
             </div>
-            <p className="text-xs text-blue-600 mt-2">其他家长可以使用此邀请码加入您的家庭，共同管理孩子。</p>
+            <p className="text-xs text-blue-600 mt-2">其他用户可以使用此邀请码加入您的家庭。</p>
           </div>
 
           <div className="border-t pt-6">

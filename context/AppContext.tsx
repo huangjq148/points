@@ -5,33 +5,25 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 export interface User {
   id: string;
   username: string;
-  password: string;
-  role?: string;
+  password?: string;
+  role: "parent" | "child" | "admin";
   inviteCode?: string;
   familyId?: string;
-  pin?: string;
-  children?: ChildProfile[];
+  avatar?: string;
+  availablePoints?: number;
+  totalPoints?: number;
   token?: string;
-}
-
-export interface ChildProfile {
-  id: string;
-  nickname: string;
-  username?: string;
-  avatar: string;
-  availablePoints: number;
-  totalPoints: number;
 }
 
 export interface AppContextType {
   currentUser: User | null;
-  currentChild: ChildProfile | null;
-  childList: ChildProfile[];
+  currentChild: User | null;
+  childList: User[];
   mode: "parent" | "child";
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
   loginWithChild: (username: string, password: string, childId: string) => Promise<boolean>;
   logout: () => void;
-  switchToChild: (child: ChildProfile) => void;
+  switchToChild: (child: User) => void;
   switchToParent: (password?: string) => Promise<boolean>;
   addChild: (nickname: string) => Promise<void>;
   refreshChildren: () => Promise<void>;
@@ -54,7 +46,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     return null;
   });
-  const [currentChild, setCurrentChild] = useState<ChildProfile | null>(() => {
+  const [currentChild, setCurrentChild] = useState<User | null>(() => {
     if (typeof window !== "undefined") {
       const savedChild = localStorage.getItem("little_achievers_current_child");
       if (savedChild) {
@@ -67,7 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     return null;
   });
-  const [childList, setChildList] = useState<ChildProfile[]>([]);
+  const [childList, setChildList] = useState<User[]>([]);
   const [mode, setMode] = useState<"parent" | "child">(() => {
     if (typeof window !== "undefined") {
       const savedMode = localStorage.getItem("little_achievers_mode");
@@ -172,7 +164,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           role: data.user.role,
           inviteCode: data.user.inviteCode,
           familyId: data.user.familyId,
-          children: data.children || [],
           token: data.token,
         };
 
@@ -200,7 +191,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         setCurrentUser(user);
-        setChildList(user.children || []);
+        
+        // Map children to User objects
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const childrenAsUsers: User[] = (data.children || []).map((c: any) => ({
+             id: c.id || c._id,
+             username: c.username || c.nickname,
+             role: "child",
+             avatar: c.avatar,
+             availablePoints: c.availablePoints,
+             totalPoints: c.totalPoints
+        }));
+        setChildList(childrenAsUsers);
 
         if (typeof window !== "undefined") {
           localStorage.setItem("little_achievers_user", JSON.stringify(user));
@@ -212,16 +214,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("little_achievers_mode", "child");
           }
           if (user.id) {
-            const childProfile: ChildProfile = {
-              id: user.id,
-              nickname: user.username,
-              avatar: "🦊",
-              availablePoints: 0,
-              totalPoints: 0,
+            const childUser: User = {
+              ...user,
+              role: "child",
+              avatar: user.avatar || "🦊",
+              availablePoints: user.availablePoints || 0,
+              totalPoints: user.totalPoints || 0,
             };
-            setCurrentChild(childProfile);
+            setCurrentChild(childUser);
             if (typeof window !== "undefined") {
-              localStorage.setItem("little_achievers_current_child", JSON.stringify(childProfile));
+              localStorage.setItem("little_achievers_current_child", JSON.stringify(childUser));
               window.location.href = `/child/${user.id}`;
             }
           }
@@ -252,7 +254,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (data.success) {
-        const user = {
+        const user: User = {
           id: data.user.id,
           username: data.user.username,
           password: password,
@@ -261,17 +263,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
           familyId: data.user.familyId,
           token: data.token,
         };
-        const child = data.children.find((c: ChildProfile) => c.id === childId);
-        if (child) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const childData = data.children?.find((c: any) => (c.id || c._id) === childId);
+        
+        if (childData) {
+            const childUser: User = {
+                id: childData.id || childData._id,
+                username: childData.username || childData.nickname,
+                role: "child",
+                avatar: childData.avatar,
+                availablePoints: childData.availablePoints,
+                totalPoints: childData.totalPoints
+            };
+
           setCurrentUser(user);
-          setChildList(data.children);
-          setCurrentChild(child);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setChildList((data.children || []).map((c: any) => ({
+             id: c.id || c._id,
+             username: c.username || c.nickname,
+             role: "child",
+             avatar: c.avatar,
+             availablePoints: c.availablePoints,
+             totalPoints: c.totalPoints
+          })));
+          setCurrentChild(childUser);
           setMode("child");
           if (typeof window !== "undefined") {
             localStorage.setItem("little_achievers_user", JSON.stringify(user));
-            localStorage.setItem("little_achievers_current_child", JSON.stringify(child));
+            localStorage.setItem("little_achievers_current_child", JSON.stringify(childUser));
             localStorage.setItem("little_achievers_mode", "child");
-            window.location.href = `/child/${child.id}`;
+            window.location.href = `/child/${childUser.id}`;
           }
           return true;
         }
@@ -283,7 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const switchToChild = (child: ChildProfile) => {
+  const switchToChild = (child: User) => {
     setCurrentChild(child);
     setMode("child");
   };
@@ -301,7 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.success) {
         setMode("parent");
         setCurrentChild(null);
-        setChildList(data.children);
+        setChildList(data.children || []);
         return true;
       }
       return false;
@@ -321,9 +342,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
           Authorization: `Bearer ${currentUser.token}`,
         },
         body: JSON.stringify({
-          userId: currentUser.id,
-          nickname,
+          nickname, // API uses nickname as username
           avatar: "🦊", // Default avatar
+          password: "123456" // Default password for child user
         }),
       });
       const data = await res.json();
@@ -345,16 +366,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        setChildList(data.user.children || []);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setChildList((data.user.children || []).map((c: any) => ({
+             id: c.id || c._id,
+             username: c.username || c.nickname,
+             role: "child",
+             avatar: c.avatar,
+             availablePoints: c.availablePoints,
+             totalPoints: c.totalPoints
+        })));
       }
     } catch (_error) {
       console.error("Refresh children error:", _error);
     }
   };
-
-  useEffect(() => {
-    // Removed redundant refreshChildren call
-  }, []);
 
   const updateChildPoints = (childId: string, newPoints: number) => {
     setChildList((prevChildList) =>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
-import Child from '@/models/Child';
 import mongoose from 'mongoose';
 import { getUserIdFromToken } from '@/lib/auth';
 
@@ -28,7 +27,11 @@ export async function GET(request: NextRequest) {
       const children = await User.find({ familyId: user.familyId, role: "child" });
       childrenData = children.map(c => ({
         id: c._id.toString(),
-        username: c.username,
+        username: c.username, // User.username is the nickname/username
+        nickname: c.username, // For backward compatibility
+        avatar: c.avatar,
+        totalPoints: c.totalPoints,
+        availablePoints: c.availablePoints
       }));
     }
 

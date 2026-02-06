@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Order, { IOrder } from '@/models/Order';
 import Reward, { IReward } from '@/models/Reward';
-import Child, { IChild } from '@/models/Child';
+import User from '@/models/User';
 import mongoose from 'mongoose';
 import { getUserIdFromToken } from '@/lib/auth';
 
@@ -82,12 +82,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '该奖励已售罄' }, { status: 400 });
     }
 
-    const child: IChild | null = await Child.findById(childId);
+    const child = await User.findById(childId);
     if (!child) {
       return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
     }
 
-    if (child.availablePoints < reward.points) {
+    if ((child.availablePoints || 0) < reward.points) {
       return NextResponse.json({ success: false, message: '积分不足' }, { status: 400 });
     }
 
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       verificationCode
     });
 
-    await Child.findByIdAndUpdate(childId, {
+    await User.findByIdAndUpdate(childId, {
       $inc: { availablePoints: -reward.points }
     });
 
@@ -152,7 +152,7 @@ export async function PUT(request: NextRequest) {
       order.verifiedAt = new Date();
       await order.save();
     } else if (action === 'cancel') {
-      await Child.findByIdAndUpdate(order.childId, {
+      await User.findByIdAndUpdate(order.childId, {
         $inc: { availablePoints: order.pointsSpent }
       });
 

@@ -3,7 +3,7 @@ import Button from "@/components/ui/Button";
 import { useApp } from "@/context/AppContext";
 import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 type NavItemId = "home" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
@@ -33,6 +33,13 @@ const Layout = ({ children }: { children: ReactNode }) => {
   const [activeTab, setActiveTab] = useState<"home" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users">(
     initialTab,
   );
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="dashboard-layout">
       {/* Sidebar */}
@@ -86,7 +93,9 @@ const Layout = ({ children }: { children: ReactNode }) => {
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
                   👤
                 </div>
-                <span className="text-sm font-medium text-gray-700">{currentUser?.username || "家长"}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {mounted && currentUser?.username ? currentUser.username : "家长"}
+                </span>
               </div>
             </div>
             <Button onClick={logout} variant="ghost" className="p-2 hover:bg-gray-100 rounded-xl text-gray-600">

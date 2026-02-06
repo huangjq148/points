@@ -19,7 +19,7 @@ export interface IOrder extends Document {
 const OrderSchema = new Schema<IOrder>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    childId: { type: Schema.Types.ObjectId, ref: 'Child', required: true },
+    childId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     rewardId: { type: Schema.Types.ObjectId, ref: 'Reward', required: true },
     rewardName: { type: String, required: true },
     rewardIcon: { type: String, default: '🎁' },

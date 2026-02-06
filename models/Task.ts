@@ -25,7 +25,7 @@ export interface ITask extends Document {
 
 const TaskSchema = new Schema<ITask>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  childId: { type: Schema.Types.ObjectId, ref: 'Child', required: true },
+  childId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
   description: { type: String, default: '' },
   points: { type: Number, required: true },

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
-import Child, { IChild } from '@/models/Child';
 import mongoose from 'mongoose';
 import { signToken } from '@/lib/auth';
 
@@ -19,6 +18,18 @@ export async function POST(request: NextRequest) {
       let user = await User.findOne({ username });
 
       if (!user) {
+        // Only parent users can register via login page if not exists?
+        // Or if it is a child logging in?
+        // The requirement says "Login register uses account login".
+        // If user doesn't exist, we create it. Default role parent?
+        // If creating a child, it should be done via parent dashboard.
+        // So here we assume it's a parent or independent user registering.
+        
+        // However, if a child tries to login and doesn't exist, should we create it?
+        // Probably not. Child accounts are created by parents.
+        // But for simplicity/MVP, maybe we allow it?
+        // No, let's stick to: New registrations are Parents. Children created by Parent.
+        
         const newId = new mongoose.Types.ObjectId();
         const createUser = async () => {
           return await User.create({
@@ -26,62 +37,27 @@ export async function POST(request: NextRequest) {
             username,
             password,
             role: 'parent',
-            children: [],
             familyId: newId,
-            inviteCode: generateInviteCode()
+            inviteCode: generateInviteCode(),
+            avatar: '👤',
+            totalPoints: 0,
+            availablePoints: 0
           });
         };
 
         try {
           user = await createUser();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
           console.error('Create user error:', err);
-          if (err.code === 11000 && (err.keyPattern?.phone || err.message?.includes('phone'))) {
-            try {
-              console.log('Dropping legacy phone index...');
-              await User.collection.dropIndex('phone_1');
-              user = await createUser();
-            } catch (e) {
-              console.error('Retry failed:', e);
-              return NextResponse.json({ success: false, message: '注册失败：系统维护中，请重试' });
-            }
-          } else if (err.code === 11000) {
-            return NextResponse.json({ success: false, message: '注册失败：用户名已存在' });
-          } else {
-            return NextResponse.json({ success: false, message: '注册失败，请稍后重试' });
-          }
+          return NextResponse.json({ success: false, message: '注册失败，请稍后重试' });
         }
       } else {
-        // Migration
-        let changed = false;
-        // Verify password if user exists? 
-        // For auto-login/register flow, we usually check password.
-        // But user requirement "Login register uses account login".
-        // Does it mean Register AND Login in one step?
-        // Usually: Login checks password. Register creates it.
-        // If I keep "Auto Register", I can't check password properly unless I distinguish.
-        // I'll assume standard Login: Check password.
-        // But if user not found -> Register.
-        // So:
-        // If user exists: Check password. If mismatch -> Error.
-        // If user not exists: Create.
-
         if (user.password !== password) {
-          console.log('Password mismatch for:', username);
-          // For migration: if user has PIN but no password field? 
-          // (Mongoose might have alias or I need to handle it).
-          // Since I renamed field in Schema, existing docs have 'pin'.
-          // I should probably support 'pin' as fallback or migrate?
-          // Since I am changing Schema, 'password' field is new.
-          // Existing users won't have 'password'.
-          // I should check 'pin' if password missing?
-          // But I renamed it in Schema. Mongoose won't see 'pin'.
-          // This is tricky without migration script.
-          // I'll assume new users or I'll manually migrate if needed.
-          // Or simpler: If user exists, check password.
           return NextResponse.json({ success: false, message: '密码错误' });
         }
 
+        let changed = false;
         if (!user.familyId) {
           user.familyId = user._id;
           changed = true;
@@ -97,21 +73,15 @@ export async function POST(request: NextRequest) {
         if (changed) await user.save();
       }
 
-      // Find children by familyId or userId (migration)
-      let children = await Child.find({
-        $or: [
-          { familyId: user.familyId },
-          { userId: user._id }
-        ]
+      // Fetch children (Users with role='child' in the same family)
+      // Note: If I am a child, I might see siblings?
+      // Or if I am a parent, I see my children.
+      // Actually, frontend expects 'children' array for the dashboard.
+      // If I am a parent, I want to see all children in my family.
+      const childrenUsers = await User.find({ 
+        familyId: user.familyId, 
+        role: 'child' 
       });
-
-      // Migrate children to family
-      for (const child of children) {
-        if (!child.familyId) {
-          child.familyId = user.familyId;
-          await child.save();
-        }
-      }
 
       // Generate JWT Token
       const token = signToken({
@@ -129,12 +99,16 @@ export async function POST(request: NextRequest) {
           username: user.username,
           role: user.role,
           familyId: user.familyId,
-          inviteCode: user.inviteCode
+          inviteCode: user.inviteCode,
+          avatar: user.avatar,
+          availablePoints: user.availablePoints
         },
-        children: children.map((c: IChild) => ({
+        children: childrenUsers.map(c => ({
           id: c._id.toString(),
-          nickname: c.nickname,
+          nickname: c.identity || c.username,
+          username: c.username,
           avatar: c.avatar,
+          totalPoints: c.totalPoints,
           availablePoints: c.availablePoints
         }))
       });
@@ -168,28 +142,19 @@ export async function POST(request: NextRequest) {
       }
 
       const members = await User.find({ familyId: user.familyId });
-      const children = await Child.find({ familyId: user.familyId });
 
       return NextResponse.json({
         success: true,
-        members: [
-          ...members.map(m => ({
-            id: m._id.toString(),
-            username: m.username,
-            role: m.role || 'parent',
-            identity: m.identity || '',
-            type: 'parent',
-            isMe: m._id.toString() === user._id.toString()
-          })),
-          ...children.map(c => ({
-            id: c._id.toString(),
-            username: c.nickname,
-            role: 'child',
-            identity: '孩子',
-            type: 'child',
-            isMe: false
-          }))
-        ]
+        members: members.map(m => ({
+          id: m._id.toString(),
+          username: m.username,
+          role: m.role || 'parent',
+          identity: m.identity || '',
+          type: m.role === 'child' ? 'child' : 'parent',
+          isMe: m._id.toString() === user._id.toString(),
+          avatar: m.avatar,
+          availablePoints: m.availablePoints
+        }))
       });
     }
 
@@ -198,13 +163,18 @@ export async function POST(request: NextRequest) {
       if (!user) {
         return NextResponse.json({ success: false, message: '密码错误' }, { status: 401 });
       }
-      const children = await Child.find({ userId: user._id });
+      const children = await User.find({ 
+        familyId: user.familyId || user._id, 
+        role: 'child' 
+      });
       return NextResponse.json({
         success: true,
-        children: children.map((c: IChild) => ({
+        children: children.map(c => ({
           id: c._id.toString(),
-          nickname: c.nickname,
+          nickname: c.identity || c.username,
+          username: c.username,
           avatar: c.avatar,
+          totalPoints: c.totalPoints,
           availablePoints: c.availablePoints
         }))
       });
@@ -215,45 +185,26 @@ export async function POST(request: NextRequest) {
       if (!user) {
         return NextResponse.json({ success: false, message: '用户不存在' }, { status: 404 });
       }
-      const children = await Child.find({
-        $or: [
-          { familyId: user.familyId || user._id },
-          { userId: user._id }
-        ]
+      const children = await User.find({
+        familyId: user.familyId || user._id,
+        role: 'child'
       });
       return NextResponse.json({
         success: true,
-        children: children.map((c: IChild) => ({
+        children: children.map(c => ({
           id: c._id.toString(),
-          nickname: c.nickname,
+          nickname: c.identity || c.username,
+          username: c.username,
           avatar: c.avatar,
+          totalPoints: c.totalPoints,
           availablePoints: c.availablePoints
         }))
       });
     }
 
     if (action === 'add-child') {
-      const user = await User.findOne({ username });
-      if (!user) {
-        return NextResponse.json({ success: false, message: '用户不存在' }, { status: 404 });
-      }
-
-      if (!user.familyId) {
-        user.familyId = user._id;
-        await user.save();
-      }
-
-      const child = await Child.create({
-        userId: user._id,
-        familyId: user.familyId,
-        nickname: childId,
-        avatar: '🦊',
-        totalPoints: 0,
-        availablePoints: 0
-      });
-      user.children.push(child._id);
-      await user.save();
-      return NextResponse.json({ success: true, child });
+       // Deprecated/Legacy
+       return NextResponse.json({ success: false, message: 'Please use /api/children' }, { status: 400 });
     }
 
     return NextResponse.json({ success: false, message: '无效操作' }, { status: 400 });

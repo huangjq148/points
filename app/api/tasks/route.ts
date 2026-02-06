@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Task, { ITask } from '@/models/Task';
-import Child, { IChild } from '@/models/Child';
+import User from '@/models/User';
 import { getUserIdFromToken } from '@/lib/auth';
 
 interface ITaskQuery {
@@ -199,7 +199,7 @@ export async function PUT(request: NextRequest) {
 
     // Handle point transaction only if status is changing to approved
     if (status === 'approved') {
-      await Child.findByIdAndUpdate(task.childId, {
+      await User.findByIdAndUpdate(task.childId, {
         $inc: { totalPoints: task.points, availablePoints: task.points }
       });
     }
