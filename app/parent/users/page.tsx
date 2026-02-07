@@ -3,6 +3,7 @@
 import { FamilyMember } from "@/app/typings";
 import Layout from "@/components/Layouts";
 
+import { Pagination } from "@/components/ui";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -10,10 +11,9 @@ import Select from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import { FileText, Gift, Home, Plus, Settings, Star, Ticket, Trash2 } from "lucide-react";
+import { Plus, Settings, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
-import { Pagination } from "@/components/ui";
 
 export default function UsersPage() {
   const { currentUser, logout } = useApp();
@@ -22,7 +22,7 @@ export default function UsersPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
-  
+
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
@@ -207,17 +207,7 @@ export default function UsersPage() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // Duplicate removed
 
-  type NavItemId = "home" | "audit" | "tasks" | "orders" | "rewards";
-
-  const navItems: { id: NavItemId; icon: React.ElementType; label: string; badge?: number }[] = [
-    { id: "home", icon: Home, label: "首页" },
-    { id: "audit", icon: FileText, label: "审核" },
-    { id: "tasks", icon: Star, label: "任务" },
-    { id: "orders", icon: Ticket, label: "核销" },
-    { id: "rewards", icon: Gift, label: "商城" },
-  ];
   return (
     <Layout>
       <div className="space-y-6">
@@ -269,7 +259,7 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
-        
+
         {total > limit && (
           <Pagination
             currentPage={page}

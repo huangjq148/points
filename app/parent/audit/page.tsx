@@ -11,7 +11,7 @@ import Select, { SelectOption } from "@/components/ui/Select";
 
 export default function AuditPage() {
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
-  const { currentUser, childList, logout, switchToChild, addChild } = useApp();
+  const { currentUser, childList } = useApp();
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [selectedTask, setSelectedTask] = useState<IDisplayedTask | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -31,7 +31,7 @@ export default function AuditPage() {
 
   const fetchTasks = useCallback(async (pageNum: number = 1) => {
     if (!currentUser?.token) return;
-    
+
     let url = `/api/tasks?userId=${currentUser?.id}&status=submitted&page=${pageNum}&limit=${limit}`;
     if (selectedChildFilter !== "all") {
       url += `&childId=${selectedChildFilter}`;
@@ -169,9 +169,11 @@ export default function AuditPage() {
           ))}
         </div>
       )}
-      <div className="mt-4 flex justify-end">
-        <Pagination page={page} total={total} limit={limit} onPageChange={setPage} />
-      </div>
+      {total > limit && (
+        <div className="mt-4 flex justify-end">
+          <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+        </div>
+      )}
       <Modal
         isOpen={!!selectedTask}
         onClose={() => {

@@ -5,7 +5,7 @@ import { useApp } from '@/context/AppContext';
 import { Button, Input, PasswordInput } from '@/components/ui';
 
 export default function Login() {
-  const { login, addChild } = useApp();
+  const { login } = useApp();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
@@ -32,17 +32,6 @@ export default function Login() {
     }
   };
 
-  const handleAddChild = async () => {
-    if (!newChildName.trim()) {
-      setError('请输入孩子昵称');
-      return;
-    }
-    await addChild(newChildName);
-    setShowAddChild(false);
-    setNewChildName('');
-    setIsRegister(false);
-    window.location.href = '/parent/home';
-  };
 
   return (
     <div className="login-container">
@@ -124,7 +113,6 @@ export default function Login() {
               <input type="text" value={newChildName} onChange={(e) => setNewChildName(e.target.value)} className="input" placeholder="请输入孩子昵称" />
             </div>
 
-            <Button onClick={handleAddChild} fullWidth size="lg" style={{ marginTop: '24px' }}>创建孩子档案</Button>
             <Button
               type="button"
               onClick={() => window.location.href = '/parent/home'}

@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+import request from "@/utils/request";
+
 export interface User {
   id: string;
   username: string;
@@ -30,11 +32,9 @@ export interface AppContextType {
   childList: User[];
   mode: "parent" | "child";
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
-  loginWithChild: (username: string, password: string, childId: string) => Promise<boolean>;
   logout: () => void;
   switchToChild: (child: User) => void;
   switchToParent: (password?: string) => Promise<boolean>;
-  addChild: (nickname: string) => Promise<void>;
   refreshChildren: () => Promise<void>;
 }
 
@@ -136,12 +136,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
-      const res = await fetch("/api/auth", {
+      const data = await request("api/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password, action: "login" }),
-      });
-      const data = await res.json();
+      })
       if (data.success) {
         // First set basic user info from login response
         let user: User = {
@@ -151,20 +149,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
           role: data.user.role,
           inviteCode: data.user.inviteCode,
           familyId: data.user.familyId,
-          token: data.token,
         };
 
         // Then fetch detailed info from /api/auth/current
         try {
-          const headers: Record<string, string> = {};
-          if (data.token) {
-            headers["Authorization"] = `Bearer ${data.token}`;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("access_token", data.token || "");
           }
 
-          const currentRes = await fetch(`/api/auth/current`, {
-            headers,
-          });
-          const currentData = await currentRes.json();
+          const currentData = await request("api/auth/current");
           if (currentData.success && currentData.user) {
             user = {
               ...user,
@@ -220,54 +213,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginWithChild = async (username: string, password: string, childId: string): Promise<boolean> => {
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, action: "login" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        const user: User = {
-          id: data.user.id,
-          username: data.user.username,
-          password: password,
-          role: data.user.role,
-          inviteCode: data.user.inviteCode,
-          familyId: data.user.familyId,
-          token: data.token,
-        };
-        const childData = data.children?.find((c: ChildAPIResponse) => (c.id || c._id) === childId);
-
-        if (childData) {
-          setCurrentUser(user);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setChildList(
-            (data.children || []).map((c: User) => ({
-              id: c.id,
-              username: c.username,
-              role: "child",
-              avatar: c.avatar,
-              availablePoints: c.availablePoints,
-              totalPoints: c.totalPoints,
-            })),
-          );
-          setMode("child");
-          if (typeof window !== "undefined") {
-            localStorage.setItem("little_achievers_user", JSON.stringify(user));
-            localStorage.setItem("little_achievers_mode", "child");
-            window.location.href = `/child/task`;
-          }
-          return true;
-        }
-      }
-      return false;
-    } catch (_error: unknown) {
-      console.error("Login error:", _error);
-      return false;
-    }
-  };
 
   const switchToChild = (child: User) => {
     setMode("child");
@@ -292,30 +237,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (_error: unknown) {
       console.error("Switch to parent error:", _error);
       return false;
-    }
-  };
-
-  const addChild = async (nickname: string) => {
-    if (!currentUser || !currentUser.token) return;
-    try {
-      const res = await fetch("/api/children", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({
-          nickname, // API uses nickname as username
-          avatar: "🦊", // Default avatar
-          password: "123456", // Default password for child user
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        await refreshChildren();
-      }
-    } catch (_error) {
-      console.error("Add child error:", _error);
     }
   };
 
@@ -352,11 +273,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         childList,
         mode,
         login,
-        loginWithChild,
         logout,
         switchToChild,
         switchToParent,
-        addChild,
         refreshChildren,
       }}
     >

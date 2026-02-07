@@ -14,7 +14,7 @@ export default function HomePage() {
   const router = useRouter();
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [orders, setOrders] = useState<IDisplayedOrder[]>([]);
-  const { currentUser, childList, switchToChild, addChild } = useApp();
+  const { currentUser, childList, switchToChild } = useApp();
   const [childStats, setChildStats] = useState<Record<string, ChildStats>>({});
 
   const fetchTasks = async () => {
@@ -208,30 +208,20 @@ export default function HomePage() {
                 <Users size={48} className="mx-auto mb-2 text-gray-400" />
                 <p className="text-gray-500 mb-4">还没有孩子档案</p>
                 <Button
-                  onClick={() => {
-                    const nickname = prompt("请输入孩子昵称");
-                    if (nickname) {
-                      addChild(nickname.trim());
-                    }
-                  }}
+                  onClick={() => router.push("/parent/family")}
                 >
                   添加孩子
                 </Button>
               </div>
             )}
             {childList.length > 0 && (
-                 <Button
-                  variant="ghost"
-                  className="w-full border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
-                  onClick={() => {
-                    const nickname = prompt("请输入孩子昵称");
-                    if (nickname) {
-                      addChild(nickname.trim());
-                    }
-                  }}
-                >
-                  + 添加更多孩子
-                </Button>
+              <Button
+                variant="ghost"
+                className="w-full border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+                onClick={() => router.push("/parent/family")}
+              >
+                + 添加更多孩子
+              </Button>
             )}
           </div>
         </div>
