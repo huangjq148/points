@@ -11,6 +11,7 @@ interface ChildData {
   avatar?: string;
   totalPoints?: number;
   availablePoints?: number;
+  activeRewardsCount?: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -30,21 +31,68 @@ export async function GET(request: NextRequest) {
     }
 
     let childrenData: ChildData[] = [];
+    // 在你的 GET 方法中
     if (user.role === "parent" && user.familyId) {
-      // Find children in the same family
-      const children = await User.find({ familyId: user.familyId, role: "child" });
-      childrenData = children.map((c) => {
-// const result = await Promise.all([TaskModel.find({ userId: c._id, status: "submitted" })])
-// debugger
-        return {
-          id: c._id.toString(),
-          username: c.username, // User.username is the nickname/username
-          nickname: c.username, // For backward compatibility
-          avatar: c.avatar,
-          totalPoints: c.totalPoints,
-          availablePoints: c.availablePoints,
-        };
-      });
+      childrenData = await User.aggregate([
+        {
+          // 1. 筛选当前家庭的所有孩子
+          $match: { familyId: user.familyId, role: "child" }
+        },
+        {
+          // 2. 关联 Task 表：仅查询状态为 submitted 的任务
+          $lookup: {
+            from: "tasks", // 集合名通常是模型名的小写复数
+            let: { child_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$childId", "$$child_id"] }, // 注意这里是 childId
+                      { $eq: ["$status", "submitted"] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "submittedTasks"
+          }
+        },
+        {
+          // 3. 关联 Rewards 表：仅查询 userId 匹配且 isActive 为 true 的奖励
+          $lookup: {
+            from: "orders", // 确保集合名正确
+            let: { child_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$childId", "$$child_id"] }, // 根据你说的，这里是 userId
+                      { $eq: ["$status", "pending"] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "writeOf"
+          }
+        },
+        {
+          // 4. 格式化输出字段
+          $project: {
+            id: "$_id",
+            username: 1,
+            avatar: 1,
+            totalPoints: 1,
+            availablePoints: 1,
+            submittedTasks: 1,
+            writeOf: 1,
+            submittedCount: { $size: "$submittedTasks" },
+            writeOfCount: { $size: "$writeOf" }
+          }
+        }
+      ]);
     }
 
     return NextResponse.json({

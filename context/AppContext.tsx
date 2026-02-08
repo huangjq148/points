@@ -14,6 +14,7 @@ export interface User {
   avatar?: string;
   availablePoints?: number;
   totalPoints?: number;
+  activeRewardsCount?: number;
   token?: string;
 }
 
@@ -25,6 +26,7 @@ interface ChildAPIResponse {
   avatar?: string;
   availablePoints?: number;
   totalPoints?: number;
+  activeRewardsCount?: number;
 }
 
 export interface AppContextType {
@@ -180,6 +182,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           avatar: c.avatar,
           availablePoints: c.availablePoints,
           totalPoints: c.totalPoints,
+          activeRewardsCount: c.activeRewardsCount,
         }));
         setChildList(childrenAsUsers);
 
@@ -258,6 +261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             avatar: c.avatar,
             availablePoints: c.availablePoints,
             totalPoints: c.totalPoints,
+            activeRewardsCount: c.activeRewardsCount,
           })),
         );
       }
