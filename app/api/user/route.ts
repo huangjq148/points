@@ -1,4 +1,4 @@
-import { getUserIdFromToken } from "@/lib/auth";
+import { getUserIdFromToken, hashPassword } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
@@ -86,7 +86,7 @@ export async function PUT(request: NextRequest) {
     if (!user) return NextResponse.json({ success: false, message: "User not found" });
 
     if (username) user.username = username;
-    if (password) user.password = password;
+    if (password) user.password = await hashPassword(password);
     if (role) user.role = role;
     if (identity !== undefined) user.identity = identity;
 

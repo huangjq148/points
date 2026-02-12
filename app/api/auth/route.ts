@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import mongoose from 'mongoose';
-import { signToken } from '@/lib/auth';
+import { signToken, hashPassword, comparePassword } from '@/lib/auth';
 
 function generateInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -31,11 +31,13 @@ export async function POST(request: NextRequest) {
         // No, let's stick to: New registrations are Parents. Children created by Parent.
         
         const newId = new mongoose.Types.ObjectId();
+        const hashedPassword = await hashPassword(password);
+
         const createUser = async () => {
           return await User.create({
             _id: newId,
             username,
-            password,
+            password: hashedPassword,
             role: 'parent',
             familyId: newId,
             inviteCode: generateInviteCode(),
@@ -52,8 +54,16 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: false, message: '注册失败，请稍后重试' });
         }
       } else {
-        if (user.password !== password) {
+        const isMatch = await comparePassword(password, user.password);
+        if (!isMatch) {
           return NextResponse.json({ success: false, message: '密码错误' });
+        }
+
+        // Migration: If password was plain text (matched by comparePassword fallback), hash it now
+        if (!user.password.startsWith('$2a$') && !user.password.startsWith('$2b$')) {
+            console.log(`Migrating password for user ${user.username} to hash`);
+            user.password = await hashPassword(password);
+            await user.save();
         }
 
         let changed = false;
@@ -114,8 +124,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'join-family') {
-      const user = await User.findOne({ username, password });
-      if (!user) {
+      const user = await User.findOne({ username });
+      if (!user || !(await comparePassword(password, user.password))) {
         return NextResponse.json({ success: false, message: '用户不存在或密码错误' }, { status: 401 });
       }
 
@@ -131,8 +141,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'get-family-members') {
-      const user = await User.findOne({ username, password });
-      if (!user) {
+      const user = await User.findOne({ username });
+      if (!user || !(await comparePassword(password, user.password))) {
         return NextResponse.json({ success: false, message: '用户不存在' }, { status: 401 });
       }
 
@@ -158,8 +168,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'verify-password') {
-      const user = await User.findOne({ username, password });
-      if (!user) {
+      const user = await User.findOne({ username });
+      if (!user || !(await comparePassword(password, user.password))) {
         return NextResponse.json({ success: false, message: '密码错误' }, { status: 401 });
       }
       const children = await User.find({ 
