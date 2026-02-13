@@ -45,7 +45,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="dashboard-layout">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className="sidebar ">
         <div className="logo-section">
           <div className="logo-icon">🌟</div>
           <div className="logo-title">小小奋斗者</div>
@@ -75,7 +75,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
       {/* Main Content */}
       <div className="main-content flex flex-col min-h-screen">
         {/* Mobile Header */}
-        <header className="lg:hidden bg-white/90 backdrop-blur-xl px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm mb-4 border-b border-gray-100">
+        <header className="lg:hidden bg-white/90 backdrop-blur-xl px-4 py-3 flex items-center justify-between sticky top-0 z-40 shadow-sm mb-4 border-b border-gray-100 rounded-xl">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🌟</span>
             <span className="font-bold text-blue-600">小小奋斗者</span>

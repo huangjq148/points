@@ -147,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const data = await request("api/auth", {
         method: "POST",
-        body: JSON.stringify({ username, password, action: "login" }),
+        body: { username, password, action: "login" },
       })
       if (data.success) {
         // First set basic user info from login response

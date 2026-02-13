@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     const child = await User.create({
       username: username || nickname,
-      password: password || '123456', // Default password
+      password: password ? await hashPassword(password) : await hashPassword('123456'), // Default password
       role: 'child',
       familyId: parentUser.familyId,
       avatar: avatar || '🦊',

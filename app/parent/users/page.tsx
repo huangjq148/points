@@ -27,13 +27,13 @@ export default function UsersPage() {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
-  const [accountForm, setAccountForm] = useState({ 
-    username: "", 
-    password: "", 
-    role: "parent", 
+  const [accountForm, setAccountForm] = useState({
+    username: "",
+    password: "",
+    role: "parent",
     identity: "",
     nickname: "",
-    gender: "none" as "boy" | "girl" | "none"
+    gender: "none" as "boy" | "girl" | "none",
   });
 
   const fetchUsers = useCallback(async () => {
@@ -62,7 +62,6 @@ export default function UsersPage() {
     }
   }, [currentUser?.token, fetchUsers]);
 
-
   const handleCreateAccount = async () => {
     if (!accountForm.username || !accountForm.password) return toast.error("请输入完整信息");
     // "添加用户时，不应当自动加入当前家庭" -> Remove familyId
@@ -76,13 +75,13 @@ export default function UsersPage() {
       toast.success("创建成功");
       setShowAddAccountModal(false);
       fetchUsers();
-      setAccountForm({ 
-        username: "", 
-        password: "", 
-        role: "parent", 
+      setAccountForm({
+        username: "",
+        password: "",
+        role: "parent",
         identity: "",
         nickname: "",
-        gender: "none"
+        gender: "none",
       });
     } else {
       toast.error(data.message);
@@ -201,7 +200,7 @@ export default function UsersPage() {
                     role: info.row.original.role,
                     identity: info.row.original.identity || "",
                     nickname: info.row.original.nickname || "",
-                    gender: (info.row.original.gender as "boy" | "girl" | "none") || "none"
+                    gender: (info.row.original.gender as "boy" | "girl" | "none") || "none",
                   });
                   setShowEditAccountModal(true);
                 }}
@@ -238,7 +237,6 @@ export default function UsersPage() {
     getCoreRowModel: getCoreRowModel(),
   });
 
-
   return (
     <Layout>
       <div className="space-y-6">
@@ -247,13 +245,13 @@ export default function UsersPage() {
           <div className="flex gap-2">
             <Button
               onClick={() => {
-                setAccountForm({ 
-                  username: "", 
-                  password: "", 
-                  role: "parent", 
+                setAccountForm({
+                  username: "",
+                  password: "",
+                  role: "parent",
                   identity: "",
                   nickname: "",
-                  gender: "none"
+                  gender: "none",
                 });
                 setShowAddAccountModal(true);
               }}
@@ -298,20 +296,18 @@ export default function UsersPage() {
           </table>
         </div>
 
-        {total > limit && (
-          <Pagination
-            currentPage={page}
-            totalItems={total}
-            pageSize={limit}
-            onPageChange={setPage}
-          />
-        )}
+        {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
       </div>
       {/* Add Account Modal */}
       <Modal
         isOpen={showAddAccountModal}
         onClose={() => setShowAddAccountModal(false)}
         title="添加用户"
+        footer={
+          <Button onClick={handleCreateAccount} fullWidth className="mt-2">
+            创建账号
+          </Button>
+        }
       >
         <div className="space-y-4">
           <Input
@@ -351,9 +347,7 @@ export default function UsersPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
             <Select
               value={accountForm.role}
-              onChange={(value) =>
-                setAccountForm({ ...accountForm, role: (value as string) || "parent" })
-              }
+              onChange={(value) => setAccountForm({ ...accountForm, role: (value as string) || "parent" })}
               options={[
                 { value: "parent", label: "家长" },
                 { value: "child", label: "孩子" },
@@ -362,9 +356,6 @@ export default function UsersPage() {
               placeholder="选择角色"
             />
           </div>
-          <Button onClick={handleCreateAccount} fullWidth className="mt-2">
-            创建账号
-          </Button>
         </div>
       </Modal>
 
@@ -373,6 +364,11 @@ export default function UsersPage() {
         isOpen={showEditAccountModal}
         onClose={() => setShowEditAccountModal(false)}
         title="编辑账号"
+        footer={
+          <Button onClick={handleUpdateAccount} fullWidth className="mt-2">
+            保存修改
+          </Button>
+        }
       >
         <div className="space-y-4">
           <Input
@@ -411,9 +407,7 @@ export default function UsersPage() {
             <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
             <Select
               value={accountForm.role}
-              onChange={(value) =>
-                setAccountForm({ ...accountForm, role: (value as string) || "parent" })
-              }
+              onChange={(value) => setAccountForm({ ...accountForm, role: (value as string) || "parent" })}
               options={[
                 { value: "parent", label: "家长" },
                 { value: "child", label: "孩子" },
@@ -422,9 +416,6 @@ export default function UsersPage() {
               placeholder="选择角色"
             />
           </div>
-          <Button onClick={handleUpdateAccount} fullWidth className="mt-2">
-            保存修改
-          </Button>
         </div>
       </Modal>
     </Layout>

@@ -64,6 +64,7 @@ const CustomDatePicker = memo(({
         portalId={shouldUsePortal ? "datepicker-portal" : undefined}
         popperProps={shouldUsePortal ? { strategy: "fixed" } : undefined}
         popperPlacement={shouldUsePortal ? "bottom-start" : undefined}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}
         className={combinedClassName}
         wrapperClassName={wrapperClassName}
