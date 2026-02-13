@@ -408,14 +408,43 @@ export default function TasksPage() {
               new Date(task.deadline).getTime() < now &&
               task.status === "pending";
 
+            // 根据状态获取样式
+            const getStatusStyles = () => {
+              if (task.status === "approved") {
+                return {
+                  className: "!bg-green-50/90 !border-green-100 shadow-green-100/30",
+                  style: { background: "rgba(240, 253, 244, 0.9)" },
+                };
+              }
+              if (task.status === "submitted") {
+                return {
+                  className: "!bg-amber-50/90 !border-amber-100 shadow-amber-100/30",
+                  style: { background: "rgba(255, 251, 235, 0.9)" },
+                };
+              }
+              if (isOverdue) {
+                return {
+                  className: "!bg-red-50/95 !border-red-200 shadow-red-100/50",
+                  style: { background: "rgba(254, 242, 242, 0.95)" },
+                };
+              }
+              if (task.status === "rejected") {
+                return {
+                  className: "!bg-gray-50/80 !border-gray-200",
+                  style: { background: "rgba(249, 250, 251, 0.8)" },
+                };
+              }
+              return { className: "", style: {} };
+            };
+
+            const statusStyles = getStatusStyles();
+
             return (
               <div
-                 key={task._id}
-                 className={`card flex items-center gap-4 group relative transition-all ${
-                   isOverdue ? "!bg-red-50/95 !border-red-200 shadow-red-100/50" : ""
-                 }`}
-                 style={isOverdue ? { background: 'rgba(254, 242, 242, 0.95)' } : {}}
-               >
+                key={task._id}
+                className={`card flex items-center gap-4 group relative transition-all ${statusStyles.className}`}
+                style={statusStyles.style}
+              >
                 <div className="text-2xl">{task.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
