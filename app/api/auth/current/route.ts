@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { getUserIdFromToken } from "@/lib/auth";
-import TaskModel from "@/models/Task";
 
 interface ChildData {
   id: string;
@@ -11,7 +10,9 @@ interface ChildData {
   avatar?: string;
   totalPoints?: number;
   availablePoints?: number;
-  activeRewardsCount?: number;
+  pendingCount: number;      // 待完成任务数
+  submittedCount: number;    // 待审核任务数
+  orderCount: number;        // 待核销订单数
 }
 
 export async function GET(request: NextRequest) {
@@ -39,16 +40,36 @@ export async function GET(request: NextRequest) {
           $match: { familyId: user.familyId, role: "child" }
         },
         {
-          // 2. 关联 Task 表：仅查询状态为 submitted 的任务
+          // 2. 关联 Task 表：查询待完成任务 (status: pending)
           $lookup: {
-            from: "tasks", // 集合名通常是模型名的小写复数
+            from: "tasks",
             let: { child_id: "$_id" },
             pipeline: [
               {
                 $match: {
                   $expr: {
                     $and: [
-                      { $eq: ["$childId", "$$child_id"] }, // 注意这里是 childId
+                      { $eq: ["$childId", "$$child_id"] },
+                      { $eq: ["$status", "pending"] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: "pendingTasks"
+          }
+        },
+        {
+          // 3. 关联 Task 表：查询待审核任务 (status: submitted)
+          $lookup: {
+            from: "tasks",
+            let: { child_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ["$childId", "$$child_id"] },
                       { $eq: ["$status", "submitted"] }
                     ]
                   }
@@ -59,37 +80,37 @@ export async function GET(request: NextRequest) {
           }
         },
         {
-          // 3. 关联 Rewards 表：仅查询 userId 匹配且 isActive 为 true 的奖励
+          // 4. 关联 Orders 表：查询待核销订单 (status: pending)
           $lookup: {
-            from: "orders", // 确保集合名正确
+            from: "orders",
             let: { child_id: "$_id" },
             pipeline: [
               {
                 $match: {
                   $expr: {
                     $and: [
-                      { $eq: ["$childId", "$$child_id"] }, // 根据你说的，这里是 userId
+                      { $eq: ["$childId", "$$child_id"] },
                       { $eq: ["$status", "pending"] }
                     ]
                   }
                 }
               }
             ],
-            as: "writeOf"
+            as: "pendingOrders"
           }
         },
         {
-          // 4. 格式化输出字段
+          // 5. 格式化输出字段
           $project: {
-            id: "$_id",
+            id: { $toString: "$_id" },
             username: 1,
+            nickname: { $ifNull: ["$identity", "$username"] },
             avatar: 1,
             totalPoints: 1,
             availablePoints: 1,
-            submittedTasks: 1,
-            writeOf: 1,
+            pendingCount: { $size: "$pendingTasks" },
             submittedCount: { $size: "$submittedTasks" },
-            writeOfCount: { $size: "$writeOf" }
+            orderCount: { $size: "$pendingOrders" }
           }
         }
       ]);

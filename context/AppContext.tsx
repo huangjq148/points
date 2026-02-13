@@ -14,7 +14,9 @@ export interface User {
   avatar?: string;
   availablePoints?: number;
   totalPoints?: number;
-  activeRewardsCount?: number;
+  pendingCount?: number;
+  submittedCount?: number;
+  orderCount?: number;
   token?: string;
 }
 
@@ -26,7 +28,9 @@ interface ChildAPIResponse {
   avatar?: string;
   availablePoints?: number;
   totalPoints?: number;
-  activeRewardsCount?: number;
+  pendingCount?: number;
+  submittedCount?: number;
+  orderCount?: number;
 }
 
 export interface AppContextType {
@@ -177,12 +181,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Map children to User objects
         const childrenAsUsers: User[] = (data.children || []).map((c: ChildAPIResponse) => ({
           id: c.id || c._id || "",
-          username: c.username || c.nickname || "",
+          username: c.nickname || c.username || "",
           role: "child",
           avatar: c.avatar,
           availablePoints: c.availablePoints,
           totalPoints: c.totalPoints,
-          activeRewardsCount: c.activeRewardsCount,
+          pendingCount: c.pendingCount,
+          submittedCount: c.submittedCount,
+          orderCount: c.orderCount,
         }));
         setChildList(childrenAsUsers);
 
@@ -256,12 +262,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setChildList(
           (data.user.children || []).map((c: ChildAPIResponse) => ({
             id: c.id || c._id || "",
-            username: c.username || c.nickname || "",
+            username: c.nickname || c.username || "",
             role: "child",
             avatar: c.avatar,
             availablePoints: c.availablePoints,
             totalPoints: c.totalPoints,
-            activeRewardsCount: c.activeRewardsCount,
+            pendingCount: c.pendingCount,
+            submittedCount: c.submittedCount,
+            orderCount: c.orderCount,
           })),
         );
       }

@@ -4,121 +4,16 @@ import Button from "@/components/ui/Button";
 import { User, useApp } from "@/context/AppContext";
 import { Check, ChevronRight, Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
-
-import { ChildStats, IDisplayedOrder, IDisplayedTask, PlainOrder, PlainTask } from "@/app/typings";
 import Layout from "@/components/Layouts";
 
 export default function HomePage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
-  const [orders, setOrders] = useState<IDisplayedOrder[]>([]);
-  const { currentUser, childList, switchToChild } = useApp();
-  const [childStats, setChildStats] = useState<Record<string, ChildStats>>({});
+  const { childList, switchToChild } = useApp();
 
-  const fetchTasks = async () => {
-    if (!currentUser?.token) return [];
-    const res = await fetch(`/api/tasks?userId=${currentUser?.id}`, {
-      headers: {
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-    });
-    const data: { success: boolean; tasks: PlainTask[] } = await res.json();
-    if (data.success) {
-      const tasksWithNames: IDisplayedTask[] = await Promise.all(
-        data.tasks.map(async (task: PlainTask) => {
-          const childRes = await fetch(`/api/children?childId=${task.childId}`, {
-            headers: {
-              Authorization: `Bearer ${currentUser.token}`,
-            },
-          });
-          const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
-          return {
-            ...task,
-            childName: childData.child?.nickname || "未知",
-            childAvatar: childData.child?.avatar || "👶",
-          };
-        }),
-      );
-
-      // Sort: Pending tasks at the end
-      tasksWithNames.sort((a, b) => {
-        // Priority 1: Pending last
-        const isAPending = a.status === "pending";
-        const isBPending = b.status === "pending";
-        if (isAPending && !isBPending) return 1;
-        if (!isAPending && isBPending) return -1;
-
-        // Priority 2: Approved first
-        const isACompleted = a.status === "approved";
-        const isBCompleted = b.status === "approved";
-        if (isACompleted && !isBCompleted) return -1;
-        if (!isACompleted && isBCompleted) return 1;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
-
-      return tasksWithNames;
-    }
-    return [];
-  };
-  const fetchOrders = async () => {
-    if (!currentUser?.token) return [];
-    const res = await fetch(`/api/orders?userId=${currentUser?.id}`, {
-      headers: {
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-    });
-    const data: { success: boolean; orders: PlainOrder[] } = await res.json();
-    if (data.success) {
-      const ordersWithNames: IDisplayedOrder[] = await Promise.all(
-        data.orders.map(async (order: PlainOrder) => {
-          const childRes = await fetch(`/api/children?childId=${order.childId}`, {
-            headers: {
-              Authorization: `Bearer ${currentUser.token}`,
-            },
-          });
-          const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
-          return {
-            ...order,
-            childName: childData.child?.nickname || "未知",
-            childAvatar: childData.child?.avatar || "👶",
-          };
-        }),
-      );
-      return ordersWithNames;
-    }
-    return [];
-  };
-
-  // 计算每个孩子的统计
-  useEffect(() => {
-    const calculateChildStats = () => {
-      const stats: Record<string, ChildStats> = {};
-      childList.forEach((child) => {
-        stats[child.id] = {
-          pendingTasks: tasks.filter((t) => t.childId === child.id && t.status === "pending").length,
-          submittedTasks: tasks.filter((t) => t.childId === child.id && t.status === "submitted").length,
-          pendingOrders: orders.filter((o) => o.childId === child.id && o.status === "pending").length,
-        };
-      });
-      setChildStats(stats);
-    };
-    calculateChildStats();
-  }, [tasks, orders, childList]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (currentUser?.token && currentUser?.id) {
-        const fetchedTasks = await fetchTasks();
-        setTasks(fetchedTasks);
-        const fetchedOrders = await fetchOrders();
-        setOrders(fetchedOrders);
-      }
-    };
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.token, currentUser?.id]);
+  // 计算家庭总计
+  const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
+  const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
 
   return (
     <Layout>
@@ -136,7 +31,7 @@ export default function HomePage() {
               </div>
               <span className="text-sm text-gray-600">待审核</span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{tasks.filter((t) => t.status === "submitted").length}</p>
+            <p className="text-3xl font-bold text-gray-800">{totalSubmittedTasks}</p>
           </div>
           <div
             className="card cursor-pointer hover:scale-[1.02] transition-transform"
@@ -150,7 +45,7 @@ export default function HomePage() {
               </div>
               <span className="text-sm text-gray-600">待核销</span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{orders.filter((o) => o.status === "pending").length}</p>
+            <p className="text-3xl font-bold text-gray-800">{totalPendingOrders}</p>
           </div>
         </div>
 
@@ -158,7 +53,6 @@ export default function HomePage() {
           <h2 className="text-lg font-bold text-gray-800 mb-4">孩子档案</h2>
           <div className="flex flex-col gap-3">
             {childList.map((child: User) => {
-              const stats = childStats[child.id] || { pendingTasks: 0, submittedTasks: 0, pendingOrders: 0 };
               return (
                 <div
                   key={child.id as string}
@@ -177,7 +71,7 @@ export default function HomePage() {
                           router.push(`/parent/tasks?status=uncompleted&childId=${child.id}`);
                         }}
                       >
-                        待完成: {stats.pendingTasks}
+                        待完成: {child.pendingCount || 0}
                       </span>
                       <span
                         className="text-blue-500 cursor-pointer hover:underline bg-blue-50 px-2 rounded-lg"
@@ -186,7 +80,7 @@ export default function HomePage() {
                           router.push(`/parent/audit?childId=${child.id}`);
                         }}
                       >
-                        待审核: {stats.submittedTasks}
+                        待审核: {child.submittedCount || 0}
                       </span>
                       <span
                         className="text-green-500 cursor-pointer hover:underline bg-green-50 px-2 rounded-lg"
@@ -195,7 +89,7 @@ export default function HomePage() {
                           router.push(`/parent/orders?status=pending&childId=${child.id}`);
                         }}
                       >
-                        待核销: {stats.pendingOrders}
+                        待核销: {child.orderCount || 0}
                       </span>
                     </p>
                   </div>
