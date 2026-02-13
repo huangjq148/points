@@ -5,13 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { useChild } from "@/components/ChildShell";
 import { useRouter } from "next/navigation";
 import { Calendar as CalendarIcon, Search, Sparkles, Camera, ChevronRight } from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { registerLocale } from "react-datepicker";
-import { zhCN } from "date-fns/locale";
-import Button from "@/components/ui/Button";
-
-registerLocale("zh-CN", zhCN);
+import { Button, DatePicker } from "@/components/ui";
 
 export interface Task {
   _id: string;
@@ -373,7 +367,6 @@ export default function TaskPage() {
               <DatePicker
                 selected={taskDate}
                 onChange={(date: Date | null) => setTaskDate(date)}
-                locale="zh-CN"
                 dateFormat="MM-dd"
                 customInput={
                   <button className="p-2 bg-white/80 rounded-2xl text-gray-500 hover:text-blue-500 transition-colors">

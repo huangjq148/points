@@ -34,6 +34,7 @@ export default function RootLayout({
             {children}
           </ToastProvider>
         </AppProvider>
+        <div id="datepicker-portal" />
       </body>
     </html>
   );

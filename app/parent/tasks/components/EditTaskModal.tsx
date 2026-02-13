@@ -1,11 +1,8 @@
 "use client";
 
-import { Button, Modal } from "@/components/ui";
+import { Button, Modal, DatePicker } from "@/components/ui";
 import Input from "@/components/ui/Input";
-import { zhCN } from "date-fns/locale";
 import { Camera, Clock } from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 interface EditTaskModalProps {
   isOpen: boolean;
@@ -99,18 +96,19 @@ export default function EditTaskModal({
             <label className="block text-sm font-medium text-gray-700 mb-2">任务类型</label>
             <div className="flex gap-2">
               {(["daily", "advanced", "challenge"] as const).map((type) => (
-                <button
+                <Button
                   key={type}
                   type="button"
                   onClick={() => setEditingTaskData({ ...editingTaskData, type })}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                  variant={editingTaskData.type === type ? "primary" : "default"}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all shadow-none ${
                     editingTaskData.type === type
-                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:border-blue-200"
+                      ? "border-blue-600 shadow-sm"
+                      : "hover:bg-blue-50 hover:border-blue-200"
                   }`}
                 >
                   {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -153,21 +151,12 @@ export default function EditTaskModal({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">截止时间（可选）</label>
-          <div className="relative">
-            <DatePicker
-              selected={editingTaskData.deadline}
-              onChange={(date: Date | null) => setEditingTaskData({ ...editingTaskData, deadline: date })}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              dateFormat="yyyy/MM/dd HH:mm"
-              locale={zhCN}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-              placeholderText="点击选择截止时间"
-              isClearable
-            />
-            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-          </div>
+          <DatePicker
+            selected={editingTaskData.deadline}
+            onChange={(date: Date | null) => setEditingTaskData({ ...editingTaskData, deadline: date })}
+            placeholderText="设置截止日期"
+            showTimeSelect
+          />
         </div>
       </div>
     </Modal>

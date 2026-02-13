@@ -11,14 +11,8 @@
    Gift,
    Wallet,
  } from "lucide-react";
- import DatePicker from "react-datepicker";
- import "react-datepicker/dist/react-datepicker.css";
- import { registerLocale } from "react-datepicker";
- import { zhCN } from "date-fns/locale";
- import Button from "@/components/ui/Button";
+ import { Button, DatePicker } from "@/components/ui";
 import { formatDate } from "@/utils/date";
-
-registerLocale("zh-CN", zhCN);
  
  export interface Order {
    _id: string;
@@ -210,19 +204,12 @@ registerLocale("zh-CN", zhCN);
                className="w-full pl-10 pr-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
              />
            </div>
-           <div className="relative flex-1">
-             <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={20} />
-             <DatePicker
-              selected={giftDate}
-              onChange={(date: Date | null) => setGiftDate(date)}
-              locale="zh-CN"
-              dateFormat="yyyy-MM-dd"
-              placeholderText="兑换日期"
-              className="w-full pl-10 pr-2 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-              wrapperClassName="w-full"
-              isClearable
-            />
-           </div>
+           <DatePicker
+            selected={giftDate}
+            onChange={(date: Date | null) => setGiftDate(date)}
+            placeholderText="兑换日期"
+            className="border-blue-200"
+          />
          </div>
          <div className="flex p-1 bg-white/50 backdrop-blur rounded-xl border border-blue-100 overflow-x-auto">
            {(["all", "pending", "verified", "cancelled"] as const).map((status) => (

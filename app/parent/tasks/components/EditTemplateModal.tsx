@@ -24,6 +24,23 @@ export default function EditTemplateModal({
       onClose={onClose}
       title={editingTemplate?._id ? "编辑模板" : "新建模板"}
       width="max-w-md"
+      footer={
+        <div className="flex gap-3 w-full">
+          <Button
+            onClick={onClose}
+            variant="error"
+            className="flex-1 py-3 font-semibold"
+          >
+            取消
+          </Button>
+          <Button
+            onClick={onUpdate}
+            className="flex-1 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md shadow-blue-100"
+          >
+            确认更新
+          </Button>
+        </div>
+      }
     >
       <form onSubmit={onUpdate} className="space-y-4 py-2">
         <Input
@@ -79,11 +96,11 @@ export default function EditTemplateModal({
                 key={type}
                 type="button"
                 onClick={() => setEditingTemplate({ ...editingTemplate, type })}
-                variant="secondary"
+                variant={editingTemplate.type === type ? "primary" : "default"}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all shadow-none ${
                   editingTemplate.type === type
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50"
+                    ? "border-blue-600 shadow-sm"
+                    : "hover:bg-blue-50"
                 }`}
               >
                 {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
@@ -91,19 +108,7 @@ export default function EditTemplateModal({
             ))}
           </div>
         </div>
-        <div className="pt-4 flex gap-3">
-          <Button
-            onClick={onClose}
-            variant="error"
-            className="flex-1 py-3 font-semibold"
-            type="button"
-          >
-            取消
-          </Button>
-          <Button className="flex-1 py-3 bg-blue-600 text-white hover:bg-blue-700" type="submit">
-            确定
-          </Button>
-        </div>
+        
       </form>
     </Modal>
   );

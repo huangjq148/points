@@ -6,10 +6,14 @@
   --primary-light: #60a5fa;
   --secondary: #f59e0b;
   --accent: #ec4899;
-  --bg-light: #eff6ff;
-  --bg-gradient-start: #eff6ff;
-  --bg-gradient-mid: #dbeafe;
-  --bg-gradient-end: #bfdbfe;
+  --bg-light: #f8fafc;
+  --bg-gradient-start: #f8fafc;
+  --bg-gradient-mid: #f1f5f9;
+  --bg-gradient-end: #e2e8f0;
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --content-bg: transparent;
+  --footer-bg: rgba(255, 255, 255, 0.9);
   --glass-bg: rgba(255, 255, 255, 0.75);
   --glass-border: rgba(255, 255, 255, 0.5);
   --glass-shadow: rgba(59, 130, 246, 0.15);
@@ -633,6 +637,116 @@ body {
   }
 }
 
+/* 日期选择器 Portal 样式 */
+#datepicker-portal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+#datepicker-portal > * {
+  pointer-events: auto;
+}
+
+.react-datepicker-popper {
+  z-index: 99999 !important;
+}
+
+/* DatePicker 样式优化 */
+.react-datepicker {
+  font-family: inherit !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(59, 130, 246, 0.1) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  backdrop-filter: blur(10px) !important;
+  overflow: hidden;
+}
+
+.react-datepicker__header {
+  background: white !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding: 12px 0 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list li.react-datepicker__time-list-item--selected {
+  background-color: #2563eb !important;
+  border-radius: 10px !important;
+  color: white !important;
+}
+
+.react-datepicker__day:hover,
+.react-datepicker__time-list-item:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-radius: 10px !important;
+}
+
+.react-datepicker__current-month,
+.react-datepicker-time__header {
+  color: #1e3a5f !important;
+  font-weight: 700 !important;
+}
+
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+
+.react-datepicker__time-container {
+  border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+  width: 90px !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box {
+  width: 100% !important;
+  border-radius: 0 0 20px 0 !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list::-webkit-scrollbar {
+  width: 5px !important;
+}
+
+.react-datepicker__time-container .react-datepicker__time .react-datepicker__time-box ul.react-datepicker__time-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 10px !important;
+}
+
+.react-datepicker__portal {
+  z-index: 99999 !important;
+}
+
+/* 修复清除按钮与自定义图标重叠 */
+.react-datepicker__close-icon {
+  padding: 0 8px 0 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  right: 0 !important;
+}
+
+.react-datepicker__close-icon::after {
+  background-color: #94a3b8 !important;
+  color: white !important;
+  font-size: 14px !important;
+  height: 18px !important;
+  width: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  content: "×" !important;
+}
+
+/* 当有右侧图标时，将清除按钮向左移动 */
+.has-right-icon .react-datepicker__close-icon {
+  right: 32px !important;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -728,8 +842,8 @@ body {
 
 @media (min-width: 768px) {
   .modal-content {
-    border-radius: 36px;
-    padding: 32px;
+    border-radius: 18px;
+    padding: 20px;
   }
 }
 
@@ -792,19 +906,20 @@ body {
 
 @media (min-width: 1024px) {
   .sidebar {
-    width: 300px;
-    min-width: 300px;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+    width: 280px;
+    min-width: 280px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
     border-right: 1px solid rgba(255, 255, 255, 0.5);
-    padding: 24px;
+    padding: 32px 24px;
     height: 100vh;
     position: sticky;
     top: 0;
     display: flex;
     flex-direction: column;
     z-index: 50;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
   }
 }
 
@@ -812,6 +927,7 @@ body {
   flex: 1;
   padding: 20px;
   padding-bottom: 100px;
+  background: transparent;
 }
 
 @media (min-width: 768px) {

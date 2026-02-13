@@ -16,14 +16,7 @@ interface ModalProps {
   width?: string | number;
 }
 
-export default function Modal({
-  isOpen,
-  onClose,
-  title,
-  children,
-  footer,
-  width = "max-w-md",
-}: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, footer, width = "max-w-md" }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -47,6 +40,7 @@ export default function Modal({
         style={{
           maxHeight: "90vh",
           width: isNumericWidth ? width : undefined,
+          minHeight: "300px",
         }}
       >
         {/* Header */}
@@ -62,16 +56,10 @@ export default function Modal({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto min-h-0 pl-2 pr-6">{children}</div>
 
         {/* Footer */}
-        {footer && (
-          <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-3">
-            {footer}
-          </div>
-        )}
+        {footer && <div className="pt-3 border-t border-gray-100 flex justify-end gap-3">{footer}</div>}
       </div>
     </div>
   );

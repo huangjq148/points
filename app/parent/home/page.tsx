@@ -4,7 +4,6 @@ import Button from "@/components/ui/Button";
 import { User, useApp } from "@/context/AppContext";
 import { Check, ChevronRight, Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import "react-datepicker/dist/react-datepicker.css";
 import Layout from "@/components/Layouts";
 
 export default function HomePage() {

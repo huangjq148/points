@@ -2,7 +2,7 @@
 
 import { IDisplayedOrder, PlainOrder } from "@/app/typings";
 import Layout from "@/components/Layouts";
-import { Button } from "@/components/ui";
+import { Button, TabFilter } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { Ticket } from "lucide-react";
@@ -99,10 +99,20 @@ export default function OrdersPage() {
     refreshPending();
   };
 
+  const orderTabs = [
+    { key: "pending", label: `待核销 (${pendingOrders.length})` },
+    { key: "history", label: "核销记录" },
+  ] as const;
+
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">兑换核销</h2>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            兑换核销
+          </h2>
+          <p className="text-gray-500 text-sm mt-1">核销孩子兑换的礼品</p>
+        </div>
         <div className="flex items-center gap-2">
           {isLoading && (
             <div className="loading-spinner w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -122,24 +132,12 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
-        <button
-          onClick={() => setActiveTab("pending")}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${
-            activeTab === "pending" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          待核销 ({pendingOrders.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("history")}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${
-            activeTab === "history" ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          核销记录
-        </button>
-      </div>
+      <TabFilter
+        items={orderTabs}
+        activeKey={activeTab}
+        onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
+        className="mb-8"
+      />
 
       {activeTab === "pending" ? (
         pendingOrders.length === 0 ? (

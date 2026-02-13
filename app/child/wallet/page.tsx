@@ -8,14 +8,8 @@ import {
   Search,
   ChevronRight,
 } from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import { registerLocale } from "react-datepicker";
-import { zhCN } from "date-fns/locale";
-import Button from "@/components/ui/Button";
+import { Button, DatePicker } from "@/components/ui";
 import { formatDate } from "@/utils/date";
-
-registerLocale("zh-CN", zhCN);
 
 interface LedgerItem {
   _id: string;
@@ -101,35 +95,20 @@ export default function WalletPage() {
          </div>
        </div>
  
-       {/* Filters */}
        <div className="mb-4 space-y-2">
          <div className="flex gap-2">
-           <div className="relative flex-1">
-             <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
-             <DatePicker
-              selected={ledgerStartDate}
-              onChange={(date: Date | null) => setLedgerStartDate(date)}
-              locale="zh-CN"
-              dateFormat="yyyy-MM-dd"
-              placeholderText="开始日期"
-              className="w-full pl-8 pr-2 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-              wrapperClassName="w-full"
-              isClearable
-            />
-           </div>
-           <div className="relative flex-1">
-             <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={16} />
-             <DatePicker
-              selected={ledgerEndDate}
-              onChange={(date: Date | null) => setLedgerEndDate(date)}
-              locale="zh-CN"
-              dateFormat="yyyy-MM-dd"
-              placeholderText="结束日期"
-              className="w-full pl-8 pr-2 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-              wrapperClassName="w-full"
-              isClearable
-            />
-           </div>
+           <DatePicker
+            selected={ledgerStartDate}
+            onChange={(date: Date | null) => setLedgerStartDate(date)}
+            placeholderText="开始日期"
+            className="border-blue-200"
+          />
+          <DatePicker
+            selected={ledgerEndDate}
+            onChange={(date: Date | null) => setLedgerEndDate(date)}
+            placeholderText="结束日期"
+            className="border-blue-200"
+          />
          </div>
          <div className="relative">
            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />

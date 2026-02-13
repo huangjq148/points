@@ -3,7 +3,7 @@
 import React, { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'default';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
   loading?: boolean;
@@ -85,6 +85,16 @@ export default function Button({
       hover:shadow-xl hover:shadow-red-500/40
       hover:scale-[1.02]
       active:scale-[0.98]
+    `,
+    default: `
+      bg-white
+      text-gray-800
+      border border-gray-200
+      hover:bg-gray-50
+      hover:border-gray-300
+      hover:scale-[1.02]
+      active:scale-[0.98]
+      shadow-sm
     `,
   };
 

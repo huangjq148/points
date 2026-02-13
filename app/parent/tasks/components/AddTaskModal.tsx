@@ -1,13 +1,9 @@
 "use client";
 
-import { Button, Modal } from "@/components/ui";
+import { Button, Modal, Select, DatePicker } from "@/components/ui";
 import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
 import { User } from "@/context/AppContext";
-import { zhCN } from "date-fns/locale";
 import { Camera, Clock } from "lucide-react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -125,17 +121,25 @@ export default function AddTaskModal({
               className="rounded-xl border-gray-200"
             />
           </div>
-          <div>
+          <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">任务类型</label>
-            <Select
-              value={newTask.type}
-              onChange={(val) => setNewTask({ ...newTask, type: val as string })}
-              options={[
-                { value: "daily", label: "日常" },
-                { value: "advanced", label: "进阶" },
-                { value: "challenge", label: "挑战" },
-              ]}
-            />
+            <div className="flex gap-2">
+              {(["daily", "advanced", "challenge"] as const).map((type) => (
+                <Button
+                  key={type}
+                  type="button"
+                  onClick={() => setNewTask({ ...newTask, type })}
+                  variant={newTask.type === type ? "primary" : "default"}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all shadow-none ${
+                    newTask.type === type
+                      ? "border-blue-600 shadow-sm"
+                      : "hover:bg-blue-50 hover:border-blue-200"
+                  }`}
+                >
+                  {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -188,21 +192,12 @@ export default function AddTaskModal({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">截止时间（可选）</label>
-          <div className="relative">
-            <DatePicker
-              selected={newTask.deadline}
-              onChange={(date: Date | null) => setNewTask({ ...newTask, deadline: date })}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              dateFormat="yyyy/MM/dd HH:mm"
-              locale={zhCN}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-              placeholderText="点击选择截止时间"
-              isClearable
-            />
-            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-          </div>
+          <DatePicker
+            selected={newTask.deadline}
+            onChange={(date: Date | null) => setNewTask({ ...newTask, deadline: date })}
+            placeholderText="设置截止日期"
+            showTimeSelect
+          />
         </div>
 
         <div>

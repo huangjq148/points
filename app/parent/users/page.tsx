@@ -15,7 +15,6 @@ import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
 import { Plus, Settings, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import "react-datepicker/dist/react-datepicker.css";
 
 export default function UsersPage() {
   const { currentUser, logout } = useApp();

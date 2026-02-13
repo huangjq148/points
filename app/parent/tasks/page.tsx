@@ -1,13 +1,12 @@
 "use client";
 
-import { Button, Pagination } from "@/components/ui";
+import { Button, Pagination, TabFilter } from "@/components/ui";
 import Select from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
 import AlertModal from "@/components/AlertModal";
 import { Edit2, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import "react-datepicker/dist/react-datepicker.css";
 import TaskCard, { IDisplayedTask } from "./components/TaskCard";
 import TemplateManager from "./components/TemplateManager";
 import EditTemplateModal from "./components/EditTemplateModal";
@@ -48,6 +47,15 @@ import Layout from "@/components/Layouts";
 import request from "@/utils/request";
 // import { formatDate } from "@/utils/date";
 // import Layout from '@/app/layout';
+
+// 1. 提取配置：方便维护和扩展，避免在 JSX 中写死
+const TAB_ITEMS = [
+  { key: "all", label: "全部" },
+  { key: "uncompleted", label: "未完成" },
+  { key: "submitted", label: "待审核" },
+  { key: "completed", label: "已完成" },
+  { key: "rejected", label: "已驳回" },
+] as const;
 
 export default function TasksPage() {
   const [selectedChildTaskFilter, setSelectedChildTaskFilter] = useState<string>("all");
@@ -112,40 +120,32 @@ export default function TasksPage() {
     const fetchTemplates = async () => {
       if (!currentUser?.token) return;
       try {
-        const res = await fetch("/api/task-templates", {
-          headers: {
-            Authorization: `Bearer ${currentUser.token}`,
-          },
-        });
-        const data = await res.json();
+        const data = await request("/api/task-templates");
         if (data.success) {
           if (data.data.length === 0) {
             // 如果数据库为空，创建默认模板并保存
             const defaultTemplates = [
               { name: "按时起床", points: 5, icon: "⏰", type: "daily", description: "早起不赖床，养成好习惯" },
-              { name: "认真完成作业", points: 10, icon: "📚", type: "daily", description: "独立且认真地完成当天的所有作业" },
+              {
+                name: "认真完成作业",
+                points: 10,
+                icon: "📚",
+                type: "daily",
+                description: "独立且认真地完成当天的所有作业",
+              },
               { name: "整理房间", points: 8, icon: "🧹", type: "daily", description: "收拾自己的玩具和书桌，保持整洁" },
               { name: "练习乐器", points: 15, icon: "🎹", type: "daily", description: "坚持练习乐器 30 分钟" },
               { name: "阅读 20 分钟", points: 5, icon: "📖", type: "daily", description: "每天坚持阅读，拓宽知识面" },
             ];
-            
+
             for (const t of defaultTemplates) {
-              await fetch("/api/task-templates", {
+              await request("/api/task-templates", {
                 method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${currentUser.token}`,
-                },
-                body: JSON.stringify(t),
+                body: t,
               });
             }
             // 重新获取
-            const refreshedRes = await fetch("/api/task-templates", {
-              headers: {
-                Authorization: `Bearer ${currentUser.token}`,
-              },
-            });
-            const refreshedData = await refreshedRes.json();
+            const refreshedData = await request("/api/task-templates");
             if (refreshedData.success) setTemplates(refreshedData.data);
           } else {
             setTemplates(data.data);
@@ -174,16 +174,14 @@ export default function TasksPage() {
   const handleDeleteTemplate = async (id: string) => {
     if (!currentUser?.token) return;
     try {
-      const res = await fetch(`/api/task-templates/${id}`, {
+      const res = await request(`/api/task-templates/${id}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
       });
-      const data = await res.json();
-      if (data.success) {
+      if (res.success) {
         setTemplates(templates.filter((t) => t._id !== id));
         showAlert("模板已删除", "success");
+      } else {
+        showAlert(res.message || "删除失败", "error");
       }
     } catch (e) {
       showAlert("删除失败", "error");
@@ -203,25 +201,23 @@ export default function TasksPage() {
     try {
       const method = editingTemplate._id ? "PUT" : "POST";
       const url = editingTemplate._id ? `/api/task-templates/${editingTemplate._id}` : "/api/task-templates";
-      
-      const res = await fetch(url, {
+
+      const res = await request(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify(editingTemplate),
+        body: editingTemplate,
       });
-      const data = await res.json();
-      if (data.success) {
+
+      if (res.success) {
         if (editingTemplate._id) {
-          setTemplates(templates.map((t) => (t._id === editingTemplate._id ? data.data : t)));
+          setTemplates(templates.map((t) => (t._id === editingTemplate._id ? res.data : t)));
         } else {
-          setTemplates([data.data, ...templates]);
+          setTemplates([res.data, ...templates]);
         }
         setShowEditTemplateModal(false);
         setEditingTemplate(null);
         showAlert(editingTemplate._id ? "模板已更新" : "模板已创建", "success");
+      } else {
+        showAlert(res.message || "保存失败", "error");
       }
     } catch (e) {
       showAlert("保存失败", "error");
@@ -553,41 +549,19 @@ export default function TasksPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex p-1 bg-gray-100 rounded-xl mb-4 overflow-x-auto">
-          {(["all", "uncompleted", "submitted", "completed", "rejected"] as const).map((tab) => (
-            <Button
-              key={tab}
-              onClick={() => onFilterChange("status", tab)}
-              variant="secondary"
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${
-                activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700 bg-transparent border-none shadow-none"
-              }`}
-            >
-              {tab === "all"
-                ? "全部"
-                : tab === "uncompleted"
-                  ? "未完成"
-                  : tab === "submitted"
-                    ? "待审核"
-                    : tab === "completed"
-                      ? "已完成"
-                      : "已驳回"}
-            </Button>
-          ))}
-        </div>
+        <TabFilter
+          items={TAB_ITEMS}
+          activeKey={activeTaskFilter}
+          onFilterChange={(key) => onFilterChange("status", key)}
+          className="mb-8"
+        />
 
         <div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto custom-scrollbar p-1 pb-8"
           style={{ maxHeight: "calc(100vh - 270px)" }}
         >
           {tasks.map((task) => (
-            <TaskCard
-              key={task._id}
-              task={task}
-              now={now}
-              onEdit={handleEditTask}
-              onDelete={setTaskToDelete}
-            />
+            <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           ))}
           {tasks.length === 0 && <div className="text-center py-12 text-gray-400 col-span-full">暂无任务</div>}
 

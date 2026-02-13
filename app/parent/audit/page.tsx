@@ -96,17 +96,17 @@ export default function AuditPage() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-800">任务审核</h2>
         <div className="w-40">
-          <Select
-            value={selectedChildFilter}
-            onChange={(value) => {
-              if (value) {
-                onFilterChange(value.toString());
-              }
-            }}
-            options={childOptions}
-            placeholder="选择孩子"
-          />
-        </div>
+            <Select
+              value={selectedChildFilter}
+              onChange={(value) => {
+                if (value) {
+                  onFilterChange(value.toString());
+                }
+              }}
+              options={childOptions}
+              placeholder="选择孩子"
+            />
+          </div>
       </div>
       {pendingTasks.length === 0 ? (
         <div className="card text-center py-12 text-gray-500">

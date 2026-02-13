@@ -3,10 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { TaskTemplate } from "@/models";
 import { getTokenPayload } from "@/lib/auth";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const authHeader = request.headers.get("Authorization");
     const payload = getTokenPayload(authHeader);
@@ -15,15 +12,15 @@ export async function PUT(
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
+
+    const { _id, id: bodyId, createdAt, updatedAt, ...updateData } = body;
     await connectDB();
 
-    const template = await TaskTemplate.findOneAndUpdate(
-      { _id: id, userId: payload.userId },
-      body,
-      { new: true }
-    );
+    const template = await TaskTemplate.findOneAndUpdate({ _id: id, userId: payload.userId }, updateData, {
+      new: true,
+    });
 
     if (!template) {
       return NextResponse.json({ success: false, message: "Template not found" }, { status: 404 });
@@ -36,10 +33,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const authHeader = request.headers.get("Authorization");
     const payload = getTokenPayload(authHeader);
@@ -48,7 +42,8 @@ export async function DELETE(
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
+
     await connectDB();
 
     const template = await TaskTemplate.findOneAndDelete({ _id: id, userId: payload.userId });
