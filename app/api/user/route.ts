@@ -32,7 +32,11 @@ export async function GET(request: NextRequest) {
         username: u.username,
         role: u.role,
         identity: u.identity,
+        nickname: u.nickname,
+        gender: u.gender,
         familyId: u.familyId,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
         type: "parent", // Consistent with frontend expectations
         isMe: u._id.toString() === userId,
       })),
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
     await connectDB();
-    const { username, password, role, identity, familyId } = await request.json();
+    const { username, password, role, identity, familyId, nickname, gender } = await request.json();
 
     const exist = await User.findOne({ username });
     if (exist) return NextResponse.json({ success: false, message: "用户名已存在" });
@@ -62,6 +66,8 @@ export async function POST(request: NextRequest) {
       password: password || "123456",
       role: role || "parent",
       identity,
+      nickname,
+      gender,
       familyId, // Optional
       children: [],
     });
@@ -80,7 +86,7 @@ export async function PUT(request: NextRequest) {
     if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
 
     await connectDB();
-    const { id, username, password, role, identity } = await request.json();
+    const { id, username, password, role, identity, nickname, gender } = await request.json();
 
     const user = await User.findById(id);
     if (!user) return NextResponse.json({ success: false, message: "User not found" });
@@ -89,6 +95,8 @@ export async function PUT(request: NextRequest) {
     if (password) user.password = await hashPassword(password);
     if (role) user.role = role;
     if (identity !== undefined) user.identity = identity;
+    if (nickname !== undefined) user.nickname = nickname;
+    if (gender !== undefined) user.gender = gender;
 
     await user.save();
     return NextResponse.json({ success: true });

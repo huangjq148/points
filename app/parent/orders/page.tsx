@@ -6,6 +6,7 @@ import { Button } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { Ticket } from "lucide-react";
+import request from "@/utils/request";
 import { useCallback, useEffect, useState } from "react";
 
 export default function OrdersPage() {
@@ -30,35 +31,23 @@ export default function OrdersPage() {
     async (status: string, page: number = 1, limit: number = 100) => {
       if (!currentUser?.token) return { orders: [], total: 0 };
       
-      let url = `/api/orders?userId=${currentUser.id}&status=${status}&page=${page}&limit=${limit}`;
+      const params: Record<string, string | number> = {
+        userId: currentUser.id,
+        status,
+        page,
+        limit,
+      };
+      
       if (selectedChildFilter !== "all") {
-        url += `&childId=${selectedChildFilter}`;
+        params.childId = selectedChildFilter;
       }
 
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      const data: { success: boolean; orders: PlainOrder[]; total: number } = await res.json();
+      const data = (await request("/api/orders", {
+        params,
+      })) as { success: boolean; orders: IDisplayedOrder[]; total: number };
       
       if (data.success) {
-        const ordersWithNames: IDisplayedOrder[] = await Promise.all(
-          data.orders.map(async (order: PlainOrder) => {
-            const childRes = await fetch(`/api/children?childId=${order.childId}`, {
-              headers: {
-                Authorization: `Bearer ${currentUser.token}`,
-              },
-            });
-            const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
-            return {
-              ...order,
-              childName: childData.child?.nickname || "未知",
-              childAvatar: childData.child?.avatar || "👶",
-            };
-          })
-        );
-        return { orders: ordersWithNames, total: data.total };
+        return { orders: data.orders, total: data.total };
       }
       return { orders: [], total: 0 };
     },
@@ -100,26 +89,18 @@ export default function OrdersPage() {
 
   const handleVerifyOrder = async (orderId: string) => {
     if (!currentUser?.token) return;
-    await fetch("/api/orders", {
+    await request("/api/orders", {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-      body: JSON.stringify({ orderId, action: "verify" }),
+      body: { orderId, action: "verify" },
     });
     refreshPending();
   };
 
   const handleCancelOrder = async (orderId: string) => {
     if (!currentUser?.token) return;
-    await fetch("/api/orders", {
+    await request("/api/orders", {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-      body: JSON.stringify({ orderId, action: "cancel" }),
+      body: { orderId, action: "cancel" },
     });
     refreshPending();
   };

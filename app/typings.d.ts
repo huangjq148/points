@@ -51,11 +51,15 @@ export interface PlainOrder {
 export interface FamilyMember {
   id: string;
   username: string;
+  nickname?: string;
+  gender?: 'boy' | 'girl' | 'none';
   role: string;
   type: string;
   isMe: boolean;
   phone?: string;
   identity?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface IDisplayedTask extends PlainTask {

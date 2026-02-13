@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { Button, Input, Modal, Pagination } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
+import request from "@/utils/request";
 
 export default function AuditPage() {
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
@@ -29,64 +30,61 @@ export default function AuditPage() {
 
   const pendingTasks = tasks;
 
-  const fetchTasks = useCallback(async (pageNum: number = 1) => {
-    if (!currentUser?.token) return;
+  const fetchTasks = useCallback(
+    async (pageNum: number = 1) => {
+      if (!currentUser?.token) return;
 
-    let url = `/api/tasks?userId=${currentUser?.id}&status=submitted&page=${pageNum}&limit=${limit}`;
-    if (selectedChildFilter !== "all") {
-      url += `&childId=${selectedChildFilter}`;
-    }
+      const params: Record<string, string | number> = {
+        userId: currentUser?.id || "",
+        status: "submitted",
+        page: pageNum,
+        limit,
+      };
 
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-    });
-    const data: { success: boolean; tasks: PlainTask[]; total: number } = await res.json();
-    if (data.success) {
-      const tasksWithNames: IDisplayedTask[] = await Promise.all(
-        data.tasks.map(async (task: PlainTask) => {
-          const childRes = await fetch(`/api/children?childId=${task.childId}`, {
-            headers: {
-              Authorization: `Bearer ${currentUser.token}`,
-            },
-          });
-          const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
-          return {
-            ...task,
-            childName: childData.child?.nickname || "未知",
-            childAvatar: childData.child?.avatar || "👶",
-          };
-        }),
-      );
+      if (selectedChildFilter !== "all") {
+        params.childId = selectedChildFilter;
+      }
 
-      setTasks(tasksWithNames);
-      setTotal(data.total);
-    }
-  }, [currentUser, selectedChildFilter]);
+      const data = (await request("/api/tasks", {
+        params,
+      })) as { success: boolean; tasks: IDisplayedTask[]; total: number };
+
+      if (data.success) {
+        return { tasks: data.tasks, total: data.total };
+      }
+      return { tasks: [], total: 0 };
+    },
+    [currentUser, selectedChildFilter],
+  );
 
   useEffect(() => {
     if (currentUser) {
-      fetchTasks(page);
+      fetchTasks(page).then((result) => {
+        if (result) {
+          setTasks(result.tasks);
+          setTotal(result.total);
+        }
+      });
     }
   }, [currentUser, fetchTasks, page]);
 
-  // Reset page when filter changes
-  useEffect(() => {
+  // Handle filter changes
+  const onFilterChange = (value: string) => {
+    setSelectedChildFilter(value);
     setPage(1);
-  }, [selectedChildFilter]);
+  };
 
   const handleApproveTask = async (taskId: string, status: "approved" | "rejected", rejectionReason?: string) => {
     if (!currentUser?.token) return;
-    await fetch("/api/tasks", {
+    await request("/api/tasks", {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-      body: JSON.stringify({ taskId, status, rejectionReason }),
+      body: { taskId, status, rejectionReason },
     });
-    await fetchTasks(page);
+    const result = await fetchTasks(page);
+    if (result) {
+      setTasks(result.tasks);
+      setTotal(result.total);
+    }
     setSelectedTask(null);
     setRejectionReason("");
   };
@@ -100,7 +98,7 @@ export default function AuditPage() {
             value={selectedChildFilter}
             onChange={(value) => {
               if (value) {
-                setSelectedChildFilter(value.toString());
+                onFilterChange(value.toString());
               }
             }}
             options={childOptions}

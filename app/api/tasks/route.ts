@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Task, { ITask } from "@/models/Task";
@@ -5,9 +6,9 @@ import User from "@/models/User";
 import { getUserIdFromToken } from "@/lib/auth";
 
 interface ITaskQuery {
-  childId?: string;
+  childId?: mongoose.Types.ObjectId;
   status?: "pending" | "submitted" | "approved" | "rejected";
-  userId?: string;
+  userId?: mongoose.Types.ObjectId;
 }
 
 async function generateRecurringTasks(userId: string) {
@@ -114,12 +115,44 @@ export async function GET(request: NextRequest) {
     }
 
     const query: ITaskQuery = {};
-    if (childId) query.childId = childId;
+    if (childId) query.childId = new mongoose.Types.ObjectId(childId);
     if (status) query.status = status;
-    if (userId) query.userId = userId;
+    if (userId) query.userId = new mongoose.Types.ObjectId(userId);
 
     const skip = (page - 1) * limit;
-    const tasks = await Task.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+
+    // Use aggregation to join with User collection for child details
+    const tasks = await Task.aggregate([
+      { $match: query },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: "users",
+          localField: "childId",
+          foreignField: "_id",
+          as: "childInfo",
+        },
+      },
+      {
+        $addFields: {
+          childName: {
+            $let: {
+              vars: { firstChild: { $arrayElemAt: ["$childInfo", 0] } },
+              in: { $ifNull: ["$$firstChild.nickname", "$$firstChild.username", "未知"] },
+            },
+          },
+          childAvatar: {
+            $let: {
+              vars: { firstChild: { $arrayElemAt: ["$childInfo", 0] } },
+              in: { $ifNull: ["$$firstChild.avatar", "👶"] },
+            },
+          },
+        },
+      },
+      { $project: { childInfo: 0 } },
+    ]);
 
     const total = await Task.countDocuments(query);
 

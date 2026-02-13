@@ -91,11 +91,39 @@ export async function GET(request: NextRequest) {
     }
 
     const skip = (page - 1) * limit;
-    const orders: IOrder[] = await Order.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    
+    // Use aggregation to join with User collection for child details
+    const orders = await Order.aggregate([
+      { $match: query },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: "users",
+          localField: "childId",
+          foreignField: "_id",
+          as: "childInfo",
+        },
+      },
+      {
+        $addFields: {
+          childName: {
+            $let: {
+              vars: { firstChild: { $arrayElemAt: ["$childInfo", 0] } },
+              in: { $ifNull: ["$$firstChild.nickname", "$$firstChild.username", "未知"] },
+            },
+          },
+          childAvatar: {
+            $let: {
+              vars: { firstChild: { $arrayElemAt: ["$childInfo", 0] } },
+              in: { $ifNull: ["$$firstChild.avatar", "👶"] },
+            },
+          },
+        },
+      },
+      { $project: { childInfo: 0 } },
+    ]);
       
     const total = await Order.countDocuments(query);
     

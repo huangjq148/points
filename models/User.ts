@@ -5,6 +5,8 @@ export interface IUser extends Document {
   password: string;
   role: 'admin' | 'parent' | 'child';
   identity?: string;
+  nickname?: string;
+  gender?: 'boy' | 'girl' | 'none';
   // children field is deprecated, use familyId and role instead
   children: mongoose.Types.ObjectId[];
   familyId?: mongoose.Types.ObjectId;
@@ -22,6 +24,8 @@ const UserSchema = new Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ['admin', 'parent', 'child'], default: 'parent' },
     identity: { type: String },
+    nickname: { type: String },
+    gender: { type: String, enum: ['boy', 'girl', 'none'], default: 'none' },
     children: [{ type: Schema.Types.ObjectId, ref: 'Child' }], // Deprecated
     familyId: { type: Schema.Types.ObjectId },
     inviteCode: { type: String },

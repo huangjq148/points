@@ -26,7 +26,14 @@ export default function UsersPage() {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
-  const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
+  const [accountForm, setAccountForm] = useState({ 
+    username: "", 
+    password: "", 
+    role: "parent", 
+    identity: "",
+    nickname: "",
+    gender: "none" as "boy" | "girl" | "none"
+  });
 
   const fetchUsers = useCallback(() => {
     if (!currentUser || !currentUser.token) return;
@@ -74,7 +81,14 @@ export default function UsersPage() {
       toast.success("创建成功");
       setShowAddAccountModal(false);
       fetchUsers();
-      setAccountForm({ username: "", password: "", role: "parent", identity: "" });
+      setAccountForm({ 
+        username: "", 
+        password: "", 
+        role: "parent", 
+        identity: "",
+        nickname: "",
+        gender: "none"
+      });
     } else {
       toast.error(data.message);
     }
@@ -127,20 +141,41 @@ export default function UsersPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cols: ColumnDef<FamilyMember, any>[] = [
       columnHelper.accessor("username", {
-        header: "账号/昵称",
-        cell: (info) => (
-          <div className="flex items-center gap-2">
-            {info.row.original.type === "child" ? "👶" : "👤"}
-            {info.getValue()}
-            {info.row.original.isMe && (
-              <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">我</span>
-            )}
-          </div>
-        ),
+        header: "账号",
+        cell: (info) => {
+          const gender = info.row.original.gender;
+          const role = info.row.original.role;
+          let icon = "👤";
+          if (role === "child") {
+            if (gender === "girl") icon = "👧";
+            else icon = "👦"; // 默认为男孩，包括 "boy" 和 "none"
+          }
+          return (
+            <div className="flex items-center gap-2">
+              <span>{icon}</span>
+              <span className="font-medium">{info.getValue()}</span>
+              {info.row.original.isMe && (
+                <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">我</span>
+              )}
+            </div>
+          );
+        },
       }),
     ];
 
     cols.push(
+      columnHelper.accessor("nickname", {
+        header: "昵称",
+        cell: (info) => info.getValue() || "-",
+      }),
+      columnHelper.accessor("gender", {
+        header: "性别",
+        cell: (info) => {
+          const val = info.getValue();
+          if (val === "girl") return <span className="text-pink-500 font-bold">女</span>;
+          return <span className="text-blue-500 font-bold">男</span>; // 默认为男
+        },
+      }),
       columnHelper.accessor("type", {
         header: "类型",
         cell: (info) => (info.getValue() === "child" ? "孩子" : "用户"),
@@ -154,6 +189,14 @@ export default function UsersPage() {
           if (val === "child") return "孩子";
           return "-";
         },
+      }),
+      columnHelper.accessor("createdAt", {
+        header: "创建日期",
+        cell: (info) => info.getValue() ? new Date(info.getValue()).toLocaleDateString("zh-CN") : "-",
+      }),
+      columnHelper.accessor("updatedAt", {
+        header: "最后修改",
+        cell: (info) => info.getValue() ? new Date(info.getValue()).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-",
       }),
       columnHelper.display({
         id: "actions",
@@ -171,6 +214,8 @@ export default function UsersPage() {
                     password: "",
                     role: info.row.original.role,
                     identity: info.row.original.identity || "",
+                    nickname: info.row.original.nickname || "",
+                    gender: (info.row.original.gender as "boy" | "girl" | "none") || "none"
                   });
                   setShowEditAccountModal(true);
                 }}
@@ -216,7 +261,14 @@ export default function UsersPage() {
           <div className="flex gap-2">
             <Button
               onClick={() => {
-                setAccountForm({ username: "", password: "", role: "parent", identity: "" });
+                setAccountForm({ 
+                  username: "", 
+                  password: "", 
+                  role: "parent", 
+                  identity: "",
+                  nickname: "",
+                  gender: "none"
+                });
                 setShowAddAccountModal(true);
               }}
               className="flex items-center gap-2"
@@ -283,6 +335,27 @@ export default function UsersPage() {
             placeholder="请输入账号"
           />
           <Input
+            label="昵称"
+            value={accountForm.nickname}
+            onChange={(e) => setAccountForm({ ...accountForm, nickname: e.target.value })}
+            placeholder="请输入昵称"
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">性别</label>
+            <Select
+              value={accountForm.gender}
+              onChange={(value) =>
+                setAccountForm({ ...accountForm, gender: (value as "boy" | "girl" | "none") || "none" })
+              }
+              options={[
+                { value: "none", label: "未设置" },
+                { value: "boy", label: "男" },
+                { value: "girl", label: "女" },
+              ]}
+              placeholder="选择性别"
+            />
+          </div>
+          <Input
             label="密码 (默认123456)"
             value={accountForm.password}
             onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}
@@ -321,6 +394,27 @@ export default function UsersPage() {
             value={accountForm.username}
             onChange={(e) => setAccountForm({ ...accountForm, username: e.target.value })}
           />
+          <Input
+            label="昵称"
+            value={accountForm.nickname}
+            onChange={(e) => setAccountForm({ ...accountForm, nickname: e.target.value })}
+            placeholder="请输入昵称"
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">性别</label>
+            <Select
+              value={accountForm.gender}
+              onChange={(value) =>
+                setAccountForm({ ...accountForm, gender: (value as "boy" | "girl" | "none") || "none" })
+              }
+              options={[
+                { value: "none", label: "未设置" },
+                { value: "boy", label: "男" },
+                { value: "girl", label: "女" },
+              ]}
+              placeholder="选择性别"
+            />
+          </div>
           <Input
             label="密码 (留空不修改)"
             value={accountForm.password}

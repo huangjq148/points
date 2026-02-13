@@ -45,3 +45,5 @@ node_modules
 .next
 
 .pnpm-store
+
+public/uploads/

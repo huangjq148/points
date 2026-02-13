@@ -7,6 +7,8 @@ import request from "@/utils/request";
 export interface User {
   id: string;
   username: string;
+  nickname?: string;
+  gender?: 'boy' | 'girl' | 'none';
   password?: string;
   role: "parent" | "child" | "admin";
   inviteCode?: string;
@@ -25,6 +27,7 @@ interface ChildAPIResponse {
   _id?: string;
   username: string;
   nickname?: string;
+  gender?: 'boy' | 'girl' | 'none';
   avatar?: string;
   availablePoints?: number;
   totalPoints?: number;
@@ -181,7 +184,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Map children to User objects
         const childrenAsUsers: User[] = (data.children || []).map((c: ChildAPIResponse) => ({
           id: c.id || c._id || "",
-          username: c.nickname || c.username || "",
+          username: c.username || "",
+          nickname: c.nickname,
+          gender: c.gender || 'none',
           role: "child",
           avatar: c.avatar,
           availablePoints: c.availablePoints,
@@ -262,7 +267,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setChildList(
           (data.user.children || []).map((c: ChildAPIResponse) => ({
             id: c.id || c._id || "",
-            username: c.nickname || c.username || "",
+            username: c.username || "",
+            nickname: c.nickname,
+            gender: c.gender || 'none',
             role: "child",
             avatar: c.avatar,
             availablePoints: c.availablePoints,

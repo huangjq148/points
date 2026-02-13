@@ -40,6 +40,7 @@ interface PlainTask {
 }
 
 import Layout from "@/components/Layouts";
+import request from "@/utils/request";
 // import Layout from '@/app/layout';
 
 export default function TasksPage() {
@@ -47,7 +48,7 @@ export default function TasksPage() {
   const { currentUser, childList } = useApp();
   const [showAddTask, setShowAddTask] = useState(false);
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
-  const [activeTaskFilter, setActiveTaskFilter] = useState<"all" | "completed" | "uncompleted">("all");
+  const [activeTaskFilter, setActiveTaskFilter] = useState<"all" | "completed" | "uncompleted" | "submitted" | "rejected">("all");
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [editingTaskData, setEditingTaskData] = useState({
     name: "",
@@ -286,64 +287,57 @@ export default function TasksPage() {
   const fetchTasks = useCallback(async (pageNum: number = 1) => {
     if (!currentUser?.token) return [];
     
+    const currentSelectedChildTaskFilter = selectedChildTaskFilter;
+
     let statusFilter = "";
-    if (activeTaskFilter === "uncompleted") {
-      statusFilter = "pending,submitted,rejected";
-    } else if (activeTaskFilter === "completed") {
+    if (activeTaskFilter === "completed") {
       statusFilter = "approved";
+    } else if (activeTaskFilter === "uncompleted") {
+      statusFilter = "pending";
+    } else if (activeTaskFilter === "submitted") {
+      statusFilter = "submitted";
+    } else if (activeTaskFilter === "rejected") {
+      statusFilter = "rejected";
     }
     
-    let url = `/api/tasks?userId=${currentUser?.id}&page=${pageNum}&limit=${limit}`;
+    const params: Record<string, string | number> = {
+      userId: currentUser?.id || "",
+      page: pageNum,
+      limit,
+    };
     if (statusFilter) {
-      url += `&status=${statusFilter}`;
+      params.status = statusFilter;
     }
-    if (selectedChildTaskFilter !== "all") {
-      url += `&childId=${selectedChildTaskFilter}`;
+    if (currentSelectedChildTaskFilter !== "all") {
+      params.childId = currentSelectedChildTaskFilter;
     }
 
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-    });
-    const data: { success: boolean; tasks: PlainTask[]; total: number } = await res.json();
+    const data = (await request("/api/tasks", {
+      params,
+    })) as { success: boolean; tasks: IDisplayedTask[]; total: number };
+
     if (data.success) {
-      const tasksWithNames: IDisplayedTask[] = await Promise.all(
-        data.tasks.map(async (task: PlainTask) => {
-          const childRes = await fetch(`/api/children?childId=${task.childId}`, {
-            headers: {
-              Authorization: `Bearer ${currentUser.token}`,
-            },
-          });
-          const childData: { success: boolean; child: { nickname: string; avatar: string } } = await childRes.json();
-          return {
-            ...task,
-            childName: childData.child?.nickname || "未知",
-            childAvatar: childData.child?.avatar || "👶",
-          };
-        }),
-      );
-
       setTotal(data.total);
-      return tasksWithNames;
+      return data.tasks;
     }
     return [];
-  }, [currentUser?.id, currentUser?.token, activeTaskFilter, selectedChildTaskFilter]);
+  }, [currentUser, activeTaskFilter, selectedChildTaskFilter]);
 
   useEffect(() => {
-    const loadData = async () => {
-      if (currentUser) {
-        const fetchedTasks = await fetchTasks(page);
-        setTasks(fetchedTasks);
-      }
-    };
-    loadData();
+    if (currentUser) {
+      fetchTasks(page).then(setTasks);
+    }
   }, [currentUser, fetchTasks, page]);
 
-  // Reset page when filters change
-  useEffect(() => {
+  // Handle filter changes
+  const onFilterChange = (type: "status" | "child", value: string) => {
+    if (type === "status") {
+      setActiveTaskFilter(value as "all" | "completed" | "uncompleted" | "submitted" | "rejected");
+    } else {
+      setSelectedChildTaskFilter(value);
+    }
     setPage(1);
-  }, [activeTaskFilter, selectedChildTaskFilter]);
+  };
 
   return (
     <Layout>
@@ -358,7 +352,7 @@ export default function TasksPage() {
             <div className="w-40">
               <Select
                 value={selectedChildTaskFilter}
-                onChange={(value) => setSelectedChildTaskFilter((value as string) || "all")}
+                onChange={(value) => onFilterChange("child", (value as string) || "all")}
                 options={[
                   { value: "all", label: "全部孩子" },
                   ...childList.map((child) => ({ value: child.id, label: child.username })),
@@ -372,71 +366,87 @@ export default function TasksPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
-          {(["all", "uncompleted", "completed"] as const).map((tab) => (
+        <div className="flex p-1 bg-gray-100 rounded-xl mb-4 overflow-x-auto">
+          {(["all", "uncompleted", "submitted", "completed", "rejected"] as const).map((tab) => (
             <Button
               key={tab}
-              onClick={() => setActiveTaskFilter(tab)}
+              onClick={() => onFilterChange("status", tab)}
               variant="ghost"
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition ${
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${
                 activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {tab === "all" ? "全部" : tab === "uncompleted" ? "未完成" : "已完成"}
+              {tab === "all" ? "全部" : tab === "uncompleted" ? "未完成" : tab === "submitted" ? "待审核" : tab === "completed" ? "已完成" : "已驳回"}
             </Button>
           ))}
         </div>
 
         <div className="space-y-3">
           {tasks.map((task) => (
-              <div key={task._id} className="card flex items-center gap-4 group">
+              <div key={task._id} className="card flex items-center gap-4 group relative">
                 <div className="text-2xl">{task.icon}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-gray-800">{task.name}</span>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{task.childName}</span>
+                    <span className="font-bold text-gray-800 text-base">{task.name}</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg border border-blue-200">
+                      {task.childName}
+                    </span>
                   </div>
-                  <p className="text-sm text-gray-500">+{task.points} 积分</p>
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-sm text-gray-500">积分: <span className="text-orange-600 font-bold">+{task.points}</span></p>
+                  </div>
                 </div>
 
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    onClick={() => handleEditTask(task)}
-                    variant="ghost"
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                    title="编辑"
-                  >
-                    <Edit2 size={18} />
-                  </Button>
-                  <Button
-                    onClick={() => setTaskToDelete(task._id)}
-                    variant="ghost"
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                    title="删除"
-                  >
-                    <Trash2 size={18} />
-                  </Button>
-                </div>
-                
-                <span
-                  className={`status-badge ${
-                    task.status === "approved"
-                      ? "status-approved"
-                      : task.status === "submitted"
-                        ? "status-submitted"
-                        : task.status === "rejected"
+                <div className="flex flex-col items-end gap-2 min-w-[140px]">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`status-badge !static ${
+                        task.status === "approved"
+                          ? "status-approved"
+                          : task.status === "submitted"
+                          ? "status-submitted"
+                          : task.status === "rejected"
                           ? "status-rejected"
                           : "status-pending"
-                  }`}
-                >
-                  {task.status === "approved"
-                    ? "已完成"
-                    : task.status === "submitted"
-                      ? "待审核"
-                      : task.status === "rejected"
+                      }`}
+                    >
+                      {task.status === "approved"
+                        ? "已完成"
+                        : task.status === "submitted"
+                        ? "待审核"
+                        : task.status === "rejected"
                         ? "已驳回"
-                        : "待完成"}
-                </span>
+                        : "进行中"}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button
+                        onClick={() => handleEditTask(task)}
+                        variant="ghost"
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                        title="编辑"
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                      <Button
+                        onClick={() => setTaskToDelete(task._id)}
+                        variant="ghost"
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                        title="删除"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
+                    <span>
+                      创建: {new Date(task.createdAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <span className="w-px h-2 bg-gray-200" />
+                    <span>
+                      修改: {new Date(task.updatedAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                </div>
               </div>
             ))}
           {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}

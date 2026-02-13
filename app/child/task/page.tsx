@@ -10,7 +10,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
 import { zhCN } from "date-fns/locale";
 import Button from "@/components/ui/Button";
-import Image from "next/image";
 
 registerLocale("zh-CN", zhCN);
 
@@ -45,7 +44,6 @@ export default function TaskPage() {
   const [taskSearchQuery, setTaskSearchQuery] = useState("");
   const [taskDate, setTaskDate] = useState<Date | null>(null);
   const [activeTaskTab, setActiveTaskTab] = useState<"all" | "completed" | "uncompleted">("uncompleted");
-  // Derived tasks
 
   // Modals
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
@@ -63,16 +61,23 @@ export default function TaskPage() {
       const token = currentUser?.token;
 
       const limit = 10;
-      const res = await fetch(`/api/tasks?childId=${currentUser.id}&page=${page}&limit=${limit}`, {
+      // 优化点：直接通过 API 传递 status 参数，实现后端过滤
+      let statusParam = "";
+      if (activeTaskTab === "completed") {
+        statusParam = "&status=approved";
+      } else if (activeTaskTab === "uncompleted") {
+        // 后端 API 目前支持单个 status 过滤，对于 uncompleted (pending/submitted/rejected) 
+        // 建议在 API 层面增加多状态过滤，或者保持现状但减少不必要的数据加载
+        statusParam = ""; // 默认为全量，前端再做细分
+      }
+
+      const res = await fetch(`/api/tasks?childId=${currentUser.id}&page=${page}&limit=${limit}${statusParam}`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
         },
       });
 
-      if (res.status === 401) {
-        console.error("Fetch tasks unauthorized");
-        return;
-      }
+      if (res.status === 401) return;
 
       const data = await res.json();
       if (data.success) {
@@ -84,7 +89,7 @@ export default function TaskPage() {
         setHasMoreTasks(data.tasks.length === limit);
       }
     },
-    [currentUser],
+    [currentUser, activeTaskTab],
   );
 
   const loadMoreTasks = async () => {
@@ -95,6 +100,14 @@ export default function TaskPage() {
     setTaskPage(nextPage);
     setIsLoadingMore(false);
   };
+
+  // 初始加载及 Tab 切换加载
+  useEffect(() => {
+    if (currentUser) {
+      setTaskPage(1);
+      fetchTasks(1, false);
+    }
+  }, [currentUser, activeTaskTab, fetchTasks]);
 
   // Scroll listener
   useEffect(() => {
@@ -125,23 +138,12 @@ export default function TaskPage() {
         return new Date(t.createdAt).toDateString() === filterDate;
       });
     }
-    if (activeTaskTab === "completed") {
-      filtered = filtered.filter((t) => t.status === "approved");
-    } else if (activeTaskTab === "uncompleted") {
+    // 前端细分过滤（当 activeTaskTab 为 uncompleted 时）
+    if (activeTaskTab === "uncompleted") {
       filtered = filtered.filter((t) => ["pending", "rejected", "submitted"].includes(t.status));
     }
     return filtered;
   })();
-
-  // Initial fetch
-  useEffect(() => {
-    const init = async () => {
-      if (currentUser) {
-        await fetchTasks(1, false);
-      }
-    };
-    init();
-  }, [currentUser, fetchTasks]);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,12 +192,9 @@ export default function TaskPage() {
     setPhotoPreview("");
     setSelectedTask(null);
 
-    fetchTasks();
+    fetchTasks(1, false);
     showMessage("提交成功！等待家长审核~");
   };
-
-  // Simple navigate helper without id in url
-  const navigateTo = (path: string) => router.push(`/child/${path}`);
 
   return (
     <>
@@ -248,16 +247,20 @@ export default function TaskPage() {
             <div className="flex gap-3">
               <Button
                 variant="ghost"
+                className="flex-1"
                 onClick={() => {
                   setShowSubmitModal(false);
                   setPhotoPreview("");
                 }}
-                className="flex-1 py-3 text-gray-600"
               >
                 取消
               </Button>
-              <Button onClick={handleSubmitTask} className="flex-1 btn-child">
-                确认提交
+              <Button
+                className="flex-1"
+                onClick={handleSubmitTask}
+                disabled={selectedTask.requirePhoto && !photoFile}
+              >
+                提交任务
               </Button>
             </div>
           </div>
@@ -267,232 +270,202 @@ export default function TaskPage() {
       {showTaskDetail && (
         <div className="modal-overlay" onClick={() => setShowTaskDetail(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4 shadow-lg rounded-2xl p-4 bg-white inline-block">{showTaskDetail.icon}</div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-1">{showTaskDetail.name}</h3>
-              <div className="flex justify-center gap-2 mb-4">
-                <span className="badge badge-primary">+{showTaskDetail.points} 积分</span>
-                <span
-                  className={`badge ${
-                    showTaskDetail.status === "approved"
-                      ? "badge-success"
-                      : showTaskDetail.status === "rejected"
-                        ? "badge-error"
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex items-center gap-3">
+                <div className="text-4xl p-2 bg-gray-50 rounded-xl">{showTaskDetail.icon}</div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">{showTaskDetail.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-600 font-bold">+{showTaskDetail.points} 积分</span>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        showTaskDetail.status === "approved"
+                          ? "bg-green-100 text-green-600"
+                          : showTaskDetail.status === "submitted"
+                          ? "bg-blue-100 text-blue-600"
+                          : showTaskDetail.status === "rejected"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-orange-100 text-orange-600"
+                      }`}
+                    >
+                      {showTaskDetail.status === "approved"
+                        ? "已完成"
                         : showTaskDetail.status === "submitted"
-                          ? "badge-info"
-                          : "badge-warning"
-                  }`}
-                >
-                  {showTaskDetail.status === "approved"
-                    ? "已完成"
-                    : showTaskDetail.status === "rejected"
-                      ? "需修改"
-                      : showTaskDetail.status === "submitted"
-                        ? "审核中"
-                        : "待完成"}
-                </span>
-              </div>
-            </div>
-
-            {showTaskDetail.photoUrl && (
-              <div className="mb-6 text-left">
-                <h4 className="font-bold text-gray-700 mb-2 text-sm">提交的照片：</h4>
-                <div className="relative w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                  <img
-                    src={showTaskDetail.photoUrl}
-                    alt="任务照片"
-                    className="w-full h-auto object-contain max-h-[40vh]"
-                  />
+                        ? "待审核"
+                        : showTaskDetail.status === "rejected"
+                        ? "未通过"
+                        : "进行中"}
+                    </span>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {showTaskDetail.rejectionReason && (
-              <div className="bg-orange-50 p-4 rounded-xl mb-6 text-left">
-                <h4 className="font-bold text-orange-800 mb-1 text-sm">家长留言/审核意见：</h4>
-                <p className="text-orange-700 text-sm">{showTaskDetail.rejectionReason}</p>
+            <div className="space-y-4 mb-6">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 mb-1">任务描述</h4>
+                <p className="text-gray-700">{showTaskDetail.description || "暂无描述"}</p>
               </div>
-            )}
 
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setShowTaskDetail(null)}
-                variant="ghost"
-                className="flex-1 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
-              >
-                关闭
-              </Button>
-              {["pending", "rejected"].includes(showTaskDetail.status) && (
-                <Button
-                  onClick={() => {
-                    setSelectedTask(showTaskDetail);
-                    setShowTaskDetail(null);
-                    setShowSubmitModal(true);
-                  }}
-                  className="flex-1"
-                >
-                  {showTaskDetail.status === "rejected" ? "重新提交" : "去完成"}
-                </Button>
+              {showTaskDetail.photoUrl && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">任务凭证</h4>
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
+                    <img src={showTaskDetail.photoUrl} alt="Proof" className="w-full h-full object-cover" />
+                  </div>
+                </div>
+              )}
+
+              {showTaskDetail.rejectionReason && (
+                <div className="bg-red-50 p-3 rounded-xl">
+                  <h4 className="text-sm font-bold text-red-800 mb-1">未通过原因：</h4>
+                  <p className="text-sm text-red-700">{showTaskDetail.rejectionReason}</p>
+                </div>
               )}
             </div>
+
+            <Button className="w-full" onClick={() => setShowTaskDetail(null)}>
+              知道了
+            </Button>
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl md:text-2xl font-bold text-blue-700">任务大厅</h2>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => navigateTo("gift")}
-            variant="ghost"
-            className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 h-auto text-sm font-bold rounded-full"
-          >
-            🎁 我的礼物
-          </Button>
-          <Button
-            onClick={() => navigateTo("store")}
-            variant="ghost"
-            className="text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 h-auto text-sm font-bold rounded-full"
-          >
-            🛒 积分商城 <ChevronRight size={14} />
-          </Button>
-          <Button
-            onClick={() => navigateTo("wallet")}
-            variant="ghost"
-            className="text-green-600 bg-green-50 hover:bg-green-100 px-3 py-1.5 h-auto text-sm font-bold rounded-full"
-          >
-            💰 钱包
-          </Button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex p-1 bg-white/50 backdrop-blur rounded-xl mb-4 border border-blue-100">
-        {(["all", "uncompleted", "completed"] as const).map((tab) => (
-          <Button
-            key={tab}
-            onClick={() => setActiveTaskTab(tab)}
-            variant="ghost"
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${
-              activeTaskTab === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-blue-500"
-            }`}
-          >
-            {tab === "all" ? "全部" : tab === "uncompleted" ? "未完成" : "已完成"}
-          </Button>
-        ))}
-      </div>
-
-      {/* Search Area */}
-      <div className="mb-4 flex flex-row gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="搜索任务..."
-            value={taskSearchQuery}
-            onChange={(e) => setTaskSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
-          />
-        </div>
-        <div className="relative flex-1">
-          <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={20} />
-          <DatePicker
-            selected={taskDate}
-            onChange={(date: Date | null) => setTaskDate(date)}
-            locale="zh-CN"
-            dateFormat="yyyy-MM-dd"
-            placeholderText="日期"
-            className="w-full pl-10 pr-2 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all"
-            wrapperClassName="w-full"
-            isClearable
-          />
-        </div>
-      </div>
-
-      <div ref={taskListRef} className="space-y-3 max-h-[60vh] overflow-y-auto">
-        {filteredTasks.map((task) => {
-          const isUrgent =
-            task.deadline &&
-            new Date(task.deadline).getTime() - new Date().getTime() < 24 * 60 * 60 * 1000 &&
-            new Date(task.deadline).getTime() > new Date().getTime();
-
-          return (
-            <div
-              key={task._id}
-              className={`task-card cursor-pointer ${
-                ["approved", "submitted"].includes(task.status) ? "opacity-75" : ""
-              } ${isUrgent && task.status === "pending" ? "bg-orange-50 border-orange-200" : ""}`}
-              onClick={() => setShowTaskDetail(task)}
-            >
-              <div
-                className={`task-icon ${task.status === "approved" ? "bg-blue-100" : task.status === "rejected" ? "bg-red-100" : ""}`}
-              >
-                {task.status === "approved" ? "✅" : task.status === "rejected" ? "❌" : task.icon}
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <p className="font-bold text-gray-800">{task.name}</p>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      task.status === "approved"
-                        ? "bg-green-100 text-green-700"
-                        : task.status === "submitted"
-                          ? "bg-blue-100 text-blue-700"
-                          : task.status === "rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {task.status === "approved"
-                      ? "已完成"
-                      : task.status === "submitted"
-                        ? "审核中"
-                        : task.status === "rejected"
-                          ? "需修改"
-                          : "待完成"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-end mt-1">
-                  <p className="text-sm text-blue-600">+{task.points} 积分</p>
-                  {task.status === "approved" && task.approvedAt ? (
-                    <span className="text-xs text-gray-400">
-                      完成于{" "}
-                      {new Date(task.approvedAt).toLocaleString([], {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  ) : (
-                    task.deadline && (
-                      <span
-                        className={`text-xs flex items-center gap-1 ${isUrgent ? "text-orange-600 font-bold" : "text-gray-400"}`}
-                      >
-                        {isUrgent && <span className="animate-pulse">🔥</span>}
-                        {new Date(task.deadline).toLocaleDateString()}截止
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
+      <div className="flex flex-col h-full overflow-hidden">
+        {/* Header Section */}
+        <div className="flex-shrink-0 bg-white/50 backdrop-blur-md p-4 space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="搜索任务..."
+                className="w-full pl-10 pr-4 py-2 bg-white/80 border-none rounded-2xl focus:ring-2 focus:ring-blue-400 text-sm"
+                value={taskSearchQuery}
+                onChange={(e) => setTaskSearchQuery(e.target.value)}
+              />
             </div>
-          );
-        })}
-
-        {filteredTasks.length === 0 && (
-          <div className="text-center py-12 text-blue-600">
-            <Sparkles size={48} className="mx-auto mb-2 opacity-50" />
-            <p>暂时没有任务啦！</p>
+            <div className="relative">
+              <DatePicker
+                selected={taskDate}
+                onChange={(date) => setTaskDate(date)}
+                locale="zh-CN"
+                dateFormat="MM-dd"
+                customInput={
+                  <button className="p-2 bg-white/80 rounded-2xl text-gray-500 hover:text-blue-500 transition-colors">
+                    <CalendarIcon size={20} />
+                  </button>
+                }
+              />
+              {taskDate && (
+                <button
+                  className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center"
+                  onClick={() => setTaskDate(null)}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
-        )}
 
-        {isLoadingMore && (
-          <div className="text-center py-4">
-            <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <div className="flex gap-2 p-1 bg-white/50 rounded-2xl">
+            {(["uncompleted", "completed", "all"] as const).map((tab) => (
+              <button
+                key={tab}
+                className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all ${
+                  activeTaskTab === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500"
+                }`}
+                onClick={() => setActiveTaskTab(tab)}
+              >
+                {tab === "uncompleted" ? "进行中" : tab === "completed" ? "已完成" : "全部"}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+
+        {/* Task List Section */}
+        <div ref={taskListRef} className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+          {filteredTasks.length > 0 ? (
+            filteredTasks.map((task) => (
+              <div
+                key={task._id}
+                className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-4 border border-white shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                onClick={() => setShowTaskDetail(task)}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
+                    {task.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-800 truncate">{task.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex items-center gap-1 text-blue-600 font-black text-sm">
+                        <Sparkles size={14} />
+                        <span>+{task.points}</span>
+                      </div>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          task.status === "approved"
+                            ? "bg-green-100 text-green-600"
+                            : task.status === "submitted"
+                            ? "bg-blue-100 text-blue-600"
+                            : task.status === "rejected"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-orange-100 text-orange-600"
+                        }`}
+                      >
+                        {task.status === "approved"
+                          ? "已奖励"
+                          : task.status === "submitted"
+                          ? "审核中"
+                          : task.status === "rejected"
+                          ? "未通过"
+                          : "进行中"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    {task.status === "pending" || task.status === "rejected" ? (
+                      <Button
+                        size="sm"
+                        className="rounded-full px-4 font-bold shadow-lg shadow-blue-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTask(task);
+                          setShowSubmitModal(true);
+                        }}
+                      >
+                        去完成
+                      </Button>
+                    ) : (
+                      <ChevronRight className="text-gray-300" size={20} />
+                    )}
+                  </div>
+                </div>
+                {task.status === "rejected" && (
+                  <div className="mt-3 pt-3 border-t border-red-50 flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
+                    <p className="text-xs text-red-500 line-clamp-1 italic">
+                      家长反馈: {task.rejectionReason || "无具体原因"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4 py-20">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
+                <Sparkles size={40} className="opacity-20" />
+              </div>
+              <p className="font-medium">还没有相关任务哦</p>
+            </div>
+          )}
+          {isLoadingMore && (
+            <div className="py-4 text-center text-sm text-gray-400 animate-pulse">
+              正在努力加载更多...
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
