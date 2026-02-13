@@ -192,7 +192,7 @@ export default function UsersPage() {
           <div className="flex justify-end gap-2">
             {info.row.original.type === "parent" && (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => {
                   setEditingMember(info.row.original);
@@ -206,17 +206,17 @@ export default function UsersPage() {
                   });
                   setShowEditAccountModal(true);
                 }}
-                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
+                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
               >
                 <Settings size={18} />
               </Button>
             )}
             {!info.row.original.isMe && info.row.original.type === "parent" && (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => handleDeleteAccount(info.row.original.id)}
-                className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
+                className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
               >
                 <Trash2 size={18} />
               </Button>

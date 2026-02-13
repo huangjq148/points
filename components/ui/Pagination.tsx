@@ -24,10 +24,10 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className={`flex justify-center items-center gap-4 mt-6 ${className}`}>
       <Button
-        variant="ghost"
+        variant="secondary"
         disabled={currentPage === 1}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        className="text-gray-500 disabled:opacity-30 flex items-center gap-1"
+        className="text-gray-500 disabled:opacity-30 flex items-center gap-1 border-none bg-transparent shadow-none"
       >
         <ChevronLeft size={16} />
         上一页
@@ -36,10 +36,10 @@ const Pagination: React.FC<PaginationProps> = ({
         第 {currentPage} 页 / 共 {totalPages} 页
       </span>
       <Button
-        variant="ghost"
+        variant="secondary"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className="text-gray-500 disabled:opacity-30 flex items-center gap-1"
+        className="text-gray-500 disabled:opacity-30 flex items-center gap-1 border-none bg-transparent shadow-none"
       >
         下一页
         <ChevronRight size={16} />

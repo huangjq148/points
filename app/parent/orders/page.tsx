@@ -234,7 +234,7 @@ export default function OrdersPage() {
           {historyTotal > 10 && (
             <div className="flex justify-center items-center gap-4 mt-6">
               <Button
-                variant="ghost"
+                variant="secondary"
                 disabled={historyPage === 1}
                 onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
                 className="text-gray-500 disabled:opacity-30"
@@ -245,7 +245,7 @@ export default function OrdersPage() {
                 第 {historyPage} 页 / 共 {Math.ceil(historyTotal / 10)} 页
               </span>
               <Button
-                variant="ghost"
+                variant="secondary"
                 disabled={historyPage >= Math.ceil(historyTotal / 10)}
                 onClick={() => setHistoryPage((p) => p + 1)}
                 className="text-gray-500 disabled:opacity-30"

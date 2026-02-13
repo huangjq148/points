@@ -53,13 +53,16 @@ registerLocale("zh-CN", zhCN);
     if (data.success) {
       setOrders(data.orders);
     }
-  }, [currentUser?.token]);
+  }, [currentUser]);
 
   useEffect(() => {
-    if (currentUser?.token) {
-      fetchOrders();
-    }
-  }, [currentUser?.token, fetchOrders]);
+    const loadData = async () => {
+      if (currentUser?.token) {
+        await fetchOrders();
+      }
+    };
+    void loadData();
+  }, [currentUser, fetchOrders]);
  
    const filteredOrders = (() => {
      let filtered = orders;
@@ -151,33 +154,33 @@ registerLocale("zh-CN", zhCN);
              </div>
  
              <Button
-               onClick={() => setShowOrderDetail(null)}
-               variant="ghost"
-               fullWidth
-               className="py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
-             >
-               关闭
-             </Button>
-             {showOrderDetail.status === "pending" && (
-               <Button
-                 onClick={() => handleCancelOrder(showOrderDetail)}
-                 variant="ghost"
-                 fullWidth
-                 className="py-3 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 mt-2"
-               >
-                 撤销兑换
-               </Button>
-             )}
+              onClick={() => setShowOrderDetail(null)}
+              variant="secondary"
+              fullWidth
+              className="py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 border-none shadow-none"
+            >
+              关闭
+            </Button>
+            {showOrderDetail.status === "pending" && (
+              <Button
+                onClick={() => handleCancelOrder(showOrderDetail)}
+                variant="secondary"
+                fullWidth
+                className="py-3 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 mt-2 border-none shadow-none"
+              >
+                撤销兑换
+              </Button>
+            )}
            </div>
          </div>
        )}
  
        <div className="flex items-center gap-2 mb-4">
          <Button
-           onClick={() => navigateTo("store")}
-           variant="ghost"
-           className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
-         >
+          onClick={() => navigateTo("store")}
+          variant="secondary"
+          className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0 border-none shadow-none"
+        >
            <ChevronRight size={24} className="text-blue-600 rotate-180" />
          </Button>
          <h2 className="text-xl md:text-2xl font-bold text-blue-700">我的礼物</h2>
@@ -224,13 +227,13 @@ registerLocale("zh-CN", zhCN);
          <div className="flex p-1 bg-white/50 backdrop-blur rounded-xl border border-blue-100 overflow-x-auto">
            {(["all", "pending", "verified", "cancelled"] as const).map((status) => (
              <Button
-               key={status}
-               onClick={() => setGiftStatusFilter(status)}
-               variant="ghost"
-               className={`flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition whitespace-nowrap ${
-                 giftStatusFilter === status ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-blue-500"
-               }`}
-             >
+              key={status}
+              onClick={() => setGiftStatusFilter(status)}
+              variant="secondary"
+              className={`flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition whitespace-nowrap border-none shadow-none ${
+                giftStatusFilter === status ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-blue-500 bg-transparent"
+              }`}
+            >
                {status === "all"
                  ? "全部"
                  : status === "pending"
@@ -290,10 +293,10 @@ registerLocale("zh-CN", zhCN);
              <Gift size={48} className="mx-auto mb-2 opacity-50" />
              <p>还没兑换过礼物哦</p>
              <Button
-               onClick={() => navigateTo("store")}
-               variant="ghost"
-               className="text-blue-500 mt-2"
-             >
+              onClick={() => navigateTo("store")}
+              variant="secondary"
+              className="text-blue-500 mt-2 border-none bg-transparent shadow-none"
+            >
                去商城看看
              </Button>
            </div>

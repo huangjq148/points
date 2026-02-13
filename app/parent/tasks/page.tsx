@@ -2,23 +2,28 @@
 
 import { Button, Pagination } from "@/components/ui";
 import Select from "@/components/ui/Select";
-import { User, useApp } from "@/context/AppContext";
+import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
-
 import AlertModal from "@/components/AlertModal";
-import Input from "@/components/ui/Input";
-import { zhCN } from "date-fns/locale";
-import { Camera, Clock, Edit2, Plus, Trash2 } from "lucide-react";
+import { Edit2, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import TaskCard, { IDisplayedTask } from "./components/TaskCard";
+import TemplateManager from "./components/TemplateManager";
+import EditTemplateModal from "./components/EditTemplateModal";
+import AddTaskModal from "./components/AddTaskModal";
+import EditTaskModal from "./components/EditTaskModal";
 
-interface IDisplayedTask extends PlainTask {
-  childName: string;
-  childAvatar?: string;
+export interface TaskTemplate {
+  _id?: string;
+  name: string;
+  points: number;
+  icon: string;
+  type: string;
+  description: string;
 }
 
-interface PlainTask {
+export interface PlainTask {
   _id: string;
   userId: string;
   childId: string;
@@ -41,7 +46,7 @@ interface PlainTask {
 
 import Layout from "@/components/Layouts";
 import request from "@/utils/request";
-import { formatDate } from "@/utils/date";
+// import { formatDate } from "@/utils/date";
 // import Layout from '@/app/layout';
 
 export default function TasksPage() {
@@ -82,6 +87,7 @@ export default function TasksPage() {
     recurrence: "none" as "none" | "daily" | "weekly" | "monthly",
     recurrenceDay: undefined as number | undefined,
     deadline: null as Date | null,
+    saveAsTemplate: false,
   });
 
   const [alertState, setAlertState] = useState<{
@@ -94,6 +100,133 @@ export default function TasksPage() {
     type: "info",
   });
   const [now, setNow] = useState<number>(0);
+
+  // 任务模板状态管理
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [showEditTemplateModal, setShowEditTemplateModal] = useState(false);
+  const [templates, setTemplates] = useState<TaskTemplate[]>([]);
+  const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
+
+  // 初始化模板数据
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      if (!currentUser?.token) return;
+      try {
+        const res = await fetch("/api/task-templates", {
+          headers: {
+            Authorization: `Bearer ${currentUser.token}`,
+          },
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (data.data.length === 0) {
+            // 如果数据库为空，创建默认模板并保存
+            const defaultTemplates = [
+              { name: "按时起床", points: 5, icon: "⏰", type: "daily", description: "早起不赖床，养成好习惯" },
+              { name: "认真完成作业", points: 10, icon: "📚", type: "daily", description: "独立且认真地完成当天的所有作业" },
+              { name: "整理房间", points: 8, icon: "🧹", type: "daily", description: "收拾自己的玩具和书桌，保持整洁" },
+              { name: "练习乐器", points: 15, icon: "🎹", type: "daily", description: "坚持练习乐器 30 分钟" },
+              { name: "阅读 20 分钟", points: 5, icon: "📖", type: "daily", description: "每天坚持阅读，拓宽知识面" },
+            ];
+            
+            for (const t of defaultTemplates) {
+              await fetch("/api/task-templates", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${currentUser.token}`,
+                },
+                body: JSON.stringify(t),
+              });
+            }
+            // 重新获取
+            const refreshedRes = await fetch("/api/task-templates", {
+              headers: {
+                Authorization: `Bearer ${currentUser.token}`,
+              },
+            });
+            const refreshedData = await refreshedRes.json();
+            if (refreshedData.success) setTemplates(refreshedData.data);
+          } else {
+            setTemplates(data.data);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch templates:", e);
+      }
+    };
+    fetchTemplates();
+  }, [currentUser]);
+
+  const handleApplyTemplate = (template: TaskTemplate) => {
+    setNewTask((prev) => ({
+      ...prev,
+      name: template.name,
+      points: template.points,
+      icon: template.icon,
+      type: template.type as "daily" | "advanced" | "challenge",
+    }));
+    setShowTemplateManager(false);
+    setShowAddTask(true);
+    showAlert(`已应用模板: ${template.name}`, "info");
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    if (!currentUser?.token) return;
+    try {
+      const res = await fetch(`/api/task-templates/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTemplates(templates.filter((t) => t._id !== id));
+        showAlert("模板已删除", "success");
+      }
+    } catch (e) {
+      showAlert("删除失败", "error");
+    }
+  };
+
+  const handleEditTemplate = (template: TaskTemplate) => {
+    setEditingTemplate(template);
+    setShowEditTemplateModal(true);
+  };
+
+  const handleUpdateTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTemplate || !editingTemplate.name) return showAlert("请输入模板名称", "error");
+    if (!currentUser?.token) return;
+
+    try {
+      const method = editingTemplate._id ? "PUT" : "POST";
+      const url = editingTemplate._id ? `/api/task-templates/${editingTemplate._id}` : "/api/task-templates";
+      
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify(editingTemplate),
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (editingTemplate._id) {
+          setTemplates(templates.map((t) => (t._id === editingTemplate._id ? data.data : t)));
+        } else {
+          setTemplates([data.data, ...templates]);
+        }
+        setShowEditTemplateModal(false);
+        setEditingTemplate(null);
+        showAlert(editingTemplate._id ? "模板已更新" : "模板已创建", "success");
+      }
+    } catch (e) {
+      showAlert("保存失败", "error");
+    }
+  };
 
   useEffect(() => {
     const updateNow = () => setNow(Date.now());
@@ -173,6 +306,36 @@ export default function TasksPage() {
       }
     }
 
+    // 如果勾选了保存为模板
+    if (newTask.saveAsTemplate) {
+      try {
+        await fetch("/api/task-templates", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currentUser?.token}`,
+          },
+          body: JSON.stringify({
+            name: newTask.name,
+            points: newTask.points,
+            icon: newTask.icon,
+            type: newTask.type,
+            description: "", // 默认描述为空
+          }),
+        });
+        // 刷新模板列表
+        const res = await fetch("/api/task-templates", {
+          headers: {
+            Authorization: `Bearer ${currentUser?.token}`,
+          },
+        });
+        const data = await res.json();
+        if (data.success) setTemplates(data.data);
+      } catch (e) {
+        console.error("Failed to save template:", e);
+      }
+    }
+
     setShowAddTask(false);
     setNewTask({
       name: "",
@@ -185,6 +348,7 @@ export default function TasksPage() {
       recurrence: "none",
       recurrenceDay: undefined,
       deadline: null,
+      saveAsTemplate: false,
     });
     setTaskPhotoFile(null);
     setTaskPhotoPreview("");
@@ -350,13 +514,16 @@ export default function TasksPage() {
   return (
     <Layout>
       <>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-800">
-            {selectedChildTaskFilter === "all"
-              ? "任务管理"
-              : childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知"}
-          </h2>
-          <div className="flex gap-2">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              {selectedChildTaskFilter === "all"
+                ? "任务管理"
+                : childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知"}
+            </h2>
+            <p className="text-gray-500 text-sm mt-1">设置并监督孩子的每日任务</p>
+          </div>
+          <div className="flex gap-2 items-center">
             <div className="w-40">
               <Select
                 value={selectedChildTaskFilter}
@@ -367,8 +534,20 @@ export default function TasksPage() {
                 ]}
               />
             </div>
-            <Button onClick={() => setShowAddTask(true)} className="flex items-center gap-2">
-              <Plus size={18} /> 添加任务
+            <Button
+              onClick={() => setShowTemplateManager(true)}
+              className="rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 px-4 py-2 shadow-sm flex items-center gap-2 group h-10"
+              variant="secondary"
+            >
+              <Edit2 size={18} className="group-hover:rotate-12 transition-transform" />
+              <span className="font-semibold text-sm">模板管理</span>
+            </Button>
+            <Button
+              onClick={() => setShowAddTask(true)}
+              className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-md shadow-blue-100 flex items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] h-10"
+            >
+              <Plus size={20} className="group-hover:rotate-90 transition-transform" />
+              <span className="font-semibold text-sm">添加任务</span>
             </Button>
           </div>
         </div>
@@ -379,9 +558,9 @@ export default function TasksPage() {
             <Button
               key={tab}
               onClick={() => onFilterChange("status", tab)}
-              variant="ghost"
+              variant="secondary"
               className={`flex-1 py-2 text-sm font-medium rounded-lg transition whitespace-nowrap ${
-                activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700 bg-transparent border-none shadow-none"
               }`}
             >
               {tab === "all"
@@ -398,457 +577,50 @@ export default function TasksPage() {
         </div>
 
         <div
-          className="flex flex-col gap-4 overflow-y-auto custom-scrollbar p-1"
-          style={{ maxHeight: "calc(100vh - 350px)" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto custom-scrollbar p-1 pb-8"
+          style={{ maxHeight: "calc(100vh - 270px)" }}
         >
-          {tasks.map((task) => {
-            const isOverdue =
-              task.deadline &&
-              now > 0 &&
-              new Date(task.deadline).getTime() < now &&
-              task.status === "pending";
-
-            // 根据状态获取样式
-            const getStatusStyles = () => {
-              if (task.status === "approved") {
-                return {
-                  className: "!bg-green-50/90 !border-green-100 shadow-green-100/30",
-                  style: { background: "rgba(240, 253, 244, 0.9)" },
-                };
-              }
-              if (task.status === "submitted") {
-                return {
-                  className: "!bg-amber-50/90 !border-amber-100 shadow-amber-100/30",
-                  style: { background: "rgba(255, 251, 235, 0.9)" },
-                };
-              }
-              if (isOverdue) {
-                return {
-                  className: "!bg-red-50/95 !border-red-200 shadow-red-100/50",
-                  style: { background: "rgba(254, 242, 242, 0.95)" },
-                };
-              }
-              if (task.status === "rejected") {
-                return {
-                  className: "!bg-gray-50/80 !border-gray-200",
-                  style: { background: "rgba(249, 250, 251, 0.8)" },
-                };
-              }
-              return { className: "", style: {} };
-            };
-
-            const statusStyles = getStatusStyles();
-
-            return (
-              <div
-                key={task._id}
-                className={`card flex items-center gap-4 group relative transition-all ${statusStyles.className}`}
-                style={statusStyles.style}
-              >
-                <div className="text-2xl">{task.icon}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-gray-800 text-base">{task.name}</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg border border-blue-200">
-                      {task.childName}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <p className="text-sm text-gray-500">
-                      积分: <span className="text-orange-600 font-bold">+{task.points}</span>
-                    </p>
-                    {task.deadline && (
-                      <div className="flex items-center gap-1 text-xs text-gray-400">
-                        <Clock size={12} />
-                        <span>截止: {formatDate(task.deadline)}</span>
-                        {isOverdue && <span className="text-red-500 font-medium ml-1">已逾期</span>}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-end gap-2 min-w-[140px]">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`status-badge static! ${
-                        task.status === "approved"
-                          ? "status-approved"
-                          : task.status === "submitted"
-                            ? "status-submitted"
-                            : task.status === "rejected"
-                              ? "status-rejected"
-                              : isOverdue
-                                ? "status-rejected"
-                                : "status-pending"
-                      }`}
-                    >
-                      {task.status === "approved"
-                        ? "已完成"
-                        : task.status === "submitted"
-                          ? "待审核"
-                          : task.status === "rejected"
-                            ? "已驳回"
-                            : isOverdue
-                              ? "已逾期"
-                              : "进行中"}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button
-                        onClick={() => handleEditTask(task)}
-                        variant="ghost"
-                        className={`p-1.5 rounded-lg ${
-                          isOverdue
-                            ? "text-red-400 hover:text-red-600 hover:bg-red-100/50"
-                            : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-                        }`}
-                        title="编辑"
-                      >
-                        <Edit2 size={16} />
-                      </Button>
-                      <Button
-                        onClick={() => setTaskToDelete(task._id)}
-                        variant="ghost"
-                        className={`p-1.5 rounded-lg ${
-                          isOverdue
-                            ? "text-red-400 hover:text-red-600 hover:bg-red-100/50"
-                            : "text-gray-400 hover:text-red-600 hover:bg-red-50"
-                        }`}
-                        title="删除"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
-                    <span>创建: {formatDate(task.createdAt)}</span>
-                    <span className="w-px h-2 bg-gray-200" />
-                    <span>修改: {formatDate(task.updatedAt)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
+          {tasks.map((task) => (
+            <TaskCard
+              key={task._id}
+              task={task}
+              now={now}
+              onEdit={handleEditTask}
+              onDelete={setTaskToDelete}
+            />
+          ))}
+          {tasks.length === 0 && <div className="text-center py-12 text-gray-400 col-span-full">暂无任务</div>}
 
           {total > limit && (
-            <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+            <div className="col-span-full mt-4">
+              <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+            </div>
           )}
         </div>
 
         {/* Add Task Modal */}
-        {showAddTask && (
-          <div className="modal-overlay" onClick={() => setShowAddTask(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3 className="text-xl font-bold text-gray-800">添加新任务</h3>
-              </div>
-              <div className="modal-body space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">选择孩子</label>
-                  <div className="child-selector">
-                    {childList.map((child: User) => (
-                      <div
-                        key={child.id}
-                        onClick={() => toggleChild(child.id)}
-                        className={`child-chip ${newTask.selectedChildren.includes(child.id) ? "selected" : ""}`}
-                      >
-                        <span className="avatar">{child.avatar}</span>
-                        <span className="name">{child.username}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Input
-                  label="任务名称"
-                  value={newTask.name}
-                  onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
-                  placeholder="如：整理书包"
-                />
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">任务配图（可选）</label>
-                  <label className="file-upload p-4">
-                    <input type="file" accept="image/*" onChange={handleTaskPhotoSelect} />
-                    <div className="flex flex-col items-center gap-2">
-                      <Camera className="text-blue-500" size={24} />
-                      <span className="text-xs text-gray-500">点击上传图片</span>
-                    </div>
-                  </label>
-                  {taskPhotoPreview && (
-                    <img src={taskPhotoPreview} alt="预览" className="image-preview mt-2 max-h-32" />
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">积分</label>
-                  <Input
-                    type="number"
-                    value={newTask.points}
-                    onChange={(e) => setNewTask({ ...newTask, points: parseInt(e.target.value) })}
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={newTask.requirePhoto}
-                      onChange={(e) => setNewTask({ ...newTask, requirePhoto: e.target.checked })}
-                      className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-600">要求拍照提交</span>
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">选择图标</label>
-                  <div className="flex flex-wrap gap-2">
-                    {["⭐", "📚", "🧹", "🏃", "🎨", "🎵"].map((icon) => (
-                      <Button
-                        key={icon}
-                        onClick={() => setNewTask({ ...newTask, icon })}
-                        className={`w-10 h-10 rounded-lg text-xl p-0 transition-all ${newTask.icon === icon ? "bg-blue-100 ring-2 ring-blue-400" : "bg-white border border-gray-200 hover:bg-blue-50"}`}
-                        variant="ghost"
-                      >
-                        {icon}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">任务类型</label>
-                  <div className="flex gap-2">
-                    {["daily", "advanced", "challenge"].map((type) => (
-                      <Button
-                        key={type}
-                        onClick={() => setNewTask({ ...newTask, type: type as "daily" | "advanced" | "challenge" })}
-                        variant="ghost"
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                          newTask.type === type
-                            ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100"
-                            : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                        }`}
-                      >
-                        {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">截止时间（可选）</label>
-                  <div className="relative z-50">
-                    <DatePicker
-                      selected={newTask.deadline}
-                      onChange={(date: Date | null) => setNewTask({ ...newTask, deadline: date })}
-                      showTimeSelect
-                      timeFormat="HH:mm"
-                      timeIntervals={15}
-                      dateFormat="yyyy/MM/dd HH:mm"
-                      locale={zhCN}
-                      className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/50 backdrop-blur focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                      placeholderText="点击选择截止时间"
-                      isClearable
-                    />
-                    <Clock
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                      size={18}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">自动创建（重复）</label>
-                  <Select
-                    value={newTask.recurrence}
-                    onChange={(val) => {
-                      const r =
-                        typeof val === "string" && ["none", "daily", "weekly", "monthly"].includes(val)
-                          ? (val as "none" | "daily" | "weekly" | "monthly")
-                          : "none";
-                      setNewTask({ ...newTask, recurrence: r });
-                    }}
-                    options={[
-                      { value: "none", label: "不重复" },
-                      { value: "daily", label: "每天" },
-                      { value: "weekly", label: "每周" },
-                      { value: "monthly", label: "每月" },
-                    ]}
-                    placeholder="选择重复频率"
-                  />
-
-                  {newTask.recurrence === "weekly" && (
-                    <div className="mt-2">
-                      <Select
-                        value={newTask.recurrenceDay}
-                        onChange={(val) => setNewTask({ ...newTask, recurrenceDay: val as number })}
-                        options={[
-                          { value: 1, label: "周一" },
-                          { value: 2, label: "周二" },
-                          { value: 3, label: "周三" },
-                          { value: 4, label: "周四" },
-                          { value: 5, label: "周五" },
-                          { value: 6, label: "周六" },
-                          { value: 0, label: "周日" },
-                        ]}
-                        placeholder="选择星期"
-                      />
-                    </div>
-                  )}
-
-                  {newTask.recurrence === "monthly" && (
-                    <div className="mt-2">
-                      <Select
-                        value={newTask.recurrenceDay}
-                        onChange={(val) => setNewTask({ ...newTask, recurrenceDay: val as number })}
-                        options={Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: `${i + 1}号` }))}
-                        placeholder="选择日期"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="modal-footer">
-                <Button onClick={() => setShowAddTask(false)} variant="ghost" className="flex-1 py-3 text-gray-600">
-                  取消
-                </Button>
-                <Button onClick={handleAddTask} className="flex-1 py-3">
-                  确认添加
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <AddTaskModal
+          isOpen={showAddTask}
+          onClose={() => setShowAddTask(false)}
+          childList={childList}
+          newTask={newTask}
+          setNewTask={setNewTask}
+          onAdd={handleAddTask}
+          onPhotoSelect={handleTaskPhotoSelect}
+          photoPreview={taskPhotoPreview}
+          toggleChild={toggleChild}
+        />
 
         {/* Edit Task Modal */}
-        {showEditTaskModal && editingTask && (
-          <div className="modal-overlay" onClick={() => setShowEditTaskModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3 className="text-xl font-bold text-gray-800">编辑任务</h3>
-              </div>
-              <div className="modal-body space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">任务名称</label>
-                  <Input
-                    value={editingTaskData.name}
-                    onChange={(e) => setEditingTaskData({ ...editingTaskData, name: e.target.value })}
-                    placeholder="如：整理书包"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">任务配图（可选）</label>
-                  <label className="file-upload p-4">
-                    <input type="file" accept="image/*" onChange={handleTaskPhotoSelect} />
-                    <div className="flex flex-col items-center gap-2">
-                      <Camera className="text-blue-500" size={24} />
-                      <span className="text-xs text-gray-500">点击上传图片</span>
-                    </div>
-                  </label>
-                  {taskPhotoPreview && (
-                    <img src={taskPhotoPreview} alt="预览" className="image-preview mt-2 max-h-32" />
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-1">积分</label>
-                  <Input
-                    type="number"
-                    value={editingTaskData.points}
-                    onChange={(e) => setEditingTaskData({ ...editingTaskData, points: parseInt(e.target.value) })}
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editingTaskData.requirePhoto}
-                      onChange={(e) => setEditingTaskData({ ...editingTaskData, requirePhoto: e.target.checked })}
-                      className="w-5 h-5 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-600">要求拍照提交</span>
-                  </label>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">选择图标</label>
-                  <div className="flex flex-wrap gap-2">
-                    {["⭐", "📚", "🧹", "🏃", "🎨", "🎵"].map((icon) => (
-                      <Button
-                        key={icon}
-                        onClick={() => setEditingTaskData({ ...editingTaskData, icon })}
-                        className={`w-10 h-10 rounded-lg text-xl p-0 ${editingTaskData.icon === icon ? "bg-blue-100 ring-2 ring-blue-400" : "bg-gray-100"}`}
-                        variant="ghost"
-                      >
-                        {icon}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">任务类型</label>
-                  <div className="flex gap-2">
-                    {["daily", "advanced", "challenge"].map((type) => (
-                      <Button
-                        key={type}
-                        onClick={() =>
-                          setEditingTaskData({ ...editingTaskData, type: type as "daily" | "advanced" | "challenge" })
-                        }
-                        variant="ghost"
-                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
-                          editingTaskData.type === type
-                            ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-100"
-                            : "bg-white text-gray-600 border-gray-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
-                        }`}
-                      >
-                        {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-600 mb-2">截止时间（可选）</label>
-                  <div className="relative z-50">
-                    <DatePicker
-                      selected={editingTaskData.deadline}
-                      onChange={(date: Date | null) => setEditingTaskData({ ...editingTaskData, deadline: date })}
-                      showTimeSelect
-                      timeFormat="HH:mm"
-                      timeIntervals={15}
-                      dateFormat="yyyy/MM/dd HH:mm"
-                      locale={zhCN}
-                      className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/50 backdrop-blur focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                      placeholderText="点击选择截止时间"
-                      isClearable
-                    />
-                    <Clock
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                      size={18}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <Button
-                  onClick={() => setShowEditTaskModal(false)}
-                  variant="ghost"
-                  className="flex-1 py-3 text-gray-600"
-                >
-                  取消
-                </Button>
-                <Button onClick={handleUpdateTask} className="flex-1 py-3">
-                  保存修改
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditTaskModal
+          isOpen={showEditTaskModal}
+          onClose={() => setShowEditTaskModal(false)}
+          editingTaskData={editingTaskData}
+          setEditingTaskData={setEditingTaskData}
+          onUpdate={handleUpdateTask}
+          onPhotoSelect={handleTaskPhotoSelect}
+          photoPreview={taskPhotoPreview}
+        />
         <AlertModal
           isOpen={alertState.isOpen}
           onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
@@ -865,6 +637,26 @@ export default function TasksPage() {
           message="确定要删除这个任务吗？此操作无法撤销。"
           confirmText="删除"
           type="danger"
+        />
+
+        {/* Template Manager Modal */}
+        <TemplateManager
+          isOpen={showTemplateManager}
+          onClose={() => setShowTemplateManager(false)}
+          templates={templates}
+          onApply={handleApplyTemplate}
+          onEdit={handleEditTemplate}
+          onDelete={handleDeleteTemplate}
+          onNew={() => handleEditTemplate({ name: "", points: 5, icon: "⭐", type: "daily", description: "" })}
+        />
+
+        {/* Edit Template Modal */}
+        <EditTemplateModal
+          isOpen={showEditTemplateModal}
+          onClose={() => setShowEditTemplateModal(false)}
+          editingTemplate={editingTemplate}
+          setEditingTemplate={setEditingTemplate}
+          onUpdate={handleUpdateTemplate}
         />
       </>
     </Layout>

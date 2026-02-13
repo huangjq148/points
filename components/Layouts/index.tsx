@@ -93,7 +93,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
                 </span>
               </div>
             </div>
-            <Button onClick={logout} variant="ghost" className="p-2 hover:bg-gray-100 rounded-xl text-gray-600">
+            <Button onClick={logout} variant="secondary" className="p-2 hover:bg-gray-100 rounded-xl text-gray-600 border-none bg-transparent shadow-none">
               <LogOut size={20} />
             </Button>
           </div>

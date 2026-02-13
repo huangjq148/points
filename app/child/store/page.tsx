@@ -44,13 +44,16 @@
       setRewards(data.rewards);
       setTotal(data.total);
     }
-  }, [currentUser?.token]);
+  }, [currentUser, limit]);
 
   useEffect(() => {
-    if (currentUser?.token) {
-      fetchRewards(page);
-    }
-  }, [currentUser?.token, fetchRewards, page]);
+    const loadData = async () => {
+      if (currentUser?.token) {
+        await fetchRewards(page);
+      }
+    };
+    void loadData();
+  }, [currentUser, fetchRewards, page]);
 
   const filteredRewards = (() => {
     if (rewardSearchQuery) {
@@ -112,10 +115,10 @@
  
        <div className="flex items-center gap-2 mb-4">
          <Button
-           onClick={() => navigateTo("task")}
-           variant="ghost"
-           className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
-         >
+          onClick={() => navigateTo("task")}
+          variant="secondary"
+          className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
+        >
            <ChevronRight size={24} className="text-blue-600 rotate-180" />
          </Button>
          <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分商城</h2>
@@ -168,7 +171,7 @@
               <Button
                 onClick={() => setShowConfirmRedeem(reward)}
                 disabled={reward.stock <= 0}
-                variant={reward.stock > 0 ? "primary" : "ghost"}
+                variant={reward.stock > 0 ? "primary" : "secondary"}
                 size="sm"
                 fullWidth
               >

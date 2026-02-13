@@ -68,27 +68,30 @@ export default function WalletPage() {
     } finally {
       setLedgerLoading(false);
     }
-  }, [currentUser?.token, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
+  }, [currentUser, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
 
   useEffect(() => {
-    if (currentUser?.token) {
-      fetchLedger(1);
-    }
-  }, [currentUser?.token, fetchLedger]);
- 
-   // navigate helper
-   const navigateTo = (path: string) => router.push(`/child/${path}`);
- 
-   return (
-     <>
-       <div className="flex items-center gap-2 mb-4">
-         <Button
-           onClick={() => navigateTo("task")}
-           variant="ghost"
-           className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
-         >
-           <ChevronRight size={24} className="text-blue-600 rotate-180" />
-         </Button>
+    const loadData = async () => {
+      if (currentUser?.token) {
+        await fetchLedger(1);
+      }
+    };
+    void loadData();
+  }, [currentUser, fetchLedger]);
+
+  // navigate helper
+  const navigateTo = (path: string) => router.push(`/child/${path}`);
+
+  return (
+    <>
+      <div className="flex items-center gap-2 mb-4">
+        <Button
+          onClick={() => navigateTo("task")}
+          variant="secondary"
+          className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
+        >
+          <ChevronRight size={24} className="text-blue-600 rotate-180" />
+        </Button>
          <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分账本</h2>
        </div>
        <div className="card-child mb-4">

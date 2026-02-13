@@ -150,7 +150,8 @@ export default function FamilyPage() {
 
   const columnHelper = createColumnHelper<FamilyMember>();
   const columns = useMemo(() => {
-    const cols: ColumnDef<FamilyMember, string | boolean | undefined>[] = [
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cols: ColumnDef<FamilyMember, any>[] = [
       columnHelper.accessor("username", {
         header: "账号/昵称",
         cell: (info) => (
@@ -188,7 +189,7 @@ export default function FamilyPage() {
           <div className="flex justify-end gap-2">
             {info.row.original.type === "parent" && (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => {
                   setEditingMember(info.row.original);
@@ -200,17 +201,17 @@ export default function FamilyPage() {
                   });
                   setShowEditAccountModal(true);
                 }}
-                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg"
+                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
               >
                 <Settings size={18} />
               </Button>
             )}
             {!info.row.original.isMe && info.row.original.type === "parent" && (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={() => handleDeleteAccount(info.row.original.id)}
-                className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
+                className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
               >
                 <Trash2 size={18} />
               </Button>
@@ -342,8 +343,8 @@ export default function FamilyPage() {
                     toast.success("复制成功");
                   }
                 }}
-                variant="ghost"
-                className="p-2 hover:bg-blue-100 rounded-lg text-blue-600"
+                variant="secondary"
+                className="p-2 hover:bg-blue-100 rounded-lg text-blue-600 border-none bg-transparent shadow-none"
               >
                 <Copy size={20} />
               </Button>

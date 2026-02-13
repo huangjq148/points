@@ -105,8 +105,8 @@ export default function HomePage() {
             )}
             {childList.length > 0 && (
               <Button
-                variant="ghost"
-                className="w-full border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50"
+                variant="secondary"
+                className="w-full border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50 shadow-none"
                 onClick={() => router.push("/parent/family")}
               >
                 + 添加更多孩子

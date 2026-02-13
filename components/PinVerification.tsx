@@ -98,30 +98,30 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
                 <Button
                   key={num}
                   onClick={() => pin.length < 4 && setPin(pin + num.toString())}
-                  variant="ghost"
-                  className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition p-0 shadow-none"
+                  variant="secondary"
+                  className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition p-0 shadow-none border-none"
                 >
                   {num}
                 </Button>
               ))}
               <Button
                 onClick={() => setPin(pin.slice(0, -1))}
-                variant="ghost"
-                className="w-16 h-16 bg-gray-100 rounded-xl text-lg font-medium hover:bg-gray-200 transition p-0 shadow-none"
+                variant="secondary"
+                className="w-16 h-16 bg-gray-100 rounded-xl text-lg font-medium hover:bg-gray-200 transition p-0 shadow-none border-none"
               >
                 删除
               </Button>
               <Button
                 onClick={() => pin.length < 4 && setPin(pin + '0')}
-                variant="ghost"
-                className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition p-0 shadow-none"
+                variant="secondary"
+                className="w-16 h-16 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 transition p-0 shadow-none border-none"
               >
                 0
               </Button>
               <Button
                 onClick={() => setPin('')}
-                variant="ghost"
-                className="w-16 h-16 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 transition p-0 shadow-none"
+                variant="secondary"
+                className="w-16 h-16 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 transition p-0 shadow-none border-none"
               >
                 清空
               </Button>
@@ -141,7 +141,7 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
 
         <Button
           onClick={toggleMethod}
-          variant="ghost"
+          variant="secondary"
           className="mt-4 text-green-600 hover:text-green-700 font-medium bg-transparent border-none cursor-pointer shadow-none hover:bg-transparent"
         >
           {showMathChallenge ? '使用PIN码验证' : '换个方式：数学挑战'}
@@ -149,8 +149,8 @@ export default function PinVerification({ onVerified, onCancel }: PinVerificatio
 
         <Button
           onClick={onCancel}
-          variant="ghost"
-          className="mt-4 w-full text-gray-500 hover:text-gray-600"
+          variant="error"
+          className="mt-4 w-full text-white font-semibold py-3"
         >
           取消
         </Button>

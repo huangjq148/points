@@ -79,8 +79,9 @@ export default function Login() {
               <Button
                 type="button"
                 onClick={() => setIsRegister(!isRegister)}
-                variant="ghost"
+                variant="secondary"
                 style={{ color: 'var(--primary)', fontWeight: '500', fontSize: '14px' }}
+                className="border-none bg-transparent shadow-none"
               >
                 {isRegister ? '已有账号？去登录' : '新用户？点击注册'}
               </Button>
@@ -116,9 +117,10 @@ export default function Login() {
             <Button
               type="button"
               onClick={() => window.location.href = '/parent/home'}
-              variant="ghost"
+              variant="secondary"
               fullWidth
               style={{ color: 'var(--primary)', fontWeight: '500', marginTop: '16px', fontSize: '14px' }}
+              className="border-none bg-transparent shadow-none"
             >
               跳过
             </Button>

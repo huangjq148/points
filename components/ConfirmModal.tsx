@@ -33,7 +33,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <div className="flex gap-3">
           <Button
             onClick={onClose}
-            variant="ghost"
+            variant="error"
             className="flex-1"
           >
             {cancelText}

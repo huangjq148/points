@@ -678,9 +678,9 @@ body {
 
 .modal-header {
   flex-shrink: 0;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .modal-body {
@@ -692,9 +692,9 @@ body {
 
 .modal-footer {
   flex-shrink: 0;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: 16px;
+  margin-top: 12px;
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -730,7 +730,6 @@ body {
   .modal-content {
     border-radius: 36px;
     padding: 32px;
-    max-width: 520px;
   }
 }
 

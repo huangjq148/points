@@ -270,8 +270,8 @@ export default function TaskPage() {
 
             <div className="flex gap-3">
               <Button
-                variant="ghost"
-                className="flex-1"
+                variant="secondary"
+                className="flex-1 bg-gray-100 text-gray-600 hover:bg-gray-200 border-none shadow-none"
                 onClick={() => {
                   setShowSubmitModal(false);
                   setPhotoPreview("");

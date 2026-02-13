@@ -144,8 +144,8 @@ export default function AuditPage() {
                       e.stopPropagation();
                       handleApproveTask(task._id, "rejected");
                     }}
-                    variant="ghost"
-                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition"
+                    variant="secondary"
+                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition border-none shadow-none"
                     title="驳回"
                   >
                     <X size={16} />
@@ -155,8 +155,8 @@ export default function AuditPage() {
                       e.stopPropagation();
                       handleApproveTask(task._id, "approved");
                     }}
-                    variant="ghost"
-                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition"
+                    variant="secondary"
+                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition border-none shadow-none"
                     title="通过"
                   >
                     <Check size={16} />
@@ -184,8 +184,8 @@ export default function AuditPage() {
             <>
               <Button
                 onClick={() => handleApproveTask(selectedTask._id, "rejected", rejectionReason)}
-                variant="ghost"
-                className="bg-red-50 text-red-600 hover:bg-red-100"
+                variant="secondary"
+                className="bg-red-50 text-red-600 hover:bg-red-100 border-none shadow-none"
               >
                 驳回
               </Button>

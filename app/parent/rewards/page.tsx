@@ -187,24 +187,24 @@ export default function RewardsPage() {
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   onClick={() => handleToggleRewardStatus(reward)}
-                  variant="ghost"
-                  className={`p-2 rounded-lg ${reward.isActive ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50" : "text-gray-400 hover:text-green-600 hover:bg-green-50"}`}
+                  variant="secondary"
+                  className={`p-2 rounded-lg border-none bg-transparent shadow-none ${reward.isActive ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50" : "text-gray-400 hover:text-green-600 hover:bg-green-50"}`}
                   title={reward.isActive ? "下架" : "上架"}
                 >
                   {reward.isActive ? <EyeOff size={18} /> : <Eye size={18} />}
                 </Button>
                 <Button
                   onClick={() => handleEditReward(reward)}
-                  variant="ghost"
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                  variant="secondary"
+                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg border-none bg-transparent shadow-none"
                   title="编辑"
                 >
                   <Edit2 size={18} />
                 </Button>
                 <Button
                   onClick={() => setRewardToDelete(reward._id)}
-                  variant="ghost"
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  variant="secondary"
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg border-none bg-transparent shadow-none"
                   title="删除"
                 >
                   <Trash2 size={18} />
@@ -245,8 +245,8 @@ export default function RewardsPage() {
                 <Button
                   key={icon}
                   onClick={() => setNewReward({ ...newReward, icon })}
-                  className={`w-10 h-10 rounded-lg text-xl p-0 transition-all ${newReward.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-white border border-gray-200 hover:bg-yellow-50"}`}
-                  variant="ghost"
+                  className={`w-10 h-10 rounded-lg text-xl p-0 transition-all border-none shadow-none ${newReward.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-white border border-gray-200 hover:bg-yellow-50"}`}
+                  variant="secondary"
                 >
                   {icon}
                 </Button>
@@ -261,8 +261,8 @@ export default function RewardsPage() {
                 <Button
                   key={type}
                   onClick={() => setNewReward({ ...newReward, type: type as "physical" | "privilege" })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${newReward.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
-                  variant="ghost"
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all border-none shadow-none ${newReward.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
+                  variant="secondary"
                 >
                   {type === "physical" ? "实物" : "特权"}
                 </Button>
@@ -281,7 +281,7 @@ export default function RewardsPage() {
           </div>
 
           <div className="flex gap-2 mt-6">
-            <Button onClick={() => setShowAddReward(false)} variant="ghost" className="flex-1 py-3 text-gray-600">
+            <Button onClick={() => setShowAddReward(false)} variant="error" className="flex-1 py-3 text-gray-600">
               取消
             </Button>
             <Button onClick={handleAddReward} className="flex-1 py-3">
@@ -315,8 +315,8 @@ export default function RewardsPage() {
                 <Button
                   key={icon}
                   onClick={() => setEditingRewardData({ ...editingRewardData, icon })}
-                  className={`w-10 h-10 rounded-lg text-xl p-0 ${editingRewardData.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-gray-100"}`}
-                  variant="ghost"
+                  className={`w-10 h-10 rounded-lg text-xl p-0 border-none shadow-none ${editingRewardData.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-gray-100"}`}
+                  variant="secondary"
                 >
                   {icon}
                 </Button>
@@ -331,8 +331,8 @@ export default function RewardsPage() {
                 <Button
                   key={type}
                   onClick={() => setEditingRewardData({ ...editingRewardData, type: type as "physical" | "privilege" })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${editingRewardData.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
-                  variant="ghost"
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all border-none shadow-none ${editingRewardData.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
+                  variant="secondary"
                 >
                   {type === "physical" ? "实物" : "特权"}
                 </Button>
@@ -349,7 +349,7 @@ export default function RewardsPage() {
           />
 
           <div className="flex gap-2 mt-6">
-            <Button onClick={() => setShowEditRewardModal(false)} variant="ghost" className="flex-1 py-3 text-gray-600">
+            <Button onClick={() => setShowEditRewardModal(false)} variant="error" className="flex-1 py-3 text-gray-600">
               取消
             </Button>
             <Button onClick={handleUpdateReward} className="flex-1 py-3">

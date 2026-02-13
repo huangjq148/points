@@ -147,15 +147,15 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-2 md:gap-3">
               <Button
                 onClick={() => setShowPinModal(true)}
-                variant="ghost"
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0"
+                variant="secondary"
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0 border-none shadow-none"
               >
                 <Lock size={18} className="text-blue-600" />
               </Button>
               <Button
                 onClick={handleLogout}
-                variant="ghost"
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0"
+                variant="secondary"
+                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0 border-none shadow-none"
               >
                 <LogOut size={18} className="text-gray-600" />
               </Button>
@@ -172,24 +172,24 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
         <nav className="nav-bar">
           <Button
             onClick={() => router.push(`/child/task`)}
-            variant="ghost"
-            className={`nav-item ${activeTab === "tasks" ? "active" : ""} flex-col h-auto p-2`}
+            variant="secondary"
+            className={`nav-item ${activeTab === "tasks" ? "active" : ""} flex-col h-auto p-2 border-none bg-transparent shadow-none`}
           >
             <Star size={24} />
             <span className="text-xs">任务</span>
           </Button>
           <Button
             onClick={() => router.push(`/child/store`)}
-            variant="ghost"
-            className={`nav-item ${activeTab === "store" ? "active" : ""} flex-col h-auto p-2`}
+            variant="secondary"
+            className={`nav-item ${activeTab === "store" ? "active" : ""} flex-col h-auto p-2 border-none bg-transparent shadow-none`}
           >
             <Gift size={24} />
             <span className="text-xs">商城</span>
           </Button>
           <Button
             onClick={() => router.push(`/child/wallet`)}
-            variant="ghost"
-            className={`nav-item ${activeTab === "wallet" ? "active" : ""} flex-col h-auto p-2`}
+            variant="secondary"
+            className={`nav-item ${activeTab === "wallet" ? "active" : ""} flex-col h-auto p-2 border-none bg-transparent shadow-none`}
           >
             <Wallet size={24} />
             <span className="text-xs">钱包</span>
@@ -244,30 +244,30 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
             <Button
               key={num}
               onClick={() => pin.length < 4 && setPin(pin + num.toString())}
-              variant="ghost"
-              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none"
+              variant="secondary"
+              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none"
             >
               {num}
             </Button>
           ))}
           <Button
             onClick={() => setPin(pin.slice(0, -1))}
-            variant="ghost"
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none"
+            variant="secondary"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none"
           >
             删除
           </Button>
           <Button
             onClick={() => pin.length < 4 && setPin(pin + "0")}
-            variant="ghost"
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none"
+            variant="secondary"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none"
           >
             0
           </Button>
           <Button
             onClick={() => setPin("")}
-            variant="ghost"
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none"
+            variant="secondary"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none"
           >
             清空
           </Button>
@@ -278,7 +278,7 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
         <Button onClick={handleSubmit} variant="primary" fullWidth className="mb-3">
           确认
         </Button>
-        <Button onClick={onCancel} variant="ghost" fullWidth className="text-gray-500">
+        <Button onClick={onCancel} variant="error" fullWidth className="text-white font-semibold py-3">
           取消
         </Button>
       </div>
