@@ -93,6 +93,14 @@ export default function TasksPage() {
     message: "",
     type: "info",
   });
+  const [now, setNow] = useState<number>(0);
+
+  useEffect(() => {
+    const updateNow = () => setNow(Date.now());
+    updateNow();
+    const timer = setInterval(updateNow, 60000); // 每分钟更新一次
+    return () => clearInterval(timer);
+  }, []);
 
   const showAlert = (message: string, type: "success" | "error" | "info" = "info") => {
     setAlertState({ isOpen: true, message, type });
@@ -393,71 +401,104 @@ export default function TasksPage() {
           className="flex flex-col gap-4 overflow-y-auto custom-scrollbar p-1"
           style={{ maxHeight: "calc(100vh - 350px)" }}
         >
-          {tasks.map((task) => (
-            <div key={task._id} className="card flex items-center gap-4 group relative">
-              <div className="text-2xl">{task.icon}</div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-bold text-gray-800 text-base">{task.name}</span>
-                  <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg border border-blue-200">
-                    {task.childName}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-sm text-gray-500">
-                    积分: <span className="text-orange-600 font-bold">+{task.points}</span>
-                  </p>
-                </div>
-              </div>
+          {tasks.map((task) => {
+            const isOverdue =
+              task.deadline &&
+              now > 0 &&
+              new Date(task.deadline).getTime() < now &&
+              task.status === "pending";
 
-              <div className="flex flex-col items-end gap-2 min-w-[140px]">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`status-badge static! ${
-                      task.status === "approved"
-                        ? "status-approved"
-                        : task.status === "submitted"
-                          ? "status-submitted"
-                          : task.status === "rejected"
-                            ? "status-rejected"
-                            : "status-pending"
-                    }`}
-                  >
-                    {task.status === "approved"
-                      ? "已完成"
-                      : task.status === "submitted"
-                        ? "待审核"
-                        : task.status === "rejected"
-                          ? "已驳回"
-                          : "进行中"}
-                  </span>
-                  <div className="flex gap-1">
-                    <Button
-                      onClick={() => handleEditTask(task)}
-                      variant="ghost"
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                      title="编辑"
-                    >
-                      <Edit2 size={16} />
-                    </Button>
-                    <Button
-                      onClick={() => setTaskToDelete(task._id)}
-                      variant="ghost"
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                      title="删除"
-                    >
-                      <Trash2 size={16} />
-                    </Button>
+            return (
+              <div
+                 key={task._id}
+                 className={`card flex items-center gap-4 group relative transition-all ${
+                   isOverdue ? "!bg-red-50/95 !border-red-200 shadow-red-100/50" : ""
+                 }`}
+                 style={isOverdue ? { background: 'rgba(254, 242, 242, 0.95)' } : {}}
+               >
+                <div className="text-2xl">{task.icon}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-gray-800 text-base">{task.name}</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg border border-blue-200">
+                      {task.childName}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-sm text-gray-500">
+                      积分: <span className="text-orange-600 font-bold">+{task.points}</span>
+                    </p>
+                    {task.deadline && (
+                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <Clock size={12} />
+                        <span>截止: {formatDate(task.deadline)}</span>
+                        {isOverdue && <span className="text-red-500 font-medium ml-1">已逾期</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
-                  <span>创建: {formatDate(task.createdAt)}</span>
-                  <span className="w-px h-2 bg-gray-200" />
-                  <span>修改: {formatDate(task.updatedAt)}</span>
+
+                <div className="flex flex-col items-end gap-2 min-w-[140px]">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`status-badge static! ${
+                        task.status === "approved"
+                          ? "status-approved"
+                          : task.status === "submitted"
+                            ? "status-submitted"
+                            : task.status === "rejected"
+                              ? "status-rejected"
+                              : isOverdue
+                                ? "status-rejected"
+                                : "status-pending"
+                      }`}
+                    >
+                      {task.status === "approved"
+                        ? "已完成"
+                        : task.status === "submitted"
+                          ? "待审核"
+                          : task.status === "rejected"
+                            ? "已驳回"
+                            : isOverdue
+                              ? "已逾期"
+                              : "进行中"}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button
+                        onClick={() => handleEditTask(task)}
+                        variant="ghost"
+                        className={`p-1.5 rounded-lg ${
+                          isOverdue
+                            ? "text-red-400 hover:text-red-600 hover:bg-red-100/50"
+                            : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                        }`}
+                        title="编辑"
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                      <Button
+                        onClick={() => setTaskToDelete(task._id)}
+                        variant="ghost"
+                        className={`p-1.5 rounded-lg ${
+                          isOverdue
+                            ? "text-red-400 hover:text-red-600 hover:bg-red-100/50"
+                            : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                        }`}
+                        title="删除"
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
+                    <span>创建: {formatDate(task.createdAt)}</span>
+                    <span className="w-px h-2 bg-gray-200" />
+                    <span>修改: {formatDate(task.updatedAt)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
 
           {total > limit && (
