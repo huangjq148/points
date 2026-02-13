@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
 import mongoose from 'mongoose';
-import { signToken, hashPassword, comparePassword } from '@/lib/auth';
+import { signToken, hashPassword, comparePassword, getUserIdFromToken } from '@/lib/auth';
 
 function generateInviteCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -11,7 +11,36 @@ function generateInviteCode() {
 export async function POST(request: NextRequest) {
   try {
     await connectDB();
-    const { username, password, action, childId, inviteCode } = await request.json();
+    const { username, password, action, inviteCode } = await request.json();
+
+    if (action === 'join-family') {
+      const authHeader = request.headers.get('Authorization');
+      const authUserId = getUserIdFromToken(authHeader);
+      
+      let user;
+      if (authUserId) {
+        user = await User.findById(authUserId);
+      } else if (username && password) {
+        user = await User.findOne({ username });
+        if (!user || !(await comparePassword(password, user.password))) {
+          return NextResponse.json({ success: false, message: '用户不存在或密码错误' }, { status: 401 });
+        }
+      }
+
+      if (!user) {
+        return NextResponse.json({ success: false, message: 'Unauthorized or missing credentials' }, { status: 401 });
+      }
+
+      const targetUser = await User.findOne({ inviteCode });
+      if (!targetUser) {
+        return NextResponse.json({ success: false, message: '邀请码无效' }, { status: 404 });
+      }
+
+      user.familyId = targetUser.familyId;
+      await user.save();
+
+      return NextResponse.json({ success: true, message: '成功加入家庭' });
+    }
 
     if (action === 'login') {
       console.log('Login attempt:', username);
@@ -121,23 +150,6 @@ export async function POST(request: NextRequest) {
           availablePoints: c.availablePoints
         }))
       });
-    }
-
-    if (action === 'join-family') {
-      const user = await User.findOne({ username });
-      if (!user || !(await comparePassword(password, user.password))) {
-        return NextResponse.json({ success: false, message: '用户不存在或密码错误' }, { status: 401 });
-      }
-
-      const targetUser = await User.findOne({ inviteCode });
-      if (!targetUser) {
-        return NextResponse.json({ success: false, message: '邀请码无效' }, { status: 404 });
-      }
-
-      user.familyId = targetUser.familyId;
-      await user.save();
-
-      return NextResponse.json({ success: true, message: '成功加入家庭' });
     }
 
     if (action === 'get-family-members') {

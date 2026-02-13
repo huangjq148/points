@@ -4,7 +4,7 @@ import Order, { IOrder } from '@/models/Order';
 import Reward, { IReward } from '@/models/Reward';
 import User from '@/models/User';
 import mongoose from 'mongoose';
-import { getUserIdFromToken } from '@/lib/auth';
+import { getTokenPayload, getUserIdFromToken } from '@/lib/auth';
 
 function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -30,12 +30,14 @@ interface OrderPutRequest {
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
+    const authUserId = payload.userId;
+    const authRole = payload.role;
 
     await connectDB();
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
     const childId = searchParams.get('childId');
     const status = searchParams.get('status');
 
@@ -43,50 +45,36 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     const query: Record<string, unknown> = {};
-    if (userId) query.userId = userId;
-    if (childId) query.childId = childId;
-    if (status) {
-      if (status.includes(',')) {
-        query.status = { $in: status.split(',') };
-      } else {
-        query.status = status;
-      }
-    }
-
-    // Logic to handle family orders
-    // If userId is provided, we try to find all children belonging to this parent (family)
-    // and include their orders as well, in case the userId on the order is incorrect (e.g. set to childId)
-    if (userId) {
-      const parentUser = await User.findById(userId);
+    
+    if (authRole === 'parent') {
+      const parentUser = await User.findById(authUserId);
       if (parentUser && parentUser.familyId) {
          // Find all children in this family
          const familyChildren = await User.find({ familyId: parentUser.familyId, role: 'child' });
          const childIds = familyChildren.map(c => c._id);
          
-         // Modify query to be: (userId match) OR (childId in familyChildren)
-         // We use $or to be safe
-         delete query.userId; // Remove strict userId check
-         delete query.childId; // If childId was set, we might override it? 
-         // Actually if childId was set specifically, we should respect it.
-         
-         const baseQuery: Record<string, unknown> = {};
-         if (status) baseQuery.status = query.status;
-         
-         const orConditions: Record<string, unknown>[] = [{ userId: userId }];
+         const orConditions: Record<string, unknown>[] = [{ userId: authUserId }];
          if (childIds.length > 0) {
            orConditions.push({ childId: { $in: childIds } });
          }
          
          if (childId) {
-            // If specific child requested, we just use that and ensure it's in the family
             query.childId = childId;
-            // But we still want to fix the "userId might be wrong" issue.
-            // So we search: childId == requestedChildId AND (userId == parent OR userId == childId OR whatever)
-            // Actually if childId is specified, we just trust it?
-            // Let's stick to the $or logic for the general list case.
          } else {
             query.$or = orConditions;
          }
+      } else {
+        query.userId = authUserId;
+      }
+    } else {
+      query.childId = authUserId;
+    }
+
+    if (status) {
+      if (status.includes(',')) {
+        query.status = { $in: status.split(',') };
+      } else {
+        query.status = status;
       }
     }
 
@@ -141,27 +129,37 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     await connectDB();
     const body: OrderPostRequest = await request.json();
-    let { userId } = body;
-    const { childId, rewardId } = body;
+    const { rewardId } = body;
+    let { childId } = body;
+    let userId: string | mongoose.Types.ObjectId = "";
 
-    // Fix: If userId is same as childId (Child created order), try to find the Parent ID
-    if (userId === childId) {
-       const childUser = await User.findById(childId);
-       if (childUser && childUser.familyId) {
-          // Find parent in the same family
-          const parentUser = await User.findOne({ familyId: childUser.familyId, role: 'parent' });
-          if (parentUser) {
-             userId = parentUser._id as mongoose.Types.ObjectId;
-          }
-       }
+    if (payload.role === 'parent') {
+      userId = payload.userId;
+      if (!childId) {
+        return NextResponse.json({ success: false, message: '缺少 childId' }, { status: 400 });
+      }
+    } else {
+      // If child created order, find the Parent ID from family
+      childId = payload.userId as unknown as mongoose.Types.ObjectId;
+      const childUser = await User.findById(payload.userId);
+      if (childUser && childUser.familyId) {
+        const parentUser = await User.findOne({ familyId: childUser.familyId, role: 'parent' });
+        if (parentUser) {
+          userId = parentUser._id as mongoose.Types.ObjectId;
+        }
+      }
+      if (!userId) {
+        // Fallback if no parent found (should not happen in normal flow)
+        userId = payload.userId;
+      }
     }
 
-    if (!userId || !childId || !rewardId) {
+    if (!rewardId) {
       return NextResponse.json({ success: false, message: '缺少必要参数' }, { status: 400 });
     }
 

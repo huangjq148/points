@@ -9,15 +9,17 @@ type NavItemId = "home" | "audit" | "tasks" | "orders" | "rewards" | "family" | 
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, childList } = useApp();
   const router = useRouter();
+  // 计算家庭总计
+  const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
+  const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
+
   const navItems: { id: NavItemId; icon: React.ElementType; label: string; badge?: number }[] = [
     { id: "home", icon: Home, label: "首页" },
-    { id: "audit", icon: FileText, label: "审核" },
-    // { id: "audit", icon: FileText, label: "审核", badge: pendingTasks.length },
+    { id: "audit", icon: FileText, label: "审核", badge: totalSubmittedTasks },
     { id: "tasks", icon: Star, label: "任务" },
-    { id: "orders", icon: Ticket, label: "核销" },
-    // { id: "orders", icon: Ticket, label: "核销", badge: pendingOrders.length },
+    { id: "orders", icon: Ticket, label: "核销", badge: totalPendingOrders },
     { id: "rewards", icon: Gift, label: "商城" },
     { id: "family", icon: Users, label: "家庭管理" },
     { id: "users", icon: UserCog, label: "用户管理" },
@@ -50,14 +52,6 @@ const Layout = ({ children }: { children: ReactNode }) => {
           <div className="logo-subtitle">家长管理后台</div>
         </div>
 
-        <div className="user-info">
-          <div className="user-avatar">👨‍👩‍👧</div>
-          <div>
-            <div className="user-name">家长</div>
-            <div className="user-role">管理员</div>
-          </div>
-        </div>
-
         <div className="desktop-nav">
           {navItems.map((item) => (
             <div
@@ -75,8 +69,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
           ))}
         </div>
 
-        <div className="mt-auto">
-        </div>
+        <div className="mt-auto"></div>
       </aside>
 
       {/* Main Content */}
@@ -89,9 +82,11 @@ const Layout = ({ children }: { children: ReactNode }) => {
           </div>
           <div className="flex gap-2">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 ">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                  👤
+              <div className="flex items-center gap-2 px-3 py-1.5 ">
+                <div className="relative">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    👤
+                  </div>
                 </div>
                 <span className="text-sm font-medium text-gray-700">
                   {mounted && currentUser?.username ? currentUser.username : "家长"}

@@ -12,13 +12,8 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
 
-    if (!userId) {
-      return NextResponse.json({ success: false, message: 'Missing userId' }, { status: 400 });
-    }
-
-    const user = await User.findById(userId);
+    const user = await User.findById(authUserId);
     if (!user) {
       return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
     }
@@ -46,7 +41,7 @@ export async function GET(request: NextRequest) {
         role: m.role || 'parent', // 'parent' | 'child'
         identity: m.identity || (m.role === 'child' ? '孩子' : '家长'),
         type: m.role === 'child' ? 'child' : 'parent', // specific type for frontend
-        isMe: m._id.toString() === userId,
+        isMe: m._id.toString() === authUserId,
         avatar: m.avatar,
         totalPoints: m.totalPoints,
         availablePoints: m.availablePoints
@@ -68,10 +63,10 @@ export async function POST(request: NextRequest) {
     if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     await connectDB();
-    const { action, targetUsername, currentUserId } = await request.json();
+    const { action, targetUsername } = await request.json();
 
     if (action === 'create_family') {
-      const currentUser = await User.findById(currentUserId);
+      const currentUser = await User.findById(authUserId);
       if (!currentUser) {
         return NextResponse.json({ success: false, message: 'Current user not found' });
       }
@@ -87,11 +82,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'invite_by_username') {
-      if (!targetUsername || !currentUserId) {
+      if (!targetUsername) {
         return NextResponse.json({ success: false, message: 'Missing parameters' });
       }
 
-      const currentUser = await User.findById(currentUserId);
+      const currentUser = await User.findById(authUserId);
       if (!currentUser) {
         return NextResponse.json({ success: false, message: 'Current user not found' });
       }

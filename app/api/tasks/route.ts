@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Task, { ITask } from "@/models/Task";
 import User from "@/models/User";
-import { getUserIdFromToken } from "@/lib/auth";
+import { getTokenPayload, getUserIdFromToken } from "@/lib/auth";
 
 interface ITaskQuery {
   childId?: mongoose.Types.ObjectId;
@@ -73,51 +73,36 @@ async function generateRecurringTasks(userId: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    // For GET method, if auth fails, we might still want to allow access for child dashboard
-    // But child dashboard requests usually include the token of the logged-in user (parent or child)
-    // If the child is logged in, they have a token. If the parent is viewing, they have a token.
-
-    // The issue might be that child requests are not sending the token properly or the token is invalid.
-    // However, if we look at the ChildDashboard component, it sends the token:
-    // headers: { "Authorization": `Bearer ${currentUser.token}` }
-
-    // If 401 happens, it means getUserIdFromToken returned null.
-
     const authHeader = request.headers.get("Authorization");
-    const authUserId = getUserIdFromToken(authHeader);
+    const payload = getTokenPayload(authHeader);
 
-    // Allow if we have a valid childId query param and it matches a public/shared view scenario?
-    // But for now, strict auth is safer.
-
-    if (!authUserId) {
-      // Allow access if childId is present (public read-only for child dashboard scenario if needed, OR strict)
-      // The requirement says "Child page API returns 401".
-      // If the child is visiting their page, they should be logged in as a child user (role: child).
-      // If they are logged in, getUserIdFromToken should return their ID.
-
-      // If the token is missing or invalid, we return 401.
-      // However, if we want to allow viewing tasks without strict auth (e.g. via a shared link?), we could relax this.
-      // But typically, the child logs in with username/password.
-
+    if (!payload) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
+
+    const authUserId = payload.userId;
+    const authRole = payload.role;
 
     await connectDB();
     const { searchParams } = new URL(request.url);
     const childId = searchParams.get("childId");
     const status = searchParams.get("status") as ITask["status"];
-    const userId = searchParams.get("userId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
 
-    if (userId) {
-      await generateRecurringTasks(userId);
+    if (authRole === "parent") {
+      await generateRecurringTasks(authUserId);
     }
 
     const query: ITaskQuery = {};
-    if (childId) query.childId = new mongoose.Types.ObjectId(childId);
+    if (authRole === "parent") {
+      query.userId = new mongoose.Types.ObjectId(authUserId);
+      if (childId) query.childId = new mongoose.Types.ObjectId(childId);
+    } else if (authRole === "child") {
+      query.childId = new mongoose.Types.ObjectId(authUserId);
+    }
+
     if (status) query.status = status;
-    if (userId) query.userId = new mongoose.Types.ObjectId(userId);
 
     const skip = (page - 1) * limit;
 
@@ -172,7 +157,6 @@ export async function POST(request: NextRequest) {
     await connectDB();
     const body = await request.json();
     const {
-      userId,
       childId,
       name,
       description,
@@ -186,12 +170,12 @@ export async function POST(request: NextRequest) {
       deadline,
     } = body;
 
-    if (!userId || !childId || !name || points === undefined) {
+    if (!childId || !name || points === undefined) {
       return NextResponse.json({ success: false, message: "缺少必要参数" }, { status: 400 });
     }
 
     const task = await Task.create({
-      userId,
+      userId: authUserId,
       childId,
       name,
       description: description || "",

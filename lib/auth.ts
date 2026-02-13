@@ -39,10 +39,14 @@ export function verifyToken(token: string): TokenPayload | null {
 }
 
 export function getUserIdFromToken(authHeader?: string | null): string | null {
+    const payload = getTokenPayload(authHeader);
+    return payload ? payload.userId : null;
+}
+
+export function getTokenPayload(authHeader?: string | null): TokenPayload | null {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return null;
     }
     const token = authHeader.split(' ')[1];
-    const payload = verifyToken(token);
-    return payload ? payload.userId : null;
+    return verifyToken(token);
 }

@@ -34,7 +34,6 @@ export interface Task {
 export default function TaskPage() {
   const { currentUser } = useApp();
   const { showMessage } = useChild();
-  const router = useRouter();
 
   // State
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -55,10 +54,11 @@ export default function TaskPage() {
 
   const taskListRef = useRef<HTMLDivElement>(null);
 
+  const token = currentUser?.token;
+
   const fetchTasks = useCallback(
     async (page: number = 1, append: boolean = false) => {
-      if (!currentUser) return;
-      const token = currentUser?.token;
+      if (!token) return;
 
       const limit = 10;
       // 优化点：直接通过 API 传递 status 参数，实现后端过滤
@@ -71,9 +71,9 @@ export default function TaskPage() {
         statusParam = ""; // 默认为全量，前端再做细分
       }
 
-      const res = await fetch(`/api/tasks?childId=${currentUser.id}&page=${page}&limit=${limit}${statusParam}`, {
+      const res = await fetch(`/api/tasks?page=${page}&limit=${limit}${statusParam}`, {
         headers: {
-          Authorization: token ? `Bearer ${token}` : "",
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -89,7 +89,7 @@ export default function TaskPage() {
         setHasMoreTasks(data.tasks.length === limit);
       }
     },
-    [currentUser, activeTaskTab],
+    [token, activeTaskTab],
   );
 
   const loadMoreTasks = async () => {
@@ -103,11 +103,35 @@ export default function TaskPage() {
 
   // 初始加载及 Tab 切换加载
   useEffect(() => {
-    if (currentUser) {
-      setTaskPage(1);
-      fetchTasks(1, false);
-    }
-  }, [currentUser, activeTaskTab, fetchTasks]);
+    if (!token) return;
+
+    const loadTasks = async () => {
+      const limit = 10;
+      let statusParam = "";
+      if (activeTaskTab === "completed") {
+        statusParam = "&status=approved";
+      } else if (activeTaskTab === "uncompleted") {
+        statusParam = "";
+      }
+
+      const res = await fetch(`/api/tasks?page=1&limit=${limit}${statusParam}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) return;
+
+      const data = await res.json();
+      if (data.success) {
+        setTasks(data.tasks);
+        setHasMoreTasks(data.tasks.length === limit);
+        setTaskPage(1);
+      }
+    };
+
+    loadTasks();
+  }, [token, activeTaskTab]);
 
   // Scroll listener
   useEffect(() => {
@@ -333,7 +357,7 @@ export default function TaskPage() {
 
       <div className="flex flex-col h-full overflow-hidden">
         {/* Header Section */}
-        <div className="flex-shrink-0 bg-white/50 backdrop-blur-md p-4 space-y-4">
+        <div className="shrink-0 bg-white/50 backdrop-blur-md p-4 space-y-4">
           <div className="flex gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -348,7 +372,7 @@ export default function TaskPage() {
             <div className="relative">
               <DatePicker
                 selected={taskDate}
-                onChange={(date) => setTaskDate(date)}
+                onChange={(date: Date | null) => setTaskDate(date)}
                 locale="zh-CN"
                 dateFormat="MM-dd"
                 customInput={
@@ -393,7 +417,7 @@ export default function TaskPage() {
                 onClick={() => setShowTaskDetail(task)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
+                  <div className="w-14 h-14 bg-linear-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner group-hover:scale-110 transition-transform">
                     {task.icon}
                   </div>
                   <div className="flex-1 min-w-0">

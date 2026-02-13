@@ -33,51 +33,49 @@
    const limit = 10;
  
    const fetchRewards = useCallback(async (pageNum: number = 1) => {
-     if (!currentUser) return;
-     const res = await fetch(`/api/rewards?isActive=true&page=${pageNum}&limit=${limit}`, {
-       headers: {
-         Authorization: `Bearer ${currentUser?.token}`,
-       },
-     });
-     const data = await res.json();
+    if (!currentUser?.token) return;
+    const res = await fetch(`/api/rewards?isActive=true&page=${pageNum}&limit=${limit}`, {
+      headers: {
+        Authorization: `Bearer ${currentUser.token}`,
+      },
+    });
+    const data = await res.json();
     if (data.success) {
       setRewards(data.rewards);
       setTotal(data.total);
     }
-   }, [currentUser]);
- 
+  }, [currentUser?.token]);
+
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.token) {
       fetchRewards(page);
     }
   }, [currentUser?.token, fetchRewards, page]);
- 
+
   const filteredRewards = (() => {
     if (rewardSearchQuery) {
       return rewards.filter((r) => r.name.toLowerCase().includes(rewardSearchQuery.toLowerCase()));
     }
     return rewards;
   })();
- 
-   const handleRedeemReward = async () => {
-     if (!showConfirmRedeem) return;
-     const reward = showConfirmRedeem;
- 
-     if ((currentUser?.availablePoints || 0) < reward.points) {
-       showMessage("积分不足，继续加油！💪");
-       setShowConfirmRedeem(null);
-       return;
-     }
- 
-     const res = await fetch("/api/orders", {
-       method: "POST",
-       headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentUser?.token}` },
-       body: JSON.stringify({
-         userId: currentUser?.id,
-         childId: currentUser?.id,
-         rewardId: reward._id,
-       }),
-     });
+
+  const handleRedeemReward = async () => {
+    if (!showConfirmRedeem) return;
+    const reward = showConfirmRedeem;
+
+    if ((currentUser?.availablePoints || 0) < reward.points) {
+      showMessage("积分不足，继续加油！💪");
+      setShowConfirmRedeem(null);
+      return;
+    }
+
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentUser?.token}` },
+      body: JSON.stringify({
+        rewardId: reward._id,
+      }),
+    });
      const data = await res.json();
      if (data.success) {
        confetti({

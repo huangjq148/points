@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { formatDate } from "@/utils/date";
+import request from "@/utils/request";
 import { Plus, Settings, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
@@ -36,32 +37,31 @@ export default function UsersPage() {
     gender: "none" as "boy" | "girl" | "none"
   });
 
-  const fetchUsers = useCallback(() => {
-    if (!currentUser || !currentUser.token) return;
-    fetch(`/api/user?userId=${currentUser.id}`, {
-      headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setFamilyMembers(data.users);
-        } else {
-          console.error("Fetch users failed:", data.message);
-          if (data.message?.includes("User not found")) {
-            logout();
-          }
+  const fetchUsers = useCallback(async () => {
+    if (!currentUser?.token) return;
+    try {
+      const data = await request("/api/user");
+      if (data.success) {
+        setFamilyMembers(data.users);
+        if (data.total !== undefined) {
+          setTotal(data.total);
         }
-      })
-      .catch((e) => console.error(e));
-  }, [currentUser, logout]);
+      } else {
+        console.error("Fetch users failed:", data.message);
+        if (data.message?.includes("User not found")) {
+          logout();
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [currentUser?.token, logout]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.token) {
       fetchUsers();
     }
-  }, [currentUser, fetchUsers]);
+  }, [currentUser?.token, fetchUsers]);
 
 
   const handleCreateAccount = async () => {
@@ -69,15 +69,10 @@ export default function UsersPage() {
     // "添加用户时，不应当自动加入当前家庭" -> Remove familyId
     const payload = { ...accountForm };
 
-    const res = await fetch("/api/user", {
+    const data = await request("/api/user", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${currentUser?.token}`
-      },
-      body: JSON.stringify(payload),
+      body: payload,
     });
-    const data = await res.json();
     if (data.success) {
       toast.success("创建成功");
       setShowAddAccountModal(false);
@@ -97,15 +92,10 @@ export default function UsersPage() {
 
   const handleUpdateAccount = async () => {
     if (!editingMember) return;
-    const res = await fetch("/api/user", {
+    const data = await request("/api/user", {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${currentUser?.token}`
-      },
-      body: JSON.stringify({ id: editingMember.id, ...accountForm }),
+      body: { id: editingMember.id, ...accountForm },
     });
-    const data = await res.json();
     if (data.success) {
       toast.success("更新成功");
       setShowEditAccountModal(false);
@@ -119,13 +109,9 @@ export default function UsersPage() {
     async (id: string) => {
       if (!confirm("确定删除该账号吗？")) return;
       if (!currentUser?.token) return;
-      const res = await fetch(`/api/user?id=${id}`, {
+      const data = await request(`/api/user?id=${id}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${currentUser.token}`
-        }
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("删除成功");
         fetchUsers();
@@ -133,7 +119,7 @@ export default function UsersPage() {
         toast.error("删除失败");
       }
     },
-    [fetchUsers, toast],
+    [currentUser?.token, fetchUsers, toast],
   );
 
   const columnHelper = createColumnHelper<FamilyMember>();

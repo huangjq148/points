@@ -1,51 +1,50 @@
  "use client";
  
- import { useState, useEffect } from "react";
- import { useApp } from "@/context/AppContext";
- import { useRouter } from "next/navigation";
- import {
-   Calendar as CalendarIcon,
-   Search,
-   ChevronRight,
- } from "lucide-react";
- import DatePicker from "react-datepicker";
- import "react-datepicker/dist/react-datepicker.css";
- import { registerLocale } from "react-datepicker";
- import { zhCN } from "date-fns/locale";
- import Button from "@/components/ui/Button";
+ import { useState, useEffect, useCallback } from "react";
+import { useApp } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
+import {
+  Calendar as CalendarIcon,
+  Search,
+  ChevronRight,
+} from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale } from "react-datepicker";
+import { zhCN } from "date-fns/locale";
+import Button from "@/components/ui/Button";
 import { formatDate } from "@/utils/date";
 
 registerLocale("zh-CN", zhCN);
- 
- interface LedgerItem {
-   _id: string;
-   type: "income" | "expense";
-   name: string;
-   points: number;
-   date: string;
-   icon: string;
- }
- 
- export default function WalletPage() {
-   const { currentUser } = useApp();
-   const router = useRouter();
- 
-   // Ledger State
-   const [ledgerData, setLedgerData] = useState<LedgerItem[]>([]);
-   const [ledgerPage, setLedgerPage] = useState(1);
-   const [ledgerTotal, setLedgerTotal] = useState(0);
-   const [ledgerLimit] = useState(10);
-   const [ledgerLoading, setLedgerLoading] = useState(false);
-   const [ledgerStartDate, setLedgerStartDate] = useState<Date | null>(null);
-   const [ledgerEndDate, setLedgerEndDate] = useState<Date | null>(null);
-   const [ledgerKeyword, setLedgerKeyword] = useState("");
- 
-   const fetchLedger = useCallback(async (page = 1) => {
-    if (!currentUser || !currentUser?.token) return;
+
+interface LedgerItem {
+  _id: string;
+  type: "income" | "expense";
+  name: string;
+  points: number;
+  date: string;
+  icon: string;
+}
+
+export default function WalletPage() {
+  const { currentUser } = useApp();
+  const router = useRouter();
+
+  // Ledger State
+  const [ledgerData, setLedgerData] = useState<LedgerItem[]>([]);
+  const [ledgerPage, setLedgerPage] = useState(1);
+  const [ledgerTotal, setLedgerTotal] = useState(0);
+  const [ledgerLimit] = useState(10);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
+  const [ledgerStartDate, setLedgerStartDate] = useState<Date | null>(null);
+  const [ledgerEndDate, setLedgerEndDate] = useState<Date | null>(null);
+  const [ledgerKeyword, setLedgerKeyword] = useState("");
+
+  const fetchLedger = useCallback(async (page = 1) => {
+    if (!currentUser?.token) return;
     setLedgerLoading(true);
     try {
       const params = new URLSearchParams({
-        childId: currentUser.id,
         page: page.toString(),
         limit: ledgerLimit.toString(),
       });
@@ -69,11 +68,13 @@ registerLocale("zh-CN", zhCN);
     } finally {
       setLedgerLoading(false);
     }
-  }, [currentUser, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
+  }, [currentUser?.token, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
 
   useEffect(() => {
-    fetchLedger(1);
-  }, [fetchLedger]);
+    if (currentUser?.token) {
+      fetchLedger(1);
+    }
+  }, [currentUser?.token, fetchLedger]);
  
    // navigate helper
    const navigateTo = (path: string) => router.push(`/child/${path}`);

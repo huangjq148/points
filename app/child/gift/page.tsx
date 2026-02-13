@@ -1,6 +1,6 @@
  "use client";
  
- import { useState, useEffect } from "react";
+ import { useState, useEffect, useCallback } from "react";
  import { useApp } from "@/context/AppContext";
  import { useChild } from "@/components/ChildShell";
  import { useRouter } from "next/navigation";
@@ -43,23 +43,23 @@ registerLocale("zh-CN", zhCN);
    const [showOrderDetail, setShowOrderDetail] = useState<Order | null>(null);
  
    const fetchOrders = useCallback(async () => {
-    if (!currentUser) return;
-    const res = await fetch(`/api/orders?childId=${currentUser.id}`, {
+    if (!currentUser?.token) return;
+    const res = await fetch(`/api/orders`, {
       headers: {
-        Authorization: `Bearer ${currentUser?.token}`,
+        Authorization: `Bearer ${currentUser.token}`,
       },
     });
     const data = await res.json();
     if (data.success) {
       setOrders(data.orders);
     }
-  }, [currentUser]);
+  }, [currentUser?.token]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.token) {
       fetchOrders();
     }
-  }, [currentUser, fetchOrders]);
+  }, [currentUser?.token, fetchOrders]);
  
    const filteredOrders = (() => {
      let filtered = orders;

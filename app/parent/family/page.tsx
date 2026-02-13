@@ -11,6 +11,7 @@ import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTab
 import { Copy, Settings, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pagination } from "@/components/ui";
+import request from "@/utils/request";
 
 export default function FamilyPage() {
   const { currentUser, logout, refreshChildren } = useApp();
@@ -24,49 +25,46 @@ export default function FamilyPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
-  
+
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
 
-  const fetchFamilyMembers = useCallback(() => {
-    if (!currentUser || !currentUser.token) return;
-    fetch(`/api/family?userId=${currentUser.id}`, {
-      headers: {
-        "Authorization": `Bearer ${currentUser.token}`
-      }
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setFamilyMembers(data.members);
-        } else {
-          console.error("Fetch members failed:", data.message);
-          if (data.message?.includes("User not found")) {
-            logout();
-          }
+  const token = currentUser?.token;
+
+  const fetchFamilyMembers = useCallback(async () => {
+    if (!token) return;
+    try {
+      const data = await request("/api/family");
+      if (data.success) {
+        setFamilyMembers(data.members);
+        if (data.total !== undefined) {
+          setTotal(data.total);
         }
-      })
-      .catch((e) => console.error(e));
-  }, [currentUser, logout]);
+      } else {
+        console.error("Fetch members failed:", data.message);
+        if (data.message?.includes("User not found")) {
+          logout();
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [token, logout]);
 
   useEffect(() => {
-    if (currentUser) {
+    if (token) {
       fetchFamilyMembers();
     }
-  }, [currentUser, fetchFamilyMembers]);
+  }, [token, fetchFamilyMembers]);
 
   const handleDeleteAccount = useCallback(
     async (id: string) => {
       if (!confirm("确定将该成员移出家庭吗？")) return;
-      if (!currentUser?.token) return;
-      const res = await fetch(`/api/family?id=${id}`, {
+      if (!token) return;
+      const data = await request(`/api/family?id=${id}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${currentUser.token}`
-        }
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("删除成功");
         fetchFamilyMembers();
@@ -74,27 +72,21 @@ export default function FamilyPage() {
         toast.error("删除失败");
       }
     },
-    [fetchFamilyMembers, toast],
+    [token, fetchFamilyMembers, toast],
   );
 
   const handleCreateFamily = async () => {
-    if (!currentUser?.token) return;
+    if (!token) return;
     try {
-      const res = await fetch("/api/family", {
+      const data = await request("/api/family", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser.token}`
-        },
-        body: JSON.stringify({
+        body: {
           action: "create_family",
-          currentUserId: currentUser.id
-        }),
+        },
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("家庭创建成功");
-        window.location.reload(); 
+        window.location.reload();
       } else {
         toast.error(data.message || "创建失败");
       }
@@ -107,20 +99,14 @@ export default function FamilyPage() {
   const handleInviteByUsername = async () => {
     if (!inviteUsernameInput.trim()) return;
     try {
-      if (!currentUser?.token) return;
-      const res = await fetch("/api/family", {
+      if (!token) return;
+      const data = await request("/api/family", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser.token}`
-        },
-        body: JSON.stringify({
+        body: {
           action: "invite_by_username",
           targetUsername: inviteUsernameInput.trim(),
-          currentUserId: currentUser?.id,
-        }),
+        },
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("邀请成功");
         setInviteUsernameInput("");
@@ -137,19 +123,15 @@ export default function FamilyPage() {
 
   const handleJoinFamily = async () => {
     if (!inviteCodeInput) return;
-    if (!currentUser) return;
+    if (!token) return;
     try {
-      const res = await fetch("/api/auth", {
+      const data = await request("/api/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: currentUser.username,
-          password: currentUser.password, // Ensure password is sent if needed, or fix logic
+        body: {
           action: "join-family",
           inviteCode: inviteCodeInput.trim(),
-        }),
+        },
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("加入成功！请重新登录以刷新数据");
         setTimeout(logout, 2000);
@@ -168,8 +150,7 @@ export default function FamilyPage() {
 
   const columnHelper = createColumnHelper<FamilyMember>();
   const columns = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cols: ColumnDef<FamilyMember, any>[] = [
+    const cols: ColumnDef<FamilyMember, string | boolean | undefined>[] = [
       columnHelper.accessor("username", {
         header: "账号/昵称",
         cell: (info) => (
@@ -182,16 +163,10 @@ export default function FamilyPage() {
           </div>
         ),
       }),
-    ];
-
-    cols.push(
       columnHelper.accessor("identity", {
         header: "身份",
         cell: (info) => info.getValue() || "-",
       }),
-    );
-
-    cols.push(
       columnHelper.accessor("type", {
         header: "类型",
         cell: (info) => (info.getValue() === "child" ? "孩子" : "用户"),
@@ -243,10 +218,10 @@ export default function FamilyPage() {
           </div>
         ),
       }),
-    );
+    ];
 
     return cols;
-  }, [handleDeleteAccount]);
+  }, [handleDeleteAccount, columnHelper]);
 
   const table = useReactTable({
     data: tableData,
@@ -305,22 +280,11 @@ export default function FamilyPage() {
             </tbody>
           </table>
         </div>
-        
-        {total > limit && (
-          <Pagination
-            currentPage={page}
-            totalItems={total}
-            pageSize={limit}
-            onPageChange={setPage}
-          />
-        )}
+
+        {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
       </div>
 
-      <Modal
-        isOpen={showEditAccountModal}
-        onClose={() => setShowEditAccountModal(false)}
-        title="编辑账号"
-      >
+      <Modal isOpen={showEditAccountModal} onClose={() => setShowEditAccountModal(false)} title="编辑账号">
         <div className="space-y-4">
           <Input
             label="账号"
@@ -342,16 +306,11 @@ export default function FamilyPage() {
           <Button
             onClick={async () => {
               if (!editingMember) return;
-              if (!currentUser?.token) return;
-              const res = await fetch("/api/user", {
+              if (!token) return;
+              const data = await request("/api/user", {
                 method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${currentUser.token}`
-                },
-                body: JSON.stringify({ id: editingMember.id, ...accountForm }),
+                body: { id: editingMember.id, ...accountForm },
               });
-              const data = await res.json();
               if (data.success) {
                 toast.success("更新成功");
                 setShowEditAccountModal(false);
@@ -368,11 +327,7 @@ export default function FamilyPage() {
         </div>
       </Modal>
 
-      <Modal
-        isOpen={showInviteModal}
-        onClose={() => setShowInviteModal(false)}
-        title="邀请与加入"
-      >
+      <Modal isOpen={showInviteModal} onClose={() => setShowInviteModal(false)} title="邀请与加入">
         <div className="space-y-6">
           <div className="bg-blue-50 p-4 rounded-xl">
             <p className="text-sm text-blue-800 font-medium mb-1">您的家庭邀请码</p>
@@ -410,9 +365,7 @@ export default function FamilyPage() {
                 邀请
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              对方将直接加入您的家庭（前提是对方尚未加入任何家庭）。
-            </p>
+            <p className="text-xs text-gray-500 mt-2">对方将直接加入您的家庭（前提是对方尚未加入任何家庭）。</p>
           </div>
 
           <div className="border-t pt-6">

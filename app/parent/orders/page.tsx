@@ -11,7 +11,7 @@ import { formatDate } from "@/utils/date";
 import { useCallback, useEffect, useState } from "react";
 
 export default function OrdersPage() {
-  const { currentUser, childList } = useApp();
+  const { childList } = useApp();
   const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
   const [pendingOrders, setPendingOrders] = useState<IDisplayedOrder[]>([]);
   const [historyOrders, setHistoryOrders] = useState<IDisplayedOrder[]>([]);
@@ -29,16 +29,13 @@ export default function OrdersPage() {
   ];
 
   const fetchOrders = useCallback(
-    async (status: string, page: number = 1, limit: number = 100) => {
-      if (!currentUser?.token) return { orders: [], total: 0 };
-      
+    async (status: string, page: number = 1, fetchLimit: number = 100) => {
       const params: Record<string, string | number> = {
-        userId: currentUser.id,
         status,
         page,
-        limit,
+        limit: fetchLimit,
       };
-      
+
       if (selectedChildFilter !== "all") {
         params.childId = selectedChildFilter;
       }
@@ -46,13 +43,13 @@ export default function OrdersPage() {
       const data = (await request("/api/orders", {
         params,
       })) as { success: boolean; orders: IDisplayedOrder[]; total: number };
-      
+
       if (data.success) {
         return { orders: data.orders, total: data.total };
       }
       return { orders: [], total: 0 };
     },
-    [currentUser, selectedChildFilter]
+    [selectedChildFilter],
   );
 
   const refreshPending = useCallback(async () => {
@@ -72,24 +69,21 @@ export default function OrdersPage() {
 
   useEffect(() => {
     const init = async () => {
-      if (currentUser) {
-        await refreshPending();
-      }
+      await refreshPending();
     };
     init();
-  }, [currentUser, refreshPending]);
+  }, [refreshPending]);
 
   useEffect(() => {
     const initHistory = async () => {
-      if (currentUser && activeTab === "history") {
+      if (activeTab === "history") {
         await refreshHistory();
       }
     };
     initHistory();
-  }, [currentUser, activeTab, refreshHistory]);
+  }, [activeTab, refreshHistory]);
 
   const handleVerifyOrder = async (orderId: string) => {
-    if (!currentUser?.token) return;
     await request("/api/orders", {
       method: "PUT",
       body: { orderId, action: "verify" },
@@ -98,7 +92,6 @@ export default function OrdersPage() {
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    if (!currentUser?.token) return;
     await request("/api/orders", {
       method: "PUT",
       body: { orderId, action: "cancel" },
@@ -111,7 +104,9 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-800">兑换核销</h2>
         <div className="flex items-center gap-2">
-          {isLoading && <div className="loading-spinner w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />}
+          {isLoading && (
+            <div className="loading-spinner w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          )}
           <div className="w-40">
             <Select
               value={selectedChildFilter}
@@ -219,9 +214,7 @@ export default function OrdersPage() {
                       </div>
                     </div>
                     <span
-                      className={`status-badge ${
-                        order.status === "verified" ? "status-verified" : "status-rejected"
-                      }`}
+                      className={`status-badge ${order.status === "verified" ? "status-verified" : "status-rejected"}`}
                     >
                       {order.status === "verified" ? "已核销" : "已取消"}
                     </span>
@@ -231,15 +224,13 @@ export default function OrdersPage() {
                       <span>{order.childAvatar}</span>
                       <span>{order.childName}</span>
                     </div>
-                    <div className="text-xs text-gray-400">
-                      {formatDate(order.updatedAt)}
-                    </div>
+                    <div className="text-xs text-gray-400">{formatDate(order.updatedAt)}</div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-          
+
           {historyTotal > 10 && (
             <div className="flex justify-center items-center gap-4 mt-6">
               <Button

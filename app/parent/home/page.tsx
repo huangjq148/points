@@ -9,7 +9,7 @@ import Layout from "@/components/Layouts";
 
 export default function HomePage() {
   const router = useRouter();
-  const { childList, switchToChild } = useApp();
+  const { childList } = useApp();
 
   // 计算家庭总计
   const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
@@ -56,7 +56,6 @@ export default function HomePage() {
               return (
                 <div
                   key={child.id as string}
-                  onClick={() => switchToChild(child)}
                   className="card flex items-center gap-4 cursor-pointer hover:bg-white/90 transition"
                 >
                   <div className="text-3xl">{child.avatar}</div>
@@ -101,11 +100,7 @@ export default function HomePage() {
               <div className="card text-center py-8">
                 <Users size={48} className="mx-auto mb-2 text-gray-400" />
                 <p className="text-gray-500 mb-4">还没有孩子档案</p>
-                <Button
-                  onClick={() => router.push("/parent/family")}
-                >
-                  添加孩子
-                </Button>
+                <Button onClick={() => router.push("/parent/family")}>添加孩子</Button>
               </div>
             )}
             {childList.length > 0 && (

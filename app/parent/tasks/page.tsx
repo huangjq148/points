@@ -49,7 +49,9 @@ export default function TasksPage() {
   const { currentUser, childList } = useApp();
   const [showAddTask, setShowAddTask] = useState(false);
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
-  const [activeTaskFilter, setActiveTaskFilter] = useState<"all" | "completed" | "uncompleted" | "submitted" | "rejected">("all");
+  const [activeTaskFilter, setActiveTaskFilter] = useState<
+    "all" | "completed" | "uncompleted" | "submitted" | "rejected"
+  >("all");
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [editingTaskData, setEditingTaskData] = useState({
     name: "",
@@ -68,7 +70,7 @@ export default function TasksPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
-  
+
   const [newTask, setNewTask] = useState({
     name: "",
     points: 5,
@@ -152,7 +154,6 @@ export default function TasksPage() {
         },
         body: JSON.stringify({
           ...newTask,
-          userId: currentUser.id,
           childId,
           imageUrl: uploadedImageUrl,
         }),
@@ -285,50 +286,48 @@ export default function TasksPage() {
     setShowEditTaskModal(true);
   };
 
-  const fetchTasks = useCallback(async (pageNum: number = 1) => {
-    if (!currentUser?.token) return [];
-    
-    const currentSelectedChildTaskFilter = selectedChildTaskFilter;
+  const fetchTasks = useCallback(
+    async (pageNum: number = 1) => {
+      const currentSelectedChildTaskFilter = selectedChildTaskFilter;
 
-    let statusFilter = "";
-    if (activeTaskFilter === "completed") {
-      statusFilter = "approved";
-    } else if (activeTaskFilter === "uncompleted") {
-      statusFilter = "pending";
-    } else if (activeTaskFilter === "submitted") {
-      statusFilter = "submitted";
-    } else if (activeTaskFilter === "rejected") {
-      statusFilter = "rejected";
-    }
-    
-    const params: Record<string, string | number> = {
-      userId: currentUser?.id || "",
-      page: pageNum,
-      limit,
-    };
-    if (statusFilter) {
-      params.status = statusFilter;
-    }
-    if (currentSelectedChildTaskFilter !== "all") {
-      params.childId = currentSelectedChildTaskFilter;
-    }
+      let statusFilter = "";
+      if (activeTaskFilter === "completed") {
+        statusFilter = "approved";
+      } else if (activeTaskFilter === "uncompleted") {
+        statusFilter = "pending";
+      } else if (activeTaskFilter === "submitted") {
+        statusFilter = "submitted";
+      } else if (activeTaskFilter === "rejected") {
+        statusFilter = "rejected";
+      }
 
-    const data = (await request("/api/tasks", {
-      params,
-    })) as { success: boolean; tasks: IDisplayedTask[]; total: number };
+      const params: Record<string, string | number> = {
+        page: pageNum,
+        limit,
+      };
+      if (statusFilter) {
+        params.status = statusFilter;
+      }
+      if (currentSelectedChildTaskFilter !== "all") {
+        params.childId = currentSelectedChildTaskFilter;
+      }
 
-    if (data.success) {
-      setTotal(data.total);
-      return data.tasks;
-    }
-    return [];
-  }, [currentUser, activeTaskFilter, selectedChildTaskFilter]);
+      const data = (await request("/api/tasks", {
+        params,
+      })) as { success: boolean; tasks: IDisplayedTask[]; total: number };
+
+      if (data.success) {
+        setTotal(data.total);
+        return data.tasks;
+      }
+      return [];
+    },
+    [activeTaskFilter, selectedChildTaskFilter],
+  );
 
   useEffect(() => {
-    if (currentUser) {
-      fetchTasks(page).then(setTasks);
-    }
-  }, [currentUser, fetchTasks, page]);
+    fetchTasks(page).then(setTasks);
+  }, [fetchTasks, page]);
 
   // Handle filter changes
   const onFilterChange = (type: "status" | "child", value: string) => {
@@ -377,88 +376,92 @@ export default function TasksPage() {
                 activeTaskFilter === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {tab === "all" ? "全部" : tab === "uncompleted" ? "未完成" : tab === "submitted" ? "待审核" : tab === "completed" ? "已完成" : "已驳回"}
+              {tab === "all"
+                ? "全部"
+                : tab === "uncompleted"
+                  ? "未完成"
+                  : tab === "submitted"
+                    ? "待审核"
+                    : tab === "completed"
+                      ? "已完成"
+                      : "已驳回"}
             </Button>
           ))}
         </div>
 
-        <div className="space-y-3">
+        <div
+          className="flex flex-col gap-4 overflow-y-auto custom-scrollbar p-1"
+          style={{ maxHeight: "calc(100vh - 350px)" }}
+        >
           {tasks.map((task) => (
-              <div key={task._id} className="card flex items-center gap-4 group relative">
-                <div className="text-2xl">{task.icon}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-gray-800 text-base">{task.name}</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg border border-blue-200">
-                      {task.childName}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <p className="text-sm text-gray-500">积分: <span className="text-orange-600 font-bold">+{task.points}</span></p>
-                  </div>
+            <div key={task._id} className="card flex items-center gap-4 group relative">
+              <div className="text-2xl">{task.icon}</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-gray-800 text-base">{task.name}</span>
+                  <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-lg border border-blue-200">
+                    {task.childName}
+                  </span>
                 </div>
-
-                <div className="flex flex-col items-end gap-2 min-w-[140px]">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`status-badge !static ${
-                        task.status === "approved"
-                          ? "status-approved"
-                          : task.status === "submitted"
-                          ? "status-submitted"
-                          : task.status === "rejected"
-                          ? "status-rejected"
-                          : "status-pending"
-                      }`}
-                    >
-                      {task.status === "approved"
-                        ? "已完成"
-                        : task.status === "submitted"
-                        ? "待审核"
-                        : task.status === "rejected"
-                        ? "已驳回"
-                        : "进行中"}
-                    </span>
-                    <div className="flex gap-1">
-                      <Button
-                        onClick={() => handleEditTask(task)}
-                        variant="ghost"
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                        title="编辑"
-                      >
-                        <Edit2 size={16} />
-                      </Button>
-                      <Button
-                        onClick={() => setTaskToDelete(task._id)}
-                        variant="ghost"
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
-                        title="删除"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
-                    <span>
-                      创建: {formatDate(task.createdAt)}
-                    </span>
-                    <span className="w-px h-2 bg-gray-200" />
-                    <span>
-                      修改: {formatDate(task.updatedAt)}
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-sm text-gray-500">
+                    积分: <span className="text-orange-600 font-bold">+{task.points}</span>
+                  </p>
                 </div>
               </div>
-            ))}
+
+              <div className="flex flex-col items-end gap-2 min-w-[140px]">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`status-badge static! ${
+                      task.status === "approved"
+                        ? "status-approved"
+                        : task.status === "submitted"
+                          ? "status-submitted"
+                          : task.status === "rejected"
+                            ? "status-rejected"
+                            : "status-pending"
+                    }`}
+                  >
+                    {task.status === "approved"
+                      ? "已完成"
+                      : task.status === "submitted"
+                        ? "待审核"
+                        : task.status === "rejected"
+                          ? "已驳回"
+                          : "进行中"}
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      onClick={() => handleEditTask(task)}
+                      variant="ghost"
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                      title="编辑"
+                    >
+                      <Edit2 size={16} />
+                    </Button>
+                    <Button
+                      onClick={() => setTaskToDelete(task._id)}
+                      variant="ghost"
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      title="删除"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
+                  <span>创建: {formatDate(task.createdAt)}</span>
+                  <span className="w-px h-2 bg-gray-200" />
+                  <span>修改: {formatDate(task.updatedAt)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
           {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
-          
+
           {total > limit && (
-            <Pagination
-              currentPage={page}
-              totalItems={total}
-              pageSize={limit}
-              onPageChange={setPage}
-            />
+            <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
           )}
         </div>
 

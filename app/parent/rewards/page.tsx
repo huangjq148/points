@@ -6,14 +6,13 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
-import { useApp } from "@/context/AppContext";
 import { Edit2, Eye, EyeOff, Gift, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
 import { Pagination } from "@/components/ui";
+import request from "@/utils/request";
 
 export default function RewardsPage() {
-  const { currentUser } = useApp();
   const toast = useToast();
   const [rewards, setRewards] = useState<PlainReward[]>([]);
   const [page, setPage] = useState(1);
@@ -34,19 +33,28 @@ export default function RewardsPage() {
   });
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
 
-  const fetchRewards = useCallback(async (pageNum: number = 1) => {
-    if (!currentUser?.token) return;
-    const res = await fetch(`/api/rewards?userId=${currentUser?.id}&page=${pageNum}&limit=${limit}`, {
-      headers: {
-        "Authorization": `Bearer ${currentUser.token}`
+  useEffect(() => {
+    let isMounted = true;
+    const loadRewards = async () => {
+      const data: { success: boolean; rewards: PlainReward[]; total: number } = await request(`/api/rewards?page=${page}&limit=${limit}`);
+      if (isMounted && data.success) {
+        setRewards(data.rewards);
+        setTotal(data.total);
       }
-    });
-    const data: { success: boolean; rewards: PlainReward[]; total: number } = await res.json();
+    };
+    loadRewards();
+    return () => {
+      isMounted = false;
+    };
+  }, [page, limit]);
+
+  const fetchRewards = useCallback(async (pageNum: number = 1) => {
+    const data: { success: boolean; rewards: PlainReward[]; total: number } = await request(`/api/rewards?page=${pageNum}&limit=${limit}`);
     if (data.success) {
       setRewards(data.rewards);
       setTotal(data.total);
     }
-  }, [currentUser]);
+  }, [limit]);
 
   const handleEditReward = (reward: PlainReward) => {
     setEditingReward(reward);
@@ -63,20 +71,14 @@ export default function RewardsPage() {
 
   const handleUpdateReward = async () => {
     if (!editingReward) return;
-    if (!currentUser?.token) return;
     try {
-      const res = await fetch("/api/rewards", {
+      const data = await request("/api/rewards", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser.token}`
-        },
-        body: JSON.stringify({
+        body: {
           rewardId: editingReward._id,
           ...editingRewardData,
-        }),
+        },
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("奖励更新成功");
         setShowEditRewardModal(false);
@@ -85,46 +87,36 @@ export default function RewardsPage() {
       } else {
         toast.error(data.message);
       }
-    } catch (e) {
+    } catch {
       toast.error("更新失败");
     }
   };
   const handleToggleRewardStatus = async (reward: PlainReward) => {
-    if (!currentUser?.token) return;
     try {
-      const res = await fetch("/api/rewards", {
+      const data = await request("/api/rewards", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${currentUser.token}`
-        },
-        body: JSON.stringify({
+        body: {
           rewardId: reward._id,
           isActive: !reward.isActive,
-        }),
+        },
       });
-      const data = await res.json();
       if (data.success) {
         toast.success(reward.isActive ? "奖励已下架" : "奖励已上架");
         fetchRewards(page);
       } else {
         toast.error(data.message);
       }
-    } catch (e) {
+    } catch {
       toast.error("操作失败");
     }
   };
 
   const handleDeleteReward = async () => {
-    if (!rewardToDelete || !currentUser?.token) return;
+    if (!rewardToDelete) return;
     try {
-      const res = await fetch(`/api/rewards?rewardId=${rewardToDelete}`, {
+      const data = await request(`/api/rewards?rewardId=${rewardToDelete}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${currentUser.token}`
-        }
       });
-      const data = await res.json();
       if (data.success) {
         toast.success("奖励删除成功");
         setRewardToDelete(null);
@@ -132,28 +124,17 @@ export default function RewardsPage() {
       } else {
         toast.error(data.message);
       }
-    } catch (e) {
+    } catch {
       toast.error("删除失败");
     }
   };
 
   const handleAddReward = async () => {
-    if (!currentUser?.id) {
-      toast.error("请先登录");
-      return;
-    }
-    if (!currentUser?.token) return;
-
-    const res = await fetch("/api/rewards", {
+    const data = await request("/api/rewards", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${currentUser.token}`
-      },
-      body: JSON.stringify({ ...newReward, userId: currentUser.id }),
+      body: newReward,
     });
 
-    const data = await res.json();
     if (data.success) {
       setShowAddReward(false);
       setNewReward({ name: "", points: 50, type: "physical", icon: "🎁", stock: 10 });
@@ -162,15 +143,6 @@ export default function RewardsPage() {
       toast.error("添加失败: " + data.message);
     }
   };
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (currentUser) {
-        fetchRewards(page);
-      }
-    };
-    loadData();
-  }, [currentUser, fetchRewards, page]);
 
   return (
     <Layout>
@@ -243,21 +215,10 @@ export default function RewardsPage() {
         </div>
       )}
 
-      {total > limit && (
-        <Pagination
-          currentPage={page}
-          totalItems={total}
-          pageSize={limit}
-          onPageChange={setPage}
-        />
-      )}
+      {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
 
       {/* Add Reward Modal */}
-      <Modal
-        isOpen={showAddReward}
-        onClose={() => setShowAddReward(false)}
-        title="添加新奖励"
-      >
+      <Modal isOpen={showAddReward} onClose={() => setShowAddReward(false)} title="添加新奖励">
         <div className="space-y-4">
           <div>
             <Input
@@ -331,11 +292,7 @@ export default function RewardsPage() {
       </Modal>
 
       {/* Edit Reward Modal */}
-      <Modal
-        isOpen={showEditRewardModal}
-        onClose={() => setShowEditRewardModal(false)}
-        title="编辑奖励"
-      >
+      <Modal isOpen={showEditRewardModal} onClose={() => setShowEditRewardModal(false)} title="编辑奖励">
         <div className="space-y-4">
           <Input
             label="奖励名称"
@@ -373,9 +330,7 @@ export default function RewardsPage() {
               {["physical", "privilege"].map((type) => (
                 <Button
                   key={type}
-                  onClick={() =>
-                    setEditingRewardData({ ...editingRewardData, type: type as "physical" | "privilege" })
-                  }
+                  onClick={() => setEditingRewardData({ ...editingRewardData, type: type as "physical" | "privilege" })}
                   className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${editingRewardData.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
                   variant="ghost"
                 >
@@ -394,11 +349,7 @@ export default function RewardsPage() {
           />
 
           <div className="flex gap-2 mt-6">
-            <Button
-              onClick={() => setShowEditRewardModal(false)}
-              variant="ghost"
-              className="flex-1 py-3 text-gray-600"
-            >
+            <Button onClick={() => setShowEditRewardModal(false)} variant="ghost" className="flex-1 py-3 text-gray-600">
               取消
             </Button>
             <Button onClick={handleUpdateReward} className="flex-1 py-3">

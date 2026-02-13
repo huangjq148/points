@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import Task from '@/models/Task';
 import Order from '@/models/Order';
 import mongoose from 'mongoose';
-import { getUserIdFromToken } from '@/lib/auth';
+import { getTokenPayload, getUserIdFromToken } from '@/lib/auth';
 
 interface DateFilter {
   $gte?: Date;
@@ -44,8 +44,11 @@ interface LedgerOrder {
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
+    const authUserId = payload.userId;
+    const authRole = payload.role;
 
     await connectDB();
     const { searchParams } = new URL(request.url);
@@ -56,11 +59,20 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get('endDate');
     const keyword = searchParams.get('keyword');
 
-    if (!childId) {
-      return NextResponse.json({ success: false, message: 'Missing childId' }, { status: 400 });
+    let targetChildId: string;
+
+    if (authRole === 'parent') {
+      // Parent can see ledger for a specific child
+      if (!childId) {
+        return NextResponse.json({ success: false, message: 'Missing childId' }, { status: 400 });
+      }
+      targetChildId = childId;
+    } else {
+      // Child can only see their own ledger
+      targetChildId = authUserId;
     }
 
-    const objectId = new mongoose.Types.ObjectId(childId);
+    const objectId = new mongoose.Types.ObjectId(targetChildId);
 
     // Build date filter
     const dateFilter: DateFilter = {};

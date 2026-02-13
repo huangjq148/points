@@ -1,15 +1,15 @@
 "use client";
 
-import { IDisplayedTask, PlainTask } from "@/app/typings";
+import { IDisplayedTask } from "@/app/typings";
 import Layout from "@/components/Layouts";
-import { useApp } from "@/context/AppContext";
-import { Check, X, Image as ImageIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import { Button, Input, Modal, Pagination } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
-import request from "@/utils/request";
+import { useApp } from "@/context/AppContext";
 import { formatDate } from "@/utils/date";
+import request from "@/utils/request";
+import { Check, Image as ImageIcon, X } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 
 export default function AuditPage() {
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
@@ -33,10 +33,9 @@ export default function AuditPage() {
 
   const fetchTasks = useCallback(
     async (pageNum: number = 1) => {
-      if (!currentUser?.token) return;
+      if (!currentUser?.token) return { tasks: [], total: 0 };
 
       const params: Record<string, string | number> = {
-        userId: currentUser?.id || "",
         status: "submitted",
         page: pageNum,
         limit,
@@ -55,19 +54,21 @@ export default function AuditPage() {
       }
       return { tasks: [], total: 0 };
     },
-    [currentUser, selectedChildFilter],
+    [currentUser?.token, selectedChildFilter, limit],
   );
 
   useEffect(() => {
-    if (currentUser) {
-      fetchTasks(page).then((result) => {
-        if (result) {
-          setTasks(result.tasks);
-          setTotal(result.total);
-        }
-      });
-    }
-  }, [currentUser, fetchTasks, page]);
+    let isMounted = true;
+    fetchTasks(page).then((result) => {
+      if (isMounted && result) {
+        setTasks(result.tasks);
+        setTotal(result.total);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchTasks, page]);
 
   // Handle filter changes
   const onFilterChange = (value: string) => {
@@ -136,9 +137,7 @@ export default function AuditPage() {
                 )}
               </div>
               <div className="flex flex-col items-end gap-2">
-                <p className="text-xs text-gray-400">
-                  {formatDate(task.submittedAt)}
-                </p>
+                <p className="text-xs text-gray-400">{formatDate(task.submittedAt)}</p>
                 <div className="flex gap-2">
                   <Button
                     onClick={(e) => {
@@ -218,9 +217,7 @@ export default function AuditPage() {
 
             <div>
               <h4 className="font-bold text-gray-700 mb-2">提交时间</h4>
-              <p className="text-gray-600">
-                {formatDate(selectedTask.submittedAt)}
-              </p>
+              <p className="text-gray-600">{formatDate(selectedTask.submittedAt)}</p>
             </div>
 
             {selectedTask.description && (

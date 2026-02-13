@@ -1,50 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Reward, { IReward, RewardType } from '@/models/Reward';
+import User from '@/models/User';
 import mongoose from 'mongoose';
-import { getUserIdFromToken } from '@/lib/auth';
+import { getTokenPayload } from '@/lib/auth';
 
 interface RewardGetQuery {
-  userId?: string;
-  isActive?: boolean;
-}
-
-interface RewardPostRequest {
-  userId: mongoose.Types.ObjectId;
-  name: string;
-  description?: string;
-  points: number;
-  type: RewardType;
-  icon?: string;
-  stock?: number;
-}
-
-interface RewardPutRequest {
-  rewardId: string;
-  name?: string;
-  description?: string;
-  points?: number;
-  type?: RewardType;
-  icon?: string;
-  stock?: number;
+  userId?: string | { $in: mongoose.Types.ObjectId[] };
   isActive?: boolean;
 }
 
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
+    const authUserId = payload.userId;
+    const authRole = payload.role;
 
     await connectDB();
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
     const isActiveParam = searchParams.get('isActive');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
     const query: RewardGetQuery = {};
-    if (userId) query.userId = userId;
+    
+    if (authRole === 'parent') {
+      query.userId = authUserId;
+    } else {
+      // For children, find rewards created by parents in the same family
+      const childUser = await User.findById(authUserId);
+      if (childUser && childUser.familyId) {
+        const parents = await User.find({ familyId: childUser.familyId, role: 'parent' });
+        const parentIds = parents.map(p => p._id);
+        query.userId = { $in: parentIds };
+      } else {
+        return NextResponse.json({ success: false, message: 'Family not found' }, { status: 404 });
+      }
+    }
+
     if (isActiveParam !== null) query.isActive = isActiveParam === 'true';
 
     const skip = (page - 1) * limit;
@@ -58,11 +54,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({ success: true, rewards, total, page, limit });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Get rewards error:', error);
-    } else {
-      console.error('Get rewards error:', String(error));
-    }
+    console.error('Get rewards error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
@@ -70,14 +62,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload || payload.role !== 'parent') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const authUserId = payload.userId;
 
     await connectDB();
-    const { userId, name, description, points, type, icon, stock }: RewardPostRequest = await request.json();
+    const { name, description, points, type, icon, stock }: Omit<IReward, 'userId'> = await request.json();
 
     const reward = await Reward.create({
-      userId,
+      userId: authUserId,
       name,
       description,
       points,
@@ -89,11 +85,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, reward });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Create reward error:', error);
-    } else {
-      console.error('Create reward error:', String(error));
-    }
+    console.error('Create reward error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
@@ -101,11 +93,24 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload || payload.role !== 'parent') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const authUserId = payload.userId;
 
     await connectDB();
-    const { rewardId, name, description, points, type, icon, stock, isActive }: RewardPutRequest = await request.json();
+    const { rewardId, name, description, points, type, icon, stock, isActive } = await request.json();
+
+    // Verify ownership
+    const existingReward = await Reward.findById(rewardId);
+    if (!existingReward) {
+      return NextResponse.json({ success: false, message: '奖励不存在' }, { status: 404 });
+    }
+    if (existingReward.userId.toString() !== authUserId) {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    }
 
     const updateData: Partial<IReward> = {};
     if (name) updateData.name = name;
@@ -118,17 +123,9 @@ export async function PUT(request: NextRequest) {
 
     const reward = await Reward.findByIdAndUpdate(rewardId, updateData, { new: true });
 
-    if (!reward) {
-      return NextResponse.json({ success: false, message: '奖励不存在' }, { status: 404 });
-    }
-
     return NextResponse.json({ success: true, reward });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Update reward error:', error);
-    } else {
-      console.error('Update reward error:', String(error));
-    }
+    console.error('Update reward error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
@@ -136,8 +133,12 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload || payload.role !== 'parent') {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    const authUserId = payload.userId;
 
     await connectDB();
     const { searchParams } = new URL(request.url);
@@ -147,14 +148,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, message: '缺少rewardId' }, { status: 400 });
     }
 
+    // Verify ownership
+    const existingReward = await Reward.findById(rewardId);
+    if (!existingReward) {
+      return NextResponse.json({ success: false, message: '奖励不存在' }, { status: 404 });
+    }
+    if (existingReward.userId.toString() !== authUserId) {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    }
+
     await Reward.findByIdAndDelete(rewardId);
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error('Delete reward error:', error);
-    } else {
-      console.error('Delete reward error:', String(error));
-    }
+    console.error('Delete reward error:', error);
     return NextResponse.json({ success: false, message: '服务器错误' }, { status: 500 });
   }
 }
