@@ -7,6 +7,7 @@ import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { Ticket } from "lucide-react";
 import request from "@/utils/request";
+import { formatDate } from "@/utils/date";
 import { useCallback, useEffect, useState } from "react";
 
 export default function OrdersPage() {
@@ -231,7 +232,7 @@ export default function OrdersPage() {
                       <span>{order.childName}</span>
                     </div>
                     <div className="text-xs text-gray-400">
-                      {order.updatedAt ? new Date(order.updatedAt).toLocaleDateString() : ""}
+                      {formatDate(order.updatedAt)}
                     </div>
                   </div>
                 </div>

@@ -41,6 +41,7 @@ interface PlainTask {
 
 import Layout from "@/components/Layouts";
 import request from "@/utils/request";
+import { formatDate } from "@/utils/date";
 // import Layout from '@/app/layout';
 
 export default function TasksPage() {
@@ -439,11 +440,11 @@ export default function TasksPage() {
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-gray-400 whitespace-nowrap">
                     <span>
-                      创建: {new Date(task.createdAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      创建: {formatDate(task.createdAt)}
                     </span>
                     <span className="w-px h-2 bg-gray-200" />
                     <span>
-                      修改: {new Date(task.updatedAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      修改: {formatDate(task.updatedAt)}
                     </span>
                   </div>
                 </div>

@@ -16,8 +16,9 @@
  import { registerLocale } from "react-datepicker";
  import { zhCN } from "date-fns/locale";
  import Button from "@/components/ui/Button";
- 
- registerLocale("zh-CN", zhCN);
+import { formatDate } from "@/utils/date";
+
+registerLocale("zh-CN", zhCN);
  
  export interface Order {
    _id: string;
@@ -41,24 +42,24 @@
    const [giftStatusFilter, setGiftStatusFilter] = useState<"all" | "pending" | "verified" | "cancelled">("pending");
    const [showOrderDetail, setShowOrderDetail] = useState<Order | null>(null);
  
-   const fetchOrders = async () => {
-     if (!currentUser) return;
-     const res = await fetch(`/api/orders?childId=${currentUser.id}`, {
-       headers: {
-         Authorization: `Bearer ${currentUser?.token}`,
-       },
-     });
-     const data = await res.json();
-     if (data.success) {
-       setOrders(data.orders);
-     }
-   };
- 
-   useEffect(() => {
-     if (currentUser) {
-       fetchOrders();
-     }
-   }, [currentUser]);
+   const fetchOrders = useCallback(async () => {
+    if (!currentUser) return;
+    const res = await fetch(`/api/orders?childId=${currentUser.id}`, {
+      headers: {
+        Authorization: `Bearer ${currentUser?.token}`,
+      },
+    });
+    const data = await res.json();
+    if (data.success) {
+      setOrders(data.orders);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchOrders();
+    }
+  }, [currentUser, fetchOrders]);
  
    const filteredOrders = (() => {
      let filtered = orders;
@@ -136,17 +137,17 @@
                )}
  
                <div className="text-sm text-gray-500 space-y-1 bg-gray-50 p-4 rounded-xl">
-                 <div className="flex justify-between">
-                   <span>兑换时间</span>
-                   <span>{new Date(showOrderDetail.createdAt).toLocaleString()}</span>
-                 </div>
-                 {showOrderDetail.verifiedAt && (
-                   <div className="flex justify-between text-green-600 font-medium">
-                     <span>核销时间</span>
-                     <span>{new Date(showOrderDetail.verifiedAt).toLocaleString()}</span>
-                   </div>
-                 )}
-               </div>
+                <div className="flex justify-between">
+                  <span>兑换时间</span>
+                  <span>{formatDate(showOrderDetail.createdAt)}</span>
+                </div>
+                {showOrderDetail.verifiedAt && (
+                  <div className="flex justify-between text-green-600 font-medium">
+                    <span>核销时间</span>
+                    <span>{formatDate(showOrderDetail.verifiedAt)}</span>
+                  </div>
+                )}
+              </div>
              </div>
  
              <Button
@@ -278,9 +279,9 @@
                    </span>
                  </div>
                  <div className="flex justify-between items-center text-[10px] text-gray-400 border-t border-black/5 pt-1 mt-1">
-                   <span>🪙 {order.pointsSpent}</span>
-                   <span>{new Date(order.createdAt).toLocaleDateString()}</span>
-                 </div>
+                  <span>🪙 {order.pointsSpent}</span>
+                  <span>{formatDate(order.createdAt)}</span>
+                </div>
                </div>
              </div>
            ))

@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Button, Input, Modal, Pagination } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import request from "@/utils/request";
+import { formatDate } from "@/utils/date";
 
 export default function AuditPage() {
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
@@ -136,7 +137,7 @@ export default function AuditPage() {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <p className="text-xs text-gray-400">
-                  {task.submittedAt ? new Date(task.submittedAt).toLocaleString() : "-"}
+                  {formatDate(task.submittedAt)}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -218,7 +219,7 @@ export default function AuditPage() {
             <div>
               <h4 className="font-bold text-gray-700 mb-2">提交时间</h4>
               <p className="text-gray-600">
-                {selectedTask.submittedAt ? new Date(selectedTask.submittedAt).toLocaleString() : "-"}
+                {formatDate(selectedTask.submittedAt)}
               </p>
             </div>
 

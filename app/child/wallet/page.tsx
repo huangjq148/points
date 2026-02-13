@@ -13,8 +13,9 @@
  import { registerLocale } from "react-datepicker";
  import { zhCN } from "date-fns/locale";
  import Button from "@/components/ui/Button";
- 
- registerLocale("zh-CN", zhCN);
+import { formatDate } from "@/utils/date";
+
+registerLocale("zh-CN", zhCN);
  
  interface LedgerItem {
    _id: string;
@@ -39,40 +40,40 @@
    const [ledgerEndDate, setLedgerEndDate] = useState<Date | null>(null);
    const [ledgerKeyword, setLedgerKeyword] = useState("");
  
-   const fetchLedger = async (page = 1) => {
-     if (!currentUser || !currentUser?.token) return;
-     setLedgerLoading(true);
-     try {
-       const params = new URLSearchParams({
-         childId: currentUser.id,
-         page: page.toString(),
-         limit: ledgerLimit.toString(),
-       });
-       if (ledgerStartDate) params.append("startDate", ledgerStartDate.toISOString());
-       if (ledgerEndDate) params.append("endDate", ledgerEndDate.toISOString());
-       if (ledgerKeyword) params.append("keyword", ledgerKeyword);
- 
-       const res = await fetch(`/api/ledger?${params.toString()}`, {
-         headers: {
-           Authorization: `Bearer ${currentUser.token}`,
-         },
-       });
-       const data = await res.json();
-       if (data.success) {
-         setLedgerData(data.data);
-         setLedgerTotal(data.pagination.total);
-         setLedgerPage(page);
-       }
-     } catch (error) {
-       console.error("Fetch ledger error:", error);
-     } finally {
-       setLedgerLoading(false);
-     }
-   };
- 
-   useEffect(() => {
-     fetchLedger(1);
-   }, [ledgerStartDate, ledgerEndDate, ledgerKeyword]);
+   const fetchLedger = useCallback(async (page = 1) => {
+    if (!currentUser || !currentUser?.token) return;
+    setLedgerLoading(true);
+    try {
+      const params = new URLSearchParams({
+        childId: currentUser.id,
+        page: page.toString(),
+        limit: ledgerLimit.toString(),
+      });
+      if (ledgerStartDate) params.append("startDate", ledgerStartDate.toISOString());
+      if (ledgerEndDate) params.append("endDate", ledgerEndDate.toISOString());
+      if (ledgerKeyword) params.append("keyword", ledgerKeyword);
+
+      const res = await fetch(`/api/ledger?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLedgerData(data.data);
+        setLedgerTotal(data.pagination.total);
+        setLedgerPage(page);
+      }
+    } catch (error) {
+      console.error("Fetch ledger error:", error);
+    } finally {
+      setLedgerLoading(false);
+    }
+  }, [currentUser, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
+
+  useEffect(() => {
+    fetchLedger(1);
+  }, [fetchLedger]);
  
    // navigate helper
    const navigateTo = (path: string) => router.push(`/child/${path}`);
@@ -155,11 +156,10 @@
                    </div>
                    <div className="flex-1">
                      <p className="font-medium text-gray-800">{item.name}</p>
-                     <p className="text-xs text-gray-500">
-                       {new Date(item.date).toLocaleDateString()}{" "}
-                       {new Date(item.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                     </p>
-                   </div>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(item.date)}
+                    </p>
+                  </div>
                    <span className={`font-bold ${item.type === "income" ? "text-blue-600" : "text-orange-600"}`}>
                      {item.type === "income" ? "+" : "-"}
                      {item.points}

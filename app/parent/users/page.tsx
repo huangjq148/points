@@ -11,6 +11,7 @@ import Select from "@/components/ui/Select";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { formatDate } from "@/utils/date";
 import { Plus, Settings, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
@@ -192,11 +193,11 @@ export default function UsersPage() {
       }),
       columnHelper.accessor("createdAt", {
         header: "创建日期",
-        cell: (info) => info.getValue() ? new Date(info.getValue()).toLocaleDateString("zh-CN") : "-",
+        cell: (info) => formatDate(info.getValue()),
       }),
       columnHelper.accessor("updatedAt", {
         header: "最后修改",
-        cell: (info) => info.getValue() ? new Date(info.getValue()).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "-",
+        cell: (info) => formatDate(info.getValue()),
       }),
       columnHelper.display({
         id: "actions",
