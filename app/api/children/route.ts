@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User from '@/models/User';
-import { getUserIdFromToken } from '@/lib/auth';
+import { getUserIdFromToken, hashPassword } from '@/lib/auth';
 import mongoose from 'mongoose';
 
 interface ChildPostRequest {

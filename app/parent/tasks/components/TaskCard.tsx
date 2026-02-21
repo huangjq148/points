@@ -68,7 +68,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
 
   return (
     <div
-      className={`group relative flex flex-col rounded-3xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 ${styles.className} overflow-hidden`}
+      className={`group relative flex flex-col rounded-3xl transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 ${styles.className} overflow-hidden min-w-0`}
     >
       {/* Header: Icon & Points */}
       <div className="p-5 flex justify-between items-start">

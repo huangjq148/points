@@ -65,7 +65,7 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
 
   return (
     <ChildContext.Provider value={{ showMessage: handleShowMessage }}>
-      <div className="min-h-screen child-theme pb-24 md:pb-8">
+      <div className="min-h-screen child-theme pb-16 md:pb-8">
         {showPinModal && (
           <PinVerification onVerified={() => setShowPinModal(false)} onCancel={() => setShowPinModal(false)} />
         )}
@@ -165,7 +165,7 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
             </div>
         </header>
 
-        <main className="px-6 pt-4 md:max-w-4xl md:mx-auto">
+        <main className="px-6 pt-4 md:max-w-4xl md:mx-auto min-h-[calc(100vh-120px)] overflow-auto pb-20">
           {children}
         </main>
 

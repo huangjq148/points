@@ -2,15 +2,14 @@
 
 import { FamilyMember } from "@/app/typings";
 import Layout from "@/components/Layouts";
-
-import { Pagination } from "@/components/ui";
-import Button from "@/components/ui/Button";
+import { Button, DataTable } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
+import PasswordInput from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
-import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { createColumnHelper } from "@tanstack/react-table";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
 import { Plus, Settings, Trash2 } from "lucide-react";
@@ -64,7 +63,6 @@ export default function UsersPage() {
 
   const handleCreateAccount = async () => {
     if (!accountForm.username || !accountForm.password) return toast.error("请输入完整信息");
-    // "添加用户时，不应当自动加入当前家庭" -> Remove familyId
     const payload = { ...accountForm };
 
     const data = await request("/api/user", {
@@ -122,120 +120,111 @@ export default function UsersPage() {
 
   const columnHelper = createColumnHelper<FamilyMember>();
 
-  const columns = useMemo(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cols: ColumnDef<FamilyMember, any>[] = [
-      columnHelper.accessor("username", {
-        header: "账号",
-        cell: (info) => {
-          const gender = info.row.original.gender;
-          const role = info.row.original.role;
-          let icon = "👤";
-          if (role === "child") {
-            if (gender === "girl") icon = "👧";
-            else icon = "👦"; // 默认为男孩，包括 "boy" 和 "none"
-          }
-          return (
-            <div className="flex items-center gap-2">
-              <span>{icon}</span>
-              <span className="font-medium">{info.getValue()}</span>
-              {info.row.original.isMe && (
-                <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">我</span>
-              )}
-            </div>
-          );
-        },
-      }),
-    ];
-
-    cols.push(
-      columnHelper.accessor("nickname", {
-        header: "昵称",
-        cell: (info) => info.getValue() || "-",
-      }),
-      columnHelper.accessor("gender", {
-        header: "性别",
-        cell: (info) => {
-          const val = info.getValue();
-          if (val === "girl") return <span className="text-pink-500 font-bold">女</span>;
-          return <span className="text-blue-500 font-bold">男</span>; // 默认为男
-        },
-      }),
-      columnHelper.accessor("type", {
-        header: "类型",
-        cell: (info) => (info.getValue() === "child" ? "孩子" : "用户"),
-      }),
-      columnHelper.accessor("role", {
-        header: "角色",
-        cell: (info) => {
-          const val = info.getValue();
-          if (val === "admin") return "管理员";
-          if (val === "parent") return "家长";
-          if (val === "child") return "孩子";
-          return "-";
-        },
-      }),
-      columnHelper.accessor("createdAt", {
-        header: "创建日期",
-        cell: (info) => formatDate(info.getValue()),
-      }),
-      columnHelper.accessor("updatedAt", {
-        header: "最后修改",
-        cell: (info) => formatDate(info.getValue()),
-      }),
-      columnHelper.display({
-        id: "actions",
-        header: "操作",
-        cell: (info) => (
-          <div className="flex justify-end gap-2">
-            {info.row.original.type === "parent" && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setEditingMember(info.row.original);
-                  setAccountForm({
-                    username: info.row.original.username,
-                    password: "",
-                    role: info.row.original.role,
-                    identity: info.row.original.identity || "",
-                    nickname: info.row.original.nickname || "",
-                    gender: (info.row.original.gender as "boy" | "girl" | "none") || "none",
-                  });
-                  setShowEditAccountModal(true);
-                }}
-                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
-              >
-                <Settings size={18} />
-              </Button>
-            )}
-            {!info.row.original.isMe && info.row.original.type === "parent" && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleDeleteAccount(info.row.original.id)}
-                className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
-              >
-                <Trash2 size={18} />
-              </Button>
+  const columns = useMemo(() => [
+    columnHelper.accessor("username", {
+      header: "账号",
+      cell: (info) => {
+        const gender = info.row.original.gender;
+        const role = info.row.original.role;
+        let icon = "👤";
+        if (role === "child") {
+          if (gender === "girl") icon = "👧";
+          else icon = "👦";
+        }
+        return (
+          <div className="flex items-center gap-2">
+            <span>{icon}</span>
+            <span className="font-medium">{info.getValue()}</span>
+            {info.row.original.isMe && (
+              <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">我</span>
             )}
           </div>
-        ),
-      }),
-    );
+        );
+      },
+    }),
+    columnHelper.accessor("nickname", {
+      header: "昵称",
+      cell: (info) => info.getValue() || "-",
+    }),
+    columnHelper.accessor("gender", {
+      header: "性别",
+      cell: (info) => {
+        const val = info.getValue();
+        if (val === "girl") return <span className="text-pink-500 font-bold">女</span>;
+        return <span className="text-blue-500 font-bold">男</span>;
+      },
+    }),
+    columnHelper.accessor("type", {
+      header: "类型",
+      cell: (info) => (info.getValue() === "child" ? "孩子" : "用户"),
+    }),
+    columnHelper.accessor("role", {
+      header: "角色",
+      cell: (info) => {
+        const val = info.getValue();
+        if (val === "admin") return "管理员";
+        if (val === "parent") return "家长";
+        if (val === "child") return "孩子";
+        return "-";
+      },
+    }),
+    columnHelper.accessor("createdAt", {
+      header: "创建日期",
+      cell: (info) => formatDate(info.getValue()),
+    }),
+    columnHelper.accessor("updatedAt", {
+      header: "最后修改",
+      cell: (info) => formatDate(info.getValue()),
+    }),
+  ], [columnHelper]);
 
-    return cols;
-  }, [handleDeleteAccount]);
+  const actionColumn = useMemo(() =>
+    columnHelper.display({
+      id: "actions",
+      header: "操作",
+      cell: (info) => (
+        <div className="flex justify-center gap-2">
+          {info.row.original.type === "parent" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setEditingMember(info.row.original);
+                setAccountForm({
+                  username: info.row.original.username,
+                  password: "",
+                  role: info.row.original.role,
+                  identity: info.row.original.identity || "",
+                  nickname: info.row.original.nickname || "",
+                  gender: (info.row.original.gender as "boy" | "girl" | "none") || "none",
+                });
+                setShowEditAccountModal(true);
+              }}
+              className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+            >
+              <Settings size={18} />
+            </Button>
+          )}
+          {!info.row.original.isMe && info.row.original.type === "parent" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => handleDeleteAccount(info.row.original.id)}
+              className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+            >
+              <Trash2 size={18} />
+            </Button>
+          )}
+        </div>
+      ),
+    }), [columnHelper, handleDeleteAccount]);
 
-  const tableData = useMemo(() => {
-    return familyMembers;
-  }, [familyMembers]);
-
-  const table = useReactTable({
-    data: tableData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const pageOptions = useMemo(() => ({
+    currentPage: page,
+    total,
+    pageSize: limit,
+    onPageChange: setPage,
+  }), [page, total, limit]);
 
   return (
     <Layout>
@@ -262,43 +251,15 @@ export default function UsersPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-blue-50 text-blue-800">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="p-4 font-medium">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-t border-blue-50 hover:bg-blue-50/30">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-4">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-              {tableData.length === 0 && (
-                <tr>
-                  <td colSpan={columns.length} className="p-8 text-center text-gray-400">
-                    加载中...
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
+        <DataTable
+          columns={columns}
+          dataSource={familyMembers}
+          actionColumn={actionColumn}
+          pageOptions={pageOptions}
+          minWidth={800}
+        />
       </div>
-      {/* Add Account Modal */}
+
       <Modal
         isOpen={showAddAccountModal}
         onClose={() => setShowAddAccountModal(false)}
@@ -337,7 +298,7 @@ export default function UsersPage() {
               placeholder="选择性别"
             />
           </div>
-          <Input
+          <PasswordInput
             label="密码 (默认123456)"
             value={accountForm.password}
             onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}
@@ -359,7 +320,6 @@ export default function UsersPage() {
         </div>
       </Modal>
 
-      {/* Edit Account Modal */}
       <Modal
         isOpen={showEditAccountModal}
         onClose={() => setShowEditAccountModal(false)}
@@ -397,7 +357,7 @@ export default function UsersPage() {
               placeholder="选择性别"
             />
           </div>
-          <Input
+          <PasswordInput
             label="密码 (留空不修改)"
             value={accountForm.password}
             onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}

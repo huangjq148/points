@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { TaskTemplate } from "@/models";
 import { getTokenPayload } from "@/lib/auth";
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get("Authorization");
     const payload = getTokenPayload(authHeader);
@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const authHeader = request.headers.get("Authorization");
     const payload = getTokenPayload(authHeader);

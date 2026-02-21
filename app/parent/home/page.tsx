@@ -21,7 +21,7 @@ export default function HomePage() {
           <div
             className="card cursor-pointer hover:scale-[1.02] transition-transform"
             onClick={() => {
-              router.push("/parent/audit");
+              router.push("/parent/overview");
             }}
           >
             <div className="flex items-center gap-3 mb-2">
