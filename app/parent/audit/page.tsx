@@ -7,7 +7,8 @@ import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
-import { Check, Image as ImageIcon, X } from "lucide-react";
+import { Check, Image as ImageIcon, X, Sparkles, Zap } from "lucide-react";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
@@ -115,55 +116,15 @@ export default function AuditPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {pendingTasks.map((task) => (
-            <div
+          {pendingTasks.map((task, index) => (
+            <SwipeableAuditCard
               key={task._id.toString()}
-              className="card hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-4 py-3"
+              task={task}
+              onApprove={() => handleApproveTask(task._id, "approved")}
+              onReject={() => handleApproveTask(task._id, "rejected")}
               onClick={() => setSelectedTask(task)}
-            >
-              <div className="text-4xl">{task.icon}</div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-semibold text-gray-800">{task.name}</span>
-                  <span className="flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
-                    {task.childAvatar} {task.childName}
-                  </span>
-                </div>
-                {task.photoUrl && (
-                  <div className="flex items-center gap-1 text-xs text-blue-500">
-                    <ImageIcon size={14} />
-                    <span>包含照片凭证</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <p className="text-xs text-gray-400">{formatDate(task.submittedAt)}</p>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleApproveTask(task._id, "rejected");
-                    }}
-                    variant="secondary"
-                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition border-none shadow-none"
-                    title="驳回"
-                  >
-                    <X size={16} />
-                  </Button>
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleApproveTask(task._id, "approved");
-                    }}
-                    variant="secondary"
-                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition border-none shadow-none"
-                    title="通过"
-                  >
-                    <Check size={16} />
-                  </Button>
-                </div>
-              </div>
-            </div>
+              index={index}
+            />
           ))}
         </div>
       )}
@@ -257,5 +218,121 @@ export default function AuditPage() {
         )}
       </Modal>
     </Layout>
+  );
+}
+
+// 可滑动审核卡片组件
+interface SwipeableAuditCardProps {
+  task: IDisplayedTask;
+  onApprove: () => void;
+  onReject: () => void;
+  onClick: () => void;
+  index: number;
+}
+
+function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: SwipeableAuditCardProps) {
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const THRESHOLD = 100;
+
+  const handleDrag = (event: unknown, info: PanInfo) => {
+    setDragX(info.offset.x);
+  };
+
+  const handleDragEnd = (event: unknown, info: PanInfo) => {
+    setIsDragging(false);
+    setDragX(0);
+    
+    if (info.offset.x > THRESHOLD) {
+      onApprove();
+    } else if (info.offset.x < -THRESHOLD) {
+      onReject();
+    }
+  };
+
+  const handleClick = () => {
+    if (!isDragging && Math.abs(dragX) < 10) {
+      onClick();
+    }
+  };
+
+  // 计算背景颜色
+  const getBackgroundColor = () => {
+    if (dragX > THRESHOLD * 0.5) return 'rgba(34, 197, 94, 0.1)';
+    if (dragX < -THRESHOLD * 0.5) return 'rgba(239, 68, 68, 0.1)';
+    return 'white';
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="relative overflow-hidden rounded-2xl"
+    >
+      {/* 背景层 - 滑动时显示 */}
+      <div className="absolute inset-0 flex items-center justify-between px-6">
+        <div 
+          className={`flex items-center gap-2 transition-opacity duration-200 ${
+            dragX < -THRESHOLD * 0.3 ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+            <X className="text-white" size={24} />
+          </div>
+          <span className="text-red-600 font-bold">驳回</span>
+        </div>
+        <div 
+          className={`flex items-center gap-2 transition-opacity duration-200 ${
+            dragX > THRESHOLD * 0.3 ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <span className="text-green-600 font-bold">通过</span>
+          <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+            <Check className="text-white" size={24} />
+          </div>
+        </div>
+      </div>
+
+      {/* 卡片主体 - 可拖动 */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.3}
+        onDrag={handleDrag}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handleDragEnd}
+        animate={{ 
+          x: dragX,
+          backgroundColor: getBackgroundColor()
+        }}
+        className="relative bg-white border border-gray-100 shadow-sm cursor-grab active:cursor-grabbing p-4 flex items-center gap-4"
+        onClick={handleClick}
+        style={{ touchAction: 'pan-y' }}
+      >
+        <div className="text-4xl">{task.icon}</div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="font-semibold text-gray-800">{task.name}</span>
+            <span className="flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+              {task.childAvatar} {task.childName}
+            </span>
+          </div>
+          {task.photoUrl && (
+            <div className="flex items-center gap-1 text-xs text-blue-500">
+              <ImageIcon size={14} />
+              <span>包含照片凭证</span>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <p className="text-xs text-gray-400">{formatDate(task.submittedAt)}</p>
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <Zap size={12} />
+            <span>滑动审核</span>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }

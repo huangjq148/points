@@ -1,10 +1,10 @@
- "use client";
+  "use client";
  
  import { useState, useEffect, useCallback } from "react";
  import { useApp } from "@/context/AppContext";
  import { useChild } from "@/components/ChildShell";
  import { useRouter } from "next/navigation";
- import { Gift, ChevronRight, Wallet } from "lucide-react";
+ import { Gift } from "lucide-react";
  import Button from "@/components/ui/Button";
  import { Pagination } from "@/components/ui";
  import ConfirmModal from "@/components/ConfirmModal";
@@ -100,52 +100,21 @@
    // navigate helper
    const navigateTo = (path: string) => router.push(`/child/${path}`);
  
-   return (
-     <>
-       <ConfirmModal
-         isOpen={!!showConfirmRedeem}
-         onClose={() => setShowConfirmRedeem(null)}
-         onConfirm={handleRedeemReward}
-         title="兑换确认"
-         message={`确定要消耗 ${showConfirmRedeem?.points} 积分兑换 "${showConfirmRedeem?.name}" 吗？`}
-         confirmText="确认兑换"
-         cancelText="我再想想"
-         type="info"
-       />
- 
-       <div className="flex items-center gap-2 mb-4">
-         <Button
-          onClick={() => navigateTo("task")}
-          variant="secondary"
-          className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
-        >
-           <ChevronRight size={24} className="text-blue-600 rotate-180" />
-         </Button>
-         <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分商城</h2>
-         <div className="ml-auto flex gap-2">
-           <Button
-             onClick={() => navigateTo("gift")}
-             variant="secondary"
-             size="sm"
-             className="bg-orange-100 text-orange-700 hover:bg-orange-200"
-           >
-             <Gift size={16} className="mr-1" />
-             我的礼物
-           </Button>
-           <Button
-             onClick={() => navigateTo("wallet")}
-             variant="secondary"
-             size="sm"
-             className="bg-green-100 text-green-700 hover:bg-green-200"
-           >
-             <Wallet size={16} className="mr-1" />
-             钱包
-           </Button>
-         </div>
-       </div>
- 
-       {/* 搜索栏 */}
-       <div className="mb-4">
+    return (
+      <>
+        <ConfirmModal
+          isOpen={!!showConfirmRedeem}
+          onClose={() => setShowConfirmRedeem(null)}
+          onConfirm={handleRedeemReward}
+          title="兑换确认"
+          message={`确定要消耗 ${showConfirmRedeem?.points} 积分兑换 "${showConfirmRedeem?.name}" 吗？`}
+          confirmText="确认兑换"
+          cancelText="我再想想"
+          type="info"
+        />
+
+        {/* 搜索栏 */}
+        <div className="mb-4">
          <input
            type="text"
            placeholder="搜索礼物..."
@@ -195,6 +164,6 @@
           onPageChange={setPage}
         />
       )}
-     </>
-   );
- }
+      </>
+    );
+  }

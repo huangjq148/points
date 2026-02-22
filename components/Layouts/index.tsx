@@ -2,11 +2,11 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users } from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
-type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
+type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "achievements";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
@@ -23,18 +23,19 @@ const Layout = ({ children }: { children: ReactNode }) => {
     { id: "tasks", icon: Star, label: "任务" },
     { id: "orders", icon: Ticket, label: "核销", badge: totalPendingOrders },
     { id: "rewards", icon: Gift, label: "商城" },
+    { id: "achievements", icon: Trophy, label: "勋章" },
     { id: "family", icon: Users, label: "家庭" },
     { id: "users", icon: UserCog, label: "用户" },
   ];
   const initialTab = (() => {
     const pathSegments = pathname.split("/");
     const currentTab = pathSegments[pathSegments.length - 1];
-    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users"].includes(currentTab)) {
-      return currentTab as "home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users";
+    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "achievements"].includes(currentTab)) {
+      return currentTab as "home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users" | "achievements";
     }
     return "home"; // Default to home if path is not recognized
   })();
-  const [activeTab, setActiveTab] = useState<"home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users">(
+  const [activeTab, setActiveTab] = useState<"home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users" | "achievements">(
     initialTab,
   );
   const [mounted, setMounted] = useState(false);
@@ -137,7 +138,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
         {/* Main Content Area - Scrollable */}
         <main className="main-area flex-1 overflow-auto">
-          <div className="main-inner">
+          <div className="main-inner !m-0">
             {children}
           </div>
         </main>

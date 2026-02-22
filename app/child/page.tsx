@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+'use client';
+
+import ChildHome from '@/components/ChildHome';
 
 export default function ChildPage() {
-  redirect(`/child/task`);
+  return <ChildHome />;
 }

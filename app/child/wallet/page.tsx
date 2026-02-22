@@ -1,15 +1,15 @@
- "use client";
+  "use client";
  
  import { useState, useEffect, useCallback } from "react";
-import { useApp } from "@/context/AppContext";
-import { useRouter } from "next/navigation";
-import {
-  Calendar as CalendarIcon,
-  Search,
-  ChevronRight,
-} from "lucide-react";
-import { Button, DatePicker } from "@/components/ui";
-import { formatDate } from "@/utils/date";
+ import { useApp } from "@/context/AppContext";
+ import { useRouter } from "next/navigation";
+ import {
+   Calendar as CalendarIcon,
+   Search,
+   ChevronRight,
+ } from "lucide-react";
+ import { Button, DatePicker } from "@/components/ui";
+ import { formatDate } from "@/utils/date";
 
 interface LedgerItem {
   _id: string;
@@ -77,18 +77,9 @@ export default function WalletPage() {
   const navigateTo = (path: string) => router.push(`/child/${path}`);
 
   return (
-    <>
-      <div className="flex items-center gap-2 mb-4">
-        <Button
-          onClick={() => navigateTo("task")}
-          variant="secondary"
-          className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 transition p-0"
-        >
-          <ChevronRight size={24} className="text-blue-600 rotate-180" />
-        </Button>
-         <h2 className="text-xl md:text-2xl font-bold text-blue-700">积分账本</h2>
-       </div>
-       <div className="card-child mb-4">
+    <div className="pb-8">
+      <div className="pb-8">
+        <div className="card-child mb-4">
          <div className="text-center">
            <p className="text-blue-600 mb-2">当前余额</p>
            <div className="text-4xl font-bold text-blue-700">🪙 {currentUser?.availablePoints || 0}</div>
@@ -165,23 +156,24 @@ export default function WalletPage() {
                  >
                    上一页
                  </Button>
-                 <span className="px-3 py-1 text-gray-600">
-                   {ledgerPage} / {Math.ceil(ledgerTotal / ledgerLimit)}
-                 </span>
-                 <Button
-                   onClick={() => fetchLedger(ledgerPage + 1)}
-                   disabled={ledgerPage === Math.ceil(ledgerTotal / ledgerLimit)}
-                   variant="secondary"
-                   size="sm"
-                   className="h-8 px-3 py-1 rounded-lg"
-                 >
-                   下一页
-                 </Button>
-               </div>
-             )}
-           </>
-         )}
-       </div>
-     </>
-   );
- }
+                  <span className="px-3 py-1 text-gray-600">
+                    {ledgerPage} / {Math.ceil(ledgerTotal / ledgerLimit)}
+                  </span>
+                  <Button
+                    onClick={() => fetchLedger(ledgerPage + 1)}
+                    disabled={ledgerPage === Math.ceil(ledgerTotal / ledgerLimit)}
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 px-3 py-1 rounded-lg"
+                  >
+                    下一页
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -7,9 +7,10 @@ export interface ITask extends Document {
   description: string;
   points: number;
   type: 'daily' | 'advanced' | 'challenge';
+  taskCategory: 'regular' | 'special'; // 常规任务 vs 特殊任务
   icon: string;
   requirePhoto: boolean;
-  status: 'pending' | 'submitted' | 'approved' | 'rejected';
+  status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'expired';
   photoUrl?: string;
   rejectionReason?: string;
   imageUrl?: string; // Task illustration image
@@ -20,6 +21,8 @@ export interface ITask extends Document {
   approvedAt?: Date;
   completedAt?: Date;
   deadline?: Date; // Deadline for the task
+  streakCount?: number; // 连续完成天数
+  lastCompletedAt?: Date; // 上次完成时间
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,9 +34,10 @@ const TaskSchema = new Schema<ITask>({
   description: { type: String, default: '' },
   points: { type: Number, required: true },
   type: { type: String, enum: ['daily', 'advanced', 'challenge'], default: 'daily' },
+  taskCategory: { type: String, enum: ['regular', 'special'], default: 'regular' },
   icon: { type: String, default: '⭐' },
   requirePhoto: { type: Boolean, default: false },
-  status: { type: String, enum: ['pending', 'submitted', 'approved', 'rejected'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'submitted', 'approved', 'rejected', 'expired'], default: 'pending' },
   photoUrl: { type: String },
   rejectionReason: { type: String },
   imageUrl: { type: String },
@@ -44,6 +48,8 @@ const TaskSchema = new Schema<ITask>({
   approvedAt: { type: Date },
   completedAt: { type: Date },
   deadline: { type: Date },
+  streakCount: { type: Number, default: 0 },
+  lastCompletedAt: { type: Date },
 }, { timestamps: true });
 
 // Prevent OverwriteModelError in development

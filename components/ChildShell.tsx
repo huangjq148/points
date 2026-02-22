@@ -10,9 +10,11 @@ import {
   Gift,
   LogOut,
   ChevronDown,
+  Trophy,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import ConfirmModal from "./ConfirmModal";
+import GamificationNotifier from "./gamification/GamificationNotifier";
 
 interface ChildContextType {
   showMessage: (msg: string) => void;
@@ -22,7 +24,7 @@ const ChildContext = createContext<ChildContextType>({ showMessage: () => {} });
 
 export const useChild = () => useContext(ChildContext);
 
-export default function ChildShell({ children }: { children: React.ReactNode }) {
+export default function ChildShell({ children, showShell = true, isHomePage = false, pageTitle = "" }: { children: React.ReactNode; showShell?: boolean; isHomePage?: boolean; pageTitle?: string }) {
   const { currentUser, childList, switchToChild, logout } = useApp();
   const router = useRouter();
   const pathname = usePathname();
@@ -33,7 +35,8 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
     if (currentTab === "task") return "tasks";
     if (currentTab === "store") return "store";
     if (currentTab === "wallet") return "wallet";
-    if (currentTab === "gift") return "store"; 
+    if (currentTab === "gift") return "store";
+    if (currentTab === "achievements") return "achievements";
     return "tasks";
   })();
 
@@ -64,8 +67,10 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <ChildContext.Provider value={{ showMessage: handleShowMessage }}>
-      <div className="min-h-screen child-theme pb-16 md:pb-8">
+      <ChildContext.Provider value={{ showMessage: handleShowMessage }}>
+      <div className={`min-h-screen ${isHomePage ? 'child-home' : 'child-home pb-16 md:pb-8'}`}>
+        <GamificationNotifier onViewAchievements={() => router.push('/child/achievements')} />
+        
         {showPinModal && (
           <PinVerification onVerified={() => setShowPinModal(false)} onCancel={() => setShowPinModal(false)} />
         )}
@@ -125,76 +130,103 @@ export default function ChildShell({ children }: { children: React.ReactNode }) 
           type="danger"
         />
 
-        <header className="px-6 py-2 flex items-center justify-between sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-blue-50">
-           <div
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setShowChildSwitcher(true)}
-            >
-              <div className="text-3xl bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center border-2 border-white shadow-sm">
-                {currentUser?.avatar}
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <h1 className="font-bold text-gray-800 text-base leading-tight max-w-[120px] truncate">
-                    {currentUser?.username}
-                  </h1>
-                  <ChevronDown size={14} className="text-gray-400" />
-                </div>
-                <p className="text-[10px] text-blue-500 font-medium">小小奋斗者 🌟</p>
-              </div>
-            </div>
+        {showShell && (
+          <header className={`px-4 py-3 flex items-center justify-between sticky top-0 z-40 ${isHomePage ? 'bg-transparent' : 'bg-white/80 backdrop-blur-md border-b border-white/20'}`}>
+             <div
+               className="flex items-center gap-3 cursor-pointer"
+               onClick={() => setShowChildSwitcher(true)}
+             >
+               <div className={`text-3xl rounded-full w-10 h-10 flex items-center justify-center border-2 border-white shadow-sm ${isHomePage ? 'bg-white/20' : 'bg-blue-100'}`}>
+                 {currentUser?.avatar}
+               </div>
+               <div className="flex flex-col">
+                 <div className="flex items-center gap-1">
+                   <h1 className={`font-bold text-base leading-tight max-w-[100px] truncate ${isHomePage ? 'text-white' : 'text-gray-800'}`}>
+                     {currentUser?.username}
+                   </h1>
+                   <ChevronDown size={14} className={isHomePage ? "text-white/70" : "text-gray-400"} />
+                 </div>
+                 {!isHomePage && <p className="text-[10px] text-blue-500 font-medium">小小奋斗者 🌟</p>}
+               </div>
+             </div>
 
-            <div className="flex items-center gap-2 md:gap-3">
-              <Button
-                onClick={() => setShowPinModal(true)}
-                variant="secondary"
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0 border-none shadow-none"
-              >
-                <Lock size={18} className="text-blue-600" />
-              </Button>
-              <Button
-                onClick={handleLogout}
-                variant="secondary"
-                className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm hover:bg-blue-50 p-0 border-none shadow-none"
-              >
-                <LogOut size={18} className="text-gray-600" />
-              </Button>
-              <div className="h-10 px-3 bg-white rounded-xl flex items-center justify-center shadow-sm text-blue-600 font-bold border border-blue-100 min-w-[60px]">
-                🪙 {currentUser?.availablePoints || 0}
-              </div>
-            </div>
-        </header>
+             <div className="flex items-center gap-2">
+               {!isHomePage && (
+                 <>
+                   <Button
+                     onClick={() => setShowPinModal(true)}
+                     variant="secondary"
+                     className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
+                   >
+                     <Lock size={16} className="text-blue-600" />
+                   </Button>
+                   <Button
+                     onClick={handleLogout}
+                     variant="secondary"
+                     className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
+                   >
+                     <LogOut size={16} className="text-gray-600" />
+                   </Button>
+                 </>
+               )}
+               {/* 积分显示 */}
+               <div className={`h-9 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold min-w-[60px] ${isHomePage ? 'bg-white/20 text-white border border-white/30' : 'bg-white border border-yellow-100 text-yellow-600'}`}>
+                 🪙 {currentUser?.availablePoints || 0}
+               </div>
+             </div>
+           </header>
+        )}
 
-        <main className="px-6 pt-4 md:max-w-4xl md:mx-auto min-h-[calc(100vh-120px)] overflow-auto pb-20">
+        <main className={`px-4 pt-2 md:max-w-2xl md:mx-auto min-h-[calc(100vh-80px)] overflow-auto pb-24`}>
           {children}
         </main>
 
-        <nav className="nav-bar">
-          <Button
-            onClick={() => router.push(`/child/task`)}
-            variant="secondary"
-            className={`nav-item ${activeTab === "tasks" ? "active" : ""} flex-col h-auto p-2 border-none bg-transparent shadow-none`}
-          >
-            <Star size={24} />
-            <span className="text-xs">任务</span>
-          </Button>
-          <Button
-            onClick={() => router.push(`/child/store`)}
-            variant="secondary"
-            className={`nav-item ${activeTab === "store" ? "active" : ""} flex-col h-auto p-2 border-none bg-transparent shadow-none`}
-          >
-            <Gift size={24} />
-            <span className="text-xs">商城</span>
-          </Button>
-          <Button
-            onClick={() => router.push(`/child/wallet`)}
-            variant="secondary"
-            className={`nav-item ${activeTab === "wallet" ? "active" : ""} flex-col h-auto p-2 border-none bg-transparent shadow-none`}
-          >
-            <Wallet size={24} />
-            <span className="text-xs">钱包</span>
-          </Button>
+        {showShell && (
+          <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
+          <div className="glass-strong rounded-3xl px-4 py-3 flex justify-between items-center border border-white/50">
+            <Button
+              onClick={() => router.push(`/child`)}
+              variant="secondary"
+              className={`flex flex-col items-center gap-0.5 p-2 ${activeTab === "tasks" || isHomePage ? "text-blue-600" : "text-gray-400"} hover:text-blue-500`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${activeTab === "tasks" || isHomePage ? "bg-blue-100" : "bg-gray-100"}`}>
+                🏠
+              </div>
+              <span className={`text-[9px] ${activeTab === "tasks" || isHomePage ? "font-black" : "font-medium"}`}>首页</span>
+            </Button>
+            <Button
+              onClick={() => router.push(`/child/store`)}
+              variant="secondary"
+              className={`flex flex-col items-center gap-0.5 p-2 ${activeTab === "store" ? "text-pink-500" : "text-gray-400"} hover:text-pink-500`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${activeTab === "store" ? "bg-pink-100" : "bg-gray-100"}`}>
+                🎁
+              </div>
+              <span className={`text-[9px] ${activeTab === "store" ? "font-black" : "font-medium"}`}>商城</span>
+            </Button>
+            <Button
+              onClick={() => router.push(`/child/achievements`)}
+              variant="secondary"
+              className={`flex flex-col items-center gap-0.5 p-2 ${activeTab === "achievements" ? "text-orange-500" : "text-gray-400"} hover:text-orange-500`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${activeTab === "achievements" ? "bg-orange-100" : "bg-gray-100"}`}>
+                🏅
+              </div>
+              <span className={`text-[9px] ${activeTab === "achievements" ? "font-black" : "font-medium"}`}>成就</span>
+            </Button>
+            <Button
+              onClick={() => router.push(`/child/wallet`)}
+              variant="secondary"
+              className={`flex flex-col items-center gap-0.5 p-2 ${activeTab === "wallet" ? "text-purple-600" : "text-gray-400"} hover:text-purple-500`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg ${activeTab === "wallet" ? "bg-purple-100" : "bg-gray-100"}`}>
+                👤
+              </div>
+              <span className={`text-[9px] ${activeTab === "wallet" ? "font-black" : "font-medium"}`}>我的</span>
+            </Button>
+          </div>
         </nav>
+        )}
       </div>
     </ChildContext.Provider>
   );
