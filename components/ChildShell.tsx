@@ -11,6 +11,11 @@ import {
   LogOut,
   ChevronDown,
   Trophy,
+  Settings,
+  User as UserIcon,
+  Bell,
+  HelpCircle,
+  Moon,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import ConfirmModal from "./ConfirmModal";
@@ -42,6 +47,7 @@ export default function ChildShell({ children, showShell = true, isHomePage = fa
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
@@ -150,25 +156,32 @@ export default function ChildShell({ children, showShell = true, isHomePage = fa
                </div>
              </div>
 
-             <div className="flex items-center gap-2">
-               {!isHomePage && (
-                 <>
-                   <Button
-                     onClick={() => setShowPinModal(true)}
-                     variant="secondary"
-                     className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
-                   >
-                     <Lock size={16} className="text-blue-600" />
-                   </Button>
-                   <Button
-                     onClick={handleLogout}
-                     variant="secondary"
-                     className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
-                   >
-                     <LogOut size={16} className="text-gray-600" />
-                   </Button>
-                 </>
-               )}
+              <div className="flex items-center gap-2">
+                {!isHomePage && (
+                  <>
+                    <Button
+                      onClick={() => setShowSettingsModal(true)}
+                      variant="secondary"
+                      className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
+                    >
+                      <Settings size={16} className="text-gray-600" />
+                    </Button>
+                    <Button
+                      onClick={() => setShowPinModal(true)}
+                      variant="secondary"
+                      className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
+                    >
+                      <Lock size={16} className="text-blue-600" />
+                    </Button>
+                    <Button
+                      onClick={handleLogout}
+                      variant="secondary"
+                      className="w-9 h-9 bg-white/80 rounded-xl flex items-center justify-center shadow-sm hover:bg-white p-0 border-none"
+                    >
+                      <LogOut size={16} className="text-gray-600" />
+                    </Button>
+                  </>
+                )}
                {/* 积分显示 */}
                <div className={`h-9 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold min-w-[60px] ${isHomePage ? 'bg-white/20 text-white border border-white/30' : 'bg-white border border-yellow-100 text-yellow-600'}`}>
                  🪙 {currentUser?.availablePoints || 0}
@@ -177,7 +190,7 @@ export default function ChildShell({ children, showShell = true, isHomePage = fa
            </header>
         )}
 
-        <main className={`px-4 pt-2 md:max-w-2xl md:mx-auto min-h-[calc(100vh-80px)] overflow-auto pb-24`}>
+        <main className={`px-4 pt-2 md:max-w-2xl md:mx-auto min-h-[calc(100vh-80px)] pb-24`}>
           {children}
         </main>
 
@@ -225,7 +238,72 @@ export default function ChildShell({ children, showShell = true, isHomePage = fa
               <span className={`text-[9px] ${activeTab === "wallet" ? "font-black" : "font-medium"}`}>我的</span>
             </Button>
           </div>
-        </nav>
+          </nav>
+        )}
+
+        {/* 设置弹窗 */}
+        {showSettingsModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => setShowSettingsModal(false)}>
+            <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-gray-800">设置</h3>
+                <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600">
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <button 
+                  onClick={() => { setShowSettingsModal(false); router.push('/child/wallet'); }}
+                  className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <UserIcon size={24} className="text-blue-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-bold text-gray-800">个人信息</p>
+                    <p className="text-sm text-gray-500">查看和修改个人资料</p>
+                  </div>
+                  <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
+                </button>
+                
+                <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Bell size={24} className="text-purple-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-bold text-gray-800">通知设置</p>
+                    <p className="text-sm text-gray-500">管理消息通知</p>
+                  </div>
+                  <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
+                </button>
+                
+                <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <Moon size={24} className="text-yellow-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-bold text-gray-800">夜间模式</p>
+                    <p className="text-sm text-gray-500">切换深色/浅色主题</p>
+                  </div>
+                  <div className="w-12 h-6 bg-gray-200 rounded-full relative">
+                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow"></div>
+                  </div>
+                </button>
+                
+                <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <HelpCircle size={24} className="text-green-600" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-bold text-gray-800">帮助中心</p>
+                    <p className="text-sm text-gray-500">常见问题和使用指南</p>
+                  </div>
+                  <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </ChildContext.Provider>

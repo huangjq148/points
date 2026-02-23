@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, memo } from "react";
+import React, { useRef, memo } from "react";
 import DatePicker, { registerLocale, DatePickerProps } from "react-datepicker";
 import { zhCN } from "date-fns/locale";
 import { Calendar } from "lucide-react";
@@ -27,14 +27,6 @@ const CustomDatePicker = memo(({
   ...props
 }: CustomDatePickerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [shouldUsePortal, setShouldUsePortal] = useState(false);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      const isInModal = !!containerRef.current.closest(".modal-content");
-      setShouldUsePortal(isInModal);
-    }
-  }, []);
 
   const defaultClassName = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-sm";
   
@@ -61,9 +53,15 @@ const CustomDatePicker = memo(({
         dateFormat={dateFormat}
         isClearable={isClearable}
         placeholderText={placeholderText}
-        portalId={shouldUsePortal ? "datepicker-portal" : undefined}
-        popperProps={shouldUsePortal ? { strategy: "fixed" } : undefined}
-        popperPlacement={shouldUsePortal ? "bottom-start" : undefined}
+        popperProps={{ 
+          strategy: "fixed",
+          modifiers: [
+            { name: 'zIndex', options: { zIndex: 10000 } }
+          ]
+        }}
+        popperPlacement="bottom-start"
+        popperClassName="!z-[10000]"
+        withPortal={false}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}
         className={combinedClassName}

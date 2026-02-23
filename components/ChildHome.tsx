@@ -2,7 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import FeatureGrid from './FeatureGrid';
 
 interface Task {
   _id: string;
@@ -16,6 +18,7 @@ interface Task {
   submittedAt?: string;
   approvedAt?: string;
   rejectionReason?: string;
+  streakCount?: number;
 }
 
 interface Medal {
@@ -77,6 +80,7 @@ function StarsBackground() {
 
 export default function ChildHome() {
   const { currentUser } = useApp();
+  const router = useRouter();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [medals, setMedals] = useState<Medal[]>([]);
@@ -276,6 +280,12 @@ export default function ChildHome() {
 
   const earnedMedals = medals.filter(m => m.isEarned).slice(0, 4);
 
+  const maxStreak = tasks.reduce((max, task) => Math.max(max, task.streakCount || 0), 0);
+
+  const handleNavigate = (path: string) => {
+    router.push(path);
+  };
+
   const getTaskStatus = (status: string) => {
     switch(status) {
       case 'approved': return { label: '已完成', color: 'green', bg: 'bg-green-500' };
@@ -471,7 +481,7 @@ export default function ChildHome() {
                 
                 <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-3 text-white shadow-lg transform rotate-3 hover:rotate-0 transition-transform cursor-pointer">
                   <div className="text-xs font-bold opacity-90">连击天数</div>
-                  <div className="text-2xl font-black">🔥 12</div>
+                  <div className="text-2xl font-black">🔥 {maxStreak}</div>
                 </div>
               </div>
 
@@ -518,6 +528,7 @@ export default function ChildHome() {
             </h2>
             <button 
               className="text-white/80 text-sm font-bold hover:text-white transition-colors flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm"
+              onClick={() => router.push('/child/task')}
             >
               查看全部 <span className="text-lg">→</span>
             </button>
@@ -640,75 +651,11 @@ export default function ChildHome() {
             星际基地
           </h2>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div 
-              className="group relative overflow-hidden rounded-3xl cursor-pointer card-3d"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500 via-rose-500 to-red-600 transition-transform group-hover:scale-110 duration-500"></div>
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4yKSIvPjwvc3ZnPg==')] opacity-30"></div>
-              <div className="relative p-5 h-full flex flex-col justify-between min-h-[140px]">
-                <div className="flex justify-between items-start">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/30 group-hover:rotate-12 transition-transform">
-                    🎁
-                  </div>
-                  <span className="bg-white/30 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm border border-white/20">
-                    NEW
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-white font-black text-lg mb-1">星际商城</h3>
-                  <p className="text-white/80 text-xs font-semibold">可兑换 3 件物品</p>
-                </div>
-              </div>
-              <div className="absolute top-4 right-4 w-2 h-2 bg-yellow-300 rounded-full animate-ping"></div>
-            </div>
-
-            <div 
-              className="group relative overflow-hidden rounded-3xl cursor-pointer card-3d"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 transition-transform group-hover:scale-110 duration-500"></div>
-              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4yKSIvPjwvc3ZnPg==')] opacity-30"></div>
-              <div className="relative p-5 h-full flex flex-col justify-between min-h-[140px]">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/30 group-hover:rotate-12 transition-transform">
-                  📜
-                </div>
-                <div>
-                  <h3 className="text-white font-black text-lg mb-1">探索日志</h3>
-                  <p className="text-white/80 text-xs font-semibold">本周完成 {completedTasks.length} 项任务</p>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className="group relative overflow-hidden rounded-3xl cursor-pointer card-3d"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-orange-500 to-amber-600 transition-transform group-hover:scale-110 duration-500"></div>
-              <div className="relative p-5 h-full flex flex-col justify-between min-h-[120px]">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/30 badge-shine">
-                  🏅
-                </div>
-                <div>
-                  <h3 className="text-white font-black text-lg">成就墙</h3>
-                  <p className="text-white/80 text-xs font-semibold">{earnedMedals.length}/24 徽章</p>
-                </div>
-              </div>
-            </div>
-
-            <div 
-              className="group relative overflow-hidden rounded-3xl cursor-pointer card-3d"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 transition-transform group-hover:scale-110 duration-500"></div>
-              <div className="relative p-5 h-full flex flex-col justify-between min-h-[120px]">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/30">
-                  🏆
-                </div>
-                <div>
-                  <h3 className="text-white font-black text-lg">星际排行</h3>
-                  <p className="text-white/80 text-xs font-semibold">第 3 名 ↑</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FeatureGrid 
+            completedTasksCount={completedTasks.length} 
+            earnedMedalsCount={earnedMedals.length}
+            onNavigate={handleNavigate}
+          />
 
           {/* 最近获得徽章展示 */}
           <div className="mt-6 glass rounded-2xl p-4">
@@ -791,14 +738,14 @@ export default function ChildHome() {
 
                 {selectedTask.status === "pending" || selectedTask.status === "rejected" ? (
                   <button 
-                    className="w-full py-4 !rounded-2xl font-bold text-lg bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl"
+                    className="w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl"
                     onClick={() => openSubmitModal(selectedTask)}
                   >
                     {selectedTask.status === "rejected" ? "💪 重新提交" : "🚀 开始任务"}
                   </button>
                 ) : (
                   <button 
-                    className="w-full py-4 !rounded-2xl font-bold text-lg bg-gradient-to-r from-slate-700 to-slate-900 shadow-xl"
+                    className="w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-slate-700 to-slate-900 shadow-xl"
               onClick={() => setShowTaskDetail(null)}
                   >
                     知道啦
@@ -886,13 +833,13 @@ export default function ChildHome() {
 
                 <div className="flex gap-3">
                   <button 
-                    className="flex-1 py-4 !rounded-2xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 border-none rounded-2xl"
+                    className="flex-1 py-4 !rounded-2xl font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 border-none rounded-2xl"
                     onClick={() => { setShowSubmitModal(false); setPhotoPreview(""); }}
                   >
                     取消
                   </button>
                   <button 
-                    className="flex-1 py-4 !rounded-2xl font-bold text-lg bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl hover:shadow-2xl hover:shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl hover:shadow-2xl hover:shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleSubmitTask}
                     disabled={submitting || (selectedTask.requirePhoto && !photoFile)}
                   >
