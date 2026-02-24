@@ -7,6 +7,7 @@ import Modal from '@/components/ui/Modal';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import FeatureGrid from './components/FeatureGrid';
+import { compressImage } from '@/utils/image';
 
 interface Task {
   _id: string;
@@ -169,13 +170,14 @@ export default function ChildHome() {
     fetchMedals();
   }, [fetchTasks, fetchMedals]);
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPhotoFile(file);
+      const compressedFile = await compressImage(file);
+      setPhotoFile(compressedFile);
       const reader = new FileReader();
       reader.onloadend = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(compressedFile);
     }
   };
 
@@ -886,7 +888,10 @@ export default function ChildHome() {
             />
             <div 
               className="group relative border-4 border-dashed border-purple-200 rounded-[2rem] p-2 cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-all" 
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                fileInputRef.current && (fileInputRef.current.value = '');
+                fileInputRef.current?.click();
+              }}
             >
               {photoPreview ? (
                 <div className="relative aspect-video rounded-2xl overflow-hidden">
