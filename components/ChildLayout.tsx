@@ -228,6 +228,9 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           border: 2px solid rgba(255, 255, 255, 0.5);
           border-radius: 1.5rem;
         }
+        .pb-safe {
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
       `}</style>
       
       <StarsBackground />
@@ -370,59 +373,43 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         </button>
       )}
 
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
-        <div className="glass-strong px-4 py-3 flex justify-between items-center shadow-xl rounded-2xl">
-          <button
-            onClick={() => router.push('/child')}
-            className={`flex flex-col items-center gap-1 p-2 ${isHomePage ? 'text-blue-600' : 'text-gray-400'} hover:text-blue-500 transition-colors`}
-          >
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-              style={{ background: isHomePage ? '#dbeafe' : '#f3f4f6' }}
-            >
-              🏠
-            </div>
-            <span className={`text-[10px] ${isHomePage ? 'font-black' : 'font-medium'}`}>首页</span>
-          </button>
-          
-          <button
-            onClick={() => router.push('/child/store')}
-            className={`flex flex-col items-center gap-1 p-2 ${isStorePage ? 'text-pink-500' : 'text-gray-400'} hover:text-pink-500 transition-colors`}
-          >
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-              style={{ background: isStorePage ? '#fce7f3' : '#f3f4f6' }}
-            >
-              🎁
-            </div>
-            <span className={`text-[10px] ${isStorePage ? 'font-black' : 'font-medium'}`}>商城</span>
-          </button>
-          
-          <button
-            onClick={() => router.push('/child/achievements')}
-            className={`flex flex-col items-center gap-1 p-2 ${isAchievementsPage ? 'text-orange-500' : 'text-gray-400'} hover:text-orange-500 transition-colors`}
-          >
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-              style={{ background: isAchievementsPage ? '#ffedd5' : '#f3f4f6' }}
-            >
-              🏅
-            </div>
-            <span className={`text-[10px] ${isAchievementsPage ? 'font-black' : 'font-medium'}`}>成就</span>
-          </button>
-          
-          <button
-            onClick={() => router.push('/child/wallet')}
-            className={`flex flex-col items-center gap-1 p-2 ${isWalletPage ? 'text-purple-600' : 'text-gray-400'} hover:text-purple-500 transition-colors`}
-          >
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-              style={{ background: isWalletPage ? '#f3e8ff' : '#f3f4f6' }}
-            >
-              👤
-            </div>
-            <span className={`text-[10px] ${isWalletPage ? 'font-black' : 'font-medium'}`}>我的</span>
-          </button>
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50 pb-safe">
+        <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-xl border border-white/40"></div>
+          <div className="relative px-2 py-2 flex justify-between items-center">
+            {[
+              { href: '/child', icon: '🏠', label: '首页', isActive: isHomePage, bgColor: 'bg-blue-500', bgLight: 'bg-blue-100', glowColor: 'group-hover:shadow-blue-500/30' },
+              { href: '/child/store', icon: '🎁', label: '商城', isActive: isStorePage, bgColor: 'bg-pink-500', bgLight: 'bg-pink-100', glowColor: 'group-hover:shadow-pink-500/30' },
+              { href: '/child/achievements', icon: '🏅', label: '成就', isActive: isAchievementsPage, bgColor: 'bg-orange-500', bgLight: 'bg-orange-100', glowColor: 'group-hover:shadow-orange-500/30' },
+              { href: '/child/wallet', icon: '👤', label: '我的', isActive: isWalletPage, bgColor: 'bg-purple-500', bgLight: 'bg-purple-100', glowColor: 'group-hover:shadow-purple-500/30' }
+            ].map((item) => (
+              <button
+                key={item.href}
+                onClick={() => router.push(item.href)}
+                className={`group relative flex flex-col items-center px-3 py-1.5 rounded-xl transition-all duration-300 ${item.isActive ? 'text-white' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                <div className={`absolute inset-0 rounded-xl transition-all duration-300 ${item.isActive ? item.bgColor : 'bg-gray-100 group-hover:bg-gray-200'} ${item.glowColor} shadow-lg`}></div>
+                {item.isActive && (
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent"></div>
+                  </div>
+                )}
+                <div className={`relative w-11 h-11 rounded-lg flex items-center justify-center text-xl transition-transform duration-300 ${item.isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
+                  {item.isActive ? (
+                    <span className="filter drop-shadow-sm">{item.icon}</span>
+                  ) : (
+                    <span className="opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                  )}
+                </div>
+                <span className={`relative text-[10px] font-bold transition-all duration-300 ${item.isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}>
+                  {item.label}
+                </span>
+                {item.isActive && (
+                  <div className="absolute -top-1 w-1 h-1 bg-white rounded-full animate-ping"></div>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </nav>
 
