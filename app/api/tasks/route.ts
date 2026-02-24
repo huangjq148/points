@@ -9,8 +9,12 @@ import { AccountModel, TransactionModel } from "@/models/Economy";
 
 interface ITaskQuery {
   childId?: mongoose.Types.ObjectId;
-  status?: "pending" | "submitted" | "approved" | "rejected" | "expired";
+  status?: "pending" | "submitted" | "approved" | "rejected" | "expired" | "failed";
   userId?: mongoose.Types.ObjectId;
+  name?: { $regex: string; $options: string };
+  approvedAt?: { $gte?: Date; $lte?: Date };
+  deadline?: { $gte?: Date; $lte?: Date; $exists?: boolean; $eq?: Date | null };
+  $or?: Array<Record<string, any>>;
 }
 
 async function generateRecurringTasks(userId: string) {
@@ -91,6 +95,13 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") as ITask["status"];
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
+    const searchName = searchParams.get("searchName");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const deadlineFrom = searchParams.get("deadlineFrom");
+    const deadlineTo = searchParams.get("deadlineTo");
+    const includeExpired = searchParams.get("includeExpired") === "true";
+    const excludeCompletedBeforeDeadline = searchParams.get("excludeCompletedBeforeDeadline") === "true";
 
     if (authRole === "parent") {
       await generateRecurringTasks(authUserId);
@@ -106,12 +117,60 @@ export async function GET(request: NextRequest) {
 
     if (status) query.status = status;
 
+    // 添加搜索条件
+    if (searchName) {
+      query.name = { $regex: searchName, $options: "i" };
+    }
+
+    // 添加日期范围筛选
+    if (startDate || endDate) {
+      const dateQuery: Record<string, Date> = {};
+      if (startDate) dateQuery.$gte = new Date(startDate);
+      if (endDate) dateQuery.$lte = new Date(endDate);
+      query.approvedAt = dateQuery;
+    }
+
+    // 添加截止日期范围筛选
+    if (deadlineFrom || deadlineTo) {
+      const deadlineQuery: Record<string, Date> = {};
+      if (deadlineFrom) deadlineQuery.$gte = new Date(deadlineFrom);
+      if (deadlineTo) deadlineQuery.$lte = new Date(deadlineTo);
+      query.deadline = deadlineQuery;
+    }
+
+    // 过滤已完成且截止日期已过的任务
+    if (excludeCompletedBeforeDeadline) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      query.$or = [
+        { status: { $ne: "approved" } },
+        { deadline: { $exists: false } },
+        { deadline: { $eq: null } },
+        { deadline: { $gte: today } },
+        { status: { $ne: "approved" }, deadline: { $lt: today } }
+      ];
+    }
+
+    // 包含已过期的任务（未完成的且截止日期在今天之前）
+    if (!includeExpired && !deadlineFrom && !deadlineTo) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (!query.$or) {
+        query.$or = [
+          { status: { $ne: "approved" } },
+          { deadline: { $exists: false } },
+          { deadline: { $eq: null } },
+          { deadline: { $gte: today } }
+        ];
+      }
+    }
+
     const skip = (page - 1) * limit;
 
     // Use aggregation to join with User collection for child details
     const tasks = await Task.aggregate([
       { $match: query },
-      { $sort: { createdAt: -1 } },
+      { $sort: { updatedAt: -1 } },
       { $skip: skip },
       { $limit: limit },
       {

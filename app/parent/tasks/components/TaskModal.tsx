@@ -231,13 +231,14 @@ export default function TaskModal({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            截止时间（{mode === "add" ? "可选" : "必填"}）
+            截止时间（"必填"）
           </label>
           <DatePicker
             selected={taskData.deadline}
             onChange={(date: Date | null) => setTaskData({ ...taskData, deadline: date })}
             placeholderText="设置截止日期"
             showTimeSelect
+            dateFormat="yyyy-MM-dd HH:mm:ss"
             selectsEnd
             minDate={mode === "edit" ? new Date() : undefined}
           />

@@ -21,6 +21,7 @@ interface Task {
   rejectionReason?: string;
   photoUrl?: string;
   createdAt?: string;
+  updatedAt?: string;
   imageUrl?: string;
 }
 
@@ -70,32 +71,25 @@ export default function TaskPage() {
           params.append("status", statusFilter);
         }
 
+        if (searchName) {
+          params.append("searchName", searchName);
+        }
+
+        if (startDate) {
+          params.append("startDate", startDate.toISOString());
+        }
+
+        if (endDate) {
+          params.append("endDate", endDate.toISOString());
+        }
+
         const res = await fetch(`/api/tasks?${params.toString()}`, {
           headers: { Authorization: `Bearer ${currentUser.token}` },
         });
 
         const data = await res.json();
         if (data.success) {
-          let filteredTasks = data.tasks;
-
-          if (searchName) {
-            filteredTasks = filteredTasks.filter((t: Task) => t.name.toLowerCase().includes(searchName.toLowerCase()));
-          }
-
-          if (startDate || endDate) {
-            filteredTasks = filteredTasks.filter((t: Task) => {
-              const taskDate = t.approvedAt || t.submittedAt || t.createdAt;
-              if (!taskDate) return false;
-
-              const taskTime = new Date(taskDate).getTime();
-              const startTime = startDate ? startDate.getTime() : 0;
-              const endTime = endDate ? endDate.getTime() + 86400000 : Number.MAX_SAFE_INTEGER;
-
-              return taskTime >= startTime && taskTime <= endTime;
-            });
-          }
-
-          setTasks(filteredTasks);
+          setTasks(data.tasks);
           setTotal(data.total);
           setPage(pageNum);
         }
@@ -105,7 +99,7 @@ export default function TaskPage() {
         setLoading(false);
       }
     },
-    [currentUser, limit, searchName, statusFilter, startDate, endDate],
+    [currentUser, limit, statusFilter, searchName, startDate, endDate],
   );
 
   useEffect(() => {
@@ -121,7 +115,6 @@ export default function TaskPage() {
     setStatusFilter("");
     setStartDate(null);
     setEndDate(null);
-    fetchTasks(1);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -369,6 +362,17 @@ export default function TaskPage() {
                         <p className="text-xs text-gray-500 mt-1">
                           {task.description || "暂无描述"} • +{task.points}分
                         </p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                          {task.deadline && (
+                            <span className="flex items-center gap-1">
+                              <Calendar size={12} />
+                              截止: {new Date(task.deadline).toLocaleDateString("zh-CN")}
+                            </span>
+                          )}
+                          {task.updatedAt && (
+                            <span>更新: {new Date(task.updatedAt).toLocaleDateString("zh-CN")}</span>
+                          )}
+                        </div>
                         {task.rejectionReason && <p className="text-xs text-red-500 mt-1">✏️ {task.rejectionReason}</p>}
                       </div>
 

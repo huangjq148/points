@@ -16,11 +16,7 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps) {
-  const isOverdue =
-    task.deadline &&
-    now > 0 &&
-    new Date(task.deadline).getTime() < now &&
-    task.status === "pending";
+  const isOverdue = task.deadline && now > 0 && new Date(task.deadline).getTime() < now && task.status === "pending";
 
   // 根据状态获取样式
   const getStatusStyles = () => {
@@ -79,7 +75,9 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
           <div>
             <h3 className="font-bold text-gray-800 text-lg line-clamp-1">{task.name}</h3>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${styles.statusClass} border border-current/10`}>
+              <span
+                className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${styles.statusClass} border border-current/10`}
+              >
                 <span className={`w-1.5 h-1.5 rounded-full ${styles.dotClass} animate-pulse`} />
                 {styles.statusLabel}
               </span>
@@ -100,7 +98,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
         <p className="text-sm text-gray-500 line-clamp-2 mb-4 min-h-[2.5rem]">
           {task.description || "暂无任务详情描述"}
         </p>
-        
+
         <div className="flex items-center justify-between pt-4 border-t border-gray-100/50">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
@@ -108,7 +106,9 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             </span>
           </div>
           {task.deadline && (
-            <div className={`flex items-center gap-1 text-[11px] font-medium ${isOverdue ? "text-red-500" : "text-gray-400"}`}>
+            <div
+              className={`flex items-center gap-1 text-[11px] font-medium ${isOverdue ? "text-red-500" : "text-gray-400"}`}
+            >
               <Clock size={12} />
               <span>{formatDate(task.deadline)}</span>
             </div>
@@ -117,29 +117,29 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
       </div>
 
       {/* Footer: Actions */}
-      <div className="px-5 py-3 bg-white/50 flex justify-between items-center border-t border-gray-100/50">
-        <div className="text-[10px] text-gray-400">
-          {formatDate(task.updatedAt)}
+      {task.status !== "approved" ? (
+        <div className="px-5 py-3 bg-white/50 flex justify-between items-center border-t border-gray-100/50">
+          <div className="text-[10px] text-gray-400">{formatDate(task.updatedAt)}</div>
+          <div className="flex gap-1">
+            <Button
+              onClick={() => onEdit(task)}
+              variant="secondary"
+              className="p-2 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+              title="编辑"
+            >
+              <Edit2 size={14} />
+            </Button>
+            <Button
+              onClick={() => onDelete(task._id)}
+              variant="secondary"
+              className="p-2 h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+              title="删除"
+            >
+              <Trash2 size={14} />
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-1">
-          <Button
-            onClick={() => onEdit(task)}
-            variant="secondary"
-            className="p-2 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-            title="编辑"
-          >
-            <Edit2 size={14} />
-          </Button>
-          <Button
-            onClick={() => onDelete(task._id)}
-            variant="secondary"
-            className="p-2 h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-            title="删除"
-          >
-            <Trash2 size={14} />
-          </Button>
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 }

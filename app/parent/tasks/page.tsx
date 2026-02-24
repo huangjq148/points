@@ -548,6 +548,25 @@ export default function TasksPage() {
             </Button>
             <Button
               onClick={() => {
+                const defaultDeadline = new Date();
+                defaultDeadline.setHours(23, 59, 59, 999);
+                setTaskData({
+                  ...taskData,
+                  name: "",
+                  description: "",
+                  points: 5,
+                  icon: "⭐",
+                  type: "daily",
+                  requirePhoto: false,
+                  selectedChildren: [],
+                  imageUrl: "",
+                  recurrence: "none",
+                  recurrenceDay: undefined,
+                  deadline: defaultDeadline,
+                  saveAsTemplate: false,
+                });
+                setTaskPhotoFile(null);
+                setTaskPhotoPreview("");
                 setTaskModalMode("add");
                 setShowTaskModal(true);
               }}
