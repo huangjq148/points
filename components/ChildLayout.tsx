@@ -3,7 +3,7 @@
 import { useApp } from '@/context/AppContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui';
-import { useState, createContext, useContext, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Lock,
   ChevronDown,
@@ -22,14 +22,6 @@ import GamificationNotifier from './gamification/GamificationNotifier';
 interface ChildLayoutProps {
   children: React.ReactNode;
 }
-
-interface ChildContextType {
-  showMessage: (msg: string) => void;
-}
-
-const ChildContext = createContext<ChildContextType>({ showMessage: () => {} });
-
-export const useChild = () => useContext(ChildContext);
 
 function generateStars() {
   return Array.from({ length: 50 }, (_, i) => ({
@@ -180,8 +172,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const [showPinModal, setShowPinModal] = useState(false);
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [message, setMessage] = useState("");
-  const [showMessage, setShowMessage] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -195,12 +185,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleShowMessage = (msg: string) => {
-    setMessage(msg);
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 3000);
   };
 
   const handleSwitchChild = (child: typeof currentUser) => {
@@ -220,302 +204,291 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   };
 
   return (
-    <ChildContext.Provider value={{ showMessage: handleShowMessage }}>
-      <div className="relative min-h-screen text-gray-800" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-        <style jsx global>{`
-          @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-          }
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(2deg); }
-          }
-          @keyframes blink {
-            0%, 90%, 100% { transform: scaleY(1); }
-            95% { transform: scaleY(0.1); }
-          }
-          .character-eye {
-            animation: blink 4s infinite;
-          }
-          .glass-strong {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 1.5rem;
-          }
-        `}</style>
-        
-        <StarsBackground />
-        <GamificationNotifier onViewAchievements={() => router.push('/child/achievements')} />
-        
-        {showPinModal && (
-          <PinVerification onVerified={() => setShowPinModal(false)} onCancel={() => setShowPinModal(false)} />
-        )}
+    <div className="relative min-h-screen text-gray-800" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <style jsx global>{`
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(2deg); }
+        }
+        @keyframes blink {
+          0%, 90%, 100% { transform: scaleY(1); }
+          95% { transform: scaleY(0.1); }
+        }
+        .character-eye {
+          animation: blink 4s infinite;
+        }
+        .glass-strong {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+          border-radius: 1.5rem;
+        }
+      `}</style>
+      
+      <StarsBackground />
+      <GamificationNotifier onViewAchievements={() => router.push('/child/achievements')} />
+      
+      {showPinModal && (
+        <PinVerification onVerified={() => setShowPinModal(false)} onCancel={() => setShowPinModal(false)} />
+      )}
 
-        {showChildSwitcher && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowChildSwitcher(false)}>
-            <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-              <div className="text-center mb-4">
-                <div className="text-4xl mb-2">🔄</div>
-                <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
-                <p className="text-gray-600">选择要切换的孩子</p>
-              </div>
-              <div className="space-y-3 mb-4">
-                {childList.map((child) => (
-                  <div
-                    key={child.id}
-                    onClick={() => handleSwitchChild(child)}
-                    className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${
-                      child.id === currentUser?.id
-                        ? "bg-blue-100 border-2 border-blue-400"
-                        : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
-                    }`}
-                  >
-                    <div className="text-3xl">{child.avatar}</div>
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-800">{child.username}</p>
-                      <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
-                    </div>
-                    {child.id === currentUser?.id && <span className="text-blue-500 font-bold">当前</span>}
-                  </div>
-                ))}
-              </div>
-              <Button onClick={() => setShowChildSwitcher(false)} variant="secondary" fullWidth>
-                取消
-              </Button>
+      {showChildSwitcher && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowChildSwitcher(false)}>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">🔄</div>
+              <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
+              <p className="text-gray-600">选择要切换的孩子</p>
             </div>
-          </div>
-        )}
-
-        {showMessage && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowMessage(false)}>
-            <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-              <div className="text-5xl mb-4">💬</div>
-              <p className="text-lg text-gray-800 whitespace-pre-line">{message}</p>
-            </div>
-          </div>
-        )}
-
-        <ConfirmModal
-          isOpen={showConfirmLogout}
-          onClose={() => setShowConfirmLogout(false)}
-          onConfirm={confirmLogout}
-          title="退出登录"
-          message="确定要退出当前账号吗？"
-          confirmText="退出"
-          cancelText="取消"
-          type="danger"
-        />
-
-        <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-4" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex items-center gap-3">
-              {!isHomePage && (
-                <button 
-                  onClick={() => router.push('/child')}
-                  className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+            <div className="space-y-3 mb-4">
+              {childList.map((child) => (
+                <div
+                  key={child.id}
+                  onClick={() => handleSwitchChild(child)}
+                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${
+                    child.id === currentUser?.id
+                      ? "bg-blue-100 border-2 border-blue-400"
+                      : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
+                  }`}
                 >
-                  <Home size={20} />
-                </button>
-              )}
-              <div className="flex items-center gap-4" onClick={() => setShowChildSwitcher(true)}>
-                <div className="relative">
-                  <div 
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 relative overflow-hidden"
-                    style={{
-                      background: isHomePage ? 'white' : 'white',
-                      borderColor: '#fbbf24',
-                    }}
-                  >
-                    <span className="character-eye">{currentUser?.avatar || '👦'}</span>
-                    <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50"></div>
+                  <div className="text-3xl">{child.avatar}</div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-800">{child.username}</p>
+                    <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
                   </div>
-                  <div 
-                    className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white shadow-lg"
-                    style={{ background: 'linear-gradient(to bottom right, #fbbf24, #f97316)' }}
-                  >
-                    {levelInfo.level}
-                  </div>
+                  {child.id === currentUser?.id && <span className="text-blue-500 font-bold">当前</span>}
                 </div>
-                <div>
-                  <h1 className="text-2xl font-black text-white drop-shadow-lg">
-                    {currentUser?.username || '小探险家'}
-                  </h1>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30">
-                      ⭐ {levelInfo.title}
-                    </span>
-                    <span className="bg-green-400/80 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
-                      在线
-                    </span>
-                  </div>
+              ))}
+            </div>
+            <Button onClick={() => setShowChildSwitcher(false)} variant="secondary" fullWidth>
+              取消
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <ConfirmModal
+        isOpen={showConfirmLogout}
+        onClose={() => setShowConfirmLogout(false)}
+        onConfirm={confirmLogout}
+        title="退出登录"
+        message="确定要退出当前账号吗？"
+        confirmText="退出"
+        cancelText="取消"
+        type="danger"
+      />
+
+      <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-4" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center gap-3">
+            {!isHomePage && (
+              <button 
+                onClick={() => router.push('/child')}
+                className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+              >
+                <Home size={20} />
+              </button>
+            )}
+            <div className="flex items-center gap-4" onClick={() => setShowChildSwitcher(true)}>
+              <div className="relative">
+                <div 
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 relative overflow-hidden"
+                  style={{
+                    background: isHomePage ? 'white' : 'white',
+                    borderColor: '#fbbf24',
+                  }}
+                >
+                  <span className="character-eye">{currentUser?.avatar || '👦'}</span>
+                  <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50"></div>
+                </div>
+                <div 
+                  className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white shadow-lg"
+                  style={{ background: 'linear-gradient(to bottom right, #fbbf24, #f97316)' }}
+                >
+                  {levelInfo.level}
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-white drop-shadow-lg">
+                  {currentUser?.username || '小探险家'}
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30">
+                    ⭐ {levelInfo.title}
+                  </span>
+                  <span className="bg-green-400/80 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                    在线
+                  </span>
                 </div>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setShowSettingsModal(true)}
-                className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
-              >
-                <Settings size={20} />
-              </button>
-              <button 
-                onClick={() => setShowPinModal(true)}
-                className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
-              >
-                <Lock size={20} />
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
-              >
-                <LogOut size={20} />
-              </button>
-              <div className="h-10 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold bg-white/20 text-white border border-white/30">
-                🪙 {currentUser?.availablePoints || 0}
-              </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowSettingsModal(true)}
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+            >
+              <Settings size={20} />
+            </button>
+            <button 
+              onClick={() => setShowPinModal(true)}
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+            >
+              <Lock size={20} />
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+            >
+              <LogOut size={20} />
+            </button>
+            <div className="h-10 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold bg-white/20 text-white border border-white/30">
+              🪙 {currentUser?.availablePoints || 0}
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="relative z-10 px-6 pb-24 pt-32">
-          <div className="max-w-2xl mx-auto">
-            {children}
-          </div>
-        </main>
+      <main className="relative z-10 px-6 pb-24 pt-32">
+        <div className="max-w-2xl mx-auto">
+          {children}
+        </div>
+      </main>
 
-        {showScrollTop && (
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-24 right-4 z-40 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-purple-600 shadow-lg hover:bg-white transition-all active:scale-95 border-2 border-purple-300"
+        >
+          <ArrowUp size={24} />
+        </button>
+      )}
+
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
+        <div className="glass-strong px-4 py-3 flex justify-between items-center shadow-xl rounded-2xl">
           <button
-            onClick={scrollToTop}
-            className="fixed bottom-24 right-4 z-40 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-purple-600 shadow-lg hover:bg-white transition-all active:scale-95 border-2 border-purple-300"
+            onClick={() => router.push('/child')}
+            className={`flex flex-col items-center gap-1 p-2 ${isHomePage ? 'text-blue-600' : 'text-gray-400'} hover:text-blue-500 transition-colors`}
           >
-            <ArrowUp size={24} />
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
+              style={{ background: isHomePage ? '#dbeafe' : '#f3f4f6' }}
+            >
+              🏠
+            </div>
+            <span className={`text-[10px] ${isHomePage ? 'font-black' : 'font-medium'}`}>首页</span>
           </button>
-        )}
+          
+          <button
+            onClick={() => router.push('/child/store')}
+            className={`flex flex-col items-center gap-1 p-2 ${isStorePage ? 'text-pink-500' : 'text-gray-400'} hover:text-pink-500 transition-colors`}
+          >
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
+              style={{ background: isStorePage ? '#fce7f3' : '#f3f4f6' }}
+            >
+              🎁
+            </div>
+            <span className={`text-[10px] ${isStorePage ? 'font-black' : 'font-medium'}`}>商城</span>
+          </button>
+          
+          <button
+            onClick={() => router.push('/child/achievements')}
+            className={`flex flex-col items-center gap-1 p-2 ${isAchievementsPage ? 'text-orange-500' : 'text-gray-400'} hover:text-orange-500 transition-colors`}
+          >
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
+              style={{ background: isAchievementsPage ? '#ffedd5' : '#f3f4f6' }}
+            >
+              🏅
+            </div>
+            <span className={`text-[10px] ${isAchievementsPage ? 'font-black' : 'font-medium'}`}>成就</span>
+          </button>
+          
+          <button
+            onClick={() => router.push('/child/wallet')}
+            className={`flex flex-col items-center gap-1 p-2 ${isWalletPage ? 'text-purple-600' : 'text-gray-400'} hover:text-purple-500 transition-colors`}
+          >
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
+              style={{ background: isWalletPage ? '#f3e8ff' : '#f3f4f6' }}
+            >
+              👤
+            </div>
+            <span className={`text-[10px] ${isWalletPage ? 'font-black' : 'font-medium'}`}>我的</span>
+          </button>
+        </div>
+      </nav>
 
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50">
-          <div className="glass-strong px-4 py-3 flex justify-between items-center shadow-xl">
-            <button
-              onClick={() => router.push('/child')}
-              className={`flex flex-col items-center gap-1 p-2 ${isHomePage ? 'text-blue-600' : 'text-gray-400'} hover:text-blue-500`}
-            >
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-                style={{ background: isHomePage ? '#dbeafe' : '#f3f4f6' }}
-              >
-                🏠
-              </div>
-              <span className={`text-[10px] ${isHomePage ? 'font-black' : 'font-medium'}`}>首页</span>
-            </button>
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => setShowSettingsModal(false)}>
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">设置</h3>
+              <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600">
+                ✕
+              </button>
+            </div>
             
-            <button
-              onClick={() => router.push('/child/store')}
-              className={`flex flex-col items-center gap-1 p-2 ${isStorePage ? 'text-pink-500' : 'text-gray-400'} hover:text-pink-500`}
-            >
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-                style={{ background: isStorePage ? '#fce7f3' : '#f3f4f6' }}
+            <div className="space-y-3">
+              <button 
+                onClick={() => { setShowSettingsModal(false); router.push('/child/wallet'); }}
+                className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors"
               >
-                🎁
-              </div>
-              <span className={`text-[10px] ${isStorePage ? 'font-black' : 'font-medium'}`}>商城</span>
-            </button>
-            
-            <button
-              onClick={() => router.push('/child/achievements')}
-              className={`flex flex-col items-center gap-1 p-2 ${isAchievementsPage ? 'text-orange-500' : 'text-gray-400'} hover:text-orange-500`}
-            >
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-                style={{ background: isAchievementsPage ? '#ffedd5' : '#f3f4f6' }}
-              >
-                🏅
-              </div>
-              <span className={`text-[10px] ${isAchievementsPage ? 'font-black' : 'font-medium'}`}>成就</span>
-            </button>
-            
-            <button
-              onClick={() => router.push('/child/wallet')}
-              className={`flex flex-col items-center gap-1 p-2 ${isWalletPage ? 'text-purple-600' : 'text-gray-400'} hover:text-purple-500`}
-            >
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-transform hover:scale-110"
-                style={{ background: isWalletPage ? '#f3e8ff' : '#f3f4f6' }}
-              >
-                👤
-              </div>
-              <span className={`text-[10px] ${isWalletPage ? 'font-black' : 'font-medium'}`}>我的</span>
-            </button>
-          </div>
-        </nav>
-
-        {showSettingsModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center" onClick={() => setShowSettingsModal(false)}>
-            <div className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-800">设置</h3>
-                <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600">
-                  ✕
-                </button>
-              </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <UserIcon size={24} className="text-blue-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">个人信息</p>
+                  <p className="text-sm text-gray-500">查看和修改个人资料</p>
+                </div>
+                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
+              </button>
               
-              <div className="space-y-3">
-                <button 
-                  onClick={() => { setShowSettingsModal(false); router.push('/child/wallet'); }}
-                  className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors"
-                >
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <UserIcon size={24} className="text-blue-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-bold text-gray-800">个人信息</p>
-                    <p className="text-sm text-gray-500">查看和修改个人资料</p>
-                  </div>
-                  <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
-                </button>
-                
-                <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <Bell size={24} className="text-purple-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-bold text-gray-800">通知设置</p>
-                    <p className="text-sm text-gray-500">管理消息通知</p>
-                  </div>
-                  <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
-                </button>
-                
-                <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                    <Moon size={24} className="text-yellow-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-bold text-gray-800">夜间模式</p>
-                    <p className="text-sm text-gray-500">切换深色/浅色主题</p>
-                  </div>
-                  <div className="w-12 h-6 bg-gray-200 rounded-full relative">
-                    <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow"></div>
-                  </div>
-                </button>
-                
-                <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
-                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                    <HelpCircle size={24} className="text-green-600" />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <p className="font-bold text-gray-800">帮助中心</p>
-                    <p className="text-sm text-gray-500">常见问题和使用指南</p>
-                  </div>
-                  <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
-                </button>
-              </div>
+              <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Bell size={24} className="text-purple-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">通知设置</p>
+                  <p className="text-sm text-gray-500">管理消息通知</p>
+                </div>
+                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
+              </button>
+              
+              <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                  <Moon size={24} className="text-yellow-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">夜间模式</p>
+                  <p className="text-sm text-gray-500">切换深色/浅色主题</p>
+                </div>
+                <div className="w-12 h-6 bg-gray-200 rounded-full relative">
+                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow"></div>
+                </div>
+              </button>
+              
+              <button className="w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <HelpCircle size={24} className="text-green-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">帮助中心</p>
+                  <p className="text-sm text-gray-500">常见问题和使用指南</p>
+                </div>
+                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
+              </button>
             </div>
           </div>
-        )}
-      </div>
-    </ChildContext.Provider>
+        </div>
+      )}
+    </div>
   );
 }

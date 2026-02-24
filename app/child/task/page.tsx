@@ -369,9 +369,7 @@ export default function TaskPage() {
                               截止: {new Date(task.deadline).toLocaleDateString("zh-CN")}
                             </span>
                           )}
-                          {task.updatedAt && (
-                            <span>更新: {new Date(task.updatedAt).toLocaleDateString("zh-CN")}</span>
-                          )}
+                          {task.updatedAt && <span>更新: {new Date(task.updatedAt).toLocaleDateString("zh-CN")}</span>}
                         </div>
                         {task.rejectionReason && <p className="text-xs text-red-500 mt-1">✏️ {task.rejectionReason}</p>}
                       </div>
@@ -606,6 +604,26 @@ export default function TaskPage() {
         }}
         showCloseButton={false}
         zIndex={100}
+        footer={
+          <>
+            <button
+              className="flex-1 py-4 !rounded-2xl font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 border-none"
+              onClick={() => {
+                setShowSubmitModal(false);
+                setPhotoPreview("");
+              }}
+            >
+              取消
+            </button>
+            <button
+              className="flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl hover:shadow-2xl hover:shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleSubmitTask}
+              disabled={submitting || (selectedTask?.requirePhoto && !photoFile)}
+            >
+              {submitting ? "提交中..." : "提交审核"}
+            </button>
+          </>
+        }
       >
         {selectedTask && (
           <>
@@ -649,25 +667,6 @@ export default function TaskPage() {
                   </div>
                 )}
               </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                className="flex-1 py-4 !rounded-2xl font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 border-none"
-                onClick={() => {
-                  setShowSubmitModal(false);
-                  setPhotoPreview("");
-                }}
-              >
-                取消
-              </button>
-              <button
-                className="flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl hover:shadow-2xl hover:shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleSubmitTask}
-                disabled={submitting || (selectedTask.requirePhoto && !photoFile)}
-              >
-                {submitting ? "提交中..." : "提交审核"}
-              </button>
             </div>
           </>
         )}

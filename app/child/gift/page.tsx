@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
-import { useChild } from "@/components/ChildLayout";
 import { useRouter } from "next/navigation";
 import { Calendar as CalendarIcon, Search, ChevronRight, Gift, Wallet } from "lucide-react";
 import { Button, DatePicker } from "@/components/ui";
 import { formatDate } from "@/utils/date";
+import { useToast } from "@/components/ui/Toast";
 
 export interface Order {
   _id: string;
@@ -21,7 +21,7 @@ export interface Order {
 
 export default function GiftPage() {
   const { currentUser } = useApp();
-  const { showMessage } = useChild();
+  const toast = useToast();
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -80,13 +80,12 @@ export default function GiftPage() {
     if (data.success) {
       fetchOrders();
       setShowOrderDetail(null);
-      showMessage(`已撤销兑换，${order.pointsSpent} 积分已退回`);
+      toast.success(`已撤销兑换，${order.pointsSpent} 积分已退回`);
     } else {
-      showMessage(data.message);
+      toast.error(data.message);
     }
   };
 
-  // navigate helper
   const navigateTo = (path: string) => router.push(`/child/${path}`);
 
   return (
@@ -268,7 +267,7 @@ export default function GiftPage() {
             </div>
           ))
         ) : (
-          <div className="col-span-2 text中心 py-12 text-gray-500">
+          <div className="col-span-2 text-center py-12 text-gray-500">
             <Gift size={48} className="mx-auto mb-2 opacity-50" />
             <p>还没兑换过礼物哦</p>
             <Button

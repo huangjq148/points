@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
-import { useChild } from "@/components/ChildLayout";
 import { useRouter } from "next/navigation";
 import { Gift } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Pagination } from "@/components/ui";
 import ConfirmModal from "@/components/ConfirmModal";
 import confetti from "canvas-confetti";
+import { useToast } from "@/components/ui/Toast";
 
 export interface Reward {
   _id: string;
@@ -21,12 +21,11 @@ export interface Reward {
 
 export default function StorePage() {
   const { currentUser } = useApp();
-  const { showMessage } = useChild();
+  const toast = useToast();
   const router = useRouter();
 
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [rewardSearchQuery, setRewardSearchQuery] = useState("");
-  // Derived rewards
   const [showConfirmRedeem, setShowConfirmRedeem] = useState<Reward | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -70,7 +69,7 @@ export default function StorePage() {
     const reward = showConfirmRedeem;
 
     if ((currentUser?.availablePoints || 0) < reward.points) {
-      showMessage("积分不足，继续加油！💪");
+      toast.error("积分不足，继续加油！💪");
       setShowConfirmRedeem(null);
       return;
     }
@@ -90,17 +89,15 @@ export default function StorePage() {
         origin: { y: 0.6 },
         colors: ["#22c55e", "#fde047", "#fbbf24"],
       });
-      showMessage(`兑换成功！找爸妈领取吧~\n核销码: ${data.verificationCode}`);
+      toast.success(`兑换成功！找爸妈领取吧~\n核销码: ${data.verificationCode}`);
 
-      // Refresh rewards to update stock
       fetchRewards();
     } else {
-      showMessage(data.message);
+      toast.error(data.message);
     }
     setShowConfirmRedeem(null);
   };
 
-  // navigate helper
   const navigateTo = (path: string) => router.push(`/child/${path}`);
 
   return (
