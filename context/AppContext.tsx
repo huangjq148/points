@@ -208,7 +208,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
           if (user.id) {
             if (typeof window !== "undefined") {
-              window.location.href = `/child/task`;
+              window.location.href = `/child`;
             }
           }
         } else {

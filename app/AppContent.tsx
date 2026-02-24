@@ -40,7 +40,7 @@ export default function AppContent() {
   useEffect(() => {
     if (currentUser) {
       if (mode === "child") {
-        router.push(`/child/task`);
+        router.push(`/child`);
       } else {
         router.push("/parent/home");
       }

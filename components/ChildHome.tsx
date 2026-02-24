@@ -604,15 +604,6 @@ export default function ChildHome() {
                               >
                                 <span>✓</span> 完成
                               </button>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  showToastMessage('暂停功能开发中');
-                                }}
-                                className="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-2 rounded-full hover:bg-gray-200 transition-colors"
-                              >
-                                ⏸️ 暂停
-                              </button>
                             </div>
                           )}
                           {isRejected && task.rejectionReason && (
