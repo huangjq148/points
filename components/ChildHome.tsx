@@ -275,8 +275,20 @@ export default function ChildHome() {
     setShowTaskDetail(null);
   };
 
-  const pendingTasks = tasks.filter(t => t.status === 'pending');
-  const completedTasks = tasks.filter(t => t.status === 'approved');
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const filteredTasks = tasks.filter(task => {
+    if (!task.deadline) return true;
+    const deadline = new Date(task.deadline);
+    if (task.status === 'approved' && deadline <= todayStart) {
+      return false;
+    }
+    return deadline >= todayStart || task.status !== 'approved';
+  });
+
+  const pendingTasks = filteredTasks.filter(t => t.status === 'pending');
+  const completedTasks = filteredTasks.filter(t => t.status === 'approved');
 
   const earnedMedals = medals.filter(m => m.isEarned).slice(0, 4);
 
@@ -503,7 +515,7 @@ export default function ChildHome() {
               {/* 快捷统计 */}
               <div className="grid grid-cols-3 gap-3 mt-4">
                 <div className="bg-blue-50 rounded-xl p-2 text-center border-2 border-blue-100">
-                  <div className="text-lg font-black text-blue-600">{tasks.length}</div>
+                  <div className="text-lg font-black text-blue-600">{filteredTasks.length}</div>
                   <div className="text-[10px] font-bold text-blue-400 uppercase">今日任务</div>
                 </div>
                 <div className="bg-green-50 rounded-xl p-2 text-center border-2 border-green-100">
@@ -537,7 +549,7 @@ export default function ChildHome() {
           <div className="relative pl-2">
             <div className="timeline-line"></div>
             <div className="space-y-4">
-              {tasks.slice(0, 5).map((task, index) => {
+              {filteredTasks.slice(0, 5).map((task, index) => {
                 const status = getTaskStatus(task.status);
                 const isCompleted = task.status === 'approved';
                 const isPending = task.status === 'pending';
@@ -592,6 +604,17 @@ export default function ChildHome() {
                           </div>
                           <p className="text-xs text-gray-500 flex items-center gap-1">
                             <span>{task.icon}</span> {isCompleted ? '已完成' : isSubmitted ? '审核中' : '待完成'} • +{task.points}分
+                            {task.deadline && (() => {
+                              const deadline = new Date(task.deadline);
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const tomorrow = new Date(today);
+                              tomorrow.setDate(tomorrow.getDate() + 1);
+                              const isToday = deadline >= today && deadline < tomorrow;
+                              const timeStr = deadline.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                              const dateStr = !isToday ? deadline.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }) + ' ' : '';
+                              return <> • 截止 {dateStr}{timeStr}</>;
+                            })()}
                           </p>
                           {isPending && (
                             <div className="mt-2 flex gap-2">

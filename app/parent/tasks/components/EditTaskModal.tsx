@@ -150,12 +150,14 @@ export default function EditTaskModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">截止时间（可选）</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">截止时间（必填）</label>
           <DatePicker
             selected={editingTaskData.deadline}
             onChange={(date: Date | null) => setEditingTaskData({ ...editingTaskData, deadline: date })}
             placeholderText="设置截止日期"
             showTimeSelect
+            selectsEnd
+            minDate={new Date()}
           />
         </div>
       </div>

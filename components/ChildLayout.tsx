@@ -235,9 +235,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
             0%, 90%, 100% { transform: scaleY(1); }
             95% { transform: scaleY(0.1); }
           }
-          .float-anim {
-            animation: float 4s ease-in-out infinite;
-          }
           .character-eye {
             animation: blink 4s infinite;
           }
@@ -312,7 +309,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           type="danger"
         />
 
-        <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-6 pb-2" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+        <header className="fixed top-0 left-0 right-0 z-50 px-6 pt-4" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
           <div className="flex justify-between items-start mb-6">
             <div className="flex items-center gap-3">
               {!isHomePage && (
@@ -326,7 +323,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
               <div className="flex items-center gap-4" onClick={() => setShowChildSwitcher(true)}>
                 <div className="relative">
                   <div 
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 float-anim relative overflow-hidden"
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 relative overflow-hidden"
                     style={{
                       background: isHomePage ? 'white' : 'white',
                       borderColor: '#fbbf24',
@@ -336,7 +333,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                     <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50"></div>
                   </div>
                   <div 
-                    className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white shadow-lg"
+                    className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white shadow-lg"
                     style={{ background: 'linear-gradient(to bottom right, #fbbf24, #f97316)' }}
                   >
                     {levelInfo.level}

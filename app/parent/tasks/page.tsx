@@ -260,6 +260,10 @@ export default function TasksPage() {
       showAlert("请输入任务名称", "error");
       return;
     }
+    if (!newTask.deadline) {
+      showAlert("请设置截止时间", "error");
+      return;
+    }
 
     let uploadedImageUrl = "";
     if (taskPhotoFile) {
@@ -354,6 +358,11 @@ export default function TasksPage() {
 
   const handleUpdateTask = async () => {
     if (!editingTask) return;
+
+    if (!editingTaskData.deadline) {
+      showAlert("请设置截止时间", "error");
+      return;
+    }
 
     let uploadedImageUrl = editingTaskData.imageUrl;
     if (taskPhotoFile) {

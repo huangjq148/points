@@ -1,4 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
+
+export type TaskType = "daily" | "custom";
+export type TaskCategory = "personal_hygiene" | "learning" | "housework" | "social" | "other";
+export type TaskDifficulty = "easy" | "normal" | "hard";
+export type RecurrencePattern = "daily" | "weekly" | "custom_days" | "none";
+export type TaskStatus = "pending" | "submitted" | "approved" | "rejected" | "expired" | "failed";
 
 export interface ITask extends Document {
   userId: mongoose.Types.ObjectId;
@@ -6,57 +12,102 @@ export interface ITask extends Document {
   name: string;
   description: string;
   points: number;
-  type: 'daily' | 'advanced' | 'challenge';
-  taskCategory: 'regular' | 'special'; // 常规任务 vs 特殊任务
+  bonusPoints: number;
+  type: TaskType;
+  taskCategory: TaskCategory;
+  difficulty: TaskDifficulty;
   icon: string;
   requirePhoto: boolean;
-  status: 'pending' | 'submitted' | 'approved' | 'rejected' | 'expired';
+  approvalMode: "auto" | "manual";
+  status: TaskStatus;
   photoUrl?: string;
   rejectionReason?: string;
-  imageUrl?: string; // Task illustration image
-  recurrence?: 'none' | 'daily' | 'weekly' | 'monthly';
-  recurrenceDay?: number; // 0-6 for Weekly, 1-31 for Monthly
+  imageUrl?: string;
+  recurrence: RecurrencePattern;
+  recurrenceDays?: number[];
+  recurrenceInterval?: number;
+  validFrom?: Date;
+  validUntil?: Date;
+  startTime?: Date;
+  endTime?: Date;
   originalTaskId?: mongoose.Types.ObjectId;
   submittedAt?: Date;
   approvedAt?: Date;
   completedAt?: Date;
-  deadline?: Date; // Deadline for the task
-  streakCount?: number; // 连续完成天数
-  lastCompletedAt?: Date; // 上次完成时间
+  streakCount?: number;
+  lastCompletedAt?: Date;
+  isCompensated?: boolean;
+  compensatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  deadline: Date;
 }
 
-const TaskSchema = new Schema<ITask>({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  childId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  name: { type: String, required: true },
-  description: { type: String, default: '' },
-  points: { type: Number, required: true },
-  type: { type: String, enum: ['daily', 'advanced', 'challenge'], default: 'daily' },
-  taskCategory: { type: String, enum: ['regular', 'special'], default: 'regular' },
-  icon: { type: String, default: '⭐' },
-  requirePhoto: { type: Boolean, default: false },
-  status: { type: String, enum: ['pending', 'submitted', 'approved', 'rejected', 'expired'], default: 'pending' },
-  photoUrl: { type: String },
-  rejectionReason: { type: String },
-  imageUrl: { type: String },
-  recurrence: { type: String, enum: ['none', 'daily', 'weekly', 'monthly'], default: 'none' },
-  recurrenceDay: { type: Number },
-  originalTaskId: { type: Schema.Types.ObjectId, ref: 'Task' },
-  submittedAt: { type: Date },
-  approvedAt: { type: Date },
-  completedAt: { type: Date },
-  deadline: { type: Date },
-  streakCount: { type: Number, default: 0 },
-  lastCompletedAt: { type: Date },
-}, { timestamps: true });
+const TaskSchema = new Schema<ITask>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    childId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    name: { type: String, required: true },
+    description: { type: String, default: "" },
+    points: { type: Number, required: true, default: 0 },
+    bonusPoints: { type: Number, default: 0 },
+    type: { type: String, enum: ["daily", "custom"], default: "daily" },
+    taskCategory: {
+      type: String,
+      enum: ["personal_hygiene", "learning", "housework", "social", "other"],
+      default: "other",
+    },
+    difficulty: {
+      type: String,
+      enum: ["easy", "normal", "hard"],
+      default: "normal",
+    },
+    icon: { type: String, default: "⭐" },
+    requirePhoto: { type: Boolean, default: false },
+    approvalMode: {
+      type: String,
+      enum: ["auto", "manual"],
+      default: "manual",
+    },
+    status: {
+      type: String,
+      enum: ["pending", "submitted", "approved", "rejected", "expired", "failed"],
+      default: "pending",
+    },
+    photoUrl: { type: String },
+    rejectionReason: { type: String },
+    imageUrl: { type: String },
+    recurrence: {
+      type: String,
+      enum: ["daily", "weekly", "custom_days", "none"],
+      default: "none",
+    },
+    recurrenceDays: { type: [Number] },
+    recurrenceInterval: { type: Number },
+    validFrom: { type: Date },
+    validUntil: { type: Date },
+    startTime: { type: Date },
+    endTime: { type: Date },
+    originalTaskId: { type: Schema.Types.ObjectId, ref: "Task" },
+    submittedAt: { type: Date },
+    approvedAt: { type: Date },
+    completedAt: { type: Date },
+    streakCount: { type: Number, default: 0 },
+    lastCompletedAt: { type: Date },
+    isCompensated: { type: Boolean, default: false },
+    compensatedAt: { type: Date },
+    deadline: { type: Date },
+  },
+  { timestamps: true },
+);
 
-// Prevent OverwriteModelError in development
-if (process.env.NODE_ENV === 'development') {
+TaskSchema.index({ childId: 1, status: 1, createdAt: -1 });
+TaskSchema.index({ childId: 1, type: 1, startTime: 1 });
+
+if (process.env.NODE_ENV === "development") {
   delete mongoose.models.Task;
 }
 
-const TaskModel = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
+const TaskModel = mongoose.models.Task || mongoose.model<ITask>("Task", TaskSchema);
 
 export default TaskModel;
