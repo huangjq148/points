@@ -712,7 +712,7 @@ export default function ChildHome() {
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
-              className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4" 
+              className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" 
               onClick={() => setShowTaskDetail(null)}
             >
               <motion.div 
@@ -777,7 +777,7 @@ export default function ChildHome() {
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
-              className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4" 
+              className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" 
               onClick={() => { setShowSubmitModal(false); setPhotoPreview(""); }}
             >
               <motion.div 

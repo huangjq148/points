@@ -10,8 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import TaskCard, { IDisplayedTask } from "./components/TaskCard";
 import TemplateManager from "./components/TemplateManager";
 import EditTemplateModal from "./components/EditTemplateModal";
-import AddTaskModal from "./components/AddTaskModal";
-import EditTaskModal from "./components/EditTaskModal";
+import TaskModal, { TaskFormData } from "./components/TaskModal";
 
 export interface TaskTemplate {
   _id?: string;
@@ -60,32 +59,23 @@ const TAB_ITEMS = [
 export default function TasksPage() {
   const [selectedChildTaskFilter, setSelectedChildTaskFilter] = useState<string>("all");
   const { currentUser, childList } = useApp();
-  const [showAddTask, setShowAddTask] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskModalMode, setTaskModalMode] = useState<"add" | "edit">("add");
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [activeTaskFilter, setActiveTaskFilter] = useState<
     "all" | "completed" | "uncompleted" | "submitted" | "rejected"
   >("all");
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
-  const [editingTaskData, setEditingTaskData] = useState({
-    name: "",
-    points: 0,
-    icon: "",
-    type: "daily" as "daily" | "advanced" | "challenge",
-    requirePhoto: false,
-    imageUrl: "",
-    deadline: null as Date | null,
-  });
   const [taskPhotoFile, setTaskPhotoFile] = useState<File | null>(null);
-  // Task Edit/Delete States
-  const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [taskPhotoPreview, setTaskPhotoPreview] = useState<string>("");
   const [editingTask, setEditingTask] = useState<PlainTask | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
 
-  const [newTask, setNewTask] = useState({
+  const [taskData, setTaskData] = useState<TaskFormData>({
     name: "",
+    description: "",
     points: 5,
     icon: "⭐",
     type: "daily",
@@ -159,15 +149,17 @@ export default function TasksPage() {
   }, [currentUser]);
 
   const handleApplyTemplate = (template: TaskTemplate) => {
-    setNewTask((prev) => ({
+    setTaskData((prev) => ({
       ...prev,
       name: template.name,
+      description: template.description || "",
       points: template.points,
       icon: template.icon,
       type: template.type as "daily" | "advanced" | "challenge",
     }));
     setShowTemplateManager(false);
-    setShowAddTask(true);
+    setTaskModalMode("add");
+    setShowTaskModal(true);
     showAlert(`已应用模板: ${template.name}`, "info");
   };
 
@@ -252,15 +244,15 @@ export default function TasksPage() {
       showAlert("请先登录", "error");
       return;
     }
-    if (newTask.selectedChildren.length === 0) {
+    if (taskData.selectedChildren.length === 0) {
       showAlert("请选择至少一个孩子", "error");
       return;
     }
-    if (!newTask.name.trim()) {
+    if (!taskData.name.trim()) {
       showAlert("请输入任务名称", "error");
       return;
     }
-    if (!newTask.deadline) {
+    if (!taskData.deadline) {
       showAlert("请设置截止时间", "error");
       return;
     }
@@ -286,7 +278,7 @@ export default function TasksPage() {
       }
     }
 
-    for (const childId of newTask.selectedChildren) {
+    for (const childId of taskData.selectedChildren) {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: {
@@ -294,7 +286,7 @@ export default function TasksPage() {
           Authorization: `Bearer ${currentUser?.token}`,
         },
         body: JSON.stringify({
-          ...newTask,
+          ...taskData,
           childId,
           imageUrl: uploadedImageUrl,
         }),
@@ -307,7 +299,7 @@ export default function TasksPage() {
     }
 
     // 如果勾选了保存为模板
-    if (newTask.saveAsTemplate) {
+    if (taskData.saveAsTemplate) {
       try {
         await fetch("/api/task-templates", {
           method: "POST",
@@ -316,11 +308,11 @@ export default function TasksPage() {
             Authorization: `Bearer ${currentUser?.token}`,
           },
           body: JSON.stringify({
-            name: newTask.name,
-            points: newTask.points,
-            icon: newTask.icon,
-            type: newTask.type,
-            description: "", // 默认描述为空
+            name: taskData.name,
+            description: taskData.description,
+            points: taskData.points,
+            icon: taskData.icon,
+            type: taskData.type,
           }),
         });
         // 刷新模板列表
@@ -336,9 +328,10 @@ export default function TasksPage() {
       }
     }
 
-    setShowAddTask(false);
-    setNewTask({
+    setShowTaskModal(false);
+    setTaskData({
       name: "",
+      description: "",
       points: 5,
       icon: "⭐",
       type: "daily",
@@ -359,12 +352,12 @@ export default function TasksPage() {
   const handleUpdateTask = async () => {
     if (!editingTask) return;
 
-    if (!editingTaskData.deadline) {
+    if (!taskData.deadline) {
       showAlert("请设置截止时间", "error");
       return;
     }
 
-    let uploadedImageUrl = editingTaskData.imageUrl;
+    let uploadedImageUrl = taskData.imageUrl;
     if (taskPhotoFile) {
       const formData = new FormData();
       formData.append("file", taskPhotoFile);
@@ -394,7 +387,7 @@ export default function TasksPage() {
         },
         body: JSON.stringify({
           taskId: editingTask._id,
-          ...editingTaskData,
+          ...taskData,
           imageUrl: uploadedImageUrl,
         }),
       });
@@ -402,7 +395,7 @@ export default function TasksPage() {
       const data = await res.json();
       if (data.success) {
         showAlert("任务更新成功", "success");
-        setShowEditTaskModal(false);
+        setShowTaskModal(false);
         setEditingTask(null);
         const updatedTasks = await fetchTasks();
         setTasks(updatedTasks);
@@ -440,7 +433,7 @@ export default function TasksPage() {
   };
 
   const toggleChild = (childId: string) => {
-    setNewTask((prev) => ({
+    setTaskData((prev) => ({
       ...prev,
       selectedChildren: prev.selectedChildren.includes(childId)
         ? prev.selectedChildren.filter((id) => id !== childId)
@@ -449,18 +442,24 @@ export default function TasksPage() {
   };
   const handleEditTask = (task: PlainTask) => {
     setEditingTask(task);
-    setEditingTaskData({
+    setTaskData({
       name: task.name,
+      description: task.description || "",
       points: task.points,
       icon: task.icon,
       type: task.type,
       requirePhoto: task.requirePhoto,
+      selectedChildren: [],
       imageUrl: task.imageUrl || "",
+      recurrence: "none",
+      recurrenceDay: undefined,
       deadline: task.deadline ? new Date(task.deadline) : null,
+      saveAsTemplate: false,
     });
     setTaskPhotoFile(null);
     setTaskPhotoPreview(task.imageUrl || "");
-    setShowEditTaskModal(true);
+    setTaskModalMode("edit");
+    setShowTaskModal(true);
   };
 
   const fetchTasks = useCallback(
@@ -548,7 +547,10 @@ export default function TasksPage() {
               <span className="font-semibold text-sm">模板管理</span>
             </Button>
             <Button
-              onClick={() => setShowAddTask(true)}
+              onClick={() => {
+                setTaskModalMode("add");
+                setShowTaskModal(true);
+              }}
               className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-md shadow-blue-100 flex items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] h-10"
             >
               <Plus size={20} className="group-hover:rotate-90 transition-transform" />
@@ -581,28 +583,18 @@ export default function TasksPage() {
           )}
         </div>
 
-        {/* Add Task Modal */}
-        <AddTaskModal
-          isOpen={showAddTask}
-          onClose={() => setShowAddTask(false)}
+        {/* Task Modal */}
+        <TaskModal
+          isOpen={showTaskModal}
+          onClose={() => setShowTaskModal(false)}
+          mode={taskModalMode}
           childList={childList}
-          newTask={newTask}
-          setNewTask={setNewTask}
-          onAdd={handleAddTask}
+          taskData={taskData}
+          setTaskData={setTaskData}
+          onSubmit={taskModalMode === "add" ? handleAddTask : handleUpdateTask}
           onPhotoSelect={handleTaskPhotoSelect}
           photoPreview={taskPhotoPreview}
           toggleChild={toggleChild}
-        />
-
-        {/* Edit Task Modal */}
-        <EditTaskModal
-          isOpen={showEditTaskModal}
-          onClose={() => setShowEditTaskModal(false)}
-          editingTaskData={editingTaskData}
-          setEditingTaskData={setEditingTaskData}
-          onUpdate={handleUpdateTask}
-          onPhotoSelect={handleTaskPhotoSelect}
-          photoPreview={taskPhotoPreview}
         />
         <AlertModal
           isOpen={alertState.isOpen}

@@ -1,22 +1,33 @@
 "use client";
 
 import React, { ReactNode, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { X } from "lucide-react";
-import Button from "./Button";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: ReactNode;
   footer?: ReactNode;
-  /**
-   * 弹窗宽度，可以是 tailwind 类名 (如 'max-w-md') 或数字 (像素值)
-   */
   width?: string | number;
+  showCloseButton?: boolean;
+  zIndex?: number;
+  className?: string;
 }
 
-export default function Modal({ isOpen, onClose, title, children, footer, width = "max-w-md" }: ModalProps) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  width = 600,
+  showCloseButton = true,
+  zIndex = 100,
+  className = "",
+}: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -28,39 +39,53 @@ export default function Modal({ isOpen, onClose, title, children, footer, width 
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
-  const isNumericWidth = typeof width === "number";
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className={`modal-content flex flex-col ${!isNumericWidth ? width : ""}`}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxHeight: "90vh",
-          width: isNumericWidth ? width : undefined,
-          minHeight: "300px",
-        }}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-100">
-          <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-          <Button
-            onClick={onClose}
-            variant="secondary"
-            className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 border-none bg-transparent shadow-none"
+  const modalContent = (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+          style={{ zIndex }}
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.8, y: 50, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.8, y: 50, opacity: 0 }}
+            transition={{ type: "spring", damping: 20 }}
+            className={`bg-white rounded-[2.5rem] p-8 shadow-2xl ${className}`}
+            style={{
+              maxWidth: typeof width === "number" ? width : undefined,
+              width: "100%",
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <X size={20} />
-          </Button>
-        </div>
+            {(title || showCloseButton) && (
+              <div className="flex justify-between items-start mb-6">
+                {title && <h3 className="text-2xl font-black text-gray-800 pr-4">{title}</h3>}
+                {showCloseButton && (
+                  <button
+                    onClick={onClose}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors flex-shrink-0"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
+              </div>
+            )}
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto min-h-0 pl-2 pr-6">{children}</div>
+            <div className="max-h-[60vh] overflow-y-auto hide-scrollbar pr-2">{children}</div>
 
-        {/* Footer */}
-        {footer && <div className="pt-3 border-t border-gray-100 flex justify-end gap-3">{footer}</div>}
-      </div>
-    </div>
+            {footer && <div className="pt-4 mt-4 border-t border-gray-100 flex justify-end gap-3">{footer}</div>}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
+
+  return ReactDOM.createPortal(modalContent, document.body);
 }
