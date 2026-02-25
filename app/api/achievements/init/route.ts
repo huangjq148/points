@@ -16,6 +16,7 @@ const defaultAchievements = [
     pointsReward: 50,
     honorPoints: 10,
     isHidden: false,
+    isActive: true,
     order: 1,
   },
   {
@@ -30,6 +31,7 @@ const defaultAchievements = [
     pointsReward: 150,
     honorPoints: 30,
     isHidden: false,
+    isActive: true,
     order: 2,
   },
   {
@@ -44,6 +46,7 @@ const defaultAchievements = [
     pointsReward: 500,
     honorPoints: 100,
     isHidden: false,
+    isActive: true,
     order: 3,
   },
   {
@@ -59,6 +62,7 @@ const defaultAchievements = [
     honorPoints: 500,
     privileges: ['custom_task_icon'],
     isHidden: false,
+    isActive: true,
     order: 4,
   },
   {
@@ -73,6 +77,7 @@ const defaultAchievements = [
     pointsReward: 100,
     honorPoints: 20,
     isHidden: false,
+    isActive: true,
     order: 5,
   },
   {
@@ -87,6 +92,7 @@ const defaultAchievements = [
     pointsReward: 300,
     honorPoints: 60,
     isHidden: false,
+    isActive: true,
     order: 6,
   },
   {
@@ -101,6 +107,7 @@ const defaultAchievements = [
     pointsReward: 1000,
     honorPoints: 200,
     isHidden: false,
+    isActive: true,
     order: 7,
   },
   {
@@ -116,6 +123,7 @@ const defaultAchievements = [
     pointsReward: 100,
     honorPoints: 20,
     isHidden: false,
+    isActive: true,
     order: 8,
   },
   {
@@ -131,6 +139,7 @@ const defaultAchievements = [
     pointsReward: 150,
     honorPoints: 30,
     isHidden: false,
+    isActive: true,
     order: 9,
   },
   {
@@ -146,6 +155,7 @@ const defaultAchievements = [
     pointsReward: 300,
     honorPoints: 60,
     isHidden: false,
+    isActive: true,
     order: 10,
   },
 
@@ -162,6 +172,7 @@ const defaultAchievements = [
     pointsReward: 200,
     honorPoints: 50,
     isHidden: false,
+    isActive: true,
     order: 11,
   },
   {
@@ -176,6 +187,7 @@ const defaultAchievements = [
     pointsReward: 500,
     honorPoints: 100,
     isHidden: false,
+    isActive: true,
     order: 12,
   },
   {
@@ -191,6 +203,7 @@ const defaultAchievements = [
     honorPoints: 300,
     privileges: ['ultimate_wish'],
     isHidden: false,
+    isActive: true,
     order: 13,
   },
   {
@@ -206,6 +219,7 @@ const defaultAchievements = [
     pointsReward: 150,
     honorPoints: 30,
     isHidden: false,
+    isActive: true,
     order: 14,
   },
   {
@@ -220,6 +234,7 @@ const defaultAchievements = [
     pointsReward: 400,
     honorPoints: 80,
     isHidden: false,
+    isActive: true,
     order: 15,
   },
   {
@@ -234,6 +249,7 @@ const defaultAchievements = [
     pointsReward: 200,
     honorPoints: 40,
     isHidden: false,
+    isActive: true,
     order: 16,
   },
   {
@@ -248,6 +264,7 @@ const defaultAchievements = [
     pointsReward: 600,
     honorPoints: 120,
     isHidden: false,
+    isActive: true,
     order: 17,
   },
 
