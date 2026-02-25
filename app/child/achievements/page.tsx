@@ -3,7 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Trophy, User, Loader2, Sparkles, Star } from 'lucide-react';
+import {
+  ChevronRight,
+  Trophy,
+  User,
+  Loader2,
+  Sparkles,
+  Star,
+} from 'lucide-react';
 import { Button } from '@/components/ui';
 import MedalWall from '@/components/gamification/MedalWall';
 import request from '@/utils/request';
@@ -84,8 +91,8 @@ export default function AchievementsPage() {
   if (loading) {
     return (
       <>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <div className='flex items-center justify-center min-h-[60vh]'>
+          <Loader2 className='w-8 h-8 animate-spin text-blue-500' />
         </div>
       </>
     );
@@ -94,9 +101,9 @@ export default function AchievementsPage() {
   if (!stats) {
     return (
       <>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center text-gray-500">
-            <Trophy className="w-16 h-16 mx-auto mb-4 opacity-30" />
+        <div className='flex items-center justify-center min-h-[60vh]'>
+          <div className='text-center text-gray-500'>
+            <Trophy className='w-16 h-16 mx-auto mb-4 opacity-30' />
             <p>加载失败</p>
           </div>
         </div>
@@ -115,25 +122,29 @@ export default function AchievementsPage() {
 
   return (
     <>
-      <div className="pb-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Trophy className="w-7 h-7 text-yellow-500" />
+      <div className='pb-8'>
+        <div className='mb-6'>
+          <h1 className='text-2xl font-bold text-white flex items-center gap-2'>
+            <Trophy className='w-7 h-7 text-yellow-500' />
             我的成就
           </h1>
-          <p className="text-gray-500 text-sm mt-1">完成任务解锁各种成就，获取荣誉勋章！</p>
+          <p className='text-white text-sm mt-1'>
+            完成任务解锁各种成就，获取荣誉勋章！
+          </p>
         </div>
 
         {stats.newAchievements > 0 && (
-          <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-white animate-pulse">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              <span className="font-bold">你有 {stats.newAchievements} 个新成就待查看！</span>
+          <div className='mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-white animate-pulse'>
+            <div className='flex items-center gap-2'>
+              <Sparkles className='w-5 h-5' />
+              <span className='font-bold'>
+                你有 {stats.newAchievements} 个新成就待查看！
+              </span>
             </div>
           </div>
         )}
 
-        <div className="min-h-[50vh]">
+        <div className='min-h-[50vh]'>
           <MedalWall
             achievements={achievements}
             stats={formattedStats}
