@@ -236,12 +236,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return false;
     try {
       const verifyPassword = password || currentUser.password;
-      const res = await fetch("/api/auth", {
+      const data = await request("/api/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser.username, password: verifyPassword, action: "verify-password" }),
+        body: { username: currentUser.username, password: verifyPassword, action: "verify-password" },
       });
-      const data = await res.json();
       if (data.success) {
         setMode("parent");
         setChildList(data.children || []);
@@ -257,12 +255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshChildren = async () => {
     if (!currentUser || !currentUser.token) return;
     try {
-      const res = await fetch("/api/auth/current", {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      const data = await res.json();
+      const data = await request("/api/auth/current");
       if (data.success && data.user) {
         setChildList(
           (data.user.children || []).map((c: ChildAPIResponse) => ({

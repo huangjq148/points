@@ -1,5 +1,5 @@
   "use client";
- 
+
  import { useState, useEffect, useCallback } from "react";
  import { useApp } from "@/context/AppContext";
  import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@
  } from "lucide-react";
  import { Button, DatePicker } from "@/components/ui";
  import { formatDate } from "@/utils/date";
+ import request from "@/utils/request";
 
 interface LedgerItem {
   _id: string;
@@ -38,20 +39,15 @@ export default function WalletPage() {
     if (!currentUser?.token) return;
     setLedgerLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: ledgerLimit.toString(),
-      });
-      if (ledgerStartDate) params.append("startDate", ledgerStartDate.toISOString());
-      if (ledgerEndDate) params.append("endDate", ledgerEndDate.toISOString());
-      if (ledgerKeyword) params.append("keyword", ledgerKeyword);
+      const params = {
+        page,
+        limit: ledgerLimit,
+        ...(ledgerStartDate && { startDate: ledgerStartDate.toISOString() }),
+        ...(ledgerEndDate && { endDate: ledgerEndDate.toISOString() }),
+        ...(ledgerKeyword && { keyword: ledgerKeyword }),
+      };
 
-      const res = await fetch(`/api/ledger?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      const data = await res.json();
+      const data = await request(`/api/ledger`, { params });
       if (data.success) {
         setLedgerData(data.data);
         setLedgerTotal(data.pagination.total);

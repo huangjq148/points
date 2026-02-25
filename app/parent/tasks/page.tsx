@@ -264,9 +264,6 @@ export default function TasksPage() {
       try {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${currentUser?.token}`,
-          },
           body: formData,
         });
         const uploadData = await uploadRes.json();
@@ -279,20 +276,16 @@ export default function TasksPage() {
     }
 
     for (const childId of taskData.selectedChildren) {
-      const res = await fetch("/api/tasks", {
+      const res = await request("/api/tasks", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${currentUser?.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           ...taskData,
           childId,
           imageUrl: uploadedImageUrl,
-        }),
+        },
       });
 
-      if (!res.ok) {
+      if (!res.success) {
         showAlert("添加失败", "error");
         return;
       }
@@ -301,27 +294,18 @@ export default function TasksPage() {
     // 如果勾选了保存为模板
     if (taskData.saveAsTemplate) {
       try {
-        await fetch("/api/task-templates", {
+        await request("/api/task-templates", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${currentUser?.token}`,
-          },
-          body: JSON.stringify({
+          body: {
             name: taskData.name,
             description: taskData.description,
             points: taskData.points,
             icon: taskData.icon,
             type: taskData.type,
-          }),
-        });
-        // 刷新模板列表
-        const res = await fetch("/api/task-templates", {
-          headers: {
-            Authorization: `Bearer ${currentUser?.token}`,
           },
         });
-        const data = await res.json();
+        // 刷新模板列表
+        const data = await request("/api/task-templates");
         if (data.success) setTemplates(data.data);
       } catch (e) {
         console.error("Failed to save template:", e);
@@ -364,9 +348,6 @@ export default function TasksPage() {
       try {
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${currentUser?.token}`,
-          },
           body: formData,
         });
         const uploadData = await uploadRes.json();
@@ -379,20 +360,15 @@ export default function TasksPage() {
     }
 
     try {
-      const res = await fetch("/api/tasks", {
+      const data = await request("/api/tasks", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${currentUser?.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           taskId: editingTask._id,
           ...taskData,
           imageUrl: uploadedImageUrl,
-        }),
+        },
       });
 
-      const data = await res.json();
       if (data.success) {
         showAlert("任务更新成功", "success");
         setShowTaskModal(false);
@@ -411,13 +387,9 @@ export default function TasksPage() {
   const handleDeleteTask = async () => {
     if (!taskToDelete || !currentUser?.token) return;
     try {
-      const res = await fetch(`/api/tasks?taskId=${taskToDelete}`, {
+      const data = await request(`/api/tasks?taskId=${taskToDelete}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
       });
-      const data = await res.json();
       if (data.success) {
         showAlert("任务删除成功", "success");
         setTaskToDelete(null);

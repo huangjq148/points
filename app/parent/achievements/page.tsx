@@ -6,6 +6,7 @@ import Layout from '@/components/Layouts';
 import Select from '@/components/ui/Select';
 import { Trophy, Medal, Star, Target, Flame } from 'lucide-react';
 import { motion } from 'framer-motion';
+import request from '@/utils/request';
 
 interface Medal {
   id: string;
@@ -57,29 +58,22 @@ export default function ParentAchievementsPage() {
 
   const fetchChildMedals = useCallback(async (childId: string) => {
     if (!currentUser?.token) return;
-    
+
     try {
       // 调用API获取孩子的勋章数据
-      const res = await fetch(`/api/gamification/medals?childId=${childId}`, {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setChildData(prev => ({
-            ...prev,
-            [childId]: {
-              medals: data.data.medals,
-              stats: data.data.stats,
-              level: data.data.level || 1,
-              totalCoins: data.data.totalCoins || 0,
-              totalStars: data.data.totalStars || 0,
-            }
-          }));
-        }
+      const data = await request(`/api/gamification/medals?childId=${childId}`);
+
+      if (data.success) {
+        setChildData(prev => ({
+          ...prev,
+          [childId]: {
+            medals: data.data.medals,
+            stats: data.data.stats,
+            level: data.data.level || 1,
+            totalCoins: data.data.totalCoins || 0,
+            totalStars: data.data.totalStars || 0,
+          }
+        }));
       }
     } catch (error) {
       console.error('获取勋章数据失败:', error);

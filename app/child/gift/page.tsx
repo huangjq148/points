@@ -7,6 +7,7 @@ import { Calendar as CalendarIcon, Search, ChevronRight, Gift, Wallet } from "lu
 import { Button, DatePicker } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import { useToast } from "@/components/ui/Toast";
+import request from "@/utils/request";
 
 export interface Order {
   _id: string;
@@ -32,12 +33,7 @@ export default function GiftPage() {
 
   const fetchOrders = useCallback(async () => {
     if (!currentUser?.token) return;
-    const res = await fetch(`/api/orders`, {
-      headers: {
-        Authorization: `Bearer ${currentUser.token}`,
-      },
-    });
-    const data = await res.json();
+    const data = await request(`/api/orders`);
     if (data.success) {
       setOrders(data.orders);
     }
@@ -68,15 +64,13 @@ export default function GiftPage() {
   })();
 
   const handleCancelOrder = async (order: Order) => {
-    const res = await fetch("/api/orders", {
+    const data = await request("/api/orders", {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentUser?.token}` },
-      body: JSON.stringify({
+      body: {
         orderId: order._id,
         action: "cancel",
-      }),
+      },
     });
-    const data = await res.json();
     if (data.success) {
       fetchOrders();
       setShowOrderDetail(null);

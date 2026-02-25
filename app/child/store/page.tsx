@@ -9,6 +9,7 @@ import { Pagination } from "@/components/ui";
 import ConfirmModal from "@/components/ConfirmModal";
 import confetti from "canvas-confetti";
 import { useToast } from "@/components/ui/Toast";
+import request from "@/utils/request";
 
 export interface Reward {
   _id: string;
@@ -34,12 +35,7 @@ export default function StorePage() {
   const fetchRewards = useCallback(
     async (pageNum: number = 1) => {
       if (!currentUser?.token) return;
-      const res = await fetch(`/api/rewards?isActive=true&page=${pageNum}&limit=${limit}`, {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      const data = await res.json();
+      const data = await request(`/api/rewards?isActive=true&page=${pageNum}&limit=${limit}`);
       if (data.success) {
         setRewards(data.rewards);
         setTotal(data.total);
@@ -74,14 +70,12 @@ export default function StorePage() {
       return;
     }
 
-    const res = await fetch("/api/orders", {
+    const data = await request("/api/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${currentUser?.token}` },
-      body: JSON.stringify({
+      body: {
         rewardId: reward._id,
-      }),
+      },
     });
-    const data = await res.json();
     if (data.success) {
       confetti({
         particleCount: 100,

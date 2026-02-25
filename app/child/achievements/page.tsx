@@ -7,6 +7,7 @@ import { ChevronRight, Trophy, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui';
 import MedalWall from '@/components/gamification/MedalWall';
 import AvatarGrowth from '@/components/gamification/AvatarGrowth';
+import request from '@/utils/request';
 
 interface Medal {
   id: string;
@@ -57,12 +58,7 @@ export default function AchievementsPage() {
   const fetchMedals = useCallback(async () => {
     if (!currentUser?.token) return;
     try {
-      const res = await fetch('/api/gamification/medals', {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      const data = await res.json();
+      const data = await request('/api/gamification/medals');
       if (data.success) {
         setMedals(data.data.medals);
         setMedalStats(data.data.stats);
@@ -76,12 +72,7 @@ export default function AchievementsPage() {
   const fetchAvatar = useCallback(async () => {
     if (!currentUser?.token) return;
     try {
-      const res = await fetch('/api/gamification/avatar', {
-        headers: {
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-      });
-      const data = await res.json();
+      const data = await request('/api/gamification/avatar');
       if (data.success) {
         setAvatarData(data.data.avatar);
         setLevelInfo(data.data.levelInfo);
@@ -106,13 +97,9 @@ export default function AchievementsPage() {
   const handleMedalViewed = async (medalId?: string) => {
     if (!currentUser?.token) return;
     try {
-      await fetch('/api/gamification/medals', {
+      await request('/api/gamification/medals', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({ medalId }),
+        body: { medalId },
       });
       // 刷新数据
       await fetchMedals();
@@ -125,15 +112,10 @@ export default function AchievementsPage() {
   const handleUpdateConfig = async (config: { currentSkin?: string; equippedAccessories?: string[]; petName?: string }) => {
     if (!currentUser?.token) return;
     try {
-      const res = await fetch('/api/gamification/avatar', {
+      const data = await request('/api/gamification/avatar', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify(config),
+        body: config,
       });
-      const data = await res.json();
       if (data.success) {
         await fetchAvatar();
       }

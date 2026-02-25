@@ -13,6 +13,7 @@ import {
 import { Button, Modal } from '@/components/ui';
 import DatePicker from '@/components/ui/DatePicker';
 import { compressImage } from '@/utils/image';
+import request from '@/utils/request';
 
 interface Task {
   _id: string;
@@ -70,32 +71,18 @@ export default function TaskPage() {
 
       setLoading(true);
       try {
-        const params = new URLSearchParams({
-          page: pageNum.toString(),
-          limit: limit.toString(),
+        const params = {
+          page: pageNum,
+          limit: limit,
+          ...(statusFilter && { status: statusFilter }),
+          ...(searchName && { searchName }),
+          ...(startDate && { startDate: startDate.toISOString() }),
+          ...(endDate && { endDate: endDate.toISOString() }),
+        };
+
+        const data = await request('/api/tasks', {
+          params,
         });
-
-        if (statusFilter) {
-          params.append('status', statusFilter);
-        }
-
-        if (searchName) {
-          params.append('searchName', searchName);
-        }
-
-        if (startDate) {
-          params.append('startDate', startDate.toISOString());
-        }
-
-        if (endDate) {
-          params.append('endDate', endDate.toISOString());
-        }
-
-        const res = await fetch(`/api/tasks?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${currentUser.token}` },
-        });
-
-        const data = await res.json();
         if (data.success) {
           setTasks(data.tasks);
           setTotal(data.total);
@@ -153,7 +140,6 @@ export default function TaskPage() {
         const uploadRes = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
-          headers: { Authorization: `Bearer ${currentUser.token}` },
         });
         const uploadData = await uploadRes.json();
         if (uploadData.success) photoUrl = uploadData.url;
@@ -163,19 +149,14 @@ export default function TaskPage() {
     }
 
     try {
-      const res = await fetch('/api/tasks', {
+      const data = await request('/api/tasks', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           taskId: selectedTask._id,
           status: 'submitted',
           photoUrl,
-        }),
+        },
       });
-      const data = await res.json();
 
       if (data.success) {
         setShowSubmitModal(false);
@@ -196,18 +177,13 @@ export default function TaskPage() {
 
     setRecalling(true);
     try {
-      const res = await fetch('/api/tasks', {
+      const data = await request('/api/tasks', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           taskId: task._id,
           status: 'pending',
-        }),
+        },
       });
-      const data = await res.json();
 
       if (data.success) {
         fetchTasks(page);

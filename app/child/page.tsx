@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import FeatureGrid from './components/FeatureGrid';
 import { compressImage } from '@/utils/image';
+import request from '@/utils/request';
 
 interface Task {
   _id: string;
@@ -166,13 +167,9 @@ export default function ChildHome() {
     const todayStr = today.toISOString();
 
     try {
-      const res = await fetch(
+      const data = await request(
         `/api/tasks?excludeCompletedBeforeDeadline=true&deadlineFrom=${todayStr}`,
-        {
-          headers: { Authorization: `Bearer ${currentUser.token}` },
-        },
       );
-      const data = await res.json();
       if (data.success) {
         setTasks(data.tasks);
       }
@@ -184,10 +181,7 @@ export default function ChildHome() {
   const fetchMedals = useCallback(async () => {
     if (!currentUser?.token) return;
     try {
-      const res = await fetch('/api/gamification/medals', {
-        headers: { Authorization: `Bearer ${currentUser.token}` },
-      });
-      const data = await res.json();
+      const data = await request('/api/gamification/medals');
       if (data.success) {
         setMedals(data.data.medals || []);
       }
@@ -225,7 +219,6 @@ export default function ChildHome() {
         const uploadRes = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
-          headers: { Authorization: `Bearer ${currentUser.token}` },
         });
         const uploadData = await uploadRes.json();
         if (uploadData.success) photoUrl = uploadData.url;
@@ -235,19 +228,14 @@ export default function ChildHome() {
     }
 
     try {
-      const res = await fetch('/api/tasks', {
+      const data = await request('/api/tasks', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           taskId: selectedTask._id,
           status: 'submitted',
           photoUrl,
-        }),
+        },
       });
-      const data = await res.json();
 
       if (data.success) {
         setShowSubmitModal(false);
@@ -273,18 +261,13 @@ export default function ChildHome() {
 
     setRecalling(true);
     try {
-      const res = await fetch('/api/tasks', {
+      const data = await request('/api/tasks', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           taskId: task._id,
           status: 'pending',
-        }),
+        },
       });
-      const data = await res.json();
 
       if (data.success) {
         setShowTaskDetail(null);
@@ -306,19 +289,14 @@ export default function ChildHome() {
     const photoUrl = '';
 
     try {
-      const res = await fetch('/api/tasks', {
+      const data = await request('/api/tasks', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}`,
-        },
-        body: JSON.stringify({
+        body: {
           taskId: task._id,
           status: 'submitted',
           photoUrl,
-        }),
+        },
       });
-      const data = await res.json();
 
       if (data.success) {
         const element = document.getElementById(`task-${task._id}`);

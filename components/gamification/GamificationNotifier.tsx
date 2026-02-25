@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Sparkles, X, ChevronRight, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useApp } from '@/context/AppContext';
+import request from '@/utils/request';
 
 interface GamificationNotification {
   id: string;
@@ -32,16 +33,10 @@ export const GamificationNotifier: React.FC<GamificationNotifierProps> = ({ onVi
 
     try {
       // 获取勋章数据
-      const medalsRes = await fetch('/api/gamification/medals', {
-        headers: { Authorization: `Bearer ${currentUser.token}` },
-      });
-      const medalsData = await medalsRes.json();
+      const medalsData = await request('/api/gamification/medals');
 
       // 获取角色数据
-      const avatarRes = await fetch('/api/gamification/avatar', {
-        headers: { Authorization: `Bearer ${currentUser.token}` },
-      });
-      const avatarData = await avatarRes.json();
+      const avatarData = await request('/api/gamification/avatar');
 
       if (medalsData.success && avatarData.success) {
         const currentMedalCount = medalsData.data.stats.earned;
@@ -113,17 +108,10 @@ export const GamificationNotifier: React.FC<GamificationNotifierProps> = ({ onVi
 
       try {
         // 获取初始数据
-        const [medalsRes, avatarRes] = await Promise.all([
-          fetch('/api/gamification/medals', {
-            headers: { Authorization: `Bearer ${currentUser.token}` },
-          }),
-          fetch('/api/gamification/avatar', {
-            headers: { Authorization: `Bearer ${currentUser.token}` },
-          }),
+        const [medalsData, avatarData] = await Promise.all([
+          request('/api/gamification/medals'),
+          request('/api/gamification/avatar'),
         ]);
-
-        const medalsData = await medalsRes.json();
-        const avatarData = await avatarRes.json();
 
         if (medalsData.success && avatarData.success) {
           setLastMedalCount(medalsData.data.stats.earned);
