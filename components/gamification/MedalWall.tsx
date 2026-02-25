@@ -359,6 +359,9 @@ export const MedalWall: React.FC<MedalWallProps> = ({
   const dimensionStats = stats.earnedByDimension || {};
   const totalByDimension = stats.totalByDimension || {};
 
+  const filteredEarnedCount = filteredAchievements.filter((a) => a.isEarned).length;
+  const filteredUnearnedCount = filteredAchievements.filter((a) => !a.isEarned).length;
+
   const earnedCount = achievements.filter((a) => a.isEarned).length;
   const unearnedCount = achievements.filter((a) => !a.isEarned).length;
 
@@ -445,7 +448,7 @@ export const MedalWall: React.FC<MedalWallProps> = ({
           {showUnearned ? (
             <>
               <Eye className='w-4 h-4' />
-              <span>显示未达成 ({unearnedCount})</span>
+              <span>显示未达成 ({filteredUnearnedCount})</span>
             </>
           ) : (
             <>
