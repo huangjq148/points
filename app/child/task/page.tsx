@@ -60,6 +60,7 @@ export default function TaskPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
+  const [recalling, setRecalling] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -187,6 +188,34 @@ export default function TaskPage() {
       console.error('Submit error:', error);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRecallTask = async (task: Task) => {
+    if (!task._id || !currentUser?.token) return;
+
+    setRecalling(true);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify({
+          taskId: task._id,
+          status: 'pending',
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        fetchTasks(page);
+      }
+    } catch (error) {
+      console.error('Recall error:', error);
+    } finally {
+      setRecalling(false);
     }
   };
 
@@ -419,6 +448,18 @@ export default function TaskPage() {
                           {isRejected ? '重新提交' : '提交'}
                         </button>
                       )}
+                      {task.status === 'submitted' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRecallTask(task);
+                          }}
+                          disabled={recalling}
+                          className='px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-full hover:bg-amber-600 transition-colors disabled:opacity-50'
+                        >
+                          {recalling ? '撤回中...' : '撤回修改'}
+                        </button>
+                      )}
                     </motion.div>
                   );
                 })}
@@ -494,6 +535,16 @@ export default function TaskPage() {
               {selectedTask?.status === 'rejected'
                 ? '💪 重新提交'
                 : '🚀 开始任务'}
+            </button>
+          ) : selectedTask?.status === 'submitted' ? (
+            <button
+              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+              onClick={() => {
+                setShowTaskDetail(null);
+                handleRecallTask(selectedTask);
+              }}
+            >
+              🔙 撤回修改
             </button>
           ) : (
             <button

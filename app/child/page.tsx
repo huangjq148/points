@@ -125,6 +125,7 @@ export default function ChildHome() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [recalling, setRecalling] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalPoints = currentUser?.availablePoints || 0;
@@ -264,6 +265,37 @@ export default function ChildHome() {
       toast.error('提交失败，请重试');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRecallTask = async (task: Task) => {
+    if (!task._id || !currentUser?.token) return;
+
+    setRecalling(true);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify({
+          taskId: task._id,
+          status: 'pending',
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setShowTaskDetail(null);
+        fetchTasks();
+        toast.success('已撤回任务，可以重新提交~');
+      }
+    } catch (error) {
+      console.error('Recall error:', error);
+      toast.error('撤回失败，请重试');
+    } finally {
+      setRecalling(false);
     }
   };
 
@@ -797,6 +829,20 @@ export default function ChildHome() {
                               </button>
                             </div>
                           )}
+                          {isSubmitted && (
+                            <div className='mt-2 flex gap-2'>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRecallTask(task);
+                                }}
+                                disabled={recalling}
+                                className='bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-amber-600 transition-all active:scale-95 flex items-center gap-1 disabled:opacity-50'
+                              >
+                                <span>🔙</span> {recalling ? '撤回中...' : '撤回修改'}
+                              </button>
+                            </div>
+                          )}
                           {isRejected && task.rejectionReason && (
                             <p className='text-xs text-red-500 mt-2'>
                               ✏️ {task.rejectionReason}
@@ -890,6 +936,13 @@ export default function ChildHome() {
                 {selectedTask?.status === 'rejected'
                   ? '💪 重新提交'
                   : '🚀 开始任务'}
+              </button>
+            ) : selectedTask?.status === 'submitted' ? (
+              <button
+                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+                onClick={() => handleRecallTask(selectedTask!)}
+              >
+                🔙 撤回修改
               </button>
             ) : (
               <button
