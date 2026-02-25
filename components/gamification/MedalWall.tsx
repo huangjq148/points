@@ -2,20 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Lock, Star, Sparkles } from 'lucide-react';
+import { Trophy, Lock, Star, Sparkles, Flame, Zap, Gift, Footprints, Eye, EyeOff } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-interface Medal {
+interface Achievement {
   id: string;
-  type: string;
-  level: 'bronze' | 'silver' | 'gold' | 'diamond';
+  dimension: 'accumulation' | 'behavior' | 'surprise';
+  category: string;
+  level: 'bronze' | 'silver' | 'gold' | 'legendary';
   name: string;
   description: string;
   icon: string;
   requirement: number;
-  requirementType: 'total' | 'consecutive';
-  xpReward: number;
-  color: string;
+  conditionType: string;
+  pointsReward: number;
+  honorPoints: number;
+  privileges?: string[];
+  isHidden: boolean;
   isEarned: boolean;
   earnedAt?: string;
   isNew: boolean;
@@ -24,62 +27,93 @@ interface Medal {
 }
 
 interface MedalWallProps {
-  medals: Medal[];
+  achievements: Achievement[];
   stats: {
     total: number;
     earned: number;
-    newMedals: number;
-    totalXPEarned: number;
+    newAchievements: number;
+    honorPoints: number;
+    earnedByDimension?: Record<string, number>;
+    totalByDimension?: Record<string, number>;
   };
-  onMedalViewed?: (medalId?: string) => void;
+  onAchievementViewed?: (achievementId?: string) => void;
 }
 
 const levelConfig = {
-  bronze: { 
-    label: '青铜', 
-    bgColor: 'from-amber-700 to-amber-900',
-    borderColor: 'border-amber-600',
-    textColor: 'text-amber-200',
+  bronze: {
+    label: '青铜',
+    bgColor: 'from-amber-600 to-amber-800',
+    borderColor: 'border-amber-500',
+    textColor: 'text-amber-100',
     shadow: 'shadow-amber-900/50',
+    glowColor: '#f59e0b',
   },
-  silver: { 
-    label: '白银', 
+  silver: {
+    label: '白银',
     bgColor: 'from-slate-400 to-slate-600',
-    borderColor: 'border-slate-400',
-    textColor: 'text-slate-200',
-    shadow: 'shadow-slate-600/50',
+    borderColor: 'border-slate-300',
+    textColor: 'text-slate-100',
+    shadow: 'shadow-slate-800/50',
+    glowColor: '#94a3b8',
   },
-  gold: { 
-    label: '黄金', 
+  gold: {
+    label: '黄金',
     bgColor: 'from-yellow-500 to-yellow-700',
     borderColor: 'border-yellow-400',
-    textColor: 'text-yellow-200',
-    shadow: 'shadow-yellow-700/50',
+    textColor: 'text-yellow-100',
+    shadow: 'shadow-yellow-800/50',
+    glowColor: '#eab308',
   },
-  diamond: { 
-    label: '钻石', 
-    bgColor: 'from-cyan-400 to-blue-600',
-    borderColor: 'border-cyan-400',
-    textColor: 'text-cyan-200',
-    shadow: 'shadow-cyan-600/50',
+  legendary: {
+    label: '传奇',
+    bgColor: 'from-purple-600 to-pink-600',
+    borderColor: 'border-purple-400',
+    textColor: 'text-purple-100',
+    shadow: 'shadow-purple-900/50',
+    glowColor: '#a855f7',
   },
 };
 
-const MedalCard: React.FC<{ medal: Medal; onView: () => void }> = ({ medal, onView }) => {
-  const config = levelConfig[medal.level];
+const AchievementCard: React.FC<{ achievement: Achievement; onView: () => void }> = ({ achievement, onView }) => {
+  const config = levelConfig[achievement.level];
   const [showDetails, setShowDetails] = useState(false);
 
   const handleClick = () => {
-    if (medal.isNew) {
+    if (achievement.isNew) {
       onView();
       confetti({
-        particleCount: 50,
-        spread: 60,
+        particleCount: 80,
+        spread: 70,
         origin: { y: 0.7 },
-        colors: [medal.color, '#FFD700', '#FFF'],
+        colors: [config.glowColor, '#FFD700', '#FFF', '#FF6347'],
       });
     }
     setShowDetails(!showDetails);
+  };
+
+  const getConditionText = () => {
+    switch (achievement.conditionType) {
+      case 'total_tasks':
+        return `累计完成 ${achievement.requirement} 个任务`;
+      case 'total_points':
+        return `累计获得 ${achievement.requirement} 积分`;
+      case 'category_tasks':
+        return `完成 ${achievement.requirement} 次任务`;
+      case 'consecutive_days':
+        return `连续 ${achievement.requirement} 天完成任务`;
+      case 'early_completion':
+        return `提前完成任务 ${achievement.requirement} 次`;
+      case 'specific_time':
+        return `在 ${achievement.requirement} 点前完成任务`;
+      case 'resubmit_quick':
+        return `${achievement.requirement} 分钟内快速重做任务`;
+      case 'birthday_task':
+        return `在生日当天完成任务`;
+      case 'category_streak':
+        return `连续 ${achievement.requirement} 天完成任务`;
+      default:
+        return `达成条件`;
+    }
   };
 
   return (
@@ -87,20 +121,22 @@ const MedalCard: React.FC<{ medal: Medal; onView: () => void }> = ({ medal, onVi
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: achievement.isEarned ? 1.02 : 1 }}
       className={`relative cursor-pointer rounded-2xl overflow-hidden transition-all duration-300 ${
-        medal.isEarned 
-          ? `bg-gradient-to-br ${config.bgColor} ${config.shadow} shadow-lg` 
-          : 'bg-gray-100 border-2 border-gray-200 hover:border-gray-300'
+        achievement.isEarned
+          ? `bg-gradient-to-br ${config.bgColor} ${config.shadow} shadow-lg`
+          : 'bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
       }`}
       onClick={handleClick}
+      style={{
+        boxShadow: achievement.isNew && achievement.isEarned ? `0 0 20px ${config.glowColor}40` : undefined,
+      }}
     >
-      {/* 新勋章标记 */}
-      {medal.isNew && (
+      {achievement.isNew && achievement.isEarned && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute -top-1 -right-1 z-10"
+          className="absolute -top-1 -right-1 z-20"
         >
           <span className="flex h-5 w-5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -112,48 +148,43 @@ const MedalCard: React.FC<{ medal: Medal; onView: () => void }> = ({ medal, onVi
       )}
 
       <div className="p-4">
-        {/* 图标 */}
-        <div className={`text-5xl mb-3 text-center transition-all ${medal.isEarned ? '' : 'grayscale opacity-40'}`}>
-          {medal.icon}
+        <div className={`text-5xl mb-3 text-center transition-all ${achievement.isEarned ? '' : 'grayscale opacity-40'}`}>
+          {achievement.icon}
         </div>
 
-        {/* 名称 */}
-        <h3 className={`font-bold text-center text-sm mb-1 ${medal.isEarned ? config.textColor : 'text-gray-400'}`}>
-          {medal.name}
+        <h3 className={`font-bold text-center text-sm mb-1 ${achievement.isEarned ? config.textColor : 'text-gray-500'}`}>
+          {achievement.isHidden && !achievement.isEarned ? '???' : achievement.name}
         </h3>
 
-        {/* 等级标签 */}
         <div className={`text-xs text-center px-2 py-0.5 rounded-full inline-block mx-auto w-full ${
-          medal.isEarned 
-            ? `bg-white/20 ${config.textColor}` 
+          achievement.isEarned
+            ? `bg-white/20 ${config.textColor}`
             : 'bg-gray-200 text-gray-500'
         }`}>
           {config.label}
         </div>
 
-        {/* 进度条（未获得时显示） */}
-        {!medal.isEarned && (
+        {!achievement.isEarned && (
           <div className="mt-3">
             <div className="flex justify-between text-[10px] text-gray-400 mb-1">
-              <span>{medal.progress}/{medal.requirement}</span>
-              <span>{medal.progressPercent}%</span>
+              <span>{achievement.progress}/{achievement.requirement}</span>
+              <span>{achievement.progressPercent}%</span>
             </div>
             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${medal.progressPercent}%` }}
+                animate={{ width: `${achievement.progressPercent}%` }}
                 className={`h-full rounded-full ${
-                  medal.level === 'bronze' ? 'bg-amber-500' :
-                  medal.level === 'silver' ? 'bg-slate-400' :
-                  medal.level === 'gold' ? 'bg-yellow-500' : 'bg-cyan-400'
+                  achievement.level === 'bronze' ? 'bg-amber-500' :
+                  achievement.level === 'silver' ? 'bg-slate-400' :
+                  achievement.level === 'gold' ? 'bg-yellow-500' : 'bg-purple-500'
                 }`}
               />
             </div>
           </div>
         )}
 
-        {/* 已获得标记 */}
-        {medal.isEarned && (
+        {achievement.isEarned && (
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -163,15 +194,13 @@ const MedalCard: React.FC<{ medal: Medal; onView: () => void }> = ({ medal, onVi
           </motion.div>
         )}
 
-        {/* 未获得提示 */}
-        {!medal.isEarned && (
+        {!achievement.isEarned && (
           <div className="mt-2 text-[10px] text-center text-gray-400">
             点击查看条件
           </div>
         )}
       </div>
 
-      {/* 详情弹窗 */}
       <AnimatePresence>
         {showDetails && (
           <motion.div
@@ -179,51 +208,59 @@ const MedalCard: React.FC<{ medal: Medal; onView: () => void }> = ({ medal, onVi
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             className={`absolute inset-0 backdrop-blur-md p-4 flex flex-col justify-center z-20 ${
-              medal.isEarned 
-                ? 'bg-gray-900/90' 
-                : 'bg-gray-800/95'
+              achievement.isEarned ? 'bg-gray-900/90' : 'bg-gray-800/95'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center">
-              <div className="text-4xl mb-2">{medal.icon}</div>
-              <h4 className={`font-bold text-lg mb-1 ${medal.isEarned ? config.textColor : 'text-gray-200'}`}>{medal.name}</h4>
-              <p className="text-xs text-gray-300 mb-3">{medal.description}</p>
+              <div className="text-4xl mb-2">{achievement.icon}</div>
+              <h4 className={`font-bold text-lg mb-1 ${achievement.isEarned ? config.textColor : 'text-gray-200'}`}>
+                {achievement.isHidden && !achievement.isEarned ? '神秘成就' : achievement.name}
+              </h4>
+              <p className="text-xs text-gray-300 mb-3">
+                {achievement.isHidden && !achievement.isEarned ? '达成条件后自动解锁' : achievement.description}
+              </p>
               
-              <div className="space-y-2 text-xs bg-black/20 p-3 rounded-xl">
+              <div className="space-y-2 text-xs bg-black/20 p-3 rounded-xl text-left">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">解锁条件:</span>
-                  <span className={`font-medium ${medal.isEarned ? 'text-green-400' : 'text-yellow-400'}`}>
-                    {medal.requirementType === 'total' ? '累计' : '连续'} {medal.requirement} 次
+                  <span className={`font-medium ${achievement.isEarned ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {getConditionText()}
                   </span>
                 </div>
+                {!achievement.isHidden && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">当前进度:</span>
+                    <span className="text-white font-medium">{achievement.progress}/{achievement.requirement}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">当前进度:</span>
-                  <span className="text-white font-medium">{medal.progress}/{medal.requirement}</span>
+                  <span className="text-gray-400">奖励积分:</span>
+                  <span className="text-yellow-400">+{achievement.pointsReward}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">奖励经验:</span>
-                  <span className="text-yellow-400">+{medal.xpReward} XP</span>
-                </div>
-                {medal.isEarned && medal.earnedAt && (
+                {achievement.honorPoints > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">荣誉分:</span>
+                    <span className="text-purple-400">+{achievement.honorPoints}</span>
+                  </div>
+                )}
+                {achievement.isEarned && achievement.earnedAt && (
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400">获得时间:</span>
-                    <span className="text-green-400">{new Date(medal.earnedAt).toLocaleDateString()}</span>
+                    <span className="text-green-400">{new Date(achievement.earnedAt).toLocaleDateString()}</span>
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 flex gap-2 justify-center">
-                {!medal.isEarned && (
-                  <div className="text-xs text-gray-500 bg-gray-800 px-3 py-1.5 rounded-full">
-                    继续加油，快要达成了！
-                  </div>
-                )}
-              </div>
+              {achievement.isEarned && achievement.privileges && achievement.privileges.length > 0 && (
+                <div className="mt-3 text-xs bg-purple-500/20 text-purple-200 px-3 py-2 rounded-full">
+                  已解锁特权: {achievement.privileges.join(', ')}
+                </div>
+              )}
 
               <button
                 onClick={() => setShowDetails(false)}
-                className="mt-3 text-xs text-gray-500 hover:text-white transition-colors underline"
+                className="mt-4 text-xs text-gray-500 hover:text-white transition-colors underline"
               >
                 点击关闭
               </button>
@@ -235,88 +272,128 @@ const MedalCard: React.FC<{ medal: Medal; onView: () => void }> = ({ medal, onVi
   );
 };
 
-export const MedalWall: React.FC<MedalWallProps> = ({ medals, stats, onMedalViewed }) => {
-  const [activeCategory, setActiveCategory] = useState<'all' | 'task_master' | 'persistence'>('all');
+export const MedalWall: React.FC<MedalWallProps> = ({ achievements, stats, onAchievementViewed }) => {
+  const [activeDimension, setActiveDimension] = useState<'all' | 'accumulation' | 'behavior' | 'surprise'>('all');
+  const [showUnearned, setShowUnearned] = useState(true);
 
-  const filteredMedals = medals.filter(medal => {
-    if (activeCategory === 'all') return true;
-    return medal.type === activeCategory;
+  const filteredAchievements = achievements.filter(a => {
+    if (activeDimension !== 'all' && a.dimension !== activeDimension) return false;
+    if (!showUnearned && !a.isEarned) return false;
+    return true;
   });
 
-  const handleMedalView = (medalId?: string) => {
-    if (onMedalViewed) {
-      onMedalViewed(medalId);
+  const handleView = (achievementId?: string) => {
+    if (onAchievementViewed) {
+      onAchievementViewed(achievementId);
     }
   };
 
+  const dimensionStats = stats.earnedByDimension || {};
+  const totalByDimension = stats.totalByDimension || {};
+
+  const earnedCount = achievements.filter(a => a.isEarned).length;
+  const unearnedCount = achievements.filter(a => !a.isEarned).length;
+
   return (
     <div className="space-y-6">
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-4 text-white shadow-lg">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-2xl p-4 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Trophy className="w-4 h-4" />
             <span className="text-xs font-medium">已获得</span>
           </div>
           <div className="text-2xl font-black">
-            {stats.earned}<span className="text-sm text-purple-200">/{stats.total}</span>
+            {stats.earned}<span className="text-sm text-yellow-200">/{stats.total}</span>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-4 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-4 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="w-4 h-4" />
-            <span className="text-xs font-medium">获得经验</span>
+            <span className="text-xs font-medium">荣誉分</span>
           </div>
           <div className="text-2xl font-black">
-            {stats.totalXPEarned}
+            {stats.honorPoints}
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl p-4 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-4 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
-            <Lock className="w-4 h-4" />
-            <span className="text-xs font-medium">待解锁</span>
+            <Footprints className="w-4 h-4" />
+            <span className="text-xs font-medium">成长脚印</span>
           </div>
           <div className="text-2xl font-black">
-            {stats.total - stats.earned}
+            {dimensionStats.accumulation || 0}<span className="text-sm text-blue-200">/{totalByDimension.accumulation || 0}</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white shadow-lg">
+          <div className="flex items-center gap-2 mb-1">
+            <Flame className="w-4 h-4" />
+            <span className="text-xs font-medium">品质勋章</span>
+          </div>
+          <div className="text-2xl font-black">
+            {dimensionStats.behavior || 0}<span className="text-sm text-orange-200">/{totalByDimension.behavior || 0}</span>
           </div>
         </div>
       </div>
 
-      {/* 分类标签 */}
-      <div className="flex p-1.5 bg-gray-100 rounded-2xl">
-        {[
-          { id: 'all', label: '全部勋章' },
-          { id: 'task_master', label: '任务达人' },
-          { id: 'persistence', label: '毅力系列' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveCategory(tab.id as any)}
-            className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${
-              activeCategory === tab.id
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex p-1.5 bg-gray-100 rounded-2xl overflow-x-auto">
+          {[
+            { id: 'all', label: '全部成就', icon: Trophy },
+            { id: 'accumulation', label: '成长脚印', icon: Footprints },
+            { id: 'behavior', label: '品质勋章', icon: Flame },
+            { id: 'surprise', label: '彩蛋成就', icon: Gift },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveDimension(tab.id as any)}
+              className={`flex-1 py-2.5 px-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                activeDimension === tab.id
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setShowUnearned(!showUnearned)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+            showUnearned
+              ? 'bg-blue-100 text-blue-600 border-2 border-blue-300'
+              : 'bg-gray-100 text-gray-500 border-2 border-gray-200'
+          }`}
+        >
+          {showUnearned ? (
+            <>
+              <Eye className="w-4 h-4" />
+              <span>显示未达成 ({unearnedCount})</span>
+            </>
+          ) : (
+            <>
+              <EyeOff className="w-4 h-4" />
+              <span>隐藏未达成</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {/* 勋章网格 */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {filteredMedals.map((medal) => (
-          <MedalCard
-            key={medal.id}
-            medal={medal}
-            onView={() => handleMedalView(medal.id)}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {filteredAchievements.map((achievement) => (
+          <AchievementCard
+            key={achievement.id}
+            achievement={achievement}
+            onView={() => handleView(achievement.id)}
           />
         ))}
       </div>
 
-      {filteredMedals.length === 0 && (
+      {filteredAchievements.length === 0 && (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -326,8 +403,12 @@ export const MedalWall: React.FC<MedalWallProps> = ({ medals, stats, onMedalView
             <Trophy size={40} className="opacity-30" />
           </div>
           <div className="text-center">
-            <p className="font-bold text-gray-600">暂无此类勋章</p>
-            <p className="text-xs mt-1">快去完成任务解锁更多勋章吧！</p>
+            <p className="font-bold text-gray-600">
+              {showUnearned ? '暂无此类成就' : '已显示所有已获得成就'}
+            </p>
+            <p className="text-xs mt-1">
+              {showUnearned ? '快去完成任务解锁更多成就吧！' : '关闭筛选查看未达成的成就'}
+            </p>
           </div>
         </motion.div>
       )}

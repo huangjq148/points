@@ -3,23 +3,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, Trophy, User, Loader2 } from 'lucide-react';
+import { ChevronRight, Trophy, User, Loader2, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui';
 import MedalWall from '@/components/gamification/MedalWall';
-import AvatarGrowth from '@/components/gamification/AvatarGrowth';
 import request from '@/utils/request';
 
-interface Medal {
+interface Achievement {
   id: string;
-  type: string;
-  level: 'bronze' | 'silver' | 'gold' | 'diamond';
+  dimension: 'accumulation' | 'behavior' | 'surprise';
+  category: string;
+  level: 'bronze' | 'silver' | 'gold' | 'legendary';
   name: string;
   description: string;
   icon: string;
   requirement: number;
-  requirementType: 'total' | 'consecutive';
-  xpReward: number;
-  color: string;
+  conditionType: string;
+  pointsReward: number;
+  honorPoints: number;
+  privileges?: string[];
+  isHidden: boolean;
   isEarned: boolean;
   earnedAt?: string;
   isNew: boolean;
@@ -27,104 +29,57 @@ interface Medal {
   progressPercent: number;
 }
 
-interface MedalStats {
+interface AchievementStats {
   total: number;
   earned: number;
-  newMedals: number;
-  totalXPEarned: number;
+  newAchievements: number;
+  honorPoints: number;
+  earnedByDimension: Record<string, number>;
+  totalByDimension: Record<string, number>;
+  completionRate: number;
 }
 
 export default function AchievementsPage() {
   const { currentUser } = useApp();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'medals' | 'avatar'>('medals');
   const [loading, setLoading] = useState(true);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [stats, setStats] = useState<AchievementStats | null>(null);
 
-  // 勋章墙数据
-  const [medals, setMedals] = useState<Medal[]>([]);
-  const [medalStats, setMedalStats] = useState<MedalStats>({
-    total: 0,
-    earned: 0,
-    newMedals: 0,
-    totalXPEarned: 0,
-  });
-
-  // 角色成长数据
-  const [avatarData, setAvatarData] = useState<any>(null);
-  const [levelInfo, setLevelInfo] = useState<any>(null);
-  const [customization, setCustomization] = useState<any>(null);
-
-  // 获取勋章墙数据
-  const fetchMedals = useCallback(async () => {
+  const fetchAchievements = useCallback(async () => {
     if (!currentUser?.token) return;
     try {
-      const data = await request('/api/gamification/medals');
+      const data = await request('/api/achievements');
       if (data.success) {
-        setMedals(data.data.medals);
-        setMedalStats(data.data.stats);
+        setAchievements(data.data.achievements);
+        setStats(data.data.stats);
       }
     } catch (error) {
-      console.error('获取勋章失败:', error);
+      console.error('获取成就失败:', error);
     }
   }, [currentUser]);
 
-  // 获取角色成长数据
-  const fetchAvatar = useCallback(async () => {
-    if (!currentUser?.token) return;
-    try {
-      const data = await request('/api/gamification/avatar');
-      if (data.success) {
-        setAvatarData(data.data.avatar);
-        setLevelInfo(data.data.levelInfo);
-        setCustomization(data.data.customization);
-      }
-    } catch (error) {
-      console.error('获取角色数据失败:', error);
-    }
-  }, [currentUser]);
-
-  // 加载数据
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchMedals(), fetchAvatar()]);
+      await fetchAchievements();
       setLoading(false);
     };
     void loadData();
-  }, [fetchMedals, fetchAvatar]);
+  }, [fetchAchievements]);
 
-  // 标记勋章为已查看
-  const handleMedalViewed = async (medalId?: string) => {
+  const handleAchievementViewed = async (achievementId?: string) => {
     if (!currentUser?.token) return;
     try {
-      await request('/api/gamification/medals', {
+      await request('/api/achievements', {
         method: 'PUT',
-        body: { medalId },
+        body: { achievementId },
       });
-      // 刷新数据
-      await fetchMedals();
+      await fetchAchievements();
     } catch (error) {
-      console.error('标记勋章失败:', error);
+      console.error('标记成就失败:', error);
     }
   };
-
-  // 更新角色配置
-  const handleUpdateConfig = async (config: { currentSkin?: string; equippedAccessories?: string[]; petName?: string }) => {
-    if (!currentUser?.token) return;
-    try {
-      const data = await request('/api/gamification/avatar', {
-        method: 'PUT',
-        body: config,
-      });
-      if (data.success) {
-        await fetchAvatar();
-      }
-    } catch (error) {
-      console.error('更新角色配置失败:', error);
-    }
-  };
-
-  const navigateTo = (path: string) => router.push(`/child/${path}`);
 
   if (loading) {
     return (
@@ -136,59 +91,55 @@ export default function AchievementsPage() {
     );
   }
 
+  if (!stats) {
+    return (
+      <>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center text-gray-500">
+            <Trophy className="w-16 h-16 mx-auto mb-4 opacity-30" />
+            <p>加载失败</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const formattedStats = {
+    total: stats.total,
+    earned: stats.earned,
+    newAchievements: stats.newAchievements,
+    honorPoints: stats.honorPoints,
+    earnedByDimension: stats.earnedByDimension,
+    totalByDimension: stats.totalByDimension,
+  };
+
   return (
     <>
       <div className="pb-8">
-        {/* 标签切换 */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={() => setActiveTab('medals')}
-            className={`flex-1 py-4 px-4 rounded-2xl font-black transition-all flex items-center justify-center gap-2 shadow-sm ${
-              activeTab === 'medals'
-                ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg'
-                : 'bg-white text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            <Trophy className="w-5 h-5" />
-            勋章墙
-            {medalStats.newMedals > 0 && (
-              <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
-              {medalStats.newMedals}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('avatar')}
-          className={`flex-1 py-4 px-4 rounded-2xl font-black transition-all flex items-center justify-center gap-2 shadow-sm ${
-            activeTab === 'avatar'
-              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-              : 'bg-white text-gray-500 hover:bg-gray-50'
-          }`}
-        >
-          <User className="w-5 h-5" />
-          角色成长
-        </button>
-      </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <Trophy className="w-7 h-7 text-yellow-500" />
+            我的成就
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">完成任务解锁各种成就，获取荣誉勋章！</p>
+        </div>
 
-      {/* 内容区域 */}
-      <div className="min-h-[50vh]">
-        {activeTab === 'medals' ? (
-          <MedalWall
-            medals={medals}
-            stats={medalStats}
-            onMedalViewed={handleMedalViewed}
-          />
-        ) : (
-          avatarData && levelInfo && customization && (
-            <AvatarGrowth
-              avatar={avatarData}
-              levelInfo={levelInfo}
-              customization={customization}
-              onUpdateConfig={handleUpdateConfig}
-            />
-          )
+        {stats.newAchievements > 0 && (
+          <div className="mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-white animate-pulse">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              <span className="font-bold">你有 {stats.newAchievements} 个新成就待查看！</span>
+            </div>
+          </div>
         )}
-      </div>
+
+        <div className="min-h-[50vh]">
+          <MedalWall
+            achievements={achievements}
+            stats={formattedStats}
+            onAchievementViewed={handleAchievementViewed}
+          />
+        </div>
       </div>
     </>
   );

@@ -1,0 +1,360 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { connectDB } from '@/lib/mongodb';
+import { AchievementDefinition } from '@/models/Achievement';
+
+const defaultAchievements = [
+  // 数量累积类（成长脚印）
+  {
+    dimension: 'accumulation',
+    category: 'task_count',
+    level: 'bronze',
+    name: '初出茅庐',
+    description: '累计完成 10 个任务',
+    icon: '🌟',
+    conditionType: 'total_tasks',
+    requirement: 10,
+    pointsReward: 50,
+    honorPoints: 10,
+    isHidden: false,
+    order: 1,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'task_count',
+    level: 'silver',
+    name: '小有所成',
+    description: '累计完成 50 个任务',
+    icon: '⭐',
+    conditionType: 'total_tasks',
+    requirement: 50,
+    pointsReward: 150,
+    honorPoints: 30,
+    isHidden: false,
+    order: 2,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'task_count',
+    level: 'gold',
+    name: '驾轻就熟',
+    description: '累计完成 200 个任务',
+    icon: '🌠',
+    conditionType: 'total_tasks',
+    requirement: 200,
+    pointsReward: 500,
+    honorPoints: 100,
+    isHidden: false,
+    order: 3,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'task_count',
+    level: 'legendary',
+    name: 'Task Master',
+    description: '累计完成 1000 个任务',
+    icon: '👑',
+    conditionType: 'total_tasks',
+    requirement: 1000,
+    pointsReward: 2000,
+    honorPoints: 500,
+    privileges: ['custom_task_icon'],
+    isHidden: false,
+    order: 4,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'points_count',
+    level: 'bronze',
+    name: '百步穿杨',
+    description: '累计获得 500 积分',
+    icon: '🎯',
+    conditionType: 'total_points',
+    requirement: 500,
+    pointsReward: 100,
+    honorPoints: 20,
+    isHidden: false,
+    order: 5,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'points_count',
+    level: 'silver',
+    name: '积分达人',
+    description: '累计获得 2000 积分',
+    icon: '💎',
+    conditionType: 'total_points',
+    requirement: 2000,
+    pointsReward: 300,
+    honorPoints: 60,
+    isHidden: false,
+    order: 6,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'points_count',
+    level: 'gold',
+    name: '积分传奇',
+    description: '累计获得 10000 积分',
+    icon: '🏆',
+    conditionType: 'total_points',
+    requirement: 10000,
+    pointsReward: 1000,
+    honorPoints: 200,
+    isHidden: false,
+    order: 7,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'category_count',
+    level: 'bronze',
+    name: '家务小能手',
+    description: '累计完成 20 次家务类任务',
+    icon: '🧹',
+    conditionType: 'category_tasks',
+    requirement: 20,
+    requirementDetail: { category: 'housework' },
+    pointsReward: 100,
+    honorPoints: 20,
+    isHidden: false,
+    order: 8,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'category_count',
+    level: 'silver',
+    name: '学习之星',
+    description: '累计完成 30 次学习类任务',
+    icon: '📚',
+    conditionType: 'category_tasks',
+    requirement: 30,
+    requirementDetail: { category: 'learning' },
+    pointsReward: 150,
+    honorPoints: 30,
+    isHidden: false,
+    order: 9,
+  },
+  {
+    dimension: 'accumulation',
+    category: 'category_count',
+    level: 'gold',
+    name: '生活达人',
+    description: '累计完成 100 次个人卫生类任务',
+    icon: '✨',
+    conditionType: 'category_tasks',
+    requirement: 100,
+    requirementDetail: { category: 'personal_hygiene' },
+    pointsReward: 300,
+    honorPoints: 60,
+    isHidden: false,
+    order: 10,
+  },
+
+  // 行为表现类（品质勋章）
+  {
+    dimension: 'behavior',
+    category: 'streak_behavior',
+    level: 'bronze',
+    name: '自律达人',
+    description: '连续 7 天在 21:00 前完成所有日常任务',
+    icon: '📅',
+    conditionType: 'consecutive_days',
+    requirement: 7,
+    pointsReward: 200,
+    honorPoints: 50,
+    isHidden: false,
+    order: 11,
+  },
+  {
+    dimension: 'behavior',
+    category: 'streak_behavior',
+    level: 'silver',
+    name: '坚持不懈',
+    description: '连续 21 天完成任务',
+    icon: '🔥',
+    conditionType: 'consecutive_days',
+    requirement: 21,
+    pointsReward: 500,
+    honorPoints: 100,
+    isHidden: false,
+    order: 12,
+  },
+  {
+    dimension: 'behavior',
+    category: 'streak_behavior',
+    level: 'gold',
+    name: '习惯之王',
+    description: '连续 66 天完成任务',
+    icon: '👑',
+    conditionType: 'consecutive_days',
+    requirement: 66,
+    pointsReward: 1500,
+    honorPoints: 300,
+    privileges: ['ultimate_wish'],
+    isHidden: false,
+    order: 13,
+  },
+  {
+    dimension: 'behavior',
+    category: 'time_behavior',
+    level: 'bronze',
+    name: '晨间先锋',
+    description: '连续 3 天在 8:00 前完成“刷牙/整理床铺”',
+    icon: '🌅',
+    conditionType: 'category_streak',
+    requirement: 3,
+    requirementDetail: { category: 'personal_hygiene' },
+    pointsReward: 150,
+    honorPoints: 30,
+    isHidden: false,
+    order: 14,
+  },
+  {
+    dimension: 'behavior',
+    category: 'time_behavior',
+    level: 'silver',
+    name: '早起的鸟',
+    description: '连续 14 天在 7:00 前完成首个任务',
+    icon: '🐦',
+    conditionType: 'early_completion',
+    requirement: 14,
+    pointsReward: 400,
+    honorPoints: 80,
+    isHidden: false,
+    order: 15,
+  },
+  {
+    dimension: 'behavior',
+    category: 'quality_behavior',
+    level: 'bronze',
+    name: '全能战士',
+    description: '同时开启并完成了 3 个不同类别的自定义任务',
+    icon: '⚔️',
+    conditionType: 'multi_category',
+    requirement: 3,
+    pointsReward: 200,
+    honorPoints: 40,
+    isHidden: false,
+    order: 16,
+  },
+  {
+    dimension: 'behavior',
+    category: 'quality_behavior',
+    level: 'gold',
+    name: '超级全能',
+    description: '同时开启并完成了 5 个不同类别的任务',
+    icon: '🦸',
+    conditionType: 'multi_category',
+    requirement: 5,
+    pointsReward: 600,
+    honorPoints: 120,
+    isHidden: false,
+    order: 17,
+  },
+
+  // 惊喜隐藏类（彩蛋成就）
+  {
+    dimension: 'surprise',
+    category: 'hidden_surprise',
+    level: 'bronze',
+    name: '知错就改',
+    description: '任务被家长打回重做后，在 30 分钟内再次提交并审核通过',
+    icon: '🔄',
+    conditionType: 'resubmit_quick',
+    requirement: 1,
+    pointsReward: 100,
+    honorPoints: 25,
+    isHidden: true,
+    order: 18,
+  },
+  {
+    dimension: 'surprise',
+    category: 'hidden_surprise',
+    level: 'silver',
+    name: '快速修正',
+    description: '5 次在 30 分钟内快速修正任务',
+    icon: '⚡',
+    conditionType: 'resubmit_quick',
+    requirement: 5,
+    pointsReward: 300,
+    honorPoints: 60,
+    isHidden: true,
+    order: 19,
+  },
+  {
+    dimension: 'surprise',
+    category: 'hidden_surprise',
+    level: 'gold',
+    name: '意外惊喜',
+    description: '在生日当天完成了一个高难度任务',
+    icon: '🎂',
+    conditionType: 'birthday_task',
+    requirement: 1,
+    pointsReward: 500,
+    honorPoints: 100,
+    isHidden: true,
+    order: 20,
+  },
+  {
+    dimension: 'surprise',
+    category: 'hidden_surprise',
+    level: 'legendary',
+    name: '生日之王',
+    description: '在生日当天完成所有任务',
+    icon: '🎉',
+    conditionType: 'birthday_task',
+    requirement: 3,
+    pointsReward: 1000,
+    honorPoints: 200,
+    isHidden: true,
+    order: 21,
+  },
+];
+
+export async function POST(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const existingCount = await AchievementDefinition.countDocuments();
+    
+    if (existingCount > 0) {
+      return NextResponse.json({
+        success: true,
+        message: `成就数据已存在 (${existingCount} 个)，如需重新初始化请先删除现有数据`,
+        data: { count: existingCount },
+      });
+    }
+
+    await AchievementDefinition.insertMany(defaultAchievements);
+
+    return NextResponse.json({
+      success: true,
+      message: `成功初始化 ${defaultAchievements.length} 个成就`,
+      data: { count: defaultAchievements.length },
+    });
+  } catch (error) {
+    console.error('初始化成就数据失败:', error);
+    return NextResponse.json(
+      { success: false, message: '初始化失败', error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await connectDB();
+
+    await AchievementDefinition.deleteMany({});
+
+    return NextResponse.json({
+      success: true,
+      message: '已清空所有成就数据',
+    });
+  } catch (error) {
+    console.error('清空成就数据失败:', error);
+    return NextResponse.json(
+      { success: false, message: '清空失败', error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
