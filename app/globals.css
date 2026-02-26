@@ -959,7 +959,8 @@ body {
 }
 
 .mobile-nav {
-  padding: 8px 16px;
+  padding: 10px 16px;
+  min-height: 80px;
 }
 
 .mobile-nav::before {
@@ -970,6 +971,11 @@ body {
   right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.2), transparent);
+}
+
+/* Safe area padding for mobile devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 8px);
 }
 
 @media (min-width: 1024px) {

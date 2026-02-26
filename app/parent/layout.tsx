@@ -144,13 +144,15 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
         </main>
 
         {/* Mobile Bottom Navigation - Fixed */}
-        <nav className="lg:hidden mobile-nav fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-50">
-          <TabFilter
-            items={navItems.map(item => ({ key: item.id, label: item.label }))}
-            activeKey={activeTab}
-            onFilterChange={(key) => handleNavClick(key as NavItemId)}
-            className="bg-transparent border-none shadow-none p-0"
-          />
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 z-50 pb-safe">
+          <div className="px-2 py-2">
+            <TabFilter
+              items={navItems.map(item => ({ key: item.id, label: item.label }))}
+              activeKey={activeTab}
+              onFilterChange={(key) => handleNavClick(key as NavItemId)}
+              className="bg-transparent border-none shadow-none p-0"
+            />
+          </div>
         </nav>
       </div>
     </div>

@@ -1,4 +1,17 @@
 import React from "react";
+import { Home, Gift, FileText, Star, Ticket, Trophy, Users, UserCog, BarChart3 } from "lucide-react";
+
+const iconMap: Record<string, React.ElementType> = {
+  home: Home,
+  overview: BarChart3,
+  audit: FileText,
+  tasks: Star,
+  orders: Ticket,
+  rewards: Gift,
+  achievements: Trophy,
+  family: Users,
+  users: UserCog,
+};
 
 export interface TabItem<T extends string = string> {
   key: T;
@@ -25,20 +38,26 @@ export const TabFilter = <T extends string>({
       <div className={`flex justify-between items-center gap-1 ${className}`}>
         {items.map((tab) => {
           const isActive = activeKey === tab.key;
+          const IconComponent = iconMap[tab.key] || Home;
           return (
             <button
               key={tab.key}
               onClick={() => onFilterChange(tab.key)}
               className={`
-                flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs font-medium rounded-xl whitespace-nowrap transition-all duration-200
+                flex-1 flex flex-col items-center justify-center py-3 px-1 text-xs font-bold rounded-2xl whitespace-nowrap transition-all duration-200 min-h-[64px]
                 ${
                   isActive
-                    ? "text-blue-600 bg-blue-50"
+                    ? "text-blue-600 bg-gradient-to-b from-blue-50 to-blue-100 shadow-inner"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 }
               `}
             >
-              {tab.label}
+              <IconComponent 
+                size={22} 
+                className={`mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}
+                strokeWidth={isActive ? 2.5 : 2}
+              />
+              <span className="leading-tight">{tab.label}</span>
             </button>
           );
         })}
