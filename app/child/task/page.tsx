@@ -15,6 +15,17 @@ import DatePicker from '@/components/ui/DatePicker';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
 
+interface AuditRecord {
+  _id?: string;
+  submittedAt: string;
+  photoUrl?: string;
+  submitNote?: string;
+  auditedAt?: string;
+  status?: "approved" | "rejected";
+  auditNote?: string;
+  auditedBy?: string;
+}
+
 interface Task {
   _id: string;
   name: string;
@@ -31,6 +42,7 @@ interface Task {
   createdAt?: string;
   updatedAt?: string;
   imageUrl?: string;
+  auditHistory?: AuditRecord[];
 }
 
 const STATUS_OPTIONS = [
@@ -62,6 +74,7 @@ export default function TaskPage() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [recalling, setRecalling] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -137,11 +150,10 @@ export default function TaskPage() {
       const formData = new FormData();
       formData.append('file', photoFile);
       try {
-        const uploadRes = await fetch('/api/upload', {
+        const uploadData = await request('/api/upload', {
           method: 'POST',
           body: formData,
         });
-        const uploadData = await uploadRes.json();
         if (uploadData.success) photoUrl = uploadData.url;
       } catch (error) {
         console.error('Upload error:', error);
@@ -578,12 +590,18 @@ export default function TaskPage() {
                     <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-2'>
                       任务图片
                     </h4>
-                    <div className='relative aspect-video rounded-xl overflow-hidden mb-6'>
+                    <div 
+                      className='relative aspect-video rounded-xl overflow-hidden mb-6 cursor-pointer hover:opacity-90 transition-opacity'
+                      onClick={() => setPreviewImage(selectedTask.imageUrl!)}
+                    >
                       <img
                         src={selectedTask.imageUrl}
                         alt='Task proof'
                         className='w-full h-full object-cover'
                       />
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity'>
+                        <span className='text-white text-sm font-bold'>🔍 点击查看大图</span>
+                      </div>
                     </div>
                   </>
                 ) : null}
@@ -623,12 +641,18 @@ export default function TaskPage() {
                         <h4 className='text-xs font-black text-blue-400 uppercase tracking-wider mb-2'>
                           📸 提交的照片
                         </h4>
-                        <div className='relative aspect-video rounded-xl overflow-hidden'>
+                        <div 
+                          className='relative aspect-video rounded-xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity'
+                          onClick={() => setPreviewImage(selectedTask.photoUrl!)}
+                        >
                           <img
                             src={selectedTask.photoUrl}
                             alt='Task proof'
                             className='w-full h-full object-cover'
                           />
+                          <div className='absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity'>
+                            <span className='text-white text-sm font-bold'>🔍 点击查看大图</span>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -690,6 +714,100 @@ export default function TaskPage() {
                         </div>
                       )}
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 操作记录 */}
+            {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
+              <div className='mt-6'>
+                <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
+                  <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
+                    📋 操作记录 ({selectedTask.auditHistory.length})
+                  </h4>
+                  <div className='space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar'>
+                    {selectedTask.auditHistory.map((record, index) => (
+                      <div
+                        key={record._id || index}
+                        className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
+                      >
+                        {/* 时间线节点 */}
+                        <div className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+                          record.status === 'approved'
+                            ? 'bg-green-500'
+                            : record.status === 'rejected'
+                            ? 'bg-red-500'
+                            : 'bg-blue-500'
+                        }`} style={{ transform: 'translateX(-50%)' }} />
+
+                        <div className='ml-2'>
+                          <div className='flex items-center gap-2 mb-1'>
+                            <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                              第 {selectedTask.auditHistory!.length - index} 次操作
+                            </span>
+                            {record.status === 'approved' ? (
+                              <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
+                                通过
+                              </span>
+                            ) : record.status === 'rejected' ? (
+                              <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
+                                驳回
+                              </span>
+                            ) : (
+                              <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                审核中
+                              </span>
+                            )}
+                          </div>
+                          <p className='text-xs text-gray-400 mb-1'>
+                            提交: {new Date(record.submittedAt).toLocaleString('zh-CN', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                          {record.auditedAt && (
+                            <p className='text-xs text-gray-400 mb-1'>
+                              审核: {new Date(record.auditedAt).toLocaleString('zh-CN', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
+                          )}
+                          {/* 提交的照片 */}
+                          {record.photoUrl && (
+                            <div className='mt-2'>
+                              <p className='text-xs text-gray-400 mb-1'>提交的照片：</p>
+                              <div 
+                                className='relative w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm cursor-pointer hover:opacity-80 transition-opacity'
+                                onClick={() => setPreviewImage(record.photoUrl!)}
+                              >
+                                <img
+                                  src={record.photoUrl}
+                                  alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
+                                  className='w-full h-full object-cover'
+                                />
+                                <div className='absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity'>
+                                  <span className='text-white text-xs'>🔍</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 审核意见 */}
+                          {record.auditNote && (
+                            <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
+                              <p className='text-xs text-gray-400 mb-1'>家长意见：</p>
+                              <p className='text-xs text-gray-700'>{record.auditNote}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -793,6 +911,24 @@ export default function TaskPage() {
               </div>
             </div>
           </>
+        )}
+      </Modal>
+
+      {/* 图片全屏预览 Modal */}
+      <Modal
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        showCloseButton={true}
+        zIndex={200}
+      >
+        {previewImage && (
+          <div className='flex items-center justify-center rounded-xl overflow-hidden'>
+            <img
+              src={previewImage}
+              alt='预览图片'
+              className='max-w-full max-h-[70vh] object-contain'
+            />
+          </div>
         )}
       </Modal>
     </>

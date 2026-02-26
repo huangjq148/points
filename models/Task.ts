@@ -6,6 +6,20 @@ export type TaskDifficulty = "easy" | "normal" | "hard";
 export type RecurrencePattern = "daily" | "weekly" | "custom_days" | "none";
 export type TaskStatus = "pending" | "submitted" | "approved" | "rejected" | "expired" | "failed";
 
+// 审核记录
+export interface IAuditRecord {
+  _id?: mongoose.Types.ObjectId;
+  // 提交信息
+  submittedAt: Date;
+  photoUrl?: string;
+  submitNote?: string;
+  // 审核信息
+  auditedAt?: Date;
+  status?: "approved" | "rejected";
+  auditNote?: string;
+  auditedBy?: mongoose.Types.ObjectId;
+}
+
 export interface ITask extends Document {
   userId: mongoose.Types.ObjectId;
   childId: mongoose.Types.ObjectId;
@@ -41,6 +55,8 @@ export interface ITask extends Document {
   createdAt: Date;
   updatedAt: Date;
   deadline: Date;
+  // 审核历史记录
+  auditHistory: IAuditRecord[];
 }
 
 const TaskSchema = new Schema<ITask>(
@@ -97,6 +113,18 @@ const TaskSchema = new Schema<ITask>(
     isCompensated: { type: Boolean, default: false },
     compensatedAt: { type: Date },
     deadline: { type: Date },
+    // 审核历史记录
+    auditHistory: [
+      {
+        submittedAt: { type: Date, required: true },
+        photoUrl: { type: String },
+        submitNote: { type: String },
+        auditedAt: { type: Date },
+        status: { type: String, enum: ["approved", "rejected"] },
+        auditNote: { type: String },
+        auditedBy: { type: Schema.Types.ObjectId, ref: "User" },
+      },
+    ],
   },
   { timestamps: true },
 );

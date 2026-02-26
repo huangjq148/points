@@ -1,12 +1,12 @@
 "use client";
 
-import { IDisplayedTask } from "@/app/typings";
+import { IDisplayedTask, AuditRecord } from "@/app/typings";
 import { Button, Input, Modal, Pagination } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
-import { Check, Image as ImageIcon, X, Sparkles, Zap } from "lucide-react";
+import { Check, Image as ImageIcon, X, Sparkles, Zap, History } from "lucide-react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
@@ -91,6 +91,108 @@ export default function AuditPage() {
     setRejectionReason("");
   };
 
+  // 图片全屏查看状态
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // 渲染历史操作记录 - 数据已按时间倒序排列（最新的在最前面）
+  const renderAuditHistory = (task: IDisplayedTask) => {
+    if (!task.auditHistory || task.auditHistory.length === 0) {
+      return (
+        <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl">
+          <History size={24} className="mx-auto mb-2 opacity-50" />
+          <p className="text-sm">暂无历史记录</p>
+        </div>
+      );
+    }
+
+    // 显示所有历史记录（包括待审核的）
+    const allAudits = task.auditHistory;
+
+    if (allAudits.length === 0) {
+      return (
+        <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl">
+          <p className="text-sm">暂无历史操作记录</p>
+        </div>
+      );
+    }
+
+    const totalCount = task.auditHistory.length;
+
+    return (
+      <div className="space-y-4">
+        {allAudits.map((record: AuditRecord, index: number) => (
+          <div
+            key={record._id || index}
+            className="bg-white border border-gray-200 rounded-xl p-4 text-sm"
+          >
+            {/* 提交信息 */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                  第 {totalCount - index} 次操作 · 提交
+                </span>
+                <span className="text-xs text-gray-400">
+                  {formatDate(record.submittedAt)}
+                </span>
+              </div>
+              {record.photoUrl && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 mb-1">提交的照片：</p>
+                  <div 
+                    className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setPreviewImage(record.photoUrl!)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={record.photoUrl}
+                      alt={`第 ${totalCount - index} 次提交的照片`}
+                      className="object-cover w-full h-full"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+                      <span className="text-white text-xs">点击查看</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 审核信息 */}
+            {record.status ? (
+              <div className="border-t border-gray-100 pt-3">
+                <div className="flex items-center gap-2 mb-2">
+                  {record.status === 'approved' ? (
+                    <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                      ✓ 审核通过
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                      ✗ 审核驳回
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-400">
+                    {record.auditedAt && formatDate(record.auditedAt)}
+                  </span>
+                </div>
+                {record.auditNote && (
+                  <div className="bg-gray-50 rounded-lg p-2 mt-2">
+                    <p className="text-xs text-gray-500 mb-1">审核意见：</p>
+                    <p className="text-xs text-gray-700">{record.auditNote}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="border-t border-gray-100 pt-3">
+                <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                  ⏳ 待审核
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -132,6 +234,26 @@ export default function AuditPage() {
           <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
         </div>
       )}
+
+      {/* 图片全屏预览 Modal */}
+      <Modal
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        title="图片预览"
+        className="max-w-4xl"
+      >
+        {previewImage && (
+          <div className="flex items-center justify-center bg-black/5 rounded-xl overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewImage}
+              alt="预览图片"
+              className="max-w-full max-h-[70vh] object-contain"
+            />
+          </div>
+        )}
+      </Modal>
+
       <Modal
         isOpen={!!selectedTask}
         onClose={() => {
@@ -139,6 +261,7 @@ export default function AuditPage() {
           setRejectionReason("");
         }}
         title="任务审核详情"
+        className="max-w-2xl"
         footer={
           selectedTask && (
             <>
@@ -161,6 +284,7 @@ export default function AuditPage() {
       >
         {selectedTask && (
           <div className="space-y-4">
+            {/* 顶部固定区域 - 任务信息 */}
             <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
               <div className="text-5xl">{selectedTask.icon}</div>
               <div>
@@ -175,37 +299,58 @@ export default function AuditPage() {
               </div>
             </div>
 
-            <div>
-              <h4 className="font-bold text-gray-700 mb-2">提交时间</h4>
-              <p className="text-gray-600">{formatDate(selectedTask.submittedAt)}</p>
+            {/* 中间内容区域 */}
+            <div className="space-y-4 py-2">
+              <div>
+                <h4 className="font-bold text-gray-700 mb-2">提交时间</h4>
+                <p className="text-gray-600">{formatDate(selectedTask.submittedAt)}</p>
+              </div>
+
+              {selectedTask.description && (
+                <div>
+                  <h4 className="font-bold text-gray-700 mb-2">任务描述</h4>
+                  <p className="text-gray-600">{selectedTask.description}</p>
+                </div>
+              )}
+
+              {selectedTask.photoUrl ? (
+                <div>
+                  <h4 className="font-bold text-gray-700 mb-2">照片凭证</h4>
+                  <div 
+                    className="relative w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200 cursor-pointer"
+                    onClick={() => setPreviewImage(selectedTask.photoUrl!)}
+                  >
+                    <Image
+                      src={selectedTask.photoUrl}
+                      alt="任务照片"
+                      width={800}
+                      height={600}
+                      className="w-full h-auto object-contain max-h-[30vh]"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
+                      <span className="text-white text-sm">点击查看大图</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-xl text-center text-gray-500 text-sm">无照片凭证</div>
+              )}
+
+              {/* 历史操作记录 */}
+              {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <History size={16} className="text-blue-500" />
+                    <h4 className="font-bold text-gray-700">历史操作记录</h4>
+                  </div>
+                  {renderAuditHistory(selectedTask)}
+                </div>
+              )}
             </div>
 
-            {selectedTask.description && (
-              <div>
-                <h4 className="font-bold text-gray-700 mb-2">任务描述</h4>
-                <p className="text-gray-600">{selectedTask.description}</p>
-              </div>
-            )}
-
-            {selectedTask.photoUrl ? (
-              <div>
-                <h4 className="font-bold text-gray-700 mb-2">照片凭证</h4>
-                <div className="relative w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                  <Image
-                    src={selectedTask.photoUrl}
-                    alt="任务照片"
-                    width={800}
-                    height={600}
-                    className="w-full h-auto object-contain max-h-[60vh]"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="p-4 bg-gray-50 rounded-xl text-center text-gray-500 text-sm">无照片凭证</div>
-            )}
-
-            <div>
-              <h4 className="font-bold text-gray-700 mb-2">审核意见</h4>
+            {/* 底部固定区域 - 审核意见 */}
+            <div className="pt-4 border-t border-gray-100">
+              <h4 className="font-bold text-gray-700 mb-2">本次审核意见</h4>
               <Input
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}

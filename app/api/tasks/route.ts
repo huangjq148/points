@@ -169,42 +169,70 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    // Use aggregation to join with User collection for child details
-    const tasks = await Task.aggregate([
-      { $match: query },
-      { $sort: { updatedAt: -1 } },
-      { $skip: skip },
-      { $limit: limit },
-      {
-        $lookup: {
-          from: "users",
-          localField: "childId",
-          foreignField: "_id",
-          as: "childInfo",
-        },
-      },
-      {
-        $addFields: {
-          childName: {
-            $let: {
-              vars: { firstChild: { $arrayElemAt: ["$childInfo", 0] } },
-              in: { $ifNull: ["$$firstChild.nickname", "$$firstChild.username", "未知"] },
-            },
-          },
-          childAvatar: {
-            $let: {
-              vars: { firstChild: { $arrayElemAt: ["$childInfo", 0] } },
-              in: { $ifNull: ["$$firstChild.avatar", "👶"] },
-            },
-          },
-        },
-      },
-      { $project: { childInfo: 0 } },
-    ]);
+    // 先查询任务
+    const tasks = await Task.find(query)
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // 获取所有 childId
+    const childIds = tasks.map(t => t.childId.toString());
+
+    // 查询孩子信息
+    const children = await User.find({ _id: { $in: childIds } })
+      .select('_id nickname username avatar')
+      .lean();
+
+    // 创建孩子信息映射
+    const childMap = new Map();
+    children.forEach(c => {
+      childMap.set(c._id.toString(), {
+        name: c.nickname || c.username || '未知',
+        avatar: c.avatar || '👶'
+      });
+    });
+
+    // 组装数据
+    const tasksWithChildInfo = tasks.map(task => {
+      const childInfo = childMap.get(task.childId.toString()) || { name: '未知', avatar: '👶' };
+
+      // 处理审核记录，确保日期正确序列化
+      const auditHistory = task.auditHistory ? [...task.auditHistory]
+        .sort((a, b) => {
+          const dateA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+          const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+          return dateB - dateA;
+        })
+        .map(record => ({
+          ...record,
+          _id: record._id?.toString(),
+          submittedAt: record.submittedAt ? new Date(record.submittedAt).toISOString() : undefined,
+          auditedAt: record.auditedAt ? new Date(record.auditedAt).toISOString() : undefined,
+          auditedBy: record.auditedBy?.toString(),
+        })) : [];
+
+      return {
+        ...task,
+        _id: task._id.toString(),
+        childId: task.childId.toString(),
+        userId: task.userId.toString(),
+        childName: childInfo.name,
+        childAvatar: childInfo.avatar,
+        // 日期字段序列化
+        createdAt: task.createdAt ? new Date(task.createdAt).toISOString() : undefined,
+        updatedAt: task.updatedAt ? new Date(task.updatedAt).toISOString() : undefined,
+        submittedAt: task.submittedAt ? new Date(task.submittedAt).toISOString() : undefined,
+        approvedAt: task.approvedAt ? new Date(task.approvedAt).toISOString() : undefined,
+        completedAt: task.completedAt ? new Date(task.completedAt).toISOString() : undefined,
+        deadline: task.deadline ? new Date(task.deadline).toISOString() : undefined,
+        auditHistory,
+      };
+    });
 
     const total = await Task.countDocuments(query);
 
-    return NextResponse.json({ success: true, tasks, total, page, limit });
+    return NextResponse.json({ success: true, tasks: tasksWithChildInfo, total, page, limit });
   } catch (error: unknown) {
     console.error("Get tasks error:", error);
     return NextResponse.json({ success: false, message: (error as Error).message }, { status: 500 });
@@ -274,6 +302,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, message: "缺少taskId" }, { status: 400 });
     }
 
+    // 先获取当前任务
+    const existingTask = await Task.findById(taskId);
+    if (!existingTask) {
+      return NextResponse.json({ success: false, message: "任务不存在" }, { status: 404 });
+    }
+
     const updateData: Partial<ITask> = {};
 
     // Status update logic
@@ -282,11 +316,38 @@ export async function PUT(request: NextRequest) {
       if (status === "submitted") {
         updateData.submittedAt = new Date();
         // Clear rejection reason when re-submitting
-        updateData.rejectionReason = ""; 
+        updateData.rejectionReason = "";
+        // 确保 auditHistory 数组存在
+        if (!existingTask.auditHistory) {
+          existingTask.auditHistory = [];
+        }
+        // 创建新的审核记录并添加到数组
+        existingTask.auditHistory.push({
+          submittedAt: new Date(),
+          photoUrl: photoUrl || undefined,
+          submitNote: undefined,
+        } as any);
+        updateData.auditHistory = existingTask.auditHistory;
       }
-      if (status === "approved") {
-        updateData.approvedAt = new Date();
-        updateData.completedAt = new Date();
+      if (status === "approved" || status === "rejected") {
+        updateData.approvedAt = status === "approved" ? new Date() : undefined;
+        if (status === "approved") {
+          updateData.completedAt = new Date();
+        }
+        // 更新最新的未审核记录
+        if (existingTask.auditHistory && existingTask.auditHistory.length > 0) {
+          // 找到最后一个未审核的记录
+          for (let i = existingTask.auditHistory.length - 1; i >= 0; i--) {
+            if (!existingTask.auditHistory[i].auditedAt) {
+              existingTask.auditHistory[i].auditedAt = new Date();
+              existingTask.auditHistory[i].status = status;
+              existingTask.auditHistory[i].auditNote = rejectionReason || undefined;
+              existingTask.auditHistory[i].auditedBy = new mongoose.Types.ObjectId(authUserId);
+              break;
+            }
+          }
+          updateData.auditHistory = existingTask.auditHistory;
+        }
       }
     }
 
@@ -302,6 +363,7 @@ export async function PUT(request: NextRequest) {
     if (rejectionReason !== undefined) updateData.rejectionReason = rejectionReason;
     if (deadline) updateData.deadline = new Date(deadline);
 
+    // 保存更新后的任务
     const task = await Task.findByIdAndUpdate(taskId, updateData, { new: true });
 
     if (!task) {

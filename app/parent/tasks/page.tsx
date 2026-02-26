@@ -261,11 +261,10 @@ export default function TasksPage() {
       const formData = new FormData();
       formData.append("file", taskPhotoFile);
       try {
-        const uploadRes = await fetch("/api/upload", {
+        const uploadData = await request("/api/upload", {
           method: "POST",
           body: formData,
         });
-        const uploadData = await uploadRes.json();
         if (uploadData.success) {
           uploadedImageUrl = uploadData.url;
         }
@@ -345,11 +344,10 @@ export default function TasksPage() {
       const formData = new FormData();
       formData.append("file", taskPhotoFile);
       try {
-        const uploadRes = await fetch("/api/upload", {
+        const uploadData = await request("/api/upload", {
           method: "POST",
           body: formData,
         });
-        const uploadData = await uploadRes.json();
         if (uploadData.success) {
           uploadedImageUrl = uploadData.url;
         }

@@ -78,7 +78,11 @@ export default function Modal({
               </div>
             )}
 
-            <div className="max-h-[60vh] overflow-y-auto hide-scrollbar pr-2">{children}</div>
+            <div 
+              className="max-h-[60vh] overflow-y-auto hide-scrollbar pr-2"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+            >{children}</div>
 
             {footer && <div className="pt-4 mt-4 border-t border-gray-100 flex justify-end gap-3">{footer}</div>}
           </motion.div>

@@ -12,6 +12,18 @@ export interface PlainReward {
   updatedAt: string;
 }
 
+// 审核记录
+export interface AuditRecord {
+  _id?: string;
+  submittedAt: string;
+  photoUrl?: string;
+  submitNote?: string;
+  auditedAt?: string;
+  status?: "approved" | "rejected";
+  auditNote?: string;
+  auditedBy?: string;
+}
+
 export interface PlainTask {
   _id: string;
   userId: string;
@@ -31,6 +43,8 @@ export interface PlainTask {
   deadline?: string;
   createdAt: string;
   updatedAt: string;
+  // 审核历史记录
+  auditHistory?: AuditRecord[];
 }
 
 export interface PlainOrder {

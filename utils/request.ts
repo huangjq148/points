@@ -12,18 +12,31 @@ export default async function request(url: string, options?: RequestOptions) {
     finalUrl += (finalUrl.includes('?') ? '&' : '?') + searchParams.toString();
   }
 
+  const isFormData = options?.body instanceof FormData;
+
   const fetchOptions: RequestInit = {
     method: options?.method,
     signal: options?.signal,
     headers: {
-      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options?.headers,
     },
   };
 
+  // 只有非 FormData 请求才设置 Content-Type
+  if (!isFormData) {
+    fetchOptions.headers = {
+      ...fetchOptions.headers,
+      "Content-Type": "application/json",
+    };
+  }
+
   if (options?.body) {
-    fetchOptions.body = JSON.stringify(options.body);
+    if (isFormData) {
+      fetchOptions.body = options.body as FormData;
+    } else {
+      fetchOptions.body = JSON.stringify(options.body);
+    }
   }
 
   const res = await fetch(finalUrl, fetchOptions);
