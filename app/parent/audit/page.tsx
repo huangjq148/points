@@ -1,7 +1,6 @@
 "use client";
 
 import { IDisplayedTask } from "@/app/typings";
-import Layout from "@/components/Layouts";
 import { Button, Input, Modal, Pagination } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
@@ -93,7 +92,7 @@ export default function AuditPage() {
   };
 
   return (
-    <Layout>
+    <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-800">任务审核</h2>
         <div className="w-40">
@@ -217,7 +216,7 @@ export default function AuditPage() {
           </div>
         )}
       </Modal>
-    </Layout>
+    </>
   );
 }
 

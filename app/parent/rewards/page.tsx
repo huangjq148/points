@@ -1,7 +1,6 @@
 "use client";
 
 import { PlainReward } from "@/app/typings";
-import Layout from "@/components/Layouts";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -145,7 +144,7 @@ export default function RewardsPage() {
   };
 
   return (
-    <Layout>
+    <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-gray-800">积分商城</h2>
         <Button onClick={() => setShowAddReward(true)} className="flex items-center gap-2">
@@ -369,6 +368,6 @@ export default function RewardsPage() {
         confirmText="删除"
         type="danger"
       />
-    </Layout>
+    </>
   );
 }

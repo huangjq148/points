@@ -1,19 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { useApp } from '@/context/AppContext';
-import { useRouter } from 'next/navigation';
-import {
-  ChevronRight,
-  Trophy,
-  User,
-  Loader2,
-  Sparkles,
-  Star,
-} from 'lucide-react';
-import { Button } from '@/components/ui';
 import MedalWall from '@/components/gamification/MedalWall';
+import { useApp } from '@/context/AppContext';
 import request from '@/utils/request';
+import { Loader2, Sparkles, Trophy } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Achievement {
   id: string;

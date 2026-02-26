@@ -1,6 +1,5 @@
 "use client";
 
-import Layout from "@/components/Layouts";
 import { useEffect, useState } from "react";
 import request from "@/utils/request";
 import { TrendingUp, Clock, CheckCircle, XCircle, Star, Target, Gift, Users } from "lucide-react";
@@ -96,8 +95,7 @@ export default function OverviewPage() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -231,6 +229,5 @@ export default function OverviewPage() {
           </div>
         </div>
       </div>
-    </Layout>
   );
 }

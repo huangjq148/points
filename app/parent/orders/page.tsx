@@ -1,7 +1,6 @@
 "use client";
 
 import { IDisplayedOrder, PlainOrder } from "@/app/typings";
-import Layout from "@/components/Layouts";
 import { Button, TabFilter } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
@@ -105,7 +104,7 @@ export default function OrdersPage() {
   ] as const;
 
   return (
-    <Layout>
+    <>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -254,6 +253,6 @@ export default function OrdersPage() {
           )}
         </>
       )}
-    </Layout>
+    </>
   );
 }

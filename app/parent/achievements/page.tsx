@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
-import Layout from '@/components/Layouts';
 import Select from '@/components/ui/Select';
 import { Trophy, Medal, Star, Target, Flame, Footprints, Gift, Loader2, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -139,8 +138,7 @@ export default function ParentAchievementsPage() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -355,6 +353,5 @@ export default function ParentAchievementsPage() {
           </div>
         ) : null}
       </div>
-    </Layout>
   );
 }

@@ -42,7 +42,6 @@ export interface PlainTask {
   updatedAt: string;
 }
 
-import Layout from "@/components/Layouts";
 import request from "@/utils/request";
 // import { formatDate } from "@/utils/date";
 // import Layout from '@/app/layout';
@@ -488,9 +487,8 @@ export default function TasksPage() {
   };
 
   return (
-    <Layout>
-      <>
-        <div className="flex items-center justify-between mb-8">
+    <>
+      <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {selectedChildTaskFilter === "all"
@@ -624,7 +622,6 @@ export default function TasksPage() {
           setEditingTemplate={setEditingTemplate}
           onUpdate={handleUpdateTemplate}
         />
-      </>
-    </Layout>
+    </>
   );
 }

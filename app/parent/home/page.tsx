@@ -4,7 +4,6 @@ import Button from "@/components/ui/Button";
 import { User, useApp } from "@/context/AppContext";
 import { Check, ChevronRight, Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Layout from "@/components/Layouts";
 
 export default function HomePage() {
   const router = useRouter();
@@ -15,9 +14,8 @@ export default function HomePage() {
   const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
 
   return (
-    <Layout>
-      <>
-        <div className="grid grid-cols-2 gap-4 mb-6">
+    <>
+      <div className="grid grid-cols-2 gap-4 mb-6">
           <div
             className="card cursor-pointer hover:scale-[1.02] transition-transform"
             onClick={() => {
@@ -113,7 +111,6 @@ export default function HomePage() {
             )}
           </div>
         </div>
-      </>
-    </Layout>
+    </>
   );
 }

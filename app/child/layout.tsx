@@ -361,7 +361,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         message='确定要退出当前账号吗？'
         confirmText='退出'
         cancelText='取消'
-        type='danger'
+        // type='danger'
       />
 
       <header

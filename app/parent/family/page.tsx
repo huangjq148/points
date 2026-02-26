@@ -1,7 +1,6 @@
 "use client";
 
 import { FamilyMember } from "@/app/typings";
-import Layout from "@/components/Layouts";
 import { Button, DataTable } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -225,31 +224,29 @@ export default function FamilyPage() {
   }), [page, total, limit]);
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">家庭成员管理 </h2>
-          <div className="flex gap-2">
-            {!currentUser?.familyId ? (
-              <Button onClick={handleCreateFamily} className="flex items-center gap-2">
-                <Users size={20} /> 创建家庭
-              </Button>
-            ) : (
-              <Button onClick={() => setShowInviteModal(true)} variant="success" className="flex items-center gap-2">
-                <Users size={20} /> 邀请成员
-              </Button>
-            )}
-          </div>
+    <>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">家庭成员管理 </h2>
+        <div className="flex gap-2">
+          {!currentUser?.familyId ? (
+            <Button onClick={handleCreateFamily} className="flex items-center gap-2">
+              <Users size={20} /> 创建家庭
+            </Button>
+          ) : (
+            <Button onClick={() => setShowInviteModal(true)} variant="success" className="flex items-center gap-2">
+              <Users size={20} /> 邀请成员
+            </Button>
+          )}
         </div>
-
-        <DataTable
-          columns={columns}
-          dataSource={familyMembers}
-          actionColumn={actionColumn}
-          pageOptions={pageOptions}
-          minWidth={600}
-        />
       </div>
+
+      <DataTable
+        columns={columns}
+        dataSource={familyMembers}
+        actionColumn={actionColumn}
+        pageOptions={pageOptions}
+        minWidth={600}
+      />
 
       <Modal isOpen={showEditAccountModal} onClose={() => setShowEditAccountModal(false)} title="编辑账号">
         <div className="space-y-4">
@@ -357,6 +354,6 @@ export default function FamilyPage() {
           </div>
         </div>
       </Modal>
-    </Layout>
+    </>
   );
 }

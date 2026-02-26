@@ -1,7 +1,6 @@
 "use client";
 
 import { FamilyMember } from "@/app/typings";
-import Layout from "@/components/Layouts";
 import { Button, DataTable } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
@@ -227,7 +226,7 @@ export default function UsersPage() {
   }), [page, total, limit]);
 
   return (
-    <Layout>
+    <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">用户管理</h2>
@@ -378,6 +377,6 @@ export default function UsersPage() {
           </div>
         </div>
       </Modal>
-    </Layout>
+    </>
   );
 }
