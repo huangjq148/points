@@ -15,6 +15,8 @@ interface ModalProps {
   showCloseButton?: boolean;
   zIndex?: number;
   className?: string;
+  /** 禁用 Modal 内部滚动，由内容自己控制 */
+  noInternalScroll?: boolean;
 }
 
 export default function Modal({
@@ -27,6 +29,7 @@ export default function Modal({
   showCloseButton = true,
   zIndex = 100,
   className = "",
+  noInternalScroll = false,
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -79,7 +82,7 @@ export default function Modal({
             )}
 
             <div 
-              className="max-h-[60vh] overflow-y-auto hide-scrollbar pr-2"
+              className={noInternalScroll ? '' : 'max-h-[60vh] overflow-y-auto hide-scrollbar pr-2'}
               onWheel={(e) => e.stopPropagation()}
               onTouchMove={(e) => e.stopPropagation()}
             >{children}</div>

@@ -79,7 +79,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
     const totalCount = history.length;
 
     return (
-      <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+      <div className="space-y-4">
         {history.map((record: AuditRecord, index: number) => (
           <div
             key={record._id || index}
@@ -296,8 +296,8 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
       <Modal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        title="任务详情"
         width={600}
+        noInternalScroll={true}
         footer={
           <div className="flex gap-3 w-full">
             <Button
@@ -321,12 +321,12 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
           </div>
         }
       >
-        <div className="space-y-6 py-2">
-          {/* 任务基本信息 */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+        <div className="space-y-6">
+          {/* 任务基本信息 - 固定在顶部 */}
+          <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
             <div className="text-5xl">{task.icon}</div>
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-gray-800">{task.name}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-bold text-gray-800 truncate">{task.name}</h3>
               <p className="text-blue-600 font-bold">+{task.points} 积分</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm text-gray-500">执行人:</span>
@@ -335,10 +335,13 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                 </span>
               </div>
             </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-bold ${styles.statusClass}`}>
+            <div className={`px-3 py-1 rounded-full text-xs font-bold ${styles.statusClass} flex-shrink-0`}>
               {styles.statusLabel}
             </div>
           </div>
+
+          {/* 滚动区域 */}
+          <div className="space-y-6 max-h-[40vh] overflow-y-auto hide-scrollbar pr-1">
 
           {/* 任务描述 */}
           {task.description && (
@@ -387,6 +390,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             </div>
             {renderAuditHistory()}
           </div>
+          </div>{/* 滚动区域结束 */}
         </div>
       </Modal>
     </>

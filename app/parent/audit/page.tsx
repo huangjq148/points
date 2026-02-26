@@ -229,15 +229,15 @@ export default function AuditPage() {
         </div>
       )}
 
-      {/* 图片全屏预览 Modal */}
+      {/* 任务审核详情 Modal */}
       <Modal
         isOpen={!!selectedTask}
         onClose={() => {
           setSelectedTask(null);
           setRejectionReason("");
         }}
-        title="任务审核详情"
-        className="max-w-2xl"
+        width={600}
+        noInternalScroll={true}
         footer={
           selectedTask && (
             <>
@@ -261,10 +261,10 @@ export default function AuditPage() {
         {selectedTask && (
           <div className="space-y-4">
             {/* 顶部固定区域 - 任务信息 */}
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
               <div className="text-5xl">{selectedTask.icon}</div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">{selectedTask.name}</h3>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-bold text-gray-800 truncate">{selectedTask.name}</h3>
                 <p className="text-blue-600 font-bold">+{selectedTask.points} 积分</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm text-gray-500">申请人:</span>
@@ -275,8 +275,8 @@ export default function AuditPage() {
               </div>
             </div>
 
-            {/* 中间内容区域 */}
-            <div className="space-y-4 py-2">
+            {/* 滚动内容区域 */}
+            <div className="max-h-[35vh] overflow-y-auto hide-scrollbar pr-1 space-y-4">
               <div>
                 <h4 className="font-bold text-gray-700 mb-2">提交时间</h4>
                 <p className="text-gray-600">{formatDate(selectedTask.submittedAt)}</p>
