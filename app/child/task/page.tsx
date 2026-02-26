@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Calendar,
 } from 'lucide-react';
-import { Button, Modal } from '@/components/ui';
+import { Button, Modal, Image } from '@/components/ui';
 import DatePicker from '@/components/ui/DatePicker';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -74,7 +74,7 @@ export default function TaskPage() {
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [recalling, setRecalling] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -590,18 +590,15 @@ export default function TaskPage() {
                     <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-2'>
                       任务图片
                     </h4>
-                    <div 
-                      className='relative aspect-video rounded-xl overflow-hidden mb-6 cursor-pointer hover:opacity-90 transition-opacity'
-                      onClick={() => setPreviewImage(selectedTask.imageUrl!)}
-                    >
-                      <img
+                    <div className='relative aspect-video rounded-xl overflow-hidden mb-6'>
+                      <Image
                         src={selectedTask.imageUrl}
-                        alt='Task proof'
+                        alt='任务图片'
                         className='w-full h-full object-cover'
+                        enableZoom={true}
+                        zoomHint='点击查看大图'
+                        containerClassName='w-full h-full'
                       />
-                      <div className='absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity'>
-                        <span className='text-white text-sm font-bold'>🔍 点击查看大图</span>
-                      </div>
                     </div>
                   </>
                 ) : null}
@@ -641,18 +638,15 @@ export default function TaskPage() {
                         <h4 className='text-xs font-black text-blue-400 uppercase tracking-wider mb-2'>
                           📸 提交的照片
                         </h4>
-                        <div 
-                          className='relative aspect-video rounded-xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity'
-                          onClick={() => setPreviewImage(selectedTask.photoUrl!)}
-                        >
-                          <img
+                        <div className='relative aspect-video rounded-xl overflow-hidden'>
+                          <Image
                             src={selectedTask.photoUrl}
-                            alt='Task proof'
+                            alt='提交的照片'
                             className='w-full h-full object-cover'
+                            enableZoom={true}
+                            zoomHint='点击查看大图'
+                            containerClassName='w-full h-full'
                           />
-                          <div className='absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity'>
-                            <span className='text-white text-sm font-bold'>🔍 点击查看大图</span>
-                          </div>
                         </div>
                       </div>
                     )}
@@ -782,18 +776,14 @@ export default function TaskPage() {
                           {record.photoUrl && (
                             <div className='mt-2'>
                               <p className='text-xs text-gray-400 mb-1'>提交的照片：</p>
-                              <div 
-                                className='relative w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm cursor-pointer hover:opacity-80 transition-opacity'
-                                onClick={() => setPreviewImage(record.photoUrl!)}
-                              >
-                                <img
+                              <div className='w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
+                                <Image
                                   src={record.photoUrl}
                                   alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
                                   className='w-full h-full object-cover'
+                                  enableZoom={true}
+                                  containerClassName='w-full h-full'
                                 />
-                                <div className='absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity'>
-                                  <span className='text-white text-xs'>🔍</span>
-                                </div>
                               </div>
                             </div>
                           )}
@@ -880,12 +870,14 @@ export default function TaskPage() {
               >
                 {photoPreview ? (
                   <div className='relative aspect-video rounded-2xl overflow-hidden'>
-                    <img
+                    <Image
                       src={photoPreview}
-                      alt='Task proof'
+                      alt='照片预览'
                       className='w-full h-full object-cover'
+                      enableZoom={false}
+                      containerClassName='w-full h-full'
                     />
-                    <div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity'>
+                    <div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
                       <span className='bg-white/95 backdrop-blur-sm px-5 py-2.5 rounded-full text-sm font-bold text-gray-800'>
                         📷 更换照片
                       </span>
@@ -915,22 +907,6 @@ export default function TaskPage() {
       </Modal>
 
       {/* 图片全屏预览 Modal */}
-      <Modal
-        isOpen={!!previewImage}
-        onClose={() => setPreviewImage(null)}
-        showCloseButton={true}
-        zIndex={200}
-      >
-        {previewImage && (
-          <div className='flex items-center justify-center rounded-xl overflow-hidden'>
-            <img
-              src={previewImage}
-              alt='预览图片'
-              className='max-w-full max-h-[70vh] object-contain'
-            />
-          </div>
-        )}
-      </Modal>
     </>
   );
 }

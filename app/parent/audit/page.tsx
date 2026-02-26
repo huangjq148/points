@@ -1,14 +1,13 @@
 "use client";
 
 import { IDisplayedTask, AuditRecord } from "@/app/typings";
-import { Button, Input, Modal, Pagination } from "@/components/ui";
+import { Button, Input, Modal, Pagination, Image as ZoomImage } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
 import { Check, Image as ImageIcon, X, Sparkles, Zap, History } from "lucide-react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 export default function AuditPage() {
@@ -92,7 +91,7 @@ export default function AuditPage() {
   };
 
   // 图片全屏查看状态
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
 
   // 渲染历史操作记录 - 数据已按时间倒序排列（最新的在最前面）
   const renderAuditHistory = (task: IDisplayedTask) => {
@@ -138,19 +137,14 @@ export default function AuditPage() {
               {record.photoUrl && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-500 mb-1">提交的照片：</p>
-                  <div 
-                    className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setPreviewImage(record.photoUrl!)}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                  <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                    <ZoomImage
                       src={record.photoUrl}
                       alt={`第 ${totalCount - index} 次提交的照片`}
                       className="object-cover w-full h-full"
+                      enableZoom={true}
+                      containerClassName="w-full h-full"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
-                      <span className="text-white text-xs">点击查看</span>
-                    </div>
                   </div>
                 </div>
               )}
@@ -237,24 +231,6 @@ export default function AuditPage() {
 
       {/* 图片全屏预览 Modal */}
       <Modal
-        isOpen={!!previewImage}
-        onClose={() => setPreviewImage(null)}
-        title="图片预览"
-        className="max-w-4xl"
-      >
-        {previewImage && (
-          <div className="flex items-center justify-center bg-black/5 rounded-xl overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={previewImage}
-              alt="预览图片"
-              className="max-w-full max-h-[70vh] object-contain"
-            />
-          </div>
-        )}
-      </Modal>
-
-      <Modal
         isOpen={!!selectedTask}
         onClose={() => {
           setSelectedTask(null);
@@ -316,20 +292,15 @@ export default function AuditPage() {
               {selectedTask.photoUrl ? (
                 <div>
                   <h4 className="font-bold text-gray-700 mb-2">照片凭证</h4>
-                  <div 
-                    className="relative w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200 cursor-pointer"
-                    onClick={() => setPreviewImage(selectedTask.photoUrl!)}
-                  >
-                    <Image
+                  <div className="relative w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                    <ZoomImage
                       src={selectedTask.photoUrl}
                       alt="任务照片"
-                      width={800}
-                      height={600}
                       className="w-full h-auto object-contain max-h-[30vh]"
+                      enableZoom={true}
+                      zoomHint="点击查看大图"
+                      containerClassName="w-full"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 hover:opacity-100 transition-opacity">
-                      <span className="text-white text-sm">点击查看大图</span>
-                    </div>
                   </div>
                 </div>
               ) : (

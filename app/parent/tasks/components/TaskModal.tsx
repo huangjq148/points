@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Modal, Select, DatePicker } from "@/components/ui";
+import { Button, Modal, Select, DatePicker, Image } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import { User } from "@/context/AppContext";
 import { Camera } from "lucide-react";
@@ -126,7 +126,13 @@ export default function TaskModal({
           </label>
           {photoPreview && (
             <div className="mt-3 relative rounded-xl overflow-hidden border border-gray-100 shadow-sm">
-              <img src={photoPreview} alt="预览" className="w-full h-32 object-cover" />
+              <Image
+                src={photoPreview}
+                alt="预览"
+                className="w-full h-32 object-cover"
+                enableZoom={false}
+                containerClassName="w-full h-32"
+              />
             </div>
           )}
         </div>

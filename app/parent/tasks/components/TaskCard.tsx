@@ -1,9 +1,8 @@
 import { PlainTask, AuditRecord } from "@/app/typings";
 import { Clock, Edit2, Trash2, Eye, X, Check, Image as ImageIcon, History } from "lucide-react";
-import { Button, Modal } from "@/components/ui";
+import { Button, Modal, Image as ZoomImage } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import { useState } from "react";
-import Image from "next/image";
 
 export interface IDisplayedTask extends PlainTask {
   childName: string;
@@ -117,19 +116,15 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                 {record.photoUrl ? (
                   <div className="mt-3">
                     <p className="text-xs text-gray-500 mb-2 font-medium">孩子提交的凭证照片：</p>
-                    <div className="relative w-full max-w-[200px] h-40 rounded-xl overflow-hidden border-2 border-blue-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                    <div className="w-full max-w-[200px] h-40 rounded-xl overflow-hidden border-2 border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                      <ZoomImage
                         src={record.photoUrl}
                         alt={`第 ${totalCount - index} 次提交的照片凭证`}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform"
-                        onClick={() => window.open(record.photoUrl, '_blank')}
+                        className="object-cover w-full h-full"
+                        enableZoom={true}
+                        zoomHint="点击查看大图"
+                        containerClassName="w-full h-full"
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                        <span className="text-white opacity-0 group-hover:opacity-100 text-xs font-medium bg-black/50 px-2 py-1 rounded-full transition-opacity">
-                          点击查看大图
-                        </span>
-                      </div>
                     </div>
                   </div>
                 ) : (
@@ -358,7 +353,13 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             <div>
               <h4 className="font-bold text-gray-700 mb-2">任务配图</h4>
               <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
-                <Image src={task.imageUrl} alt="任务配图" fill className="object-cover" />
+                <ZoomImage
+                  src={task.imageUrl}
+                  alt="任务配图"
+                  className="object-cover w-full h-full"
+                  enableZoom={true}
+                  containerClassName="w-full h-full"
+                />
               </div>
             </div>
           ) : null}
