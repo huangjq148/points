@@ -77,7 +77,7 @@ export default function FeatureGrid({ completedTasksCount, earnedMedalsCount, on
       title: '探索日志', 
       description: `本周完成 ${completedTasksCount} 项任务`, 
       gradient: 'from-blue-500 via-indigo-500 to-purple-600',
-      path: '/child/task'
+      path: '/child/task?filter=thisWeek'
     },
     { 
       icon: '🏅', 

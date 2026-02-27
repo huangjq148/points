@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Search,
@@ -55,6 +56,7 @@ const STATUS_OPTIONS = [
 
 export default function TaskPage() {
   const { currentUser } = useApp();
+  const searchParams = useSearchParams();
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,6 +68,7 @@ export default function TaskPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [initialFilterApplied, setInitialFilterApplied] = useState(false);
 
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -110,9 +113,35 @@ export default function TaskPage() {
     [currentUser, limit, statusFilter, searchName, startDate, endDate],
   );
 
+  // 处理从探索日志进入时的本周筛选
   useEffect(() => {
-    fetchTasks(1);
-  }, []);
+    const filter = searchParams.get('filter');
+    if (filter === 'thisWeek' && !initialFilterApplied) {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+      const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diffToMonday);
+      monday.setHours(0, 0, 0, 0);
+      
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+      
+      setStartDate(monday);
+      setEndDate(sunday);
+      setInitialFilterApplied(true);
+    }
+  }, [searchParams, initialFilterApplied]);
+
+  // 当日期筛选条件变化时，重新获取任务
+  useEffect(() => {
+    if (initialFilterApplied || !searchParams.get('filter')) {
+      fetchTasks(1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, endDate, initialFilterApplied, fetchTasks]);
 
   const handleSearch = () => {
     fetchTasks(1);

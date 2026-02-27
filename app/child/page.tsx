@@ -356,6 +356,8 @@ export default function ChildHome() {
   const completedTasks = filteredTasks.filter((t) => t.status === 'approved');
 
   const earnedMedals = medals.filter((m) => m.isEarned).slice(0, 4);
+  const unearnedMedals = medals.filter((m) => !m.isEarned).slice(0, Math.max(0, 4 - earnedMedals.length));
+  const displayMedals = [...earnedMedals, ...unearnedMedals];
 
   const maxStreak = tasks.reduce(
     (max, task) => Math.max(max, task.streakCount || 0),
@@ -881,7 +883,7 @@ export default function ChildHome() {
 
           <FeatureGrid
             completedTasksCount={completedTasks.length}
-            earnedMedalsCount={earnedMedals.length}
+            earnedMedalsCount={medals.filter((m) => m.isEarned).length}
             onNavigate={handleNavigate}
           />
 
@@ -891,15 +893,19 @@ export default function ChildHome() {
               <span>🎖️</span> 最近获得
             </h3>
             <div className='flex gap-3 overflow-x-auto hide-scrollbar pb-2'>
-              {earnedMedals.map((medal) => (
+              {displayMedals.map((medal) => (
                 <div
                   key={medal.id}
-                  className='flex-shrink-0 w-16 h-16 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 border-white transform hover:scale-110 transition-transform cursor-pointer relative'
+                  className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 border-white transform hover:scale-110 transition-transform cursor-pointer ${
+                    medal.isEarned
+                      ? 'bg-gradient-to-br from-yellow-300 to-yellow-500'
+                      : 'bg-gray-200 grayscale opacity-50'
+                  }`}
                 >
                   {medal.icon}
                 </div>
               ))}
-              {[...Array(Math.max(0, 4 - earnedMedals.length))].map((_, i) => (
+              {[...Array(Math.max(0, 4 - displayMedals.length))].map((_, i) => (
                 <div
                   key={`empty-${i}`}
                   className='flex-shrink-0 w-16 h-16 bg-gray-200 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 border-white grayscale opacity-50'

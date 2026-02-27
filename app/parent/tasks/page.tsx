@@ -5,9 +5,10 @@ import Select from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
 import AlertModal from "@/components/AlertModal";
-import { Edit2, Plus } from "lucide-react";
+import { Edit2, Plus, LayoutGrid, Table2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import TaskCard, { IDisplayedTask } from "./components/TaskCard";
+import TaskTable from "./components/TaskTable";
 import TemplateManager from "./components/TemplateManager";
 import EditTemplateModal from "./components/EditTemplateModal";
 import TaskModal, { TaskFormData } from "./components/TaskModal";
@@ -103,6 +104,9 @@ export default function TasksPage() {
   const [showEditTemplateModal, setShowEditTemplateModal] = useState(false);
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
+  
+  // 视图切换状态: 'card' | 'table'
+  const [viewMode, setViewMode] = useState<"card" | "table">("card");
 
   // 初始化模板数据
   useEffect(() => {
@@ -546,29 +550,68 @@ export default function TasksPage() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <TabFilter
-          items={TAB_ITEMS}
-          activeKey={activeTaskFilter}
-          onFilterChange={(key) => onFilterChange("status", key)}
-          className="mb-8"
-        />
-
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6 overflow-y-auto custom-scrollbar p-1 pb-8"
-          style={{ maxHeight: "calc(100vh - 270px)" }}
-        >
-          {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
-          ))}
-          {tasks.length === 0 && <div className="text-center py-12 text-gray-400 col-span-full">暂无任务</div>}
-
-          {total > limit && (
-            <div className="col-span-full mt-4">
-              <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
-            </div>
-          )}
+        {/* Tabs 和视图切换 */}
+        <div className="flex items-center justify-between mb-8">
+          <TabFilter
+            items={TAB_ITEMS}
+            activeKey={activeTaskFilter}
+            onFilterChange={(key) => onFilterChange("status", key)}
+          />
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-shrink-0 ml-4">
+            <button
+              onClick={() => setViewMode("card")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                viewMode === "card"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <LayoutGrid size={16} />
+              卡片
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                viewMode === "table"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <Table2 size={16} />
+              表格
+            </button>
+          </div>
         </div>
+
+        {/* 任务列表 - 根据视图模式切换 */}
+        {viewMode === "card" ? (
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6 overflow-y-auto custom-scrollbar p-1 pb-8"
+            style={{ maxHeight: "calc(100vh - 280px)" }}
+          >
+            {tasks.map((task) => (
+              <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
+            ))}
+            {tasks.length === 0 && <div className="text-center py-12 text-gray-400 col-span-full">暂无任务</div>}
+
+            {total > limit && (
+              <div className="col-span-full mt-4">
+                <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 280px)" }}>
+            <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
+            {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
+
+            {total > limit && (
+              <div className="mt-4">
+                <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Task Modal */}
         <TaskModal
