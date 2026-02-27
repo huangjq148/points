@@ -14,10 +14,12 @@ import {
   XCircle,
   AlertCircle,
   Calendar,
+  Power,
 } from "lucide-react";
 import request from "@/utils/request";
 import ConfirmModal from "@/components/ConfirmModal";
 import AlertModal from "@/components/AlertModal";
+import CreateJobModal, { JobFormData } from "./components/CreateJobModal";
 
 interface ScheduledJob {
   _id: string;
@@ -85,7 +87,7 @@ const FREQUENCY_LABELS: Record<string, string> = {
 };
 
 export default function ScheduledJobsPage() {
-  const { currentUser } = useApp();
+  const { currentUser, childList } = useApp();
   const [jobs, setJobs] = useState<ScheduledJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [executingJobId, setExecutingJobId] = useState<string | null>(null);
@@ -109,6 +111,61 @@ export default function ScheduledJobsPage() {
     jobId: null,
     action: null,
   });
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [cronServerRunning, setCronServerRunning] = useState(false);
+  const [cronServerStatus, setCronServerStatus] = useState<"checking" | "running" | "stopped">("checking");
+
+  // 检查 cron 服务状态
+  const checkCronServerStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/cron/control');
+      if (response.ok) {
+        const data = await response.json();
+        setCronServerRunning(data.running);
+        setCronServerStatus(data.running ? "running" : "stopped");
+      } else {
+        setCronServerRunning(false);
+        setCronServerStatus("stopped");
+      }
+    } catch (error) {
+      setCronServerRunning(false);
+      setCronServerStatus("stopped");
+    }
+  }, []);
+
+  // 启动/停止 cron 服务
+  const toggleCronServer = async () => {
+    try {
+      const action = cronServerRunning ? "stop" : "start";
+      const response = await fetch('/api/cron/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCronServerRunning(data.running);
+        setCronServerStatus(data.running ? "running" : "stopped");
+        showAlert(
+          data.running ? "定时任务服务已启动" : "定时任务服务已停止",
+          data.running ? "success" : "info"
+        );
+      } else {
+        showAlert("操作失败", "error");
+      }
+    } catch (error) {
+      showAlert("操作失败: " + (error as Error).message, "error");
+    }
+  };
+
+  useEffect(() => {
+    checkCronServerStatus();
+    // 每 5 秒检查一次状态
+    const interval = setInterval(checkCronServerStatus, 30000);
+    return () => clearInterval(interval);
+  }, [checkCronServerStatus]);
 
   const fetchJobs = useCallback(async () => {
     if (!currentUser?.token) return;
@@ -238,6 +295,38 @@ export default function ScheduledJobsPage() {
     return new Date(dateStr).toLocaleString("zh-CN");
   };
 
+  const handleCreateJob = async (formData: JobFormData) => {
+    try {
+      const data = await request("/api/scheduled-jobs", {
+        method: "POST",
+        body: {
+          name: formData.name,
+          description: formData.description,
+          type: "recurring_task",
+          frequency: formData.frequency,
+          config: {
+            autoCreateEnabled: true,
+            taskTemplateId: formData.selectedTemplateId,
+            selectedChildren: formData.selectedChildren,
+            recurrenceDay: formData.recurrenceDay,
+            publishTime: formData.publishTime,
+            expiryPolicy: formData.expiryPolicy,
+          },
+        },
+      });
+
+      if (data.success) {
+        showAlert("自动任务创建成功", "success");
+        setShowCreateModal(false);
+        fetchJobs();
+      } else {
+        showAlert(data.message || "创建失败", "error");
+      }
+    } catch (error) {
+      showAlert("创建失败", "error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -258,16 +347,37 @@ export default function ScheduledJobsPage() {
             管理自动创建周期任务的定时器
           </p>
         </div>
-        <Button
-          onClick={() => {
-            // TODO: 打开创建定时任务弹窗
-            showAlert("功能开发中：创建新的定时任务", "info");
-          }}
-          className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-md shadow-blue-100 flex items-center gap-2"
-        >
-          <Plus size={20} />
-          <span className="font-semibold text-sm">新建定时任务</span>
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Cron 服务控制开关 */}
+          <div className="flex items-center gap-2 bg-white rounded-xl px-4 py-2 border border-gray-200 shadow-sm">
+            <div className={`w-2 h-2 rounded-full ${cronServerRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+            <span className="text-sm text-gray-600">自动执行服务</span>
+            <button
+              onClick={toggleCronServer}
+              disabled={cronServerStatus === "checking"}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                cronServerRunning ? 'bg-blue-600' : 'bg-gray-200'
+              } ${cronServerStatus === "checking" ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  cronServerRunning ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className={`text-xs font-medium ${cronServerRunning ? 'text-green-600' : 'text-gray-500'}`}>
+              {cronServerStatus === "checking" ? "检查中..." : cronServerRunning ? "运行中" : "已停止"}
+            </span>
+          </div>
+
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-md shadow-blue-100 flex items-center gap-2"
+          >
+            <Plus size={20} />
+            <span className="font-semibold text-sm">新建自动任务</span>
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -324,6 +434,18 @@ export default function ScheduledJobsPage() {
         </div>
       </div>
 
+      {/* Info Alert */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+        <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-800">
+          <p className="font-medium mb-1">关于自动执行</p>
+          <p className="text-blue-700">
+            开启上方"自动执行服务"开关后，系统会每分钟自动检查并执行到期的定时任务。
+            您也可以点击"立即执行"按钮手动触发单个任务。
+          </p>
+        </div>
+      </div>
+
       {/* Jobs List */}
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
@@ -351,7 +473,7 @@ export default function ScheduledJobsPage() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                   下次运行
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">
+                <th className="px-2 py-3 text-center text-xs font-semibold text-gray-600 w-24">
                   操作
                 </th>
               </tr>
@@ -431,38 +553,38 @@ export default function ScheduledJobsPage() {
                         {formatDate(job.nextRunAt)}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1">
+                    <td className="px-1 py-3">
+                      <div className="flex items-center justify-center gap-0.5">
                         {job.status === "running" ? (
                           <Button
                             onClick={() => handleStopJob(job._id)}
                             disabled={executingJobId === job._id}
                             variant="secondary"
-                            className="p-1.5 h-7 w-7 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+                            className="p-1 h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors border-none bg-transparent shadow-none"
                             title="停止"
                           >
-                            <Square size={14} />
+                            <Square size={12} />
                           </Button>
                         ) : (
                           <Button
                             onClick={() => handleStartJob(job._id)}
                             disabled={executingJobId === job._id}
                             variant="secondary"
-                            className="p-1.5 h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+                            className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors border-none bg-transparent shadow-none"
                             title="启动"
                           >
-                            <Play size={14} />
+                            <Play size={12} />
                           </Button>
                         )}
                         <Button
                           onClick={() => handleRunJob(job._id)}
                           disabled={executingJobId === job._id}
                           variant="secondary"
-                          className="p-1.5 h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+                          className="p-1 h-6 w-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors border-none bg-transparent shadow-none"
                           title="立即执行"
                         >
                           <RotateCw
-                            size={14}
+                            size={12}
                             className={
                               executingJobId === job._id ? "animate-spin" : ""
                             }
@@ -471,10 +593,10 @@ export default function ScheduledJobsPage() {
                         <Button
                           onClick={() => handleDeleteJob(job._id)}
                           variant="secondary"
-                          className="p-1.5 h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+                          className="p-1 h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors border-none bg-transparent shadow-none"
                           title="删除"
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={12} />
                         </Button>
                       </div>
                     </td>
@@ -512,6 +634,14 @@ export default function ScheduledJobsPage() {
         message="确定要删除这个定时任务吗？此操作无法撤销。"
         confirmText="删除"
         type="danger"
+      />
+
+      {/* Create Job Modal */}
+      <CreateJobModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateJob}
+        childList={childList}
       />
     </div>
   );

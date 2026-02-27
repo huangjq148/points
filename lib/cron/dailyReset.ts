@@ -138,15 +138,21 @@ async function generateRecurringTasks(): Promise<number> {
     isRecurring: true,
     isRecurringTemplate: true,
     recurrence: { $nin: ['minutely'] }, // 排除每分钟任务
-    $or: [
-      { validUntil: { $exists: false } },
-      { validUntil: null },
-      { validUntil: { $gte: startOfToday } }
-    ],
-    $or: [
-      { validFrom: { $exists: false } },
-      { validFrom: null },
-      { validFrom: { $lte: startOfToday } }
+    $and: [
+      {
+        $or: [
+          { validUntil: { $exists: false } },
+          { validUntil: null },
+          { validUntil: { $gte: startOfToday } }
+        ]
+      },
+      {
+        $or: [
+          { validFrom: { $exists: false } },
+          { validFrom: null },
+          { validFrom: { $lte: startOfToday } }
+        ]
+      }
     ]
   });
   

@@ -2,7 +2,7 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy, Clock } from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy, Clock, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -38,6 +38,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
   })();
   const [activeTab, setActiveTab] = useState<NavItemId>(initialTab);
   const [mounted, setMounted] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -52,11 +53,15 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
   return (
     <div className="dashboard-layout">
       {/* Sidebar - Desktop only */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="logo-section">
           <div className="logo-icon">🌟</div>
-          <div className="logo-title">小小奋斗者</div>
-          <div className="logo-subtitle">家长管理后台</div>
+          {!sidebarCollapsed && (
+            <>
+              <div className="logo-title">小小奋斗者</div>
+              <div className="logo-subtitle">家长管理后台</div>
+            </>
+          )}
         </div>
 
         <div className="desktop-nav">
@@ -64,17 +69,27 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
             <div
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              className={`desktop-nav-item ${activeTab === item.id ? "active" : ""}`}
+              className={`desktop-nav-item ${activeTab === item.id ? "active" : ""} ${sidebarCollapsed ? 'collapsed' : ''}`}
+              title={sidebarCollapsed ? item.label : undefined}
             >
-              <item.icon size={22} />
-              <span>{item.label}</span>
-              {item.badge !== undefined && item.badge > 0 && <span className="badge">{item.badge}</span>}
+              <item.icon size={sidebarCollapsed ? 24 : 22} />
+              {!sidebarCollapsed && <span>{item.label}</span>}
+              {!sidebarCollapsed && item.badge !== undefined && item.badge > 0 && <span className="badge">{item.badge}</span>}
+              {sidebarCollapsed && item.badge !== undefined && item.badge > 0 && <span className="badge-collapsed">{item.badge}</span>}
             </div>
           ))}
         </div>
 
-        <div className="mt-auto"></div>
       </aside>
+
+      {/* Sidebar Toggle Button - positioned at right middle of sidebar */}
+      <button
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        className="sidebar-toggle-btn"
+        title={sidebarCollapsed ? "展开菜单" : "收起菜单"}
+      >
+        <PanelLeft size={18} className={sidebarCollapsed ? 'rotate-180' : ''} />
+      </button>
 
       {/* Main Content */}
       <div className="main-wrapper flex flex-col min-h-screen">

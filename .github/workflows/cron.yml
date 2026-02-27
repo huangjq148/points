@@ -1,0 +1,16 @@
+name: Scheduled Jobs Runner
+
+on:
+  schedule:
+    - cron: '* * * * *'  # 每分钟运行一次
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  run-scheduled-jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scheduled Jobs
+        run: |
+          curl -X POST ${{ secrets.VERCEL_URL }}/api/cron/scheduled-jobs \
+            -H "Authorization: Bearer ${{ secrets.CRON_API_KEY }}" \
+            -H "Content-Type: application/json"

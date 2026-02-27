@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import ScheduledJobModel, { IScheduledJob } from "@/models/ScheduledJob";
 import Task from "@/models/Task";
+import TaskTemplate from "@/models/TaskTemplate";
 import { getTokenPayload } from "@/lib/auth";
 import mongoose from "mongoose";
 
@@ -57,8 +58,37 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
+    // 构建 cron 表达式
+    let cronExpression = "";
+    const { frequency, config } = body;
+    const publishTime = config?.publishTime || "00:00";
+    const [hours, minutes] = publishTime.split(":").map(Number);
+
+    switch (frequency) {
+      case "minutely":
+        cronExpression = "* * * * *";
+        break;
+      case "hourly":
+        cronExpression = `0 * * * *`;
+        break;
+      case "daily":
+        cronExpression = `${minutes} ${hours} * * *`;
+        break;
+      case "weekly":
+        const dayOfWeek = config?.recurrenceDay ?? 1;
+        cronExpression = `${minutes} ${hours} * * ${dayOfWeek}`;
+        break;
+      case "monthly":
+        const dayOfMonth = config?.recurrenceDay ?? 1;
+        cronExpression = `${minutes} ${hours} ${dayOfMonth} * *`;
+        break;
+      default:
+        cronExpression = `${minutes} ${hours} * * *`;
+    }
+
     const job = await ScheduledJobModel.create({
       ...body,
+      cronExpression,
       userId: new mongoose.Types.ObjectId(authUserId),
       status: "stopped", // 默认停止状态
       runCount: 0,
@@ -288,109 +318,84 @@ async function generateRecurringTasks(
   job: IScheduledJob
 ): Promise<number> {
   const now = new Date();
-  const startOfCurrentMinute = new Date(now);
-  startOfCurrentMinute.setSeconds(0, 0);
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
 
-  const dayOfWeek = now.getDay();
-  const dayOfMonth = now.getDate();
+  console.log("Generating recurring tasks for job:", job.name);
+  console.log("Job config:", JSON.stringify(job.config, null, 2));
 
-  // 查询周期任务模板
-  const query: any = {
-    userId: new mongoose.Types.ObjectId(userId),
-    isRecurring: true,
-    isRecurringTemplate: true,
-    $or: [
-      { validUntil: { $exists: false } },
-      { validUntil: null },
-      { validUntil: { $gte: now } },
-    ],
-    $or: [
-      { validFrom: { $exists: false } },
-      { validFrom: null },
-      { validFrom: { $lte: now } },
-    ],
-  };
+  // 从 job.config 获取配置
+  const { taskTemplateId, selectedChildren, expiryPolicy } = job.config || {};
 
-  // 如果指定了特定任务模板
-  if (job.config?.taskTemplateId) {
-    query._id = new mongoose.Types.ObjectId(job.config.taskTemplateId);
+  if (!taskTemplateId) {
+    console.log("Missing taskTemplateId in job config");
+    return 0;
   }
 
-  const recurringTasks = await Task.find(query);
+  if (!selectedChildren || !Array.isArray(selectedChildren) || selectedChildren.length === 0) {
+    console.log("Missing or empty selectedChildren in job config");
+    return 0;
+  }
+
+  // 获取任务模板
+  const template = await TaskTemplate.findById(taskTemplateId);
+
+  if (!template) {
+    console.log("Template not found:", taskTemplateId);
+    return 0;
+  }
+
+  console.log("Found template:", template.name);
+
   let generatedCount = 0;
 
-  for (const template of recurringTasks) {
-    let shouldCreate = false;
-    let timeWindow: Date = startOfCurrentMinute;
+  // 为每个孩子创建任务
+  for (const childId of selectedChildren) {
+    console.log(`Processing child: ${childId}`);
 
-    switch (template.recurrence) {
-      case "minutely":
-        shouldCreate = true;
-        break;
-      case "daily":
-        shouldCreate = true;
-        timeWindow = new Date(now);
-        timeWindow.setHours(0, 0, 0, 0);
-        break;
-      case "weekly":
-        if (
-          template.recurrenceDay !== undefined &&
-          template.recurrenceDay === dayOfWeek
-        ) {
-          shouldCreate = true;
-          timeWindow = new Date(now);
-          timeWindow.setHours(0, 0, 0, 0);
-        }
-        break;
-      case "monthly":
-        if (
-          template.recurrenceDay !== undefined &&
-          template.recurrenceDay === dayOfMonth
-        ) {
-          shouldCreate = true;
-          timeWindow = new Date(now);
-          timeWindow.setHours(0, 0, 0, 0);
-        }
-        break;
-    }
-
-    if (!shouldCreate) continue;
-
-    // 检查是否已存在
-    const existingInstance = await Task.findOne({
-      originalTaskId: template._id,
-      createdAt: { $gte: timeWindow },
+    // 检查今天是否已创建
+    const existingTask = await Task.findOne({
+      userId: new mongoose.Types.ObjectId(userId),
+      childId: new mongoose.Types.ObjectId(childId),
+      name: template.name,
+      createdAt: { $gte: startOfToday },
     });
 
-    if (!existingInstance) {
-      const deadline = new Date(now);
-      if (template.recurrence === "minutely") {
-        deadline.setMinutes(deadline.getMinutes() + 1, 0, 0);
-      } else {
-        deadline.setHours(23, 59, 59, 999);
-      }
+    if (existingTask) {
+      console.log(`Task already exists for child ${childId} today`);
+      continue;
+    }
 
-      await Task.create({
-        userId: template.userId,
-        childId: template.childId,
-        name: template.name,
-        description: template.description,
-        points: template.points,
-        type: template.type,
-        icon: template.icon,
-        requirePhoto: template.requirePhoto,
-        imageUrl: template.imageUrl,
-        status: "pending",
-        recurrence: "none",
-        isRecurring: false,
-        isRecurringTemplate: false,
-        originalTaskId: template._id,
-        deadline,
-        expiryPolicy: template.expiryPolicy,
-      });
+    // 创建截止时间（当天结束）
+    const deadline = new Date(now);
+    deadline.setHours(23, 59, 59, 999);
+
+    const taskData = {
+      userId: new mongoose.Types.ObjectId(userId),
+      childId: new mongoose.Types.ObjectId(childId),
+      name: template.name,
+      description: template.description || "",
+      points: template.points || 0,
+      type: template.type || "daily",
+      icon: template.icon || "⭐",
+      requirePhoto: template.requirePhoto || false,
+      imageUrl: template.imageUrl,
+      status: "pending" as const,
+      deadline,
+      expiryPolicy: expiryPolicy || "auto_close",
+    };
+
+    console.log("Creating task with data:", JSON.stringify(taskData, null, 2));
+
+    try {
+      const newTask = await Task.create(taskData);
+      console.log(`Created task for child ${childId}:`, newTask._id);
       generatedCount++;
+    } catch (err: any) {
+      console.error(`Failed to create task for child ${childId}:`, err.message);
     }
   }
 
+  console.log(`Total tasks generated: ${generatedCount}`);
   return generatedCount;
 }
