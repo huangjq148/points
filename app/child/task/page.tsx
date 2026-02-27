@@ -15,6 +15,7 @@ import { Button, Modal, Image } from '@/components/ui';
 import DatePicker from '@/components/ui/DatePicker';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
+import dayjs from 'dayjs';
 
 interface AuditRecord {
   _id?: string;
@@ -22,7 +23,7 @@ interface AuditRecord {
   photoUrl?: string;
   submitNote?: string;
   auditedAt?: string;
-  status?: "approved" | "rejected";
+  status?: 'approved' | 'rejected';
   auditNote?: string;
   auditedBy?: string;
 }
@@ -78,7 +79,6 @@ export default function TaskPage() {
   const [submitting, setSubmitting] = useState(false);
   const [recalling, setRecalling] = useState(false);
 
-
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTasks = useCallback(
@@ -113,26 +113,45 @@ export default function TaskPage() {
     [currentUser, limit, statusFilter, searchName, startDate, endDate],
   );
 
-  // 处理从探索日志进入时的本周筛选
+  // 处理URL查询参数（从首页跳转或探索日志进入）
   useEffect(() => {
+    if (initialFilterApplied) return;
+
     const filter = searchParams.get('filter');
-    if (filter === 'thisWeek' && !initialFilterApplied) {
+    const status = searchParams.get('status');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
+    if (status) {
+      setStatusFilter(status);
+    }
+
+    if (startDateParam) {
+      setStartDate(new Date(startDateParam + ' 00:00:00'));
+    }
+
+    if (endDateParam) {
+      setEndDate(new Date(endDateParam + ' 23:59:59'));
+    }
+
+    if (filter === 'thisWeek' && !startDateParam && !endDateParam) {
       const now = new Date();
       const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ...
       const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      
+
       const monday = new Date(now);
       monday.setDate(now.getDate() + diffToMonday);
       monday.setHours(0, 0, 0, 0);
-      
+
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
       sunday.setHours(23, 59, 59, 999);
-      
+
       setStartDate(monday);
       setEndDate(sunday);
-      setInitialFilterApplied(true);
     }
+
+    setInitialFilterApplied(true);
   }, [searchParams, initialFilterApplied]);
 
   // 当日期筛选条件变化时，重新获取任务
@@ -432,18 +451,12 @@ export default function TaskPage() {
                           {task.deadline && (
                             <span className='flex items-center gap-1'>
                               <Calendar size={12} />
-                              截止:{' '}
-                              {new Date(task.deadline).toLocaleDateString(
-                                'zh-CN',
-                              )}
+                              截止: {dayjs(task.deadline).format('YYYY/MM/DD')}
                             </span>
                           )}
                           {task.updatedAt && (
                             <span>
-                              更新:{' '}
-                              {new Date(task.updatedAt).toLocaleDateString(
-                                'zh-CN',
-                              )}
+                              更新: {dayjs(task.updatedAt).format('YYYY/MM/DD')}
                             </span>
                           )}
                         </div>
@@ -698,14 +711,8 @@ export default function TaskPage() {
                               提交时间
                             </span>
                             <span className='text-sm font-bold text-gray-700'>
-                              {new Date(selectedTask.submittedAt).toLocaleString(
-                                'zh-CN',
-                                {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                },
+                              {dayjs(selectedTask.submittedAt).format(
+                                'M月D日 HH:mm',
                               )}
                             </span>
                           </div>
@@ -717,14 +724,8 @@ export default function TaskPage() {
                                 审核时间
                               </span>
                               <span className='text-sm font-bold text-green-600'>
-                                {new Date(selectedTask.approvedAt).toLocaleString(
-                                  'zh-CN',
-                                  {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  },
+                                {dayjs(selectedTask.approvedAt).format(
+                                  'M月D日 HH:mm',
                                 )}
                               </span>
                             </div>
@@ -746,95 +747,103 @@ export default function TaskPage() {
               )}
 
               {/* 操作记录 */}
-              {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
-                <div>
-                  <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
-                    <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
-                      📋 操作记录 ({selectedTask.auditHistory.length})
-                    </h4>
-                    <div className='space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar'>
-                      {selectedTask.auditHistory.map((record, index) => (
-                        <div
-                          key={record._id || index}
-                          className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
-                        >
-                          {/* 时间线节点 */}
-                          <div className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
-                            record.status === 'approved'
-                              ? 'bg-green-500'
-                              : record.status === 'rejected'
-                              ? 'bg-red-500'
-                              : 'bg-blue-500'
-                          }`} style={{ transform: 'translateX(-50%)' }} />
+              {selectedTask.auditHistory &&
+                selectedTask.auditHistory.length > 0 && (
+                  <div>
+                    <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
+                      <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
+                        📋 操作记录 ({selectedTask.auditHistory.length})
+                      </h4>
+                      <div className='space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar'>
+                        {selectedTask.auditHistory.map((record, index) => (
+                          <div
+                            key={record._id || index}
+                            className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
+                          >
+                            {/* 时间线节点 */}
+                            <div
+                              className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+                                record.status === 'approved'
+                                  ? 'bg-green-500'
+                                  : record.status === 'rejected'
+                                    ? 'bg-red-500'
+                                    : 'bg-blue-500'
+                              }`}
+                              style={{ transform: 'translateX(-50%)' }}
+                            />
 
-                          <div className='ml-2'>
-                            <div className='flex items-center gap-2 mb-1'>
-                              <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
-                                第 {selectedTask.auditHistory!.length - index} 次操作
-                              </span>
-                              {record.status === 'approved' ? (
-                                <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
-                                  通过
-                                </span>
-                              ) : record.status === 'rejected' ? (
-                                <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
-                                  驳回
-                                </span>
-                              ) : (
+                            <div className='ml-2'>
+                              <div className='flex items-center gap-2 mb-1'>
                                 <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
-                                  审核中
+                                  第 {selectedTask.auditHistory!.length - index}{' '}
+                                  次操作
                                 </span>
+                                {record.status === 'approved' ? (
+                                  <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
+                                    通过
+                                  </span>
+                                ) : record.status === 'rejected' ? (
+                                  <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
+                                    驳回
+                                  </span>
+                                ) : (
+                                  <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                    审核中
+                                  </span>
+                                )}
+                              </div>
+                              <p className='text-xs text-gray-400 mb-1'>
+                                提交:{' '}
+                                {dayjs(record.submittedAt).format(
+                                  'M月D日 HH:mm',
+                                )}
+                              </p>
+                              {record.auditedAt && (
+                                <p className='text-xs text-gray-400 mb-1'>
+                                  审核:{' '}
+                                  {dayjs(record.auditedAt).format(
+                                    'M月D日 HH:mm',
+                                  )}
+                                </p>
+                              )}
+                              {/* 提交的照片 */}
+                              {record.photoUrl && (
+                                <div className='mt-2'>
+                                  <p className='text-xs text-gray-400 mb-1'>
+                                    提交的照片：
+                                  </p>
+                                  <div className='w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
+                                    <Image
+                                      src={record.photoUrl}
+                                      alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
+                                      className='w-full h-full object-cover'
+                                      enableZoom={true}
+                                      containerClassName='w-full h-full'
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 审核意见 */}
+                              {record.auditNote && (
+                                <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
+                                  <p className='text-xs text-gray-400 mb-1'>
+                                    家长意见：
+                                  </p>
+                                  <p className='text-xs text-gray-700'>
+                                    {record.auditNote}
+                                  </p>
+                                </div>
                               )}
                             </div>
-                            <p className='text-xs text-gray-400 mb-1'>
-                              提交: {new Date(record.submittedAt).toLocaleString('zh-CN', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </p>
-                            {record.auditedAt && (
-                              <p className='text-xs text-gray-400 mb-1'>
-                                审核: {new Date(record.auditedAt).toLocaleString('zh-CN', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </p>
-                            )}
-                            {/* 提交的照片 */}
-                            {record.photoUrl && (
-                              <div className='mt-2'>
-                                <p className='text-xs text-gray-400 mb-1'>提交的照片：</p>
-                                <div className='w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
-                                  <Image
-                                    src={record.photoUrl}
-                                    alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
-                                    className='w-full h-full object-cover'
-                                    enableZoom={true}
-                                    containerClassName='w-full h-full'
-                                  />
-                                </div>
-                              </div>
-                            )}
-
-                            {/* 审核意见 */}
-                            {record.auditNote && (
-                              <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
-                                <p className='text-xs text-gray-400 mb-1'>家长意见：</p>
-                                <p className='text-xs text-gray-700'>{record.auditNote}</p>
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>{/* 滚动区域结束 */}
+                )}
+            </div>
+            {/* 滚动区域结束 */}
           </>
         )}
       </Modal>

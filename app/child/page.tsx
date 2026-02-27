@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import FeatureGrid from './components/FeatureGrid';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
+import dayjs from 'dayjs';
 
 interface AuditRecord {
   _id?: string;
@@ -17,7 +18,7 @@ interface AuditRecord {
   photoUrl?: string;
   submitNote?: string;
   auditedAt?: string;
-  status?: "approved" | "rejected";
+  status?: 'approved' | 'rejected';
   auditNote?: string;
   auditedBy?: string;
 }
@@ -350,13 +351,18 @@ export default function ChildHome() {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  const filteredTasks = tasks;
+  // 只显示进行中的任务（pending 和 submitted）
+  const filteredTasks = tasks.filter(
+    (t) => t.status === 'pending' || t.status === 'submitted',
+  );
 
-  const pendingTasks = filteredTasks.filter((t) => t.status === 'pending');
-  const completedTasks = filteredTasks.filter((t) => t.status === 'approved');
+  const pendingTasks = tasks.filter((t) => t.status === 'pending');
+  const completedTasks = tasks.filter((t) => t.status === 'approved');
 
   const earnedMedals = medals.filter((m) => m.isEarned).slice(0, 4);
-  const unearnedMedals = medals.filter((m) => !m.isEarned).slice(0, Math.max(0, 4 - earnedMedals.length));
+  const unearnedMedals = medals
+    .filter((m) => !m.isEarned)
+    .slice(0, Math.max(0, 4 - earnedMedals.length));
   const displayMedals = [...earnedMedals, ...unearnedMedals];
 
   const maxStreak = tasks.reduce(
@@ -654,7 +660,31 @@ export default function ChildHome() {
 
               {/* 快捷统计 */}
               <div className='grid grid-cols-3 gap-3 mt-4'>
-                <div className='bg-blue-50 rounded-xl p-2 text-center border-2 border-blue-100'>
+                <div
+                  className='bg-blue-50 rounded-xl p-2 text-center border-2 border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors'
+                  onClick={() => {
+                    const today = new Date();
+                    const startOfDay = new Date(
+                      today.getFullYear(),
+                      today.getMonth(),
+                      today.getDate(),
+                    );
+                    const endOfDay = new Date(
+                      today.getFullYear(),
+                      today.getMonth(),
+                      today.getDate(),
+                      23,
+                      59,
+                      59,
+                      999,
+                    );
+                    router.push(
+                      `/child/task?startDate=${dayjs().format(
+                        'YYYY-MM-DD',
+                      )}&endDate=${dayjs().format('YYYY-MM-DD')}`,
+                    );
+                  }}
+                >
                   <div className='text-lg font-black text-blue-600'>
                     {filteredTasks.length}
                   </div>
@@ -662,7 +692,10 @@ export default function ChildHome() {
                     今日任务
                   </div>
                 </div>
-                <div className='bg-green-50 rounded-xl p-2 text-center border-2 border-green-100'>
+                <div
+                  className='bg-green-50 rounded-xl p-2 text-center border-2 border-green-100 cursor-pointer hover:bg-green-100 transition-colors'
+                  onClick={() => router.push('/child/task?status=approved')}
+                >
                   <div className='text-lg font-black text-green-600'>
                     {completedTasks.length}
                   </div>
@@ -670,7 +703,10 @@ export default function ChildHome() {
                     已完成
                   </div>
                 </div>
-                <div className='bg-purple-50 rounded-xl p-2 text-center border-2 border-purple-100'>
+                <div
+                  className='bg-purple-50 rounded-xl p-2 text-center border-2 border-purple-100 cursor-pointer hover:bg-purple-100 transition-colors'
+                  onClick={() => router.push('/child/task?status=pending')}
+                >
                   <div className='text-lg font-black text-purple-600'>
                     {pendingTasks.length}
                   </div>
@@ -683,14 +719,14 @@ export default function ChildHome() {
           </div>
         </div>
 
-        {/* 今日任务时间轴 */}
+        {/* 进行中的任务时间轴 */}
         <div className='relative z-10 px-6 mb-6'>
           <div className='flex justify-between items-center mb-4'>
             <h2 className='text-xl font-black text-white flex items-center gap-2 drop-shadow-md'>
               <span className='bg-white/20 p-2 rounded-xl backdrop-blur-sm'>
                 🎯
               </span>
-              今日星际任务
+              进行中的任务
             </h2>
             <button
               className='text-white/80 text-sm font-bold hover:text-white transition-colors flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm'
@@ -704,11 +740,8 @@ export default function ChildHome() {
             <div className='timeline-line'></div>
             <div className='space-y-4'>
               {filteredTasks.map((task, index) => {
-                const status = getTaskStatus(task.status);
-                const isCompleted = task.status === 'approved';
                 const isPending = task.status === 'pending';
                 const isSubmitted = task.status === 'submitted';
-                const isRejected = task.status === 'rejected';
 
                 return (
                   <motion.div
@@ -722,39 +755,23 @@ export default function ChildHome() {
                   >
                     <div
                       className={`relative z-10 w-12 h-12 ${
-                        isCompleted
-                          ? 'bg-green-500'
-                          : isSubmitted
-                            ? 'bg-blue-500'
-                            : isRejected
-                              ? 'bg-red-500'
-                              : 'bg-gray-300'
-                      } rounded-2xl flex items-center justify-center text-2xl shadow-lg border-4 border-white ${isPending ? 'pulse-ring' : ''} ${isCompleted || isRejected ? '' : isPending ? '' : 'grayscale'}`}
+                        isSubmitted ? 'bg-blue-500' : 'bg-gray-300'
+                      } rounded-2xl flex items-center justify-center text-2xl shadow-lg border-4 border-white ${isPending ? 'pulse-ring' : ''}`}
                     >
-                      {isCompleted ? '✓' : task.icon}
+                      {task.icon}
                     </div>
                     <div
                       className={`flex-1 ${
-                        isCompleted
-                          ? 'glass rounded-2xl border-l-4 border-green-400 opacity-75'
-                          : isSubmitted
-                            ? 'glass rounded-2xl border-l-4 border-blue-400 opacity-75'
-                            : isRejected
-                              ? 'glass rounded-2xl border-l-4 border-red-400'
-                              : 'glass-strong rounded-2xl border-l-4 border-blue-500 shadow-xl transform hover:scale-[1.02] transition-all'
+                        isSubmitted
+                          ? 'glass rounded-2xl border-l-4 border-blue-400 opacity-75'
+                          : 'glass-strong rounded-2xl border-l-4 border-blue-500 shadow-xl transform hover:scale-[1.02] transition-all'
                       }`}
                       style={{ padding: '16px' }}
                     >
                       <div className='flex justify-between items-start'>
                         <div className='flex-1'>
                           <div className='flex items-center gap-2 mb-1'>
-                            <h3
-                              className={`font-bold ${
-                                isCompleted
-                                  ? 'text-gray-700 line-through decoration-2 decoration-green-400'
-                                  : 'text-gray-800'
-                              } text-lg`}
-                            >
+                            <h3 className='font-bold text-gray-800 text-lg'>
                               {task.name}
                             </h3>
                             {isPending && (
@@ -767,38 +784,22 @@ export default function ChildHome() {
                                 审核中
                               </span>
                             )}
-                            {isRejected && (
-                              <span className='bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold'>
-                                需修改
-                              </span>
-                            )}
                           </div>
                           <p className='text-xs text-gray-500 flex items-center gap-1'>
                             <span>{task.icon}</span>{' '}
-                            {isCompleted
-                              ? '已完成'
-                              : isSubmitted
-                                ? '审核中'
-                                : '待完成'}{' '}
-                            • +{task.points}分
+                            {isSubmitted ? '审核中' : '待完成'} • +{task.points}
+                            分
                             {task.deadline &&
                               (() => {
-                                const deadline = new Date(task.deadline);
-                                const today = new Date();
-                                today.setHours(0, 0, 0, 0);
-                                const tomorrow = new Date(today);
-                                tomorrow.setDate(tomorrow.getDate() + 1);
+                                const deadline = dayjs(task.deadline);
+                                const today = dayjs().startOf('day');
+                                const tomorrow = today.add(1, 'day');
                                 const isToday =
-                                  deadline >= today && deadline < tomorrow;
-                                const timeStr = deadline.toLocaleTimeString(
-                                  'zh-CN',
-                                  { hour: '2-digit', minute: '2-digit' },
-                                );
+                                  deadline.isAfter(today) &&
+                                  deadline.isBefore(tomorrow);
+                                const timeStr = deadline.format('HH:mm');
                                 const dateStr = !isToday
-                                  ? deadline.toLocaleDateString('zh-CN', {
-                                      month: 'numeric',
-                                      day: 'numeric',
-                                    }) + ' '
+                                  ? deadline.format('M月D日') + ' '
                                   : '';
                                 return (
                                   <>
@@ -832,26 +833,16 @@ export default function ChildHome() {
                                 disabled={recalling}
                                 className='bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-amber-600 transition-all active:scale-95 flex items-center gap-1 disabled:opacity-50'
                               >
-                                <span>🔙</span> {recalling ? '撤回中...' : '撤回修改'}
+                                <span>🔙</span>{' '}
+                                {recalling ? '撤回中...' : '撤回修改'}
                               </button>
                             </div>
-                          )}
-                          {isRejected && task.rejectionReason && (
-                            <p className='text-xs text-red-500 mt-2'>
-                              ✏️ {task.rejectionReason}
-                            </p>
                           )}
                         </div>
                         <div className='text-right'>
                           <div
                             className={`w-10 h-10 ${
-                              isCompleted
-                                ? 'bg-green-100'
-                                : isSubmitted
-                                  ? 'bg-blue-100'
-                                  : isRejected
-                                    ? 'bg-red-100'
-                                    : 'bg-blue-100'
+                              isSubmitted ? 'bg-blue-100' : 'bg-blue-100'
                             } rounded-full flex items-center justify-center text-xl`}
                           >
                             {task.icon}
@@ -863,9 +854,9 @@ export default function ChildHome() {
                 );
               })}
 
-              {tasks.length === 0 && (
+              {filteredTasks.length === 0 && (
                 <div className='text-center py-8 text-white/60'>
-                  <p>暂无任务</p>
+                  <p>暂无进行中的任务</p>
                 </div>
               )}
             </div>
@@ -1076,14 +1067,9 @@ export default function ChildHome() {
                                 提交时间
                               </span>
                               <span className='text-sm font-bold text-gray-700'>
-                                {new Date(
-                                  selectedTask.submittedAt,
-                                ).toLocaleString('zh-CN', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
+                                {dayjs(selectedTask.submittedAt).format(
+                                  'M月D日 HH:mm',
+                                )}
                               </span>
                             </div>
                           )}
@@ -1094,14 +1080,9 @@ export default function ChildHome() {
                                   审核时间
                                 </span>
                                 <span className='text-sm font-bold text-green-600'>
-                                  {new Date(
-                                    selectedTask.approvedAt,
-                                  ).toLocaleString('zh-CN', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
+                                  {dayjs(selectedTask.approvedAt).format(
+                                    'M月D日 HH:mm',
+                                  )}
                                 </span>
                               </div>
                             )}
@@ -1122,95 +1103,104 @@ export default function ChildHome() {
                 )}
 
                 {/* 操作记录 */}
-                {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
-                  <div>
-                    <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
-                      <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
-                        📋 操作记录 ({selectedTask.auditHistory.length})
-                      </h4>
-                      <div className='space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar'>
-                        {selectedTask.auditHistory.map((record, index) => (
-                          <div
-                            key={record._id || index}
-                            className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
-                          >
-                            {/* 时间线节点 */}
-                            <div className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
-                              record.status === 'approved'
-                                ? 'bg-green-500'
-                                : record.status === 'rejected'
-                                ? 'bg-red-500'
-                                : 'bg-blue-500'
-                            }`} style={{ transform: 'translateX(-50%)' }} />
+                {selectedTask.auditHistory &&
+                  selectedTask.auditHistory.length > 0 && (
+                    <div>
+                      <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
+                        <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
+                          📋 操作记录 ({selectedTask.auditHistory.length})
+                        </h4>
+                        <div className='space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar'>
+                          {selectedTask.auditHistory.map((record, index) => (
+                            <div
+                              key={record._id || index}
+                              className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
+                            >
+                              {/* 时间线节点 */}
+                              <div
+                                className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+                                  record.status === 'approved'
+                                    ? 'bg-green-500'
+                                    : record.status === 'rejected'
+                                      ? 'bg-red-500'
+                                      : 'bg-blue-500'
+                                }`}
+                                style={{ transform: 'translateX(-50%)' }}
+                              />
 
-                            <div className='ml-2'>
-                              <div className='flex items-center gap-2 mb-1'>
-                                <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
-                                  第 {selectedTask.auditHistory!.length - index} 次操作
-                                </span>
-                                {record.status === 'approved' ? (
-                                  <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
-                                    通过
-                                  </span>
-                                ) : record.status === 'rejected' ? (
-                                  <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
-                                    驳回
-                                  </span>
-                                ) : (
+                              <div className='ml-2'>
+                                <div className='flex items-center gap-2 mb-1'>
                                   <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
-                                    审核中
+                                    第{' '}
+                                    {selectedTask.auditHistory!.length - index}{' '}
+                                    次操作
                                   </span>
+                                  {record.status === 'approved' ? (
+                                    <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
+                                      通过
+                                    </span>
+                                  ) : record.status === 'rejected' ? (
+                                    <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
+                                      驳回
+                                    </span>
+                                  ) : (
+                                    <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                      审核中
+                                    </span>
+                                  )}
+                                </div>
+                                <p className='text-xs text-gray-400 mb-1'>
+                                  提交:{' '}
+                                  {dayjs(record.submittedAt).format(
+                                    'M月D日 HH:mm',
+                                  )}
+                                </p>
+                                {record.auditedAt && (
+                                  <p className='text-xs text-gray-400 mb-1'>
+                                    审核:{' '}
+                                    {dayjs(record.auditedAt).format(
+                                      'M月D日 HH:mm',
+                                    )}
+                                  </p>
+                                )}
+                                {/* 提交的照片 */}
+                                {record.photoUrl && (
+                                  <div className='mt-2'>
+                                    <p className='text-xs text-gray-400 mb-1'>
+                                      提交的照片：
+                                    </p>
+                                    <div className='w-24 h-24 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
+                                      <Image
+                                        src={record.photoUrl}
+                                        alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
+                                        className='w-full h-full object-cover'
+                                        enableZoom={true}
+                                        containerClassName='w-full h-full'
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* 审核意见 */}
+                                {record.auditNote && (
+                                  <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
+                                    <p className='text-xs text-gray-400 mb-1'>
+                                      家长意见：
+                                    </p>
+                                    <p className='text-xs text-gray-700'>
+                                      {record.auditNote}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
-                              <p className='text-xs text-gray-400 mb-1'>
-                                提交: {new Date(record.submittedAt).toLocaleString('zh-CN', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </p>
-                              {record.auditedAt && (
-                                <p className='text-xs text-gray-400 mb-1'>
-                                  审核: {new Date(record.auditedAt).toLocaleString('zh-CN', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </p>
-                              )}
-                              {/* 提交的照片 */}
-                              {record.photoUrl && (
-                                <div className='mt-2'>
-                                  <p className='text-xs text-gray-400 mb-1'>提交的照片：</p>
-                                  <div className='w-24 h-24 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
-                                    <Image
-                                      src={record.photoUrl}
-                                      alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
-                                      className='w-full h-full object-cover'
-                                      enableZoom={true}
-                                      containerClassName='w-full h-full'
-                                    />
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* 审核意见 */}
-                              {record.auditNote && (
-                                <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
-                                  <p className='text-xs text-gray-400 mb-1'>家长意见：</p>
-                                  <p className='text-xs text-gray-700'>{record.auditNote}</p>
-                                </div>
-                              )}
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>{/* 滚动区域结束 */}
+                  )}
+              </div>
+              {/* 滚动区域结束 */}
             </>
           )}
         </Modal>
@@ -1345,7 +1335,6 @@ export default function ChildHome() {
             className='w-full bg-gray-100 rounded-xl px-4 py-3 text-center text-2xl tracking-widest font-bold mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500'
           />
         </Modal>
-
       </div>
     </>
   );
