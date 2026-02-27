@@ -82,10 +82,16 @@ export default function TasksPage() {
     requirePhoto: false,
     selectedChildren: [] as string[],
     imageUrl: "",
-    recurrence: "none" as "none" | "daily" | "weekly" | "monthly",
+    recurrence: "none" as "none" | "minutely" | "daily" | "weekly" | "monthly",
     recurrenceDay: undefined as number | undefined,
     deadline: null as Date | null,
     saveAsTemplate: false,
+    // 新的周期任务字段
+    isRecurring: false,
+    autoPublishTime: "00:00",
+    expiryPolicy: "auto_close" as const,
+    validFrom: null as Date | null,
+    validUntil: null as Date | null,
   });
 
   const [alertState, setAlertState] = useState<{
@@ -328,6 +334,11 @@ export default function TasksPage() {
       recurrenceDay: undefined,
       deadline: null,
       saveAsTemplate: false,
+      isRecurring: false,
+      autoPublishTime: "00:00",
+      expiryPolicy: "auto_close",
+      validFrom: null,
+      validUntil: null,
     });
     setTaskPhotoFile(null);
     setTaskPhotoPreview("");
@@ -536,6 +547,11 @@ export default function TasksPage() {
                   recurrenceDay: undefined,
                   deadline: defaultDeadline,
                   saveAsTemplate: false,
+                  isRecurring: false,
+                  autoPublishTime: "00:00",
+                  expiryPolicy: "auto_close",
+                  validFrom: null,
+                  validUntil: null,
                 });
                 setTaskPhotoFile(null);
                 setTaskPhotoPreview("");

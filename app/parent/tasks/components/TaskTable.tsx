@@ -234,9 +234,27 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{task.icon}</span>
+                        <div className="relative">
+                          <span className="text-2xl">{task.icon}</span>
+                          {/* 周期任务标识 */}
+                          {(task as any).isRecurring && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center" title="周期任务">
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                         <div>
-                          <p className="font-medium text-gray-800 text-sm">{task.name}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-800 text-sm">{task.name}</p>
+                            {/* 周期任务文字标识 */}
+                            {(task as any).isRecurring && (
+                              <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                                周期
+                              </span>
+                            )}
+                          </div>
                           {task.description && (
                             <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">
                               {task.description}

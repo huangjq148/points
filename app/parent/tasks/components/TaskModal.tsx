@@ -5,6 +5,8 @@ import Input from "@/components/ui/Input";
 import { User } from "@/context/AppContext";
 import { Camera } from "lucide-react";
 
+export type ExpiryPolicyType = "auto_close" | "keep" | "rollover";
+
 export interface TaskFormData {
   name: string;
   description: string;
@@ -14,10 +16,16 @@ export interface TaskFormData {
   requirePhoto: boolean;
   selectedChildren: string[];
   imageUrl: string;
-  recurrence: "none" | "daily" | "weekly" | "monthly";
+  recurrence: "none" | "minutely" | "daily" | "weekly" | "monthly";
   recurrenceDay: number | undefined;
   deadline: Date | null;
   saveAsTemplate: boolean;
+  // 新的周期任务字段
+  isRecurring: boolean;
+  autoPublishTime: string;
+  expiryPolicy: ExpiryPolicyType;
+  validFrom: Date | null;
+  validUntil: Date | null;
 }
 
 interface TaskModalProps {
@@ -251,52 +259,212 @@ export default function TaskModal({
         </div>
 
         {mode === "add" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">重复设置</label>
-            <div className="space-y-3">
-              <Select
-                value={taskData.recurrence}
-                onChange={(val) => {
-                  const r =
-                    typeof val === "string" && ["none", "daily", "weekly", "monthly"].includes(val)
-                      ? (val as "none" | "daily" | "weekly" | "monthly")
-                      : "none";
-                  setTaskData({ ...taskData, recurrence: r });
-                }}
-                options={[
-                  { value: "none", label: "不重复" },
-                  { value: "daily", label: "每天" },
-                  { value: "weekly", label: "每周" },
-                  { value: "monthly", label: "每月" },
-                ]}
-              />
-
-              {taskData.recurrence === "weekly" && (
-                <Select
-                  value={taskData.recurrenceDay}
-                  onChange={(val) => setTaskData({ ...taskData, recurrenceDay: val as number })}
-                  options={[
-                    { value: 1, label: "周一" },
-                    { value: 2, label: "周二" },
-                    { value: 3, label: "周三" },
-                    { value: 4, label: "周四" },
-                    { value: 5, label: "周五" },
-                    { value: 6, label: "周六" },
-                    { value: 0, label: "周日" },
-                  ]}
-                  placeholder="选择星期"
+          <div className="space-y-4">
+            {/* 自动重复开关 */}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={taskData.isRecurring}
+                  onChange={(e) => {
+                    const isRecurring = e.target.checked;
+                    setTaskData({
+                      ...taskData,
+                      isRecurring,
+                      recurrence: isRecurring ? "daily" : "none",
+                    });
+                  }}
+                  className="w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500 mt-0.5"
                 />
-              )}
-
-              {taskData.recurrence === "monthly" && (
-                <Select
-                  value={taskData.recurrenceDay}
-                  onChange={(val) => setTaskData({ ...taskData, recurrenceDay: val as number })}
-                  options={Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: `${i + 1}号` }))}
-                  placeholder="选择日期"
-                />
-              )}
+                <div className="flex-1">
+                  <span className="text-sm font-semibold text-gray-800">自动重复任务</span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    开启后，系统将按照设定周期自动发布任务，无需手动创建
+                  </p>
+                </div>
+              </label>
             </div>
+
+            {/* 重复设置详情 */}
+            {taskData.isRecurring && (
+              <div className="space-y-4 pl-4 border-l-2 border-blue-200">
+                {/* 重复频率 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">重复频率</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { value: "minutely", label: "每分钟" },
+                      { value: "daily", label: "每天" },
+                      { value: "weekly", label: "每周" },
+                      { value: "monthly", label: "每月" },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setTaskData({
+                            ...taskData,
+                            recurrence: option.value as "minutely" | "daily" | "weekly" | "monthly",
+                            recurrenceDay: undefined,
+                          })
+                        }
+                        className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all min-w-[80px] ${
+                          taskData.recurrence === option.value
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 每周/每月特定日期选择 */}
+                {taskData.recurrence === "weekly" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">选择星期</label>
+                    <div className="grid grid-cols-7 gap-1">
+                      {[
+                        { value: 1, label: "一" },
+                        { value: 2, label: "二" },
+                        { value: 3, label: "三" },
+                        { value: 4, label: "四" },
+                        { value: 5, label: "五" },
+                        { value: 6, label: "六" },
+                        { value: 0, label: "日" },
+                      ].map((day) => (
+                        <button
+                          key={day.value}
+                          type="button"
+                          onClick={() => setTaskData({ ...taskData, recurrenceDay: day.value })}
+                          className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                            taskData.recurrenceDay === day.value
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          {day.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {taskData.recurrence === "monthly" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">选择日期</label>
+                    <div className="grid grid-cols-7 gap-1 max-h-32 overflow-y-auto">
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => (
+                        <button
+                          key={date}
+                          type="button"
+                          onClick={() => setTaskData({ ...taskData, recurrenceDay: date })}
+                          className={`py-2 rounded-lg text-sm font-medium transition-all ${
+                            taskData.recurrenceDay === date
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          {date}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 发布时间 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    发布时间
+                    <span className="text-xs text-gray-400 font-normal ml-2">任务将在此时自动出现</span>
+                  </label>
+                  <input
+                    type="time"
+                    value={taskData.autoPublishTime}
+                    onChange={(e) =>
+                      setTaskData({ ...taskData, autoPublishTime: e.target.value })
+                    }
+                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                  />
+                </div>
+
+                {/* 过期策略 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">未完成处理</label>
+                  <div className="space-y-2">
+                    {[
+                      {
+                        value: "auto_close",
+                        label: "自动过期",
+                        desc: "当日未完成则自动标记为过期",
+                      },
+                      {
+                        value: "keep",
+                        label: "保留任务",
+                        desc: "任务保留，可次日继续完成",
+                      },
+                      {
+                        value: "rollover",
+                        label: "自动顺延",
+                        desc: "未完成则顺延到第二天",
+                      },
+                    ].map((option) => (
+                      <label
+                        key={option.value}
+                        className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                          taskData.expiryPolicy === option.value
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="expiryPolicy"
+                          value={option.value}
+                          checked={taskData.expiryPolicy === option.value}
+                          onChange={(e) =>
+                            setTaskData({
+                              ...taskData,
+                              expiryPolicy: e.target.value as ExpiryPolicyType,
+                            })
+                          }
+                          className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-800">{option.label}</span>
+                          <p className="text-xs text-gray-500">{option.desc}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 生效时间范围 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">开始日期</label>
+                    <DatePicker
+                      selected={taskData.validFrom}
+                      onChange={(date: Date | null) =>
+                        setTaskData({ ...taskData, validFrom: date })
+                      }
+                      placeholderText="立即开始"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">结束日期</label>
+                    <DatePicker
+                      selected={taskData.validUntil}
+                      onChange={(date: Date | null) =>
+                        setTaskData({ ...taskData, validUntil: date })
+                      }
+                      placeholderText="长期有效"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -19,65 +19,8 @@ interface ITaskQuery {
   $or?: Array<Record<string, any>>;
 }
 
-async function generateRecurringTasks(userId: string) {
-  const recurringTasks = await Task.find({
-    userId,
-    recurrence: { $in: ["daily", "weekly"] },
-  });
-
-  const now = new Date();
-  const startOfToday = new Date(now);
-  startOfToday.setHours(0, 0, 0, 0);
-
-  const dayOfWeek = now.getDay();
-  const dayOfMonth = now.getDate();
-
-  for (const template of recurringTasks) {
-    let shouldCreate = false;
-
-    if (template.recurrence === "daily") {
-      shouldCreate = true;
-    } else if (template.recurrence === "weekly") {
-      // Default to Sunday (0) if not specified, or skip?
-      // If recurrenceDay is present, match it.
-      if (template.recurrenceDay !== undefined && template.recurrenceDay === dayOfWeek) {
-        shouldCreate = true;
-      }
-    } else if (template.recurrence === "monthly") {
-      if (template.recurrenceDay !== undefined && template.recurrenceDay === dayOfMonth) {
-        shouldCreate = true;
-      }
-    }
-
-    if (!shouldCreate) continue;
-
-    // Check if template itself was created today (to avoid double creation on creation day)
-    if (template.createdAt >= startOfToday) continue;
-
-    // Check for existing instance created TODAY
-    const instance = await Task.findOne({
-      originalTaskId: template._id,
-      createdAt: { $gte: startOfToday },
-    });
-
-    if (!instance) {
-      await Task.create({
-        userId: template.userId,
-        childId: template.childId,
-        name: template.name,
-        description: template.description,
-        points: template.points,
-        type: template.type,
-        icon: template.icon,
-        requirePhoto: template.requirePhoto,
-        imageUrl: template.imageUrl,
-        status: "pending",
-        recurrence: "none",
-        originalTaskId: template._id,
-      });
-    }
-  }
-}
+// 注意：周期任务自动创建功能已移至定时任务管理器
+// 由 /api/scheduled-jobs 控制，不再在获取任务列表时自动创建
 
 export async function GET(request: NextRequest) {
   try {
@@ -105,9 +48,8 @@ export async function GET(request: NextRequest) {
     const includeExpired = searchParams.get("includeExpired") === "true";
     const excludeCompletedBeforeDeadline = searchParams.get("excludeCompletedBeforeDeadline") === "true";
 
-    if (authRole === "parent") {
-      await generateRecurringTasks(authUserId);
-    }
+    // 注意：周期任务自动创建已移至定时任务管理器
+    // 不再在获取任务列表时自动创建
 
     const query: ITaskQuery = {};
     if (authRole === "parent") {
@@ -259,13 +201,23 @@ export async function POST(request: NextRequest) {
       recurrence,
       recurrenceDay,
       deadline,
+      // 新的周期任务字段
+      isRecurring,
+      autoPublishTime,
+      expiryPolicy,
+      validFrom,
+      validUntil,
     } = body;
 
     if (!childId || !name || points === undefined) {
       return NextResponse.json({ success: false, message: "缺少必要参数" }, { status: 400 });
     }
 
-    const task = await Task.create({
+    // 判断是否是周期任务
+    const isRecurringTask = isRecurring && recurrence && recurrence !== "none";
+
+    // 创建任务数据
+    const taskData: any = {
       userId: authUserId,
       childId,
       name,
@@ -274,14 +226,71 @@ export async function POST(request: NextRequest) {
       type: type || "daily",
       icon: icon || "⭐",
       requirePhoto: requirePhoto || false,
-      status: "pending",
+      status: isRecurringTask ? "pending" : "pending",
       imageUrl,
       recurrence: recurrence || "none",
       recurrenceDay,
       deadline: deadline ? new Date(deadline) : undefined,
-    });
+      // 新的周期任务字段
+      isRecurring: isRecurringTask || false,
+      isRecurringTemplate: isRecurringTask || false,
+      autoPublishTime: autoPublishTime || "00:00",
+      expiryPolicy: expiryPolicy || "auto_close",
+      validFrom: validFrom ? new Date(validFrom) : undefined,
+      validUntil: validUntil ? new Date(validUntil) : undefined,
+    };
 
-    return NextResponse.json({ success: true, task });
+    const task = await Task.create(taskData);
+
+    // 如果是周期任务，立即创建一个今日实例（如果不是按特定日期创建）
+    if (isRecurringTask) {
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const dayOfMonth = now.getDate();
+      
+      let shouldCreateToday = false;
+      
+      switch (recurrence) {
+        case 'minutely':
+          shouldCreateToday = true;
+          break;
+        case 'daily':
+          shouldCreateToday = true;
+          break;
+        case 'weekly':
+          shouldCreateToday = recurrenceDay === dayOfWeek;
+          break;
+        case 'monthly':
+          shouldCreateToday = recurrenceDay === dayOfMonth;
+          break;
+      }
+      
+      if (shouldCreateToday) {
+        const todayDeadline = new Date();
+        todayDeadline.setHours(23, 59, 59, 999);
+        
+        if (autoPublishTime) {
+          const [hours, minutes] = autoPublishTime.split(':').map(Number);
+          todayDeadline.setHours(hours, minutes, 0, 0);
+        }
+        
+        await Task.create({
+          ...taskData,
+          _id: undefined,
+          isRecurring: false,
+          isRecurringTemplate: false,
+          originalTaskId: task._id,
+          deadline: todayDeadline,
+          status: 'pending',
+        });
+      }
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      task,
+      message: isRecurringTask ? "周期任务已创建，将在设定时间自动发布" : "任务创建成功"
+    });
   } catch (error: unknown) {
     console.error("Create task error:", error);
     return NextResponse.json({ success: false, message: (error as Error).message }, { status: 500 });

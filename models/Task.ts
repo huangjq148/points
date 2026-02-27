@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export type TaskType = "daily" | "custom";
 export type TaskCategory = "personal_hygiene" | "learning" | "housework" | "social" | "other";
 export type TaskDifficulty = "easy" | "normal" | "hard";
-export type RecurrencePattern = "daily" | "weekly" | "custom_days" | "none";
+export type RecurrencePattern = "minutely" | "daily" | "weekly" | "custom_days" | "none";
 export type TaskStatus = "pending" | "submitted" | "approved" | "rejected" | "expired" | "failed";
 
 // 审核记录
@@ -19,6 +19,8 @@ export interface IAuditRecord {
   auditNote?: string;
   auditedBy?: mongoose.Types.ObjectId;
 }
+
+export type ExpiryPolicy = "auto_close" | "keep" | "rollover";
 
 export interface ITask extends Document {
   userId: mongoose.Types.ObjectId;
@@ -40,10 +42,15 @@ export interface ITask extends Document {
   recurrence: RecurrencePattern;
   recurrenceDays?: number[];
   recurrenceInterval?: number;
-  validFrom?: Date;
-  validUntil?: Date;
-  startTime?: Date;
-  endTime?: Date;
+  recurrenceDay?: number; // 用于每周/每月的特定日期
+  // 周期任务新字段
+  isRecurring: boolean; // 是否周期任务
+  recurrenceRule?: string; // RFC5545 格式的规则，如 FREQ=DAILY;INTERVAL=1
+  autoPublishTime?: string; // 自动发布时间，如 "08:00"
+  expiryPolicy: ExpiryPolicy; // 过期处理策略
+  validFrom?: Date; // 周期任务生效开始日期
+  validUntil?: Date; // 周期任务生效结束日期
+  isRecurringTemplate?: boolean; // 是否是周期任务模板（不直接显示给孩子）
   originalTaskId?: mongoose.Types.ObjectId;
   submittedAt?: Date;
   approvedAt?: Date;
@@ -95,15 +102,24 @@ const TaskSchema = new Schema<ITask>(
     imageUrl: { type: String },
     recurrence: {
       type: String,
-      enum: ["daily", "weekly", "custom_days", "none"],
+      enum: ["minutely", "daily", "weekly", "custom_days", "none"],
       default: "none",
     },
     recurrenceDays: { type: [Number] },
     recurrenceInterval: { type: Number },
+    recurrenceDay: { type: Number }, // 0-6 for weekly, 1-31 for monthly
+    // 周期任务新字段
+    isRecurring: { type: Boolean, default: false },
+    recurrenceRule: { type: String }, // RFC5545 format
+    autoPublishTime: { type: String, default: "00:00" }, // HH:mm format
+    expiryPolicy: {
+      type: String,
+      enum: ["auto_close", "keep", "rollover"],
+      default: "auto_close",
+    },
     validFrom: { type: Date },
     validUntil: { type: Date },
-    startTime: { type: Date },
-    endTime: { type: Date },
+    isRecurringTemplate: { type: Boolean, default: false },
     originalTaskId: { type: Schema.Types.ObjectId, ref: "Task" },
     submittedAt: { type: Date },
     approvedAt: { type: Date },

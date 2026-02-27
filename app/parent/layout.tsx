@@ -2,11 +2,11 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy } from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy, Clock } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
-type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "achievements";
+type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "achievements" | "scheduled-jobs";
 
 export default function ParentLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -26,18 +26,17 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
     { id: "achievements", icon: Trophy, label: "勋章" },
     { id: "family", icon: Users, label: "家庭" },
     { id: "users", icon: UserCog, label: "用户" },
+    { id: "scheduled-jobs", icon: Clock, label: "定时任务" },
   ];
   const initialTab = (() => {
     const pathSegments = pathname.split("/");
     const currentTab = pathSegments[pathSegments.length - 1];
-    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "achievements"].includes(currentTab)) {
-      return currentTab as "home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users" | "achievements";
+    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "achievements", "scheduled-jobs"].includes(currentTab)) {
+      return currentTab as NavItemId;
     }
     return "home"; // Default to home if path is not recognized
   })();
-  const [activeTab, setActiveTab] = useState<"home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users" | "achievements">(
-    initialTab,
-  );
+  const [activeTab, setActiveTab] = useState<NavItemId>(initialTab);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -107,12 +106,14 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
             <div className="hidden lg:flex items-center gap-4 w-full justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {activeTab === "home" ? "首页" : 
+                  {activeTab === "home" ? "首页" :
                    activeTab === "overview" ? "数据概览" :
                    activeTab === "audit" ? "任务审核" :
                    activeTab === "tasks" ? "任务管理" :
                    activeTab === "orders" ? "礼品核销" :
                    activeTab === "rewards" ? "奖品商城" :
+                   activeTab === "achievements" ? "勋章管理" :
+                   activeTab === "scheduled-jobs" ? "定时任务" :
                    activeTab === "family" ? "家庭成员" : "系统用户"}
                 </h1>
                 <p className="text-gray-500 text-sm mt-1">欢迎回来，开启美好的一天</p>
