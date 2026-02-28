@@ -4,7 +4,6 @@ import MedalWall from '@/components/gamification/MedalWall';
 import { useApp } from '@/context/AppContext';
 import request from '@/utils/request';
 import { Loader2, Sparkles, Trophy } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 interface Achievement {
@@ -40,7 +39,6 @@ interface AchievementStats {
 
 export default function AchievementsPage() {
   const { currentUser } = useApp();
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [stats, setStats] = useState<AchievementStats | null>(null);
@@ -56,7 +54,7 @@ export default function AchievementsPage() {
     } catch (error) {
       console.error('获取成就失败:', error);
     }
-  }, [currentUser]);
+  }, [currentUser?.token]);
 
   useEffect(() => {
     const loadData = async () => {

@@ -27,6 +27,11 @@ interface OrderPutRequest {
   action: 'verify' | 'cancel';
 }
 
+function toObjectId(value: string): mongoose.Types.ObjectId | null {
+  if (!mongoose.Types.ObjectId.isValid(value)) return null;
+  return new mongoose.Types.ObjectId(value);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
@@ -53,21 +58,34 @@ export async function GET(request: NextRequest) {
          const familyChildren = await User.find({ familyId: parentUser.familyId, role: 'child' });
          const childIds = familyChildren.map(c => c._id);
          
-         const orConditions: Record<string, unknown>[] = [{ userId: authUserId }];
+         const authUserObjectId = toObjectId(authUserId);
+         const orConditions: Record<string, unknown>[] = authUserObjectId ? [{ userId: authUserObjectId }] : [];
          if (childIds.length > 0) {
            orConditions.push({ childId: { $in: childIds } });
          }
          
          if (childId) {
-            query.childId = childId;
+            const childObjectId = toObjectId(childId);
+            if (!childObjectId) {
+              return NextResponse.json({ success: false, message: '无效的 childId' }, { status: 400 });
+            }
+            query.childId = childObjectId;
          } else {
             query.$or = orConditions;
          }
       } else {
-        query.userId = authUserId;
+        const authUserObjectId = toObjectId(authUserId);
+        if (!authUserObjectId) {
+          return NextResponse.json({ success: false, message: '无效的用户ID' }, { status: 400 });
+        }
+        query.userId = authUserObjectId;
       }
     } else {
-      query.childId = authUserId;
+      const authUserObjectId = toObjectId(authUserId);
+      if (!authUserObjectId) {
+        return NextResponse.json({ success: false, message: '无效的用户ID' }, { status: 400 });
+      }
+      query.childId = authUserObjectId;
     }
 
     if (status) {

@@ -416,15 +416,10 @@ export const MedalWall: React.FC<MedalWallProps> = ({
 
       <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
         <div className='flex p-1.5 bg-gray-100 rounded-2xl overflow-x-auto'>
-          {[
-            { id: 'all', label: '全部成就', icon: Trophy },
-            { id: 'accumulation', label: '成长脚印', icon: Footprints },
-            { id: 'behavior', label: '品质勋章', icon: Flame },
-            { id: 'surprise', label: '彩蛋成就', icon: Gift },
-          ].map((tab) => (
+          {dimensionTabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveDimension(tab.id as any)}
+              onClick={() => setActiveDimension(tab.id)}
               className={`flex-1 py-2.5 px-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                 activeDimension === tab.id
                   ? 'bg-white text-blue-600 shadow-sm'
@@ -502,3 +497,13 @@ export const MedalWall: React.FC<MedalWallProps> = ({
 };
 
 export default MedalWall;
+  const dimensionTabs: Array<{
+    id: 'all' | 'accumulation' | 'behavior' | 'surprise';
+    label: string;
+    icon: typeof Trophy;
+  }> = [
+    { id: 'all', label: '全部成就', icon: Trophy },
+    { id: 'accumulation', label: '成长脚印', icon: Footprints },
+    { id: 'behavior', label: '品质勋章', icon: Flame },
+    { id: 'surprise', label: '彩蛋成就', icon: Gift },
+  ];

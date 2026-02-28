@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
-import { Calendar as CalendarIcon, Search, ChevronRight, Gift, Wallet } from "lucide-react";
+import { Search, ChevronRight, Gift, Wallet } from "lucide-react";
 import { Button, DatePicker } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import { useToast } from "@/components/ui/Toast";
@@ -37,7 +37,7 @@ export default function GiftPage() {
     if (data.success) {
       setOrders(data.orders);
     }
-  }, [currentUser]);
+  }, [currentUser?.token]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,7 +48,7 @@ export default function GiftPage() {
     void loadData();
   }, [currentUser, fetchOrders]);
 
-  const filteredOrders = (() => {
+  const filteredOrders = useMemo(() => {
     let filtered = orders;
     if (giftSearchQuery) {
       filtered = filtered.filter((o) => o.rewardName.toLowerCase().includes(giftSearchQuery.toLowerCase()));
@@ -61,7 +61,7 @@ export default function GiftPage() {
       filtered = filtered.filter((o) => o.status === giftStatusFilter);
     }
     return filtered;
-  })();
+  }, [giftDate, giftSearchQuery, giftStatusFilter, orders]);
 
   const handleCancelOrder = async (order: Order) => {
     const data = await request("/api/orders", {

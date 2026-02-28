@@ -1,13 +1,8 @@
   "use client";
 
- import { useState, useEffect, useCallback } from "react";
+ import { useState, useEffect, useCallback, useMemo } from "react";
  import { useApp } from "@/context/AppContext";
- import { useRouter } from "next/navigation";
- import {
-   Calendar as CalendarIcon,
-   Search,
-   ChevronRight,
- } from "lucide-react";
+ import { Search } from "lucide-react";
  import { Button, DatePicker } from "@/components/ui";
  import { formatDate } from "@/utils/date";
  import request from "@/utils/request";
@@ -23,7 +18,6 @@ interface LedgerItem {
 
 export default function WalletPage() {
   const { currentUser } = useApp();
-  const router = useRouter();
 
   // Ledger State
   const [ledgerData, setLedgerData] = useState<LedgerItem[]>([]);
@@ -58,7 +52,7 @@ export default function WalletPage() {
     } finally {
       setLedgerLoading(false);
     }
-  }, [currentUser, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
+  }, [currentUser?.token, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -69,18 +63,19 @@ export default function WalletPage() {
     void loadData();
   }, [currentUser, fetchLedger]);
 
-  // navigate helper
-  const navigateTo = (path: string) => router.push(`/child/${path}`);
+  const totalPages = useMemo(
+    () => Math.ceil(ledgerTotal / ledgerLimit),
+    [ledgerLimit, ledgerTotal],
+  );
 
   return (
     <div className="pb-8">
-      <div className="pb-8">
-        <div className="card-child mb-4">
-         <div className="text-center">
-           <p className="text-blue-600 mb-2">当前余额</p>
-           <div className="text-4xl font-bold text-blue-700">🪙 {currentUser?.availablePoints || 0}</div>
-         </div>
-       </div>
+      <div className="card-child mb-4">
+        <div className="text-center">
+          <p className="text-blue-600 mb-2">当前余额</p>
+          <div className="text-4xl font-bold text-blue-700">🪙 {currentUser?.availablePoints || 0}</div>
+        </div>
+      </div>
  
        <div className="mb-4 space-y-2">
          <div className="flex gap-2">
@@ -141,7 +136,7 @@ export default function WalletPage() {
              )}
  
              {/* Pagination */}
-             {Math.ceil(ledgerTotal / ledgerLimit) > 1 && (
+             {totalPages > 1 && (
                <div className="flex justify-center gap-2 mt-4">
                  <Button
                    onClick={() => fetchLedger(ledgerPage - 1)}
@@ -153,11 +148,11 @@ export default function WalletPage() {
                    上一页
                  </Button>
                   <span className="px-3 py-1 text-gray-600">
-                    {ledgerPage} / {Math.ceil(ledgerTotal / ledgerLimit)}
+                    {ledgerPage} / {totalPages}
                   </span>
                   <Button
                     onClick={() => fetchLedger(ledgerPage + 1)}
-                    disabled={ledgerPage === Math.ceil(ledgerTotal / ledgerLimit)}
+                    disabled={ledgerPage === totalPages}
                     variant="secondary"
                     size="sm"
                     className="h-8 px-3 py-1 rounded-lg"
@@ -168,7 +163,6 @@ export default function WalletPage() {
               )}
             </>
           )}
-        </div>
       </div>
     </div>
   );

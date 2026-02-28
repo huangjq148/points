@@ -7,4 +7,5 @@ export { default as DatePicker } from './DatePicker';
 export { default as Pagination } from './Pagination';
 export { default as TabFilter } from './TabFilter';
 export { default as DataTable } from './DataTable';
+export type { DataTableColumn } from './DataTable';
 export { default as Image } from './Image';

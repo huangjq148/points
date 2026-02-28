@@ -6,7 +6,7 @@ import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
-import { createColumnHelper } from "@tanstack/react-table";
+import type { DataTableColumn } from "@/components/ui";
 import { Copy, Settings, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import request from "@/utils/request";
@@ -27,13 +27,19 @@ export default function FamilyPage() {
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
+  const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
 
   const token = currentUser?.token;
 
-  const fetchFamilyMembers = useCallback(async () => {
+  const fetchFamilyMembers = useCallback(async (pageNum: number = 1) => {
     if (!token) return;
     try {
-      const data = await request("/api/family");
+      const data = await request("/api/family", {
+        params: {
+          page: pageNum,
+          limit,
+        },
+      });
       if (data.success) {
         setFamilyMembers(data.members);
         if (data.total !== undefined) {
@@ -48,29 +54,31 @@ export default function FamilyPage() {
     } catch (e) {
       console.error(e);
     }
-  }, [token, logout]);
+  }, [token, logout, limit]);
 
   useEffect(() => {
-    if (token) {
-      fetchFamilyMembers();
-    }
-  }, [token, fetchFamilyMembers]);
+    if (!token) return;
+    const timer = setTimeout(() => {
+      void fetchFamilyMembers(page);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [token, fetchFamilyMembers, page]);
 
   const handleDeleteAccount = useCallback(
     async (id: string) => {
-      if (!confirm("确定将该成员移出家庭吗？")) return;
       if (!token) return;
       const data = await request(`/api/family?id=${id}`, {
         method: "DELETE",
       });
       if (data.success) {
         toast.success("删除成功");
-        fetchFamilyMembers();
+        setDeleteMemberId(null);
+        fetchFamilyMembers(page);
       } else {
         toast.error("删除失败");
       }
     },
-    [token, fetchFamilyMembers, toast],
+    [token, fetchFamilyMembers, toast, page],
   );
 
   const handleCreateFamily = async () => {
@@ -108,7 +116,7 @@ export default function FamilyPage() {
       if (data.success) {
         toast.success("邀请成功");
         setInviteUsernameInput("");
-        fetchFamilyMembers();
+        fetchFamilyMembers(page);
         refreshChildren();
       } else {
         toast.error(data.message || "邀请失败");
@@ -142,58 +150,59 @@ export default function FamilyPage() {
     }
   };
 
-  const columnHelper = createColumnHelper<FamilyMember>();
-
-  const columns = useMemo(() => [
-    columnHelper.accessor("username", {
-      header: "账号/昵称",
-      cell: (info) => (
+  const columns = useMemo<DataTableColumn<FamilyMember>[]>(() => [
+    {
+      key: "username",
+      title: "账号/昵称",
+      render: (value, row) => (
         <div className="flex items-center gap-2">
-          {info.row.original.type === "child" ? "👶" : "👤"}
-          {info.getValue()}
-          {info.row.original.isMe && (
+          {row.type === "child" ? "👶" : "👤"}
+          {String(value ?? "-")}
+          {row.isMe && (
             <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">我</span>
           )}
         </div>
       ),
-    }),
-    columnHelper.accessor("identity", {
-      header: "身份",
-      cell: (info) => info.getValue() || "-",
-    }),
-    columnHelper.accessor("type", {
-      header: "类型",
-      cell: (info) => (info.getValue() === "child" ? "孩子" : "用户"),
-    }),
-    columnHelper.accessor("role", {
-      header: "角色",
-      cell: (info) => {
-        const val = info.getValue();
+    },
+    {
+      key: "identity",
+      title: "身份",
+      render: (value) => (value == null || value === "" ? "-" : String(value)),
+    },
+    {
+      key: "type",
+      title: "类型",
+      render: (value) => (value === "child" ? "孩子" : "用户"),
+    },
+    {
+      key: "role",
+      title: "角色",
+      render: (value) => {
+        const val = value;
         if (val === "admin") return "管理员";
         if (val === "parent") return "家长";
         if (val === "child") return "孩子";
         return "-";
       },
-    }),
-  ], [columnHelper]);
+    },
+  ], []);
 
-  const actionColumn = useMemo(() =>
-    columnHelper.display({
-      id: "actions",
-      header: "操作",
-      cell: (info) => (
+  const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
+      key: "actions",
+      title: "操作",
+      render: (_, row) => (
         <div className="flex justify-end gap-2">
-          {info.row.original.type === "parent" && (
+          {row.type === "parent" && (
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
-                setEditingMember(info.row.original);
+                setEditingMember(row);
                 setAccountForm({
-                  username: info.row.original.username,
+                  username: row.username,
                   password: "",
-                  role: info.row.original.role,
-                  identity: info.row.original.identity || "",
+                  role: row.role,
+                  identity: row.identity || "",
                 });
                 setShowEditAccountModal(true);
               }}
@@ -202,11 +211,11 @@ export default function FamilyPage() {
               <Settings size={18} />
             </Button>
           )}
-          {!info.row.original.isMe && info.row.original.type === "parent" && (
+          {!row.isMe && row.type === "parent" && (
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => handleDeleteAccount(info.row.original.id)}
+              onClick={() => setDeleteMemberId(row.id)}
               className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
             >
               <Trash2 size={18} />
@@ -214,7 +223,7 @@ export default function FamilyPage() {
           )}
         </div>
       ),
-    }), [columnHelper, handleDeleteAccount]);
+    }), []);
 
   const pageOptions = useMemo(() => ({
     currentPage: page,
@@ -225,6 +234,28 @@ export default function FamilyPage() {
 
   return (
     <>
+      <Modal
+        isOpen={!!deleteMemberId}
+        onClose={() => setDeleteMemberId(null)}
+        title="移出成员"
+        footer={
+          <div className="flex gap-2 w-full">
+            <Button variant="secondary" className="flex-1" onClick={() => setDeleteMemberId(null)}>
+              取消
+            </Button>
+            <Button
+              variant="error"
+              className="flex-1"
+              onClick={() => deleteMemberId && handleDeleteAccount(deleteMemberId)}
+            >
+              确认移出
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-gray-600">确定将该成员移出家庭吗？</p>
+      </Modal>
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">家庭成员管理 </h2>
         <div className="flex gap-2">

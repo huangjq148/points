@@ -2,7 +2,8 @@
 
 import { IDisplayedTask } from "./TaskCard";
 import { Clock, Edit2, Trash2, Eye, Image as ImageIcon, History } from "lucide-react";
-import { Button, Modal, Image as ZoomImage } from "@/components/ui";
+import { Button, Modal, Image as ZoomImage, DataTable } from "@/components/ui";
+import type { DataTableColumn } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import { useState } from "react";
 import { AuditRecord } from "@/app/typings";
@@ -204,149 +205,158 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     );
   };
 
+  const columns: DataTableColumn<IDisplayedTask>[] = [
+    {
+      key: "name",
+      title: "任务",
+      render: (_, task) => {
+        return (
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <span className="text-2xl">{task.icon}</span>
+              {task.isRecurring && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center" title="周期任务">
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-gray-800 text-sm">{task.name}</p>
+                {task.isRecurring && (
+                  <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                    周期
+                  </span>
+                )}
+              </div>
+              {task.description && (
+                <p className="text-xs text-gray-500 truncate max-w-[200px]">
+                  {task.description}
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "childName",
+      title: "执行人",
+      render: (_, row) => (
+        <span className="inline-flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+          {row.childAvatar} {row.childName}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      title: "状态",
+      render: (_, row) => {
+        const statusInfo = getStatusInfo(row);
+        return (
+          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${statusInfo.className}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+            {statusInfo.label}
+          </span>
+        );
+      },
+    },
+    {
+      key: "points",
+      title: "积分",
+      render: (_, row) => <span className="text-sm font-bold text-blue-600">+{row.points}</span>,
+    },
+    {
+      key: "type",
+      title: "类型",
+      render: (_, row) => <span className="text-xs text-gray-600">{getTypeLabel(row.type)}</span>,
+    },
+    {
+      key: "deadline",
+      title: "截止时间",
+      render: (_, row) => {
+        const task = row;
+        const isOverdue = task.deadline && now > 0 && new Date(task.deadline).getTime() < now && task.status === "pending";
+        return task.deadline ? (
+          <div className={`flex items-center gap-1 text-xs ${isOverdue ? "text-red-500 font-medium" : "text-gray-500"}`}>
+            <Clock size={12} />
+            <span>{formatDate(task.deadline)}</span>
+            {isOverdue && <span className="text-[10px] bg-red-100 px-1.5 py-0.5 rounded">逾期</span>}
+          </div>
+        ) : (
+          <span className="text-xs text-gray-400">-</span>
+        );
+      },
+    },
+    {
+      key: "updatedAt",
+      title: "更新时间",
+      render: (_, row) => <span className="text-xs text-gray-500">{formatDate(row.updatedAt)}</span>,
+    },
+  ];
+
+  const actionColumn: DataTableColumn<IDisplayedTask> = {
+    key: "actions",
+    title: "操作",
+    render: (_, row) => {
+      const task = row;
+      return (
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTask(task);
+            }}
+            variant="secondary"
+            className="p-1.5 h-7 w-7 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+            title="查看"
+          >
+            <Eye size={14} />
+          </Button>
+          {task.status !== "approved" && (
+            <>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(task);
+                }}
+                variant="secondary"
+                className="p-1.5 h-7 w-7 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+                title="编辑"
+              >
+                <Edit2 size={14} />
+              </Button>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(task._id);
+                }}
+                variant="secondary"
+                className="p-1.5 h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
+                title="删除"
+              >
+                <Trash2 size={14} />
+              </Button>
+            </>
+          )}
+        </div>
+      );
+    },
+  };
+
   return (
     <>
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">任务</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">执行人</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">状态</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">积分</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">类型</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">截止时间</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">更新时间</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {tasks.map((task) => {
-                const statusInfo = getStatusInfo(task);
-                const isOverdue = task.deadline && now > 0 && new Date(task.deadline).getTime() < now && task.status === "pending";
-                
-                return (
-                  <tr 
-                    key={task._id} 
-                    className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                    onClick={() => setSelectedTask(task)}
-                  >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <span className="text-2xl">{task.icon}</span>
-                          {/* 周期任务标识 */}
-                          {(task as any).isRecurring && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center" title="周期任务">
-                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-800 text-sm">{task.name}</p>
-                            {/* 周期任务文字标识 */}
-                            {(task as any).isRecurring && (
-                              <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-medium">
-                                周期
-                              </span>
-                            )}
-                          </div>
-                          {task.description && (
-                            <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">
-                              {task.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
-                        {task.childAvatar} {task.childName}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${statusInfo.className}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
-                        {statusInfo.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-sm font-bold text-blue-600">+{task.points}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-gray-600">{getTypeLabel(task.type)}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {task.deadline ? (
-                        <div className={`flex items-center gap-1 text-xs ${isOverdue ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
-                          <Clock size={12} />
-                          <span>{formatDate(task.deadline)}</span>
-                          {isOverdue && <span className="text-[10px] bg-red-100 px-1.5 py-0.5 rounded">逾期</span>}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-gray-500">{formatDate(task.updatedAt)}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTask(task);
-                          }}
-                          variant="secondary"
-                          className="p-1.5 h-7 w-7 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-                          title="查看"
-                        >
-                          <Eye size={14} />
-                        </Button>
-                        {task.status !== "approved" && (
-                          <>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(task);
-                              }}
-                              variant="secondary"
-                              className="p-1.5 h-7 w-7 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-                              title="编辑"
-                            >
-                              <Edit2 size={14} />
-                            </Button>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(task._id);
-                              }}
-                              variant="secondary"
-                              className="p-1.5 h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-                              title="删除"
-                            >
-                              <Trash2 size={14} />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        {tasks.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <p>暂无任务</p>
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        dataSource={tasks}
+        actionColumn={actionColumn}
+        emptyText="暂无任务"
+        minWidth={980}
+        actionColumnWidth={120}
+        onRowClick={(task) => setSelectedTask(task)}
+      />
 
       {/* 任务详情弹窗 */}
       {selectedTask && (

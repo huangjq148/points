@@ -2,6 +2,7 @@
  * 简易定时任务触发服务
  * 用于定期调用 /api/cron/scheduled-jobs 接口执行定时任务
  */
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 const https = require('https');
 const http = require('http');

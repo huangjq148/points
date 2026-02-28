@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spawn, exec } from 'child_process';
+import { spawn, exec, type ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 
 const execAsync = promisify(exec);
 
 // 存储 cron 服务进程
-let cronProcess: any = null;
+let cronProcess: ChildProcess | null = null;
 
 // 检查 cron 服务是否正在运行
 async function isCronServerRunning(): Promise<boolean> {

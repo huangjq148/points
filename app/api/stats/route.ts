@@ -6,6 +6,28 @@ import User from '@/models/User';
 import Order from '@/models/Order';
 import { getTokenPayload } from '@/lib/auth';
 
+interface TaskStatusAgg {
+  _id: string;
+  count: number;
+  totalPoints?: number;
+}
+
+interface DailyStatAgg {
+  _id: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  count: number;
+  points: number;
+}
+
+interface DomainStatAgg {
+  _id: string;
+  count: number;
+  points: number;
+}
+
 // 获取家庭统计数据
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +55,7 @@ export async function GET(request: NextRequest) {
       startDate.setMonth(now.getMonth() - 1);
     }
 
-    let matchQuery: any = {
+    const matchQuery: Record<string, unknown> = {
       createdAt: { $gte: startDate, $lte: now }
     };
 
@@ -52,7 +74,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 1. 任务完成情况统计
-    const taskStats = await Task.aggregate([
+    const taskStats = (await Task.aggregate([
       { $match: matchQuery },
       {
         $group: {
@@ -61,7 +83,7 @@ export async function GET(request: NextRequest) {
           totalPoints: { $sum: '$points' }
         }
       }
-    ]);
+    ])) as TaskStatusAgg[];
 
     // 2. 按类型统计
     const taskTypeStats = await Task.aggregate([
@@ -75,7 +97,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // 3. 按天统计（趋势）
-    const dailyStats = await Task.aggregate([
+    const dailyStats = (await Task.aggregate([
       { $match: { ...matchQuery, status: 'approved' } },
       {
         $group: {
@@ -89,10 +111,10 @@ export async function GET(request: NextRequest) {
         }
       },
       { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
-    ]);
+    ])) as DailyStatAgg[];
 
     // 4. 孩子表现排名（仅限家长）
-    let childRankings: any[] = [];
+    let childRankings: Array<Record<string, unknown>> = [];
     if (payload.role === 'parent') {
       childRankings = await Task.aggregate([
         { 
@@ -131,7 +153,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 5. 领域分析
-    const domainStats = await Task.aggregate([
+    const domainStats = (await Task.aggregate([
       { $match: { ...matchQuery, status: 'approved' } },
       {
         $group: {
@@ -140,10 +162,10 @@ export async function GET(request: NextRequest) {
           points: { $sum: '$points' }
         }
       }
-    ]);
+    ])) as DomainStatAgg[];
 
     // 6. 订单/奖励兑换统计
-    const orderStats = await Order.aggregate([
+    const orderStats = (await Order.aggregate([
       { 
         $match: { 
           createdAt: { $gte: startDate, $lte: now },
@@ -157,19 +179,19 @@ export async function GET(request: NextRequest) {
           totalPoints: { $sum: '$points' }
         }
       }
-    ]);
+    ])) as TaskStatusAgg[];
 
     // 格式化数据
     const stats = {
       period,
       dateRange: { start: startDate, end: now },
       tasks: {
-        total: taskStats.reduce((sum: number, s: any) => sum + s.count, 0),
-        completed: taskStats.find((s: any) => s._id === 'approved')?.count || 0,
-        pending: taskStats.find((s: any) => s._id === 'pending')?.count || 0,
-        submitted: taskStats.find((s: any) => s._id === 'submitted')?.count || 0,
-        rejected: taskStats.find((s: any) => s._id === 'rejected')?.count || 0,
-        totalPoints: taskStats.reduce((sum: number, s: any) => sum + (s.totalPoints || 0), 0)
+        total: taskStats.reduce((sum: number, s) => sum + s.count, 0),
+        completed: taskStats.find((s) => s._id === 'approved')?.count || 0,
+        pending: taskStats.find((s) => s._id === 'pending')?.count || 0,
+        submitted: taskStats.find((s) => s._id === 'submitted')?.count || 0,
+        rejected: taskStats.find((s) => s._id === 'rejected')?.count || 0,
+        totalPoints: taskStats.reduce((sum: number, s) => sum + (s.totalPoints || 0), 0)
       },
       dailyTrend: dailyStats.map(d => ({
         date: `${d._id.year}-${String(d._id.month).padStart(2, '0')}-${String(d._id.day).padStart(2, '0')}`,

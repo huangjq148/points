@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import Select from '@/components/ui/Select';
-import { Trophy, Medal, Star, Target, Flame, Footprints, Gift, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Trophy, Star, Target, Flame, Footprints, Gift, Loader2, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import request from '@/utils/request';
 
@@ -107,13 +107,16 @@ export default function ParentAchievementsPage() {
     }
   }, [childList, selectedChild, fetchChildAchievements]);
 
-  const childOptions = [
-    { value: 'all', label: '全部孩子' },
-    ...childList.map(child => ({
-      value: child.id,
-      label: child.username,
-    }))
-  ];
+  const childOptions = useMemo(
+    () => [
+      { value: 'all', label: '全部孩子' },
+      ...childList.map((child) => ({
+        value: child.id,
+        label: child.username,
+      })),
+    ],
+    [childList],
+  );
 
   const currentData = selectedChild === 'all' 
     ? null 

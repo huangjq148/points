@@ -17,6 +17,15 @@ interface GamificationNotification {
   level?: number;
 }
 
+interface MedalItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  xpReward?: number;
+  isNew?: boolean;
+}
+
 interface GamificationNotifierProps {
   onViewAchievements?: () => void;
 }
@@ -41,13 +50,15 @@ export const GamificationNotifier: React.FC<GamificationNotifierProps> = ({ onVi
       if (medalsData.success && avatarData.success) {
         const currentMedalCount = medalsData.data.stats.earned;
         const currentLevel = avatarData.data.avatar.level;
-        const newMedals = medalsData.data.medals.filter((m: any) => m.isNew);
+        const newMedals: MedalItem[] = (medalsData.data.medals || []).filter(
+          (m: MedalItem) => m.isNew,
+        );
 
         const newNotifications: GamificationNotification[] = [];
 
         // 检查新勋章
         if (newMedals.length > 0 && currentMedalCount > lastMedalCount) {
-          newMedals.forEach((medal: any) => {
+          newMedals.forEach((medal: MedalItem) => {
             newNotifications.push({
               id: `medal-${medal.id}`,
               type: 'medal',

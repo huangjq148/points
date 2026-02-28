@@ -8,7 +8,7 @@ import Select from "@/components/ui/Select";
 import PasswordInput from "@/components/ui/PasswordInput";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
-import { createColumnHelper } from "@tanstack/react-table";
+import type { DataTableColumn } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
 import { Plus, Settings, Trash2 } from "lucide-react";
@@ -25,6 +25,7 @@ export default function UsersPage() {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [accountForm, setAccountForm] = useState({
     username: "",
     password: "",
@@ -34,10 +35,15 @@ export default function UsersPage() {
     gender: "none" as "boy" | "girl" | "none",
   });
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (pageNum: number = 1) => {
     if (!currentUser?.token) return;
     try {
-      const data = await request("/api/user");
+      const data = await request("/api/user", {
+        params: {
+          page: pageNum,
+          limit,
+        },
+      });
       if (data.success) {
         setFamilyMembers(data.users);
         if (data.total !== undefined) {
@@ -52,13 +58,15 @@ export default function UsersPage() {
     } catch (e) {
       console.error(e);
     }
-  }, [currentUser?.token, logout]);
+  }, [currentUser?.token, logout, limit]);
 
   useEffect(() => {
-    if (currentUser?.token) {
-      fetchUsers();
-    }
-  }, [currentUser?.token, fetchUsers]);
+    if (!currentUser?.token) return;
+    const timer = setTimeout(() => {
+      void fetchUsers(page);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [currentUser?.token, fetchUsers, page]);
 
   const handleCreateAccount = async () => {
     if (!accountForm.username || !accountForm.password) return toast.error("请输入完整信息");
@@ -71,7 +79,7 @@ export default function UsersPage() {
     if (data.success) {
       toast.success("创建成功");
       setShowAddAccountModal(false);
-      fetchUsers();
+      fetchUsers(page);
       setAccountForm({
         username: "",
         password: "",
@@ -94,7 +102,7 @@ export default function UsersPage() {
     if (data.success) {
       toast.success("更新成功");
       setShowEditAccountModal(false);
-      fetchUsers();
+      fetchUsers(page);
     } else {
       toast.error(data.message);
     }
@@ -102,29 +110,28 @@ export default function UsersPage() {
 
   const handleDeleteAccount = useCallback(
     async (id: string) => {
-      if (!confirm("确定删除该账号吗？")) return;
       if (!currentUser?.token) return;
       const data = await request(`/api/user?id=${id}`, {
         method: "DELETE",
       });
       if (data.success) {
         toast.success("删除成功");
-        fetchUsers();
+        setDeleteUserId(null);
+        fetchUsers(page);
       } else {
         toast.error("删除失败");
       }
     },
-    [currentUser?.token, fetchUsers, toast],
+    [currentUser?.token, fetchUsers, toast, page],
   );
 
-  const columnHelper = createColumnHelper<FamilyMember>();
-
-  const columns = useMemo(() => [
-    columnHelper.accessor("username", {
-      header: "账号",
-      cell: (info) => {
-        const gender = info.row.original.gender;
-        const role = info.row.original.role;
+  const columns = useMemo<DataTableColumn<FamilyMember>[]>(() => [
+    {
+      key: "username",
+      title: "账号",
+      render: (value, row) => {
+        const gender = row.gender;
+        const role = row.role;
         let icon = "👤";
         if (role === "child") {
           if (gender === "girl") icon = "👧";
@@ -133,69 +140,74 @@ export default function UsersPage() {
         return (
           <div className="flex items-center gap-2">
             <span>{icon}</span>
-            <span className="font-medium">{info.getValue()}</span>
-            {info.row.original.isMe && (
+            <span className="font-medium">{String(value ?? "-")}</span>
+            {row.isMe && (
               <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">我</span>
             )}
           </div>
         );
       },
-    }),
-    columnHelper.accessor("nickname", {
-      header: "昵称",
-      cell: (info) => info.getValue() || "-",
-    }),
-    columnHelper.accessor("gender", {
-      header: "性别",
-      cell: (info) => {
-        const val = info.getValue();
+    },
+    {
+      key: "nickname",
+      title: "昵称",
+      render: (value) => (value == null || value === "" ? "-" : String(value)),
+    },
+    {
+      key: "gender",
+      title: "性别",
+      render: (value) => {
+        const val = value;
         if (val === "girl") return <span className="text-pink-500 font-bold">女</span>;
         return <span className="text-blue-500 font-bold">男</span>;
       },
-    }),
-    columnHelper.accessor("type", {
-      header: "类型",
-      cell: (info) => (info.getValue() === "child" ? "孩子" : "用户"),
-    }),
-    columnHelper.accessor("role", {
-      header: "角色",
-      cell: (info) => {
-        const val = info.getValue();
+    },
+    {
+      key: "type",
+      title: "类型",
+      render: (value) => (value === "child" ? "孩子" : "用户"),
+    },
+    {
+      key: "role",
+      title: "角色",
+      render: (value) => {
+        const val = value;
         if (val === "admin") return "管理员";
         if (val === "parent") return "家长";
         if (val === "child") return "孩子";
         return "-";
       },
-    }),
-    columnHelper.accessor("createdAt", {
-      header: "创建日期",
-      cell: (info) => formatDate(info.getValue()),
-    }),
-    columnHelper.accessor("updatedAt", {
-      header: "最后修改",
-      cell: (info) => formatDate(info.getValue()),
-    }),
-  ], [columnHelper]);
+    },
+    {
+      key: "createdAt",
+      title: "创建日期",
+      render: (value) => formatDate(String(value || "")),
+    },
+    {
+      key: "updatedAt",
+      title: "最后修改",
+      render: (value) => formatDate(String(value || "")),
+    },
+  ], []);
 
-  const actionColumn = useMemo(() =>
-    columnHelper.display({
-      id: "actions",
-      header: "操作",
-      cell: (info) => (
+  const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
+      key: "actions",
+      title: "操作",
+      render: (_, row) => (
         <div className="flex justify-center gap-2">
-          {info.row.original.type === "parent" && (
+          {row.type === "parent" && (
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
-                setEditingMember(info.row.original);
+                setEditingMember(row);
                 setAccountForm({
-                  username: info.row.original.username,
+                  username: row.username,
                   password: "",
-                  role: info.row.original.role,
-                  identity: info.row.original.identity || "",
-                  nickname: info.row.original.nickname || "",
-                  gender: (info.row.original.gender as "boy" | "girl" | "none") || "none",
+                  role: row.role,
+                  identity: row.identity || "",
+                  nickname: row.nickname || "",
+                  gender: (row.gender as "boy" | "girl" | "none") || "none",
                 });
                 setShowEditAccountModal(true);
               }}
@@ -204,11 +216,11 @@ export default function UsersPage() {
               <Settings size={18} />
             </Button>
           )}
-          {!info.row.original.isMe && info.row.original.type === "parent" && (
+          {!row.isMe && row.type === "parent" && (
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => handleDeleteAccount(info.row.original.id)}
+              onClick={() => setDeleteUserId(row.id)}
               className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
             >
               <Trash2 size={18} />
@@ -216,7 +228,7 @@ export default function UsersPage() {
           )}
         </div>
       ),
-    }), [columnHelper, handleDeleteAccount]);
+    }), []);
 
   const pageOptions = useMemo(() => ({
     currentPage: page,
@@ -227,6 +239,28 @@ export default function UsersPage() {
 
   return (
     <>
+      <Modal
+        isOpen={!!deleteUserId}
+        onClose={() => setDeleteUserId(null)}
+        title="删除账号"
+        footer={
+          <div className="flex gap-2 w-full">
+            <Button variant="secondary" className="flex-1" onClick={() => setDeleteUserId(null)}>
+              取消
+            </Button>
+            <Button
+              variant="error"
+              className="flex-1"
+              onClick={() => deleteUserId && handleDeleteAccount(deleteUserId)}
+            >
+              确认删除
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-sm text-gray-600">确定删除该账号吗？</p>
+      </Modal>
+
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">用户管理</h2>

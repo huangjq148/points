@@ -4,49 +4,63 @@ import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
 import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy, Clock, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 
 type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "achievements" | "scheduled-jobs";
+
+const TAB_TITLE: Record<NavItemId, string> = {
+  home: "首页",
+  overview: "数据概览",
+  audit: "任务审核",
+  tasks: "任务管理",
+  orders: "礼品核销",
+  rewards: "奖品商城",
+  achievements: "勋章管理",
+  family: "家庭成员",
+  users: "系统用户",
+  "scheduled-jobs": "定时任务",
+};
 
 export default function ParentLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { currentUser, logout, childList } = useApp();
   const router = useRouter();
   // 计算家庭总计
-  const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
-  const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
+  const totalPendingOrders = useMemo(
+    () => childList.reduce((acc, child) => acc + (child.orderCount || 0), 0),
+    [childList],
+  );
+  const totalSubmittedTasks = useMemo(
+    () => childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0),
+    [childList],
+  );
 
-  const navItems: { id: NavItemId; icon: React.ElementType; label: string; badge?: number }[] = [
-    { id: "home", icon: Home, label: "首页" },
-    { id: "overview", icon: Gift, label: "概览" },
-    { id: "audit", icon: FileText, label: "审核", badge: totalSubmittedTasks },
-    { id: "tasks", icon: Star, label: "任务" },
-    { id: "orders", icon: Ticket, label: "核销", badge: totalPendingOrders },
-    { id: "rewards", icon: Gift, label: "商城" },
-    { id: "achievements", icon: Trophy, label: "勋章" },
-    { id: "family", icon: Users, label: "家庭" },
-    { id: "users", icon: UserCog, label: "用户" },
-    { id: "scheduled-jobs", icon: Clock, label: "定时任务" },
-  ];
-  const initialTab = (() => {
+  const navItems: { id: NavItemId; icon: React.ElementType; label: string; badge?: number }[] = useMemo(
+    () => [
+      { id: "home", icon: Home, label: "首页" },
+      { id: "overview", icon: Gift, label: "概览" },
+      { id: "audit", icon: FileText, label: "审核", badge: totalSubmittedTasks },
+      { id: "tasks", icon: Star, label: "任务" },
+      { id: "orders", icon: Ticket, label: "核销", badge: totalPendingOrders },
+      { id: "rewards", icon: Gift, label: "商城" },
+      { id: "achievements", icon: Trophy, label: "勋章" },
+      { id: "family", icon: Users, label: "家庭" },
+      { id: "users", icon: UserCog, label: "用户" },
+      { id: "scheduled-jobs", icon: Clock, label: "定时任务" },
+    ],
+    [totalPendingOrders, totalSubmittedTasks],
+  );
+  const activeTab: NavItemId = useMemo(() => {
     const pathSegments = pathname.split("/");
     const currentTab = pathSegments[pathSegments.length - 1];
     if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "achievements", "scheduled-jobs"].includes(currentTab)) {
       return currentTab as NavItemId;
     }
     return "home"; // Default to home if path is not recognized
-  })();
-  const [activeTab, setActiveTab] = useState<NavItemId>(initialTab);
-  const [mounted, setMounted] = useState(false);
+  }, [pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
   const handleNavClick = (itemId: NavItemId) => {
-    setActiveTab(itemId);
     router.push(`/parent/${itemId}`);
   };
 
@@ -109,7 +123,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
                     </div>
                   </div>
                   <span className="text-sm font-medium text-gray-700">
-                    {mounted && currentUser?.username ? currentUser.username : "家长"}
+                    {currentUser?.username || "家长"}
                   </span>
                 </div>
               </div>
@@ -120,26 +134,16 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
             {/* Desktop header content */}
             <div className="hidden lg:flex items-center gap-4 w-full justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">
-                  {activeTab === "home" ? "首页" :
-                   activeTab === "overview" ? "数据概览" :
-                   activeTab === "audit" ? "任务审核" :
-                   activeTab === "tasks" ? "任务管理" :
-                   activeTab === "orders" ? "礼品核销" :
-                   activeTab === "rewards" ? "奖品商城" :
-                   activeTab === "achievements" ? "勋章管理" :
-                   activeTab === "scheduled-jobs" ? "定时任务" :
-                   activeTab === "family" ? "家庭成员" : "系统用户"}
-                </h1>
+                <h1 className="text-2xl font-bold text-gray-800">{TAB_TITLE[activeTab]}</h1>
                 <p className="text-gray-500 text-sm mt-1">欢迎回来，开启美好的一天</p>
               </div>
               <div className="bg-white/80 px-4 py-2 rounded-2xl flex items-center gap-3 border border-white shadow-sm">
                 <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-200 font-bold">
-                  {mounted && currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
+                  {currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-gray-800 leading-none">
-                    {mounted && currentUser?.username ? currentUser.username : "家长"}
+                    {currentUser?.username || "家长"}
                   </span>
                   <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">管理员</span>
                 </div>

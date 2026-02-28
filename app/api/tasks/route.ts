@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import Task, { ITask } from "@/models/Task";
+import Task, { IAuditRecord, ITask } from "@/models/Task";
 import User from "@/models/User";
 import { getTokenPayload, getUserIdFromToken } from "@/lib/auth";
 import { updateGamificationProgress } from "@/lib/gamification/progress";
@@ -16,7 +16,7 @@ interface ITaskQuery {
   name?: { $regex: string; $options: string };
   approvedAt?: { $gte?: Date; $lte?: Date };
   deadline?: { $gte?: Date; $lte?: Date; $exists?: boolean; $eq?: Date | null };
-  $or?: Array<Record<string, any>>;
+  $or?: Array<Record<string, unknown>>;
 }
 
 // 注意：周期任务自动创建功能已移至定时任务管理器
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建任务数据
-    const taskData: any = {
+    const taskData = {
       userId: authUserId,
       childId,
       name,
@@ -267,11 +267,12 @@ export async function PUT(request: NextRequest) {
           existingTask.auditHistory = [];
         }
         // 创建新的审核记录并添加到数组
-        existingTask.auditHistory.push({
+        const newAuditRecord: IAuditRecord = {
           submittedAt: new Date(),
           photoUrl: photoUrl || undefined,
           submitNote: undefined,
-        } as any);
+        };
+        existingTask.auditHistory.push(newAuditRecord);
         updateData.auditHistory = existingTask.auditHistory;
       }
       if (status === "approved" || status === "rejected") {

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
-import { useRouter } from "next/navigation";
 import { Gift } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Pagination } from "@/components/ui";
@@ -23,7 +22,6 @@ export interface Reward {
 export default function StorePage() {
   const { currentUser } = useApp();
   const toast = useToast();
-  const router = useRouter();
 
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [rewardSearchQuery, setRewardSearchQuery] = useState("");
@@ -41,7 +39,7 @@ export default function StorePage() {
         setTotal(data.total);
       }
     },
-    [currentUser, limit],
+    [currentUser?.token],
   );
 
   useEffect(() => {
@@ -53,12 +51,12 @@ export default function StorePage() {
     void loadData();
   }, [currentUser, fetchRewards, page]);
 
-  const filteredRewards = (() => {
+  const filteredRewards = useMemo(() => {
     if (rewardSearchQuery) {
       return rewards.filter((r) => r.name.toLowerCase().includes(rewardSearchQuery.toLowerCase()));
     }
     return rewards;
-  })();
+  }, [rewardSearchQuery, rewards]);
 
   const handleRedeemReward = async () => {
     if (!showConfirmRedeem) return;
@@ -91,8 +89,6 @@ export default function StorePage() {
     }
     setShowConfirmRedeem(null);
   };
-
-  const navigateTo = (path: string) => router.push(`/child/${path}`);
 
   return (
     <>

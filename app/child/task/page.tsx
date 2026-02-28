@@ -63,7 +63,7 @@ export default function TaskPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [limit] = useState(10);
+  const limit = 10;
 
   const [searchName, setSearchName] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -77,7 +77,7 @@ export default function TaskPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
-  const [recalling, setRecalling] = useState(false);
+  const [recallingTaskId, setRecallingTaskId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,7 +110,7 @@ export default function TaskPage() {
         setLoading(false);
       }
     },
-    [currentUser, limit, statusFilter, searchName, startDate, endDate],
+    [currentUser?.token, statusFilter, searchName, startDate, endDate],
   );
 
   // 处理URL查询参数（从首页跳转或探索日志进入）
@@ -235,7 +235,7 @@ export default function TaskPage() {
   const handleRecallTask = async (task: Task) => {
     if (!task._id || !currentUser?.token) return;
 
-    setRecalling(true);
+    setRecallingTaskId(task._id);
     try {
       const data = await request('/api/tasks', {
         method: 'PUT',
@@ -251,7 +251,7 @@ export default function TaskPage() {
     } catch (error) {
       console.error('Recall error:', error);
     } finally {
-      setRecalling(false);
+      setRecallingTaskId(null);
     }
   };
 
@@ -269,16 +269,82 @@ export default function TaskPage() {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'approved':
-        return { label: '已完成', bg: 'bg-green-100', text: 'text-green-600' };
+        return {
+          label: '已完成',
+          bg: 'bg-emerald-100',
+          text: 'text-emerald-700',
+          dot: 'bg-emerald-500',
+          iconWrap: 'bg-emerald-100 text-emerald-700',
+          card: 'border-emerald-200/80 bg-emerald-50/70',
+          action:
+            'bg-slate-200 text-slate-500 cursor-not-allowed pointer-events-none',
+        };
       case 'submitted':
-        return { label: '审核中', bg: 'bg-blue-100', text: 'text-blue-600' };
+        return {
+          label: '审核中',
+          bg: 'bg-sky-100',
+          text: 'text-sky-700',
+          dot: 'bg-sky-500',
+          iconWrap: 'bg-sky-100 text-sky-700',
+          card: 'border-sky-200/80 bg-sky-50/70',
+          action: 'bg-amber-500 hover:bg-amber-600 text-white',
+        };
       case 'pending':
-        return { label: '待开始', bg: 'bg-gray-100', text: 'text-gray-600' };
+        return {
+          label: '待开始',
+          bg: 'bg-slate-100',
+          text: 'text-slate-700',
+          dot: 'bg-slate-500',
+          iconWrap: 'bg-slate-100 text-slate-700',
+          card: 'border-slate-200 bg-white',
+          action: 'bg-blue-500 hover:bg-blue-600 text-white',
+        };
       case 'rejected':
-        return { label: '需修改', bg: 'bg-red-100', text: 'text-red-600' };
+        return {
+          label: '需修改',
+          bg: 'bg-rose-100',
+          text: 'text-rose-700',
+          dot: 'bg-rose-500',
+          iconWrap: 'bg-rose-100 text-rose-700',
+          card: 'border-rose-200/80 bg-rose-50/70',
+          action: 'bg-rose-500 hover:bg-rose-600 text-white',
+        };
       default:
-        return { label: '未知', bg: 'bg-gray-100', text: 'text-gray-600' };
+        return {
+          label: '未知',
+          bg: 'bg-slate-100',
+          text: 'text-slate-700',
+          dot: 'bg-slate-500',
+          iconWrap: 'bg-slate-100 text-slate-700',
+          card: 'border-slate-200 bg-white',
+          action: 'bg-blue-500 hover:bg-blue-600 text-white',
+        };
     }
+  };
+
+  const getDeadlineInfo = (deadline?: string, status?: string) => {
+    if (!deadline || status === 'approved') return null;
+    const now = dayjs();
+    const end = dayjs(deadline);
+    const hoursLeft = end.diff(now, 'hour');
+
+    if (hoursLeft < 0) {
+      return {
+        label: `已逾期 ${Math.abs(hoursLeft)} 小时`,
+        className: 'bg-rose-100 text-rose-700',
+      };
+    }
+    if (hoursLeft <= 24) {
+      return {
+        label: `剩余 ${Math.max(hoursLeft, 0)} 小时`,
+        className: 'bg-amber-100 text-amber-700',
+      };
+    }
+
+    return {
+      label: `截止 ${end.format('MM/DD')}`,
+      className: 'bg-slate-100 text-slate-600',
+    };
   };
 
   const totalPages = Math.ceil(total / limit);
@@ -288,9 +354,6 @@ export default function TaskPage() {
       <style jsx global>{`
         * {
           font-family: 'Nunito', sans-serif;
-        }
-        body {
-          background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
         }
         .glass {
           background: rgba(255, 255, 255, 0.25);
@@ -407,8 +470,10 @@ export default function TaskPage() {
               <div className='space-y-3'>
                 {tasks.map((task, index) => {
                   const statusInfo = getStatusInfo(task.status);
+                  const deadlineInfo = getDeadlineInfo(task.deadline, task.status);
                   const isPending = task.status === 'pending';
                   const isRejected = task.status === 'rejected';
+                  const isSubmitted = task.status === 'submitted';
 
                   return (
                     <motion.div
@@ -416,80 +481,92 @@ export default function TaskPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className='bg-gray-50 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-100 transition-colors'
+                      className={`group rounded-2xl border p-4 md:p-5 cursor-pointer transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${statusInfo.card}`}
                       onClick={() => openTaskDetail(task)}
                     >
-                      <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
-                          task.status === 'approved'
-                            ? 'bg-green-100'
-                            : task.status === 'submitted'
-                              ? 'bg-blue-100'
-                              : task.status === 'rejected'
-                                ? 'bg-red-100'
-                                : 'bg-gray-200'
-                        }`}
-                      >
-                        {task.status === 'approved' ? '✓' : task.icon}
+                      <div className='flex items-start gap-4'>
+                        <div
+                          className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm ${statusInfo.iconWrap}`}
+                        >
+                          {task.status === 'approved' ? '✓' : task.icon}
+                        </div>
+
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-start justify-between gap-3'>
+                            <div className='min-w-0'>
+                              <h3 className='font-extrabold text-gray-800 truncate text-[15px] md:text-base'>
+                                {task.name}
+                              </h3>
+                              <p className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                                {task.description || '暂无描述'}
+                              </p>
+                            </div>
+                            <span className='shrink-0 rounded-full bg-amber-100 text-amber-700 px-2.5 py-1 text-xs font-bold'>
+                              +{task.points} 分
+                            </span>
+                          </div>
+
+                          <div className='flex flex-wrap items-center gap-2 mt-3'>
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-bold ${statusInfo.bg} ${statusInfo.text}`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`}
+                              />
+                              {statusInfo.label}
+                            </span>
+
+                            {deadlineInfo && (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${deadlineInfo.className}`}
+                              >
+                                <Calendar size={12} />
+                                {deadlineInfo.label}
+                              </span>
+                            )}
+
+                            {task.updatedAt && (
+                              <span className='text-xs text-gray-400'>
+                                更新于 {dayjs(task.updatedAt).format('YYYY/MM/DD')}
+                              </span>
+                            )}
+                          </div>
+
+                          {task.rejectionReason && (
+                            <p className='mt-2 text-xs text-rose-600 bg-rose-100/70 rounded-lg px-2 py-1.5'>
+                              ✏️ {task.rejectionReason}
+                            </p>
+                          )}
+                        </div>
                       </div>
 
-                      <div className='flex-1 min-w-0'>
-                        <div className='flex items-center gap-2'>
-                          <h3 className='font-bold text-gray-800 truncate'>
-                            {task.name}
-                          </h3>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusInfo.bg} ${statusInfo.text}`}
+                      <div className='mt-3 flex justify-end'>
+                        {(isPending || isRejected) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openSubmitModal(task);
+                            }}
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${statusInfo.action}`}
                           >
-                            {statusInfo.label}
-                          </span>
-                        </div>
-                        <p className='text-xs text-gray-500 mt-1'>
-                          {task.description || '暂无描述'} • +{task.points}分
-                        </p>
-                        <div className='flex items-center gap-3 mt-1 text-xs text-gray-400'>
-                          {task.deadline && (
-                            <span className='flex items-center gap-1'>
-                              <Calendar size={12} />
-                              截止: {dayjs(task.deadline).format('YYYY/MM/DD')}
-                            </span>
-                          )}
-                          {task.updatedAt && (
-                            <span>
-                              更新: {dayjs(task.updatedAt).format('YYYY/MM/DD')}
-                            </span>
-                          )}
-                        </div>
-                        {task.rejectionReason && (
-                          <p className='text-xs text-red-500 mt-1'>
-                            ✏️ {task.rejectionReason}
-                          </p>
+                            {isRejected ? '重新提交' : '去完成'}
+                          </button>
+                        )}
+                        {isSubmitted && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRecallTask(task);
+                            }}
+                            disabled={recallingTaskId === task._id}
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-colors disabled:opacity-50 ${statusInfo.action}`}
+                          >
+                            {recallingTaskId === task._id
+                              ? '撤回中...'
+                              : '撤回修改'}
+                          </button>
                         )}
                       </div>
-
-                      {(isPending || isRejected) && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openSubmitModal(task);
-                          }}
-                          className='px-4 py-2 bg-blue-500 text-white text-sm font-bold rounded-full hover:bg-blue-600 transition-colors'
-                        >
-                          {isRejected ? '重新提交' : '提交'}
-                        </button>
-                      )}
-                      {task.status === 'submitted' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRecallTask(task);
-                          }}
-                          disabled={recalling}
-                          className='px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-full hover:bg-amber-600 transition-colors disabled:opacity-50'
-                        >
-                          {recalling ? '撤回中...' : '撤回修改'}
-                        </button>
-                      )}
                     </motion.div>
                   );
                 })}
@@ -906,7 +983,9 @@ export default function TaskPage() {
               <div
                 className='group relative border-4 border-dashed border-purple-200 rounded-[2rem] p-2 cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-all'
                 onClick={() => {
-                  fileInputRef.current && (fileInputRef.current.value = '');
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
                   fileInputRef.current?.click();
                 }}
               >

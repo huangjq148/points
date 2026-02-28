@@ -23,7 +23,7 @@ export interface IScheduledJob extends Document {
     taskTemplateId?: mongoose.Types.ObjectId;
     autoCreateEnabled: boolean;
     // 其他配置项
-    [key: string]: any;
+    [key: string]: unknown;
   };
   createdAt: Date;
   updatedAt: Date;

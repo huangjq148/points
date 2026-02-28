@@ -4,14 +4,21 @@ import Button from "@/components/ui/Button";
 import { User, useApp } from "@/context/AppContext";
 import { Check, ChevronRight, Clock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 export default function HomePage() {
   const router = useRouter();
   const { childList } = useApp();
 
   // 计算家庭总计
-  const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
-  const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
+  const totalSubmittedTasks = useMemo(
+    () => childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0),
+    [childList],
+  );
+  const totalPendingOrders = useMemo(
+    () => childList.reduce((acc, child) => acc + (child.orderCount || 0), 0),
+    [childList],
+  );
 
   return (
     <>

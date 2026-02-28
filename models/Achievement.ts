@@ -67,7 +67,7 @@ export interface IAchievementProgress {
   earlyCompletionCount: number;
   multiCategoryActive: number;
   lastResubmitAt?: Date;
-  hiddenTriggers: Record<string, any>;
+  hiddenTriggers: Record<string, unknown>;
   birthdayTasks: number;
   resubmitQuickCount: number;
   updatedAt: Date;

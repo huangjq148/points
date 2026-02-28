@@ -5,6 +5,15 @@ import Task from '@/models/Task';
 import TaskTemplate from '@/models/TaskTemplate';
 import mongoose from 'mongoose';
 
+interface RecurringJobLike {
+  userId: mongoose.Types.ObjectId;
+  config?: {
+    taskTemplateId?: string;
+    selectedChildren?: string[];
+    expiryPolicy?: string;
+  };
+}
+
 /**
  * POST /api/cron/scheduled-jobs
  * 执行所有到期的定时任务
@@ -67,10 +76,12 @@ export async function POST(request: NextRequest) {
         });
         
         console.log(`Job ${job.name} executed successfully, created ${createdCount} tasks`);
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         // 更新错误状态
         job.lastRunAt = now;
-        job.lastError = error.message;
+        job.lastError = errorMessage;
         job.runCount += 1;
         job.errorCount += 1;
         job.status = 'error';
@@ -80,10 +91,10 @@ export async function POST(request: NextRequest) {
           jobId: job._id,
           name: job.name,
           status: 'error',
-          error: error.message
+          error: errorMessage
         });
         
-        console.error(`Job ${job.name} failed:`, error.message);
+        console.error(`Job ${job.name} failed:`, errorMessage);
       }
     }
     
@@ -103,7 +114,7 @@ export async function POST(request: NextRequest) {
 }
 
 // 执行周期任务
-async function executeRecurringTask(job: any): Promise<number> {
+async function executeRecurringTask(job: RecurringJobLike): Promise<number> {
   const now = new Date();
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);

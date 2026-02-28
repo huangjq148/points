@@ -1,31 +1,43 @@
 "use client";
 
-import { IDisplayedOrder, PlainOrder } from "@/app/typings";
+import { IDisplayedOrder } from "@/app/typings";
 import { Button, TabFilter } from "@/components/ui";
 import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { Ticket } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import request from "@/utils/request";
 import { formatDate } from "@/utils/date";
-import { useCallback, useEffect, useState } from "react";
+import ConfirmModal from "@/components/ConfirmModal";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function OrdersPage() {
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status");
+  const initialActiveTab: "pending" | "history" = initialStatus === "history" ? "history" : "pending";
+  const initialChildFilter = searchParams.get("childId") || "all";
   const { childList } = useApp();
-  const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
+  const [activeTab, setActiveTab] = useState<"pending" | "history">(initialActiveTab);
   const [pendingOrders, setPendingOrders] = useState<IDisplayedOrder[]>([]);
   const [historyOrders, setHistoryOrders] = useState<IDisplayedOrder[]>([]);
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotal, setHistoryTotal] = useState(0);
-  const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
+  const [selectedChildFilter, setSelectedChildFilter] = useState<string>(initialChildFilter);
   const [isLoading, setIsLoading] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const historyPageCount = useMemo(() => Math.ceil(historyTotal / 10), [historyTotal]);
 
-  const childOptions: SelectOption[] = [
-    { value: "all", label: "全部孩子" },
-    ...childList.map((child) => ({
-      value: child.id.toString(),
-      label: child.username,
-    })),
-  ];
+  const childOptions: SelectOption[] = useMemo(
+    () => [
+      { value: "all", label: "全部孩子" },
+      ...childList.map((child) => ({
+        value: child.id.toString(),
+        label: child.username,
+      })),
+    ],
+    [childList],
+  );
 
   const fetchOrders = useCallback(
     async (status: string, page: number = 1, fetchLimit: number = 100) => {
@@ -52,18 +64,24 @@ export default function OrdersPage() {
   );
 
   const refreshPending = useCallback(async () => {
-    setIsLoading(true);
-    const { orders } = await fetchOrders("pending", 1, 100);
-    setPendingOrders(orders);
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const { orders } = await fetchOrders("pending", 1, 100);
+      setPendingOrders(orders);
+    } finally {
+      setIsLoading(false);
+    }
   }, [fetchOrders]);
 
   const refreshHistory = useCallback(async () => {
-    setIsLoading(true);
-    const { orders, total } = await fetchOrders("verified,cancelled", historyPage, 10);
-    setHistoryOrders(orders);
-    setHistoryTotal(total);
-    setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const { orders, total } = await fetchOrders("verified,cancelled", historyPage, 10);
+      setHistoryOrders(orders);
+      setHistoryTotal(total);
+    } finally {
+      setIsLoading(false);
+    }
   }, [fetchOrders, historyPage]);
 
   useEffect(() => {
@@ -83,19 +101,36 @@ export default function OrdersPage() {
   }, [activeTab, refreshHistory]);
 
   const handleVerifyOrder = async (orderId: string) => {
-    await request("/api/orders", {
-      method: "PUT",
-      body: { orderId, action: "verify" },
-    });
-    refreshPending();
+    try {
+      setActionLoading(true);
+      await request("/api/orders", {
+        method: "PUT",
+        body: { orderId, action: "verify" },
+      });
+      await refreshPending();
+      if (activeTab === "history") {
+        await refreshHistory();
+      }
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleCancelOrder = async (orderId: string) => {
-    await request("/api/orders", {
-      method: "PUT",
-      body: { orderId, action: "cancel" },
-    });
-    refreshPending();
+    try {
+      setActionLoading(true);
+      await request("/api/orders", {
+        method: "PUT",
+        body: { orderId, action: "cancel" },
+      });
+      await refreshPending();
+      if (activeTab === "history") {
+        await refreshHistory();
+      }
+      setCancelOrderId(null);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const orderTabs = [
@@ -105,6 +140,17 @@ export default function OrdersPage() {
 
   return (
     <>
+      <ConfirmModal
+        isOpen={!!cancelOrderId}
+        onClose={() => setCancelOrderId(null)}
+        onConfirm={() => cancelOrderId && handleCancelOrder(cancelOrderId)}
+        title="取消兑换"
+        message="确定取消这个兑换吗？积分将退还给孩子。"
+        confirmText="确认取消"
+        cancelText="返回"
+        type="danger"
+      />
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -170,6 +216,7 @@ export default function OrdersPage() {
                     size="sm"
                     variant="success"
                     onClick={() => handleVerifyOrder(order._id)}
+                    disabled={actionLoading}
                     className="order-btn order-btn-verify"
                   >
                     ✅ 确认核销
@@ -177,11 +224,8 @@ export default function OrdersPage() {
                   <Button
                     size="sm"
                     variant="error"
-                    onClick={() => {
-                      if (confirm("确定取消这个兑换吗？积分将退还给孩子")) {
-                        handleCancelOrder(order._id);
-                      }
-                    }}
+                    onClick={() => setCancelOrderId(order._id)}
+                    disabled={actionLoading}
                     className="order-btn order-btn-cancel"
                   >
                     ❌ 取消
@@ -239,11 +283,11 @@ export default function OrdersPage() {
                 上一页
               </Button>
               <span className="text-sm text-gray-500">
-                第 {historyPage} 页 / 共 {Math.ceil(historyTotal / 10)} 页
+                第 {historyPage} 页 / 共 {historyPageCount} 页
               </span>
               <Button
                 variant="secondary"
-                disabled={historyPage >= Math.ceil(historyTotal / 10)}
+                disabled={historyPage >= historyPageCount}
                 onClick={() => setHistoryPage((p) => p + 1)}
                 className="text-gray-500 disabled:opacity-30"
               >

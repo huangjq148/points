@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Modal, Select, DatePicker, Image } from "@/components/ui";
+import { Button, Modal, DatePicker, Image } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import { User } from "@/context/AppContext";
 import { Camera } from "lucide-react";
@@ -70,7 +70,7 @@ export default function TaskModal({
         </div>
       }
     >
-      <div className="space-y-4 py-2 max-h-[calc(80vh-200px)] overflow-y-auto custom-scrollbar pr-2">
+      <div className="space-y-4 pt-2 pb-6 max-h-[calc(80vh-200px)] overflow-y-auto custom-scrollbar pr-2">
         {mode === "add" && childList && toggleChild && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">选择孩子</label>
@@ -224,13 +224,13 @@ export default function TaskModal({
                 key={icon}
                 type="button"
                 onClick={() => setTaskData({ ...taskData, icon })}
-                className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all ${
+                className={`w-10 h-10 rounded-xl text-xl leading-none flex items-center justify-center transition-all ${
                   taskData.icon === icon
                     ? "bg-blue-100 ring-2 ring-blue-500 ring-offset-1 scale-110"
                     : "bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-500"
                 }`}
               >
-                {icon}
+                <span className="leading-none">{icon}</span>
               </button>
             ))}
           </div>
@@ -238,7 +238,7 @@ export default function TaskModal({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            截止时间（"必填"）
+            截止时间（必填）
           </label>
           <DatePicker
             selected={taskData.deadline}

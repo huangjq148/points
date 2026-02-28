@@ -79,6 +79,7 @@ export interface FamilyMember {
 export interface IDisplayedTask extends PlainTask {
   childName: string;
   childAvatar?: string;
+  isRecurring?: boolean;
 }
 
 export interface IDisplayedOrder extends PlainOrder {

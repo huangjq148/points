@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest) {
 
     await connectDB();
 
-    let account = await AccountModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+    const account = await AccountModel.findOne({ userId: new mongoose.Types.ObjectId(userId) });
     if (!account) {
       return NextResponse.json({ success: false, message: '账户不存在' }, { status: 404 });
     }

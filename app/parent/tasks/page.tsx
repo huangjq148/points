@@ -6,7 +6,8 @@ import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
 import AlertModal from "@/components/AlertModal";
 import { Edit2, Plus, LayoutGrid, Table2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import TaskCard, { IDisplayedTask } from "./components/TaskCard";
 import TaskTable from "./components/TaskTable";
 import TemplateManager from "./components/TemplateManager";
@@ -57,14 +58,28 @@ const TAB_ITEMS = [
 ] as const;
 
 export default function TasksPage() {
-  const [selectedChildTaskFilter, setSelectedChildTaskFilter] = useState<string>("all");
+  const searchParams = useSearchParams();
+  const initialChildTaskFilter = searchParams.get("childId") || "all";
+  const statusFromQuery = searchParams.get("status");
+  const initialTaskFilter: "all" | "completed" | "uncompleted" | "submitted" | "rejected" =
+    statusFromQuery === "completed" || statusFromQuery === "approved"
+      ? "completed"
+      : statusFromQuery === "uncompleted" || statusFromQuery === "pending"
+        ? "uncompleted"
+        : statusFromQuery === "submitted"
+          ? "submitted"
+          : statusFromQuery === "rejected"
+            ? "rejected"
+            : "all";
+
+  const [selectedChildTaskFilter, setSelectedChildTaskFilter] = useState<string>(initialChildTaskFilter);
   const { currentUser, childList } = useApp();
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskModalMode, setTaskModalMode] = useState<"add" | "edit">("add");
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [activeTaskFilter, setActiveTaskFilter] = useState<
     "all" | "completed" | "uncompleted" | "submitted" | "rejected"
-  >("all");
+  >(initialTaskFilter);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [taskPhotoFile, setTaskPhotoFile] = useState<File | null>(null);
   const [taskPhotoPreview, setTaskPhotoPreview] = useState<string>("");
@@ -105,6 +120,17 @@ export default function TasksPage() {
   
   // 视图切换状态: 'card' | 'table'
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
+  const childSelectOptions = useMemo(
+    () => [
+      { value: "all", label: "全部孩子" },
+      ...childList.map((child) => ({ value: child.id, label: child.username })),
+    ],
+    [childList],
+  );
+  const selectedChildName = useMemo(
+    () => childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知",
+    [childList, selectedChildTaskFilter],
+  );
 
   // 初始化模板数据
   useEffect(() => {
@@ -142,12 +168,12 @@ export default function TasksPage() {
             setTemplates(data.data);
           }
         }
-      } catch (e) {
-        console.error("Failed to fetch templates:", e);
+      } catch (error) {
+        console.error("Failed to fetch templates:", error);
       }
     };
-    fetchTemplates();
-  }, [currentUser]);
+    void fetchTemplates();
+  }, [currentUser?.token]);
 
   const handleApplyTemplate = (template: TaskTemplate) => {
     setTaskData((prev) => ({
@@ -176,7 +202,7 @@ export default function TasksPage() {
       } else {
         showAlert(res.message || "删除失败", "error");
       }
-    } catch (e) {
+    } catch {
       showAlert("删除失败", "error");
     }
   };
@@ -212,7 +238,7 @@ export default function TasksPage() {
       } else {
         showAlert(res.message || "保存失败", "error");
       }
-    } catch (e) {
+    } catch {
       showAlert("保存失败", "error");
     }
   };
@@ -307,8 +333,8 @@ export default function TasksPage() {
         // 刷新模板列表
         const data = await request("/api/task-templates");
         if (data.success) setTemplates(data.data);
-      } catch (e) {
-        console.error("Failed to save template:", e);
+      } catch (error) {
+        console.error("Failed to save template:", error);
       }
     }
 
@@ -375,8 +401,8 @@ export default function TasksPage() {
       } else {
         showAlert(data.message || "更新失败", "error");
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
       showAlert("更新失败", "error");
     }
   };
@@ -395,8 +421,8 @@ export default function TasksPage() {
       } else {
         showAlert(data.message, "error");
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
       showAlert("删除失败", "error");
     }
   };
@@ -489,7 +515,7 @@ export default function TasksPage() {
             <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {selectedChildTaskFilter === "all"
                 ? "任务管理"
-                : childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知"}
+                : selectedChildName}
             </h2>
             <p className="text-gray-500 text-sm mt-1">设置并监督孩子的每日任务</p>
           </div>
@@ -498,10 +524,7 @@ export default function TasksPage() {
               <Select
                 value={selectedChildTaskFilter}
                 onChange={(value) => onFilterChange("child", (value as string) || "all")}
-                options={[
-                  { value: "all", label: "全部孩子" },
-                  ...childList.map((child) => ({ value: child.id, label: child.username })),
-                ]}
+                options={childSelectOptions}
               />
             </div>
             <Button

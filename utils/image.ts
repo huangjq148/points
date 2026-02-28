@@ -7,8 +7,8 @@ export const compressImage = (file: File, maxSize = 2000, quality = 0.7): Promis
       img.src = event.target?.result as string;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        let width = img.width / 2;
-        let height = img.height / 2;
+        const width = img.width / 2;
+        const height = img.height / 2;
 
         // if (width > height && width > maxSize) {
         //   height = (height * maxSize) / width;

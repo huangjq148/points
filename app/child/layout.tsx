@@ -198,12 +198,10 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const levelInfo = getLevelInfo(totalXP);
 
   const isHomePage = pathname === '/child' || pathname === '/child/';
-  const isStorePage =
-    pathname === '/child/store' || pathname === '/child/store';
+  const isStorePage = pathname === '/child/store';
   const isAchievementsPage =
-    pathname === '/child/achievements' || pathname === '/child/achievements';
-  const isWalletPage =
-    pathname === '/child/wallet' || pathname === '/child/wallet';
+    pathname === '/child/achievements';
+  const isWalletPage = pathname === '/child/wallet';
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);

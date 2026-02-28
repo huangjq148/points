@@ -30,6 +30,24 @@ export interface TaskCompletionContext {
   isBirthday: boolean;
 }
 
+interface AchievementProgressSnapshot {
+  totalTasksCompleted?: number;
+  totalPointsEarned?: number;
+  categoryCounts?: Record<string, number>;
+  consecutiveDays?: number;
+  maxConsecutiveDays?: number;
+  earlyCompletionCount?: number;
+  birthdayTasks?: number;
+  resubmitQuickCount?: number;
+  lastTaskDate?: Date;
+  lastResubmitAt?: Date;
+  [key: string]: unknown;
+}
+
+interface UserAvatarProgress {
+  maxConsecutiveDays?: number;
+}
+
 const isSameDay = (d1: Date, d2: Date): boolean => {
   return d1.getFullYear() === d2.getFullYear() &&
          d1.getMonth() === d2.getMonth() &&
@@ -83,7 +101,7 @@ export async function checkAndAwardAchievements(
     const allDefinitions = await AchievementDefinition.find({ isActive: true });
     const userAvatar = await UserAvatar.findOne({ userId: userObjectId });
 
-    let progressUpdates: any = {};
+    const progressUpdates: Record<string, unknown> = {};
     let needsSave = false;
 
     if (context) {
@@ -206,9 +224,9 @@ export async function checkAndAwardAchievements(
 
 async function checkAchievementCondition(
   definition: IAchievementDefinition,
-  progress: any,
+  progress: AchievementProgressSnapshot,
   context?: TaskCompletionContext,
-  userAvatar?: any
+  userAvatar?: UserAvatarProgress | null
 ): Promise<boolean> {
   const { conditionType, requirement, requirementDetail } = definition;
 
@@ -256,7 +274,7 @@ async function checkAchievementCondition(
 
 function getProgressForDefinition(
   definition: IAchievementDefinition,
-  progress: any,
+  progress: AchievementProgressSnapshot,
   context?: TaskCompletionContext
 ): number {
   const { conditionType, requirement, requirementDetail } = definition;
@@ -319,7 +337,7 @@ export async function getUserAchievements(userId: string | mongoose.Types.Object
       multiCategoryActive: 0,
       birthdayTasks: 0,
       resubmitQuickCount: 0,
-    } as any;
+    } as AchievementProgressSnapshot;
   }
 
   const earnedIds = new Set(userAchievements.map(ua => ua.achievementId.toString()));
@@ -362,7 +380,11 @@ export async function getUserAchievements(userId: string | mongoose.Types.Object
   });
 }
 
-function calculateProgress(def: IAchievementDefinition, progress: any, userAvatar?: any): number {
+function calculateProgress(
+  def: IAchievementDefinition,
+  progress: AchievementProgressSnapshot,
+  userAvatar?: UserAvatarProgress | null
+): number {
   const { conditionType, requirement, requirementDetail } = def;
 
   switch (conditionType) {

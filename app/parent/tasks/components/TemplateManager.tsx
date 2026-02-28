@@ -52,7 +52,7 @@ export default function TemplateManager({
           <div className="text-center py-16 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
             <div className="text-4xl mb-4">📋</div>
             <p className="text-gray-400 font-medium">暂无自定义模板</p>
-            <p className="text-gray-300 text-xs mt-1">点击"新建模板"开始创建</p>
+            <p className="text-gray-300 text-xs mt-1">点击&quot;新建模板&quot;开始创建</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 min-w-0">

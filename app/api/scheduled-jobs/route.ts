@@ -6,6 +6,20 @@ import TaskTemplate from "@/models/TaskTemplate";
 import { getTokenPayload } from "@/lib/auth";
 import mongoose from "mongoose";
 
+interface ScheduledJobQuery {
+  userId: mongoose.Types.ObjectId;
+  type?: string;
+}
+
+interface JobActionResult {
+  message: string;
+  job?: IScheduledJob;
+  createdCount?: number;
+}
+
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : "Unknown error";
+
 // 获取定时任务列表
 export async function GET(request: NextRequest) {
   try {
@@ -25,16 +39,16 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const query: any = { userId: new mongoose.Types.ObjectId(authUserId) };
+    const query: ScheduledJobQuery = { userId: new mongoose.Types.ObjectId(authUserId) };
     if (type) query.type = type;
 
     const jobs = await ScheduledJobModel.find(query).sort({ createdAt: -1 });
 
     return NextResponse.json({ success: true, jobs });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Get scheduled jobs error:", error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { success: false, message: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -97,10 +111,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, job });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Create scheduled job error:", error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { success: false, message: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -144,7 +158,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    let result: any = {};
+    let result: JobActionResult = { message: "" };
 
     switch (action) {
       case "start":
@@ -174,10 +188,10 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, ...result });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update scheduled job error:", error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { success: false, message: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -225,10 +239,10 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: "定时任务已删除",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete scheduled job error:", error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { success: false, message: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -269,7 +283,6 @@ function calculateNextRun(frequency: string): Date {
 async function executeJob(job: IScheduledJob, userId: string) {
   const startTime = new Date();
   let createdCount = 0;
-  let error: string | null = null;
 
   try {
     switch (job.type) {
@@ -299,16 +312,17 @@ async function executeJob(job: IScheduledJob, userId: string) {
       createdCount,
       job,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = getErrorMessage(err);
     // 更新错误状态
     job.lastRunAt = startTime;
-    job.lastError = err.message;
+    job.lastError = errorMessage;
     job.runCount += 1;
     job.errorCount += 1;
     job.status = "error";
     await job.save();
 
-    throw err;
+    throw new Error(errorMessage);
   }
 }
 
@@ -391,8 +405,11 @@ async function generateRecurringTasks(
       const newTask = await Task.create(taskData);
       console.log(`Created task for child ${childId}:`, newTask._id);
       generatedCount++;
-    } catch (err: any) {
-      console.error(`Failed to create task for child ${childId}:`, err.message);
+    } catch (err: unknown) {
+      console.error(
+        `Failed to create task for child ${childId}:`,
+        getErrorMessage(err)
+      );
     }
   }
 

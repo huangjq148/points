@@ -11,6 +11,24 @@ import {
 } from '@/models/Gamification';
 import { getTokenPayload } from '@/lib/auth';
 
+interface AvatarProgressLike {
+  level: number;
+  currentXP: number;
+  totalXP: number;
+  unlockedSkins: string[];
+  unlockedAccessories: string[];
+  totalTasksCompleted: number;
+  maxConsecutiveDays: number;
+}
+
+interface LevelUpUpdate {
+  level?: number;
+  currentXP?: number;
+  totalXP?: number;
+  unlockedSkins?: string[];
+  unlockedAccessories?: string[];
+}
+
 // 辅助函数：检查是否为同一天
 function isSameDay(date1: Date, date2: Date): boolean {
   return date1.getFullYear() === date2.getFullYear() &&
@@ -26,10 +44,10 @@ function isYesterday(date: Date, today: Date): boolean {
 }
 
 // 计算升级并解锁奖励
-async function processLevelUp(userAvatar: any, xpGained: number) {
-  const updates: any = {};
+async function processLevelUp(userAvatar: AvatarProgressLike, xpGained: number) {
+  const updates: LevelUpUpdate = {};
   let levelsGained = 0;
-  const unlockedRewards: any[] = [];
+  const unlockedRewards: Array<Record<string, unknown>> = [];
 
   // 获取当前等级信息
   const currentLevelInfo = await AvatarLevel.findOne({ level: userAvatar.level });
@@ -41,7 +59,7 @@ async function processLevelUp(userAvatar: any, xpGained: number) {
   }
 
   let newCurrentXP = userAvatar.currentXP + xpGained;
-  let newTotalXP = userAvatar.totalXP + xpGained;
+  const newTotalXP = userAvatar.totalXP + xpGained;
   let newLevel = userAvatar.level;
 
   // 检查是否升级
@@ -92,8 +110,8 @@ async function processLevelUp(userAvatar: any, xpGained: number) {
 }
 
 // 检查并授予勋章
-async function checkAndAwardMedals(userId: string, userAvatar: any) {
-  const newMedals: any[] = [];
+async function checkAndAwardMedals(userId: string, userAvatar: AvatarProgressLike) {
+  const newMedals: Array<Record<string, unknown>> = [];
 
   // 获取所有勋章定义
   const allMedals = await MedalDefinition.find();

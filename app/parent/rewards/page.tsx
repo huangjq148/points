@@ -32,21 +32,6 @@ export default function RewardsPage() {
   });
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    const loadRewards = async () => {
-      const data: { success: boolean; rewards: PlainReward[]; total: number } = await request(`/api/rewards?page=${page}&limit=${limit}`);
-      if (isMounted && data.success) {
-        setRewards(data.rewards);
-        setTotal(data.total);
-      }
-    };
-    loadRewards();
-    return () => {
-      isMounted = false;
-    };
-  }, [page, limit]);
-
   const fetchRewards = useCallback(async (pageNum: number = 1) => {
     const data: { success: boolean; rewards: PlainReward[]; total: number } = await request(`/api/rewards?page=${pageNum}&limit=${limit}`);
     if (data.success) {
@@ -54,6 +39,13 @@ export default function RewardsPage() {
       setTotal(data.total);
     }
   }, [limit]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void fetchRewards(page);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchRewards, page]);
 
   const handleEditReward = (reward: PlainReward) => {
     setEditingReward(reward);

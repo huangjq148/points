@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useApp } from "@/context/AppContext";
-import { Button } from "@/components/ui";
+import { Button, DataTable } from "@/components/ui";
+import type { DataTableColumn } from "@/components/ui";
 import {
   Play,
   Square,
@@ -14,7 +15,6 @@ import {
   XCircle,
   AlertCircle,
   Calendar,
-  Power,
 } from "lucide-react";
 import request from "@/utils/request";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -38,7 +38,7 @@ interface ScheduledJob {
   config: {
     autoCreateEnabled: boolean;
     taskTemplateId?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   createdAt: string;
   updatedAt: string;
@@ -58,7 +58,7 @@ const JOB_TYPE_COLORS: Record<string, string> = {
   custom: "bg-gray-100 text-gray-700",
 };
 
-const STATUS_LABELS: Record<string, { label: string; color: string; icon: any }> =
+const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof Play }> =
   {
     running: {
       label: "运行中",
@@ -128,7 +128,7 @@ export default function ScheduledJobsPage() {
         setCronServerRunning(false);
         setCronServerStatus("stopped");
       }
-    } catch (error) {
+    } catch {
       setCronServerRunning(false);
       setCronServerStatus("stopped");
     }
@@ -181,7 +181,7 @@ export default function ScheduledJobsPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser?.token]);
 
   useEffect(() => {
     fetchJobs();
@@ -208,7 +208,7 @@ export default function ScheduledJobsPage() {
       } else {
         showAlert(data.message || "启动失败", "error");
       }
-    } catch (error) {
+    } catch {
       showAlert("启动失败", "error");
     } finally {
       setExecutingJobId(null);
@@ -229,7 +229,7 @@ export default function ScheduledJobsPage() {
       } else {
         showAlert(data.message || "停止失败", "error");
       }
-    } catch (error) {
+    } catch {
       showAlert("停止失败", "error");
     } finally {
       setExecutingJobId(null);
@@ -255,7 +255,7 @@ export default function ScheduledJobsPage() {
       } else {
         showAlert(data.message || "执行失败", "error");
       }
-    } catch (error) {
+    } catch {
       showAlert("执行失败", "error");
     } finally {
       setExecutingJobId(null);
@@ -283,7 +283,7 @@ export default function ScheduledJobsPage() {
       } else {
         showAlert(data.message || "删除失败", "error");
       }
-    } catch (error) {
+    } catch {
       showAlert("删除失败", "error");
     } finally {
       setConfirmState({ isOpen: false, jobId: null, action: null });
@@ -293,6 +293,162 @@ export default function ScheduledJobsPage() {
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString("zh-CN");
+  };
+
+  const columns: DataTableColumn<ScheduledJob>[] = [
+    {
+      key: "name",
+      title: "任务名称",
+      render: (_, row) => {
+        const job = row;
+        return (
+          <div>
+            <p className="font-medium text-gray-800 text-sm">{job.name}</p>
+            {job.description && (
+              <p className="text-xs text-gray-500 truncate max-w-[280px]">
+                {job.description}
+              </p>
+            )}
+            {job.lastError && (
+              <p className="text-xs text-red-500 mt-1">
+                错误: {job.lastError}
+              </p>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "type",
+      title: "类型",
+      render: (_, row) => (
+        <span
+          className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+            JOB_TYPE_COLORS[row.type]
+          }`}
+        >
+          {JOB_TYPE_LABELS[row.type]}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      title: "状态",
+      render: (_, row) => {
+        const statusInfo = STATUS_LABELS[row.status];
+        const StatusIcon = statusInfo.icon;
+        return (
+          <span
+            className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${statusInfo.color}`}
+          >
+            <StatusIcon size={12} />
+            {statusInfo.label}
+          </span>
+        );
+      },
+    },
+    {
+      key: "frequency",
+      title: "频率",
+      render: (_, row) => (
+        <div className="flex items-center gap-1 text-sm text-gray-600">
+          <Calendar size={14} />
+          <span>{FREQUENCY_LABELS[row.frequency]}</span>
+        </div>
+      ),
+    },
+    {
+      key: "runCount",
+      title: "执行统计",
+      render: (_, row) => {
+        const job = row;
+        return (
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1 text-gray-600">
+              <RotateCw size={12} />
+              {job.runCount}
+            </span>
+            <span className="flex items-center gap-1 text-green-600">
+              <CheckCircle size={12} />
+              {job.successCount}
+            </span>
+            {job.errorCount > 0 && (
+              <span className="flex items-center gap-1 text-red-600">
+                <XCircle size={12} />
+                {job.errorCount}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "lastRunAt",
+      title: "上次运行",
+      render: (_, row) => (
+        <span className="text-xs text-gray-500">{formatDate(row.lastRunAt)}</span>
+      ),
+    },
+    {
+      key: "nextRunAt",
+      title: "下次运行",
+      render: (_, row) => (
+        <span className="text-xs text-gray-500">{formatDate(row.nextRunAt)}</span>
+      ),
+    },
+  ];
+
+  const actionColumn: DataTableColumn<ScheduledJob> = {
+    key: "actions",
+    title: "操作",
+    render: (_, row) => {
+      const job = row;
+      return (
+        <div className="flex items-center justify-center gap-0.5">
+          {job.status === "running" ? (
+            <Button
+              onClick={() => handleStopJob(job._id)}
+              disabled={executingJobId === job._id}
+              variant="secondary"
+              className="p-1 h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors border-none bg-transparent shadow-none"
+              title="停止"
+            >
+              <Square size={12} />
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleStartJob(job._id)}
+              disabled={executingJobId === job._id}
+              variant="secondary"
+              className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors border-none bg-transparent shadow-none"
+              title="启动"
+            >
+              <Play size={12} />
+            </Button>
+          )}
+          <Button
+            onClick={() => handleRunJob(job._id)}
+            disabled={executingJobId === job._id}
+            variant="secondary"
+            className="p-1 h-6 w-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors border-none bg-transparent shadow-none"
+            title="立即执行"
+          >
+            <RotateCw
+              size={12}
+              className={executingJobId === job._id ? "animate-spin" : ""}
+            />
+          </Button>
+          <Button
+            onClick={() => handleDeleteJob(job._id)}
+            variant="secondary"
+            className="p-1 h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors border-none bg-transparent shadow-none"
+            title="删除"
+          >
+            <Trash2 size={12} />
+          </Button>
+        </div>
+      );
+    },
   };
 
   const handleCreateJob = async (formData: JobFormData) => {
@@ -322,7 +478,7 @@ export default function ScheduledJobsPage() {
       } else {
         showAlert(data.message || "创建失败", "error");
       }
-    } catch (error) {
+    } catch {
       showAlert("创建失败", "error");
     }
   };
@@ -440,178 +596,26 @@ export default function ScheduledJobsPage() {
         <div className="text-sm text-blue-800">
           <p className="font-medium mb-1">关于自动执行</p>
           <p className="text-blue-700">
-            开启上方"自动执行服务"开关后，系统会每分钟自动检查并执行到期的定时任务。
-            您也可以点击"立即执行"按钮手动触发单个任务。
+            开启上方&quot;自动执行服务&quot;开关后，系统会每分钟自动检查并执行到期的定时任务。
+            您也可以点击&quot;立即执行&quot;按钮手动触发单个任务。
           </p>
         </div>
       </div>
 
       {/* Jobs List */}
-      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  任务名称
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  类型
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  状态
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  频率
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  执行统计
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  上次运行
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
-                  下次运行
-                </th>
-                <th className="px-2 py-3 text-center text-xs font-semibold text-gray-600 w-24">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {jobs.map((job) => {
-                const statusInfo = STATUS_LABELS[job.status];
-                const StatusIcon = statusInfo.icon;
-
-                return (
-                  <tr key={job._id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium text-gray-800 text-sm">
-                          {job.name}
-                        </p>
-                        {job.description && (
-                          <p className="text-xs text-gray-500 line-clamp-1">
-                            {job.description}
-                          </p>
-                        )}
-                        {job.lastError && (
-                          <p className="text-xs text-red-500 mt-1">
-                            错误: {job.lastError}
-                          </p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                          JOB_TYPE_COLORS[job.type]
-                        }`}
-                      >
-                        {JOB_TYPE_LABELS[job.type]}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${statusInfo.color}`}
-                      >
-                        <StatusIcon size={12} />
-                        {statusInfo.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Calendar size={14} />
-                        <span>{FREQUENCY_LABELS[job.frequency]}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="flex items-center gap-1 text-gray-600">
-                          <RotateCw size={12} />
-                          {job.runCount}
-                        </span>
-                        <span className="flex items-center gap-1 text-green-600">
-                          <CheckCircle size={12} />
-                          {job.successCount}
-                        </span>
-                        {job.errorCount > 0 && (
-                          <span className="flex items-center gap-1 text-red-600">
-                            <XCircle size={12} />
-                            {job.errorCount}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-gray-500">
-                        {formatDate(job.lastRunAt)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-gray-500">
-                        {formatDate(job.nextRunAt)}
-                      </span>
-                    </td>
-                    <td className="px-1 py-3">
-                      <div className="flex items-center justify-center gap-0.5">
-                        {job.status === "running" ? (
-                          <Button
-                            onClick={() => handleStopJob(job._id)}
-                            disabled={executingJobId === job._id}
-                            variant="secondary"
-                            className="p-1 h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors border-none bg-transparent shadow-none"
-                            title="停止"
-                          >
-                            <Square size={12} />
-                          </Button>
-                        ) : (
-                          <Button
-                            onClick={() => handleStartJob(job._id)}
-                            disabled={executingJobId === job._id}
-                            variant="secondary"
-                            className="p-1 h-6 w-6 text-green-600 hover:text-green-700 hover:bg-green-50 rounded transition-colors border-none bg-transparent shadow-none"
-                            title="启动"
-                          >
-                            <Play size={12} />
-                          </Button>
-                        )}
-                        <Button
-                          onClick={() => handleRunJob(job._id)}
-                          disabled={executingJobId === job._id}
-                          variant="secondary"
-                          className="p-1 h-6 w-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors border-none bg-transparent shadow-none"
-                          title="立即执行"
-                        >
-                          <RotateCw
-                            size={12}
-                            className={
-                              executingJobId === job._id ? "animate-spin" : ""
-                            }
-                          />
-                        </Button>
-                        <Button
-                          onClick={() => handleDeleteJob(job._id)}
-                          variant="secondary"
-                          className="p-1 h-6 w-6 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors border-none bg-transparent shadow-none"
-                          title="删除"
-                        >
-                          <Trash2 size={12} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div>
+        <DataTable
+          columns={columns}
+          dataSource={jobs}
+          actionColumn={actionColumn}
+          minWidth={1080}
+          actionColumnWidth={96}
+          emptyText="暂无定时任务"
+        />
         {jobs.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <Clock size={48} className="mx-auto mb-4 opacity-50" />
-            <p>暂无定时任务</p>
-            <p className="text-sm mt-2">点击右上角按钮创建新的定时任务</p>
-          </div>
+          <p className="text-sm text-gray-400 text-center -mt-2">
+            点击右上角按钮创建新的定时任务
+          </p>
         )}
       </div>
 

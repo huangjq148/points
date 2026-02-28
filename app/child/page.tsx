@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useToast } from '@/components/ui/Toast';
 import Modal from '@/components/ui/Modal';
@@ -93,38 +93,6 @@ function getLevelInfo(totalXP: number) {
   };
 }
 
-function generateStars() {
-  return Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    size: Math.random() * 3 + 1,
-    delay: `${Math.random() * 3}s`,
-  }));
-}
-
-function StarsBackground() {
-  const [stars] = useState(generateStars);
-
-  return (
-    <div className='stars' id='stars'>
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          className='star'
-          style={{
-            left: star.left,
-            top: star.top,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            animationDelay: star.delay,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function ChildHome() {
   const { currentUser } = useApp();
   const router = useRouter();
@@ -133,45 +101,37 @@ export default function ChildHome() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [medals, setMedals] = useState<Medal[]>([]);
   const [displayPoints, setDisplayPoints] = useState(0);
-  const [showParentModal, setShowParentModal] = useState(false);
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [recalling, setRecalling] = useState(false);
+  const [recallingTaskId, setRecallingTaskId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalPoints = currentUser?.availablePoints || 0;
   const totalXP = currentUser?.totalPoints || 0;
   const levelInfo = getLevelInfo(totalXP);
-  const avatar = currentUser?.avatar || '👦';
-  const username = currentUser?.username || '宇航员小明';
-
   useEffect(() => {
-    let cancelled = false;
     const duration = 1500;
     const steps = 20;
     const increment = totalPoints / steps;
     let current = 0;
 
-    const tick = () => {
-      if (cancelled) return;
+    const timer = window.setInterval(() => {
       current += increment;
       if (current >= totalPoints) {
         setDisplayPoints(totalPoints);
+        window.clearInterval(timer);
       } else {
         setDisplayPoints(Math.floor(current));
-        setTimeout(tick, duration / steps);
       }
-    };
+    }, duration / steps);
 
-    const timer = setTimeout(tick, 0);
     return () => {
-      cancelled = true;
-      clearTimeout(timer);
+      window.clearInterval(timer);
     };
   }, [totalPoints]);
 
@@ -191,7 +151,7 @@ export default function ChildHome() {
     } catch (error) {
       console.error('获取任务失败:', error);
     }
-  }, [currentUser]);
+  }, [currentUser?.token]);
 
   const fetchMedals = useCallback(async () => {
     if (!currentUser?.token) return;
@@ -203,7 +163,7 @@ export default function ChildHome() {
     } catch (error) {
       console.error('获取徽章失败:', error);
     }
-  }, [currentUser]);
+  }, [currentUser?.token]);
 
   useEffect(() => {
     fetchTasks();
@@ -273,7 +233,7 @@ export default function ChildHome() {
   const handleRecallTask = async (task: Task) => {
     if (!task._id || !currentUser?.token) return;
 
-    setRecalling(true);
+    setRecallingTaskId(task._id);
     try {
       const data = await request('/api/tasks', {
         method: 'PUT',
@@ -292,48 +252,7 @@ export default function ChildHome() {
       console.error('Recall error:', error);
       toast.error('撤回失败，请重试');
     } finally {
-      setRecalling(false);
-    }
-  };
-
-  const handleQuickComplete = async (task: Task) => {
-    if (!currentUser?.token) return;
-
-    setSubmitting(true);
-    const photoUrl = '';
-
-    try {
-      const data = await request('/api/tasks', {
-        method: 'PUT',
-        body: {
-          taskId: task._id,
-          status: 'submitted',
-          photoUrl,
-        },
-      });
-
-      if (data.success) {
-        const element = document.getElementById(`task-${task._id}`);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          const floater = document.createElement('div');
-          floater.className = 'point-float';
-          floater.textContent = `+${task.points}`;
-          floater.style.left = `${rect.left + rect.width / 2}px`;
-          floater.style.top = `${rect.top}px`;
-          document.body.appendChild(floater);
-          setTimeout(() => floater.remove(), 1500);
-        }
-
-        setDisplayPoints((prev) => prev + task.points);
-        fetchTasks();
-        toast.success(`任务提交成功！+${task.points}分`);
-      }
-    } catch (error) {
-      console.error('Quick complete error:', error);
-      toast.error('提交失败，请重试');
-    } finally {
-      setSubmitting(false);
+      setRecallingTaskId(null);
     }
   };
 
@@ -348,45 +267,36 @@ export default function ChildHome() {
     setShowTaskDetail(null);
   };
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
-  // 只显示进行中的任务（pending 和 submitted）
-  const filteredTasks = tasks.filter(
-    (t) => t.status === 'pending' || t.status === 'submitted',
+  const filteredTasks = useMemo(
+    () => tasks.filter((t) => t.status === 'pending' || t.status === 'submitted'),
+    [tasks],
   );
-
-  const pendingTasks = tasks.filter((t) => t.status === 'pending');
-  const completedTasks = tasks.filter((t) => t.status === 'approved');
-
-  const earnedMedals = medals.filter((m) => m.isEarned).slice(0, 4);
-  const unearnedMedals = medals
-    .filter((m) => !m.isEarned)
-    .slice(0, Math.max(0, 4 - earnedMedals.length));
-  const displayMedals = [...earnedMedals, ...unearnedMedals];
-
-  const maxStreak = tasks.reduce(
-    (max, task) => Math.max(max, task.streakCount || 0),
-    0,
+  const pendingTasks = useMemo(
+    () => tasks.filter((t) => t.status === 'pending'),
+    [tasks],
+  );
+  const completedTasks = useMemo(
+    () => tasks.filter((t) => t.status === 'approved'),
+    [tasks],
+  );
+  const displayMedals = useMemo(() => {
+    const earnedMedals = medals.filter((m) => m.isEarned).slice(0, 4);
+    const unearnedMedals = medals
+      .filter((m) => !m.isEarned)
+      .slice(0, Math.max(0, 4 - earnedMedals.length));
+    return [...earnedMedals, ...unearnedMedals];
+  }, [medals]);
+  const earnedMedalsCount = useMemo(
+    () => medals.filter((m) => m.isEarned).length,
+    [medals],
+  );
+  const maxStreak = useMemo(
+    () => tasks.reduce((max, task) => Math.max(max, task.streakCount || 0), 0),
+    [tasks],
   );
 
   const handleNavigate = (path: string) => {
     router.push(path);
-  };
-
-  const getTaskStatus = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return { label: '已完成', color: 'green', bg: 'bg-green-500' };
-      case 'submitted':
-        return { label: '审核中', color: 'blue', bg: 'bg-blue-500' };
-      case 'pending':
-        return { label: '待开始', color: 'gray', bg: 'bg-gray-300' };
-      case 'rejected':
-        return { label: '需修改', color: 'red', bg: 'bg-red-500' };
-      default:
-        return { label: '紧急', color: 'red', bg: 'bg-red-500' };
-    }
   };
 
   return (
@@ -394,41 +304,6 @@ export default function ChildHome() {
       <style jsx global>{`
         * {
           font-family: 'Nunito', sans-serif;
-        }
-
-        body {
-          background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-          min-height: 100vh;
-          overflow-x: hidden;
-        }
-
-        .stars {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          z-index: 0;
-        }
-
-        .star {
-          position: absolute;
-          background: white;
-          border-radius: 50%;
-          animation: twinkle 3s infinite;
-        }
-
-        @keyframes twinkle {
-          0%,
-          100% {
-            opacity: 0.3;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
-          }
         }
 
         .card-3d {
@@ -603,8 +478,6 @@ export default function ChildHome() {
       `}</style>
 
       <div className='relative min-h-screen text-gray-800'>
-        <StarsBackground />
-
         {/* 主内容区 - 不包含Header和用户信息，由ChildLayout提供 */}
         <div className='relative z-10 px-6 pt-4 pb-6'>
           {/* 主积分卡片 */}
@@ -663,21 +536,6 @@ export default function ChildHome() {
                 <div
                   className='bg-blue-50 rounded-xl p-2 text-center border-2 border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors'
                   onClick={() => {
-                    const today = new Date();
-                    const startOfDay = new Date(
-                      today.getFullYear(),
-                      today.getMonth(),
-                      today.getDate(),
-                    );
-                    const endOfDay = new Date(
-                      today.getFullYear(),
-                      today.getMonth(),
-                      today.getDate(),
-                      23,
-                      59,
-                      59,
-                      999,
-                    );
                     router.push(
                       `/child/task?startDate=${dayjs().format(
                         'YYYY-MM-DD',
@@ -830,20 +688,20 @@ export default function ChildHome() {
                                   e.stopPropagation();
                                   handleRecallTask(task);
                                 }}
-                                disabled={recalling}
+                                disabled={recallingTaskId === task._id}
                                 className='bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-amber-600 transition-all active:scale-95 flex items-center gap-1 disabled:opacity-50'
                               >
                                 <span>🔙</span>{' '}
-                                {recalling ? '撤回中...' : '撤回修改'}
+                                {recallingTaskId === task._id
+                                  ? '撤回中...'
+                                  : '撤回修改'}
                               </button>
                             </div>
                           )}
                         </div>
                         <div className='text-right'>
                           <div
-                            className={`w-10 h-10 ${
-                              isSubmitted ? 'bg-blue-100' : 'bg-blue-100'
-                            } rounded-full flex items-center justify-center text-xl`}
+                            className='w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl'
                           >
                             {task.icon}
                           </div>
@@ -874,7 +732,7 @@ export default function ChildHome() {
 
           <FeatureGrid
             completedTasksCount={completedTasks.length}
-            earnedMedalsCount={medals.filter((m) => m.isEarned).length}
+            earnedMedalsCount={earnedMedalsCount}
             onNavigate={handleNavigate}
           />
 
@@ -1271,7 +1129,9 @@ export default function ChildHome() {
             <div
               className='group relative border-4 border-dashed border-purple-200 rounded-[2rem] p-2 cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-all'
               onClick={() => {
-                fileInputRef.current && (fileInputRef.current.value = '');
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
                 fileInputRef.current?.click();
               }}
             >
@@ -1312,28 +1172,6 @@ export default function ChildHome() {
               )}
             </div>
           </div>
-        </Modal>
-
-        {/* 家长模式弹窗 */}
-        <Modal
-          isOpen={showParentModal}
-          onClose={() => setShowParentModal(false)}
-          title='家长验证'
-          width={400}
-          footer={
-            <button className='w-full bg-blue-500 text-white font-bold py-3 rounded-xl hover:bg-blue-600 transition-colors'>
-              进入家长中心
-            </button>
-          }
-        >
-          <p className='text-gray-600 text-sm mb-4'>
-            请输入家长密码查看详细报告
-          </p>
-          <input
-            type='password'
-            placeholder='••••'
-            className='w-full bg-gray-100 rounded-xl px-4 py-3 text-center text-2xl tracking-widest font-bold mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500'
-          />
         </Modal>
       </div>
     </>

@@ -7,6 +7,8 @@ interface CoinParticle {
   id: number;
   x: number;
   y: number;
+  targetX: number;
+  targetY: number;
   rotation: number;
   scale: number;
   delay: number;
@@ -37,12 +39,16 @@ export default function CoinExplosion({
         id: i,
         x: originX + (Math.random() - 0.5) * 20,
         y: originY + (Math.random() - 0.5) * 20,
+        targetX: originX + (Math.random() - 0.5) * 60,
+        targetY: originY + Math.random() * 40 + 20,
         rotation: Math.random() * 360,
         scale: 0.5 + Math.random() * 0.5,
         delay: Math.random() * 0.3,
       }));
-      setParticles(newParticles);
-      setShowText(true);
+      const startTimer = setTimeout(() => {
+        setParticles(newParticles);
+        setShowText(true);
+      }, 0);
 
       // 动画结束后清理
       const timer = setTimeout(() => {
@@ -51,7 +57,10 @@ export default function CoinExplosion({
         onComplete?.();
       }, 2000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(startTimer);
+        clearTimeout(timer);
+      };
     }
   }, [isActive, coinCount, originX, originY, onComplete]);
 
@@ -71,8 +80,8 @@ export default function CoinExplosion({
               opacity: 1,
             }}
             animate={{
-              x: `${particle.x + (Math.random() - 0.5) * 60}%`,
-              y: `${particle.y + Math.random() * 40 + 20}%`,
+              x: `${particle.targetX}%`,
+              y: `${particle.targetY}%`,
               scale: particle.scale,
               rotate: particle.rotation + 720,
               opacity: 0,
@@ -206,7 +215,9 @@ export function TaskCompleteEffect({
 
   useEffect(() => {
     if (isActive) {
-      setShowCoins(true);
+      const startTimer = setTimeout(() => {
+        setShowCoins(true);
+      }, 0);
       
       const coinTimer = setTimeout(() => {
         setShowCoins(false);
@@ -221,6 +232,7 @@ export function TaskCompleteEffect({
       }, newMedal ? 5000 : 2000);
 
       return () => {
+        clearTimeout(startTimer);
         clearTimeout(coinTimer);
         clearTimeout(completeTimer);
       };

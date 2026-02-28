@@ -6,12 +6,15 @@ import Select, { SelectOption } from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
-import { Check, Image as ImageIcon, X, Sparkles, Zap, History } from "lucide-react";
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { Check, Image as ImageIcon, X, Zap, History } from "lucide-react";
+import { motion, PanInfo } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export default function AuditPage() {
-  const [selectedChildFilter, setSelectedChildFilter] = useState<string>("all");
+  const searchParams = useSearchParams();
+  const initialChildFilter = searchParams.get("childId") || "all";
+  const [selectedChildFilter, setSelectedChildFilter] = useState<string>(initialChildFilter);
   const { currentUser, childList } = useApp();
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
   const [selectedTask, setSelectedTask] = useState<IDisplayedTask | null>(null);
@@ -20,13 +23,16 @@ export default function AuditPage() {
   const [total, setTotal] = useState(0);
   const limit = 10;
 
-  const childOptions: SelectOption[] = [
-    { value: "all", label: "全部孩子" },
-    ...childList.map((child) => ({
-      value: child.id.toString(),
-      label: child.username,
-    })),
-  ];
+  const childOptions: SelectOption[] = useMemo(
+    () => [
+      { value: "all", label: "全部孩子" },
+      ...childList.map((child) => ({
+        value: child.id.toString(),
+        label: child.username,
+      })),
+    ],
+    [childList],
+  );
 
   const pendingTasks = tasks;
 
@@ -90,9 +96,6 @@ export default function AuditPage() {
     setRejectionReason("");
   };
 
-  // 图片全屏查看状态
-
-
   // 渲染历史操作记录 - 数据已按时间倒序排列（最新的在最前面）
   const renderAuditHistory = (task: IDisplayedTask) => {
     if (!task.auditHistory || task.auditHistory.length === 0) {
@@ -106,14 +109,6 @@ export default function AuditPage() {
 
     // 显示所有历史记录（包括待审核的）
     const allAudits = task.auditHistory;
-
-    if (allAudits.length === 0) {
-      return (
-        <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl">
-          <p className="text-sm">暂无历史操作记录</p>
-        </div>
-      );
-    }
 
     const totalCount = task.auditHistory.length;
 
