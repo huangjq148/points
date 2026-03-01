@@ -31,11 +31,15 @@ export default function Button({
     cursor-pointer
     transition-all
     duration-300
-    ease-out
+    ease-[cubic-bezier(0.4,0,0.2,1)]
     border-none
     outline-none
+    relative
+    overflow-hidden
     disabled:opacity-50
     disabled:cursor-not-allowed
+    disabled:hover:translate-y-0
+    disabled:hover:shadow-none
   `;
 
   const sizeStyles = {
@@ -46,55 +50,78 @@ export default function Button({
 
   const variantStyles = {
     primary: `
-      bg-gradient-to-r from-blue-500 to-blue-600
+      bg-gradient-to-r from-blue-500/95 to-blue-600/95
+      backdrop-blur-md
       text-white
-      shadow-lg shadow-blue-500/30
-      hover:shadow-xl hover:shadow-blue-500/40
+      border border-white/20
+      shadow-[0_4px_20px_rgba(59,130,246,0.35),0_2px_8px_rgba(59,130,246,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
+      hover:shadow-[0_8px_30px_rgba(59,130,246,0.45),0_4px_12px_rgba(59,130,246,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
       hover:scale-[1.02]
+      hover:-translate-y-0.5
       active:scale-[0.98]
+      active:translate-y-0
     `,
     secondary: `
-      bg-white/80
-      backdrop-blur-sm
+      bg-white/70
+      backdrop-blur-md
       text-blue-600
-      border-2 border-blue-200
-      hover:bg-blue-50
-      hover:border-blue-300
+      border border-white/60
+      shadow-[0_4px_16px_rgba(59,130,246,0.12),0_2px_6px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)]
+      hover:bg-white/90
+      hover:shadow-[0_8px_24px_rgba(59,130,246,0.18),0_4px_10px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]
       hover:scale-[1.02]
+      hover:-translate-y-0.5
+      active:scale-[0.98]
+      active:translate-y-0
     `,
     success: `
-      bg-gradient-to-r from-green-500 to-green-600
+      bg-gradient-to-r from-green-500/95 to-green-600/95
+      backdrop-blur-md
       text-white
-      shadow-lg shadow-green-500/30
-      hover:shadow-xl hover:shadow-green-500/40
+      border border-white/20
+      shadow-[0_4px_20px_rgba(34,197,94,0.35),0_2px_8px_rgba(34,197,94,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
+      hover:shadow-[0_8px_30px_rgba(34,197,94,0.45),0_4px_12px_rgba(34,197,94,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
       hover:scale-[1.02]
+      hover:-translate-y-0.5
       active:scale-[0.98]
+      active:translate-y-0
     `,
     warning: `
-      bg-gradient-to-r from-amber-500 to-amber-600
+      bg-gradient-to-r from-amber-500/95 to-amber-600/95
+      backdrop-blur-md
       text-white
-      shadow-lg shadow-amber-500/30
-      hover:shadow-xl hover:shadow-amber-500/40
+      border border-white/20
+      shadow-[0_4px_20px_rgba(245,158,11,0.35),0_2px_8px_rgba(245,158,11,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
+      hover:shadow-[0_8px_30px_rgba(245,158,11,0.45),0_4px_12px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
       hover:scale-[1.02]
+      hover:-translate-y-0.5
       active:scale-[0.98]
+      active:translate-y-0
     `,
     error: `
-      bg-gradient-to-r from-red-500 to-red-600
+      bg-gradient-to-r from-red-500/95 to-red-600/95
+      backdrop-blur-md
       text-white
-      shadow-lg shadow-red-500/30
-      hover:shadow-xl hover:shadow-red-500/40
+      border border-white/20
+      shadow-[0_4px_20px_rgba(239,68,68,0.35),0_2px_8px_rgba(239,68,68,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
+      hover:shadow-[0_8px_30px_rgba(239,68,68,0.45),0_4px_12px_rgba(239,68,68,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
       hover:scale-[1.02]
+      hover:-translate-y-0.5
       active:scale-[0.98]
+      active:translate-y-0
     `,
     default: `
-      bg-white
-      text-gray-800
-      border border-gray-200
-      hover:bg-gray-50
-      hover:border-gray-300
+      bg-white/80
+      backdrop-blur-md
+      text-gray-700
+      border border-white/60
+      shadow-[0_4px_16px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.9)]
+      hover:bg-white/95
+      hover:shadow-[0_8px_24px_rgba(0,0,0,0.12),0_4px_10px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,1)]
       hover:scale-[1.02]
+      hover:-translate-y-0.5
       active:scale-[0.98]
-      shadow-sm
+      active:translate-y-0
     `,
   };
 

@@ -992,10 +992,10 @@ body {
   .sidebar {
     width: 280px;
     min-width: 280px;
-    background: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.75) 100%);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(255, 255, 255, 0.6);
     padding: 32px 24px;
     height: 100vh;
     position: fixed;
@@ -1004,7 +1004,10 @@ body {
     display: flex;
     flex-direction: column;
     z-index: 50;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
+    box-shadow: 
+      8px 0 32px rgba(31, 38, 135, 0.12),
+      4px 0 16px rgba(59, 130, 246, 0.08),
+      inset -1px 0 0 rgba(255, 255, 255, 0.8);
     transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease;
   }
 
@@ -1035,15 +1038,19 @@ body {
     height: 48px;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(59, 130, 246, 0.3);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     border-left: none;
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 10px 10px 0;
     color: #3b82f6;
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 51;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+      4px 2px 16px rgba(31, 38, 135, 0.15),
+      2px 0 8px rgba(59, 130, 246, 0.1);
   }
 
   .sidebar.collapsed ~ .sidebar-toggle-btn {
@@ -1152,24 +1159,34 @@ body {
   padding: 14px 18px;
   border-radius: 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--text-secondary);
   font-weight: 500;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   width: 100%;
   text-align: left;
+  position: relative;
+  overflow: hidden;
 }
 
 .desktop-nav-item:hover {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.6);
   color: var(--primary);
+  border-color: rgba(59, 130, 246, 0.2);
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transform: translateX(4px);
 }
 
 .desktop-nav-item.active {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.95) 100%);
   color: white;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 20px rgba(59, 130, 246, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .desktop-nav-item svg {
@@ -1303,9 +1320,16 @@ body {
 
 .logo-section {
   text-align: center;
-  padding-bottom: 20px;
-  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+  padding: 20px 16px;
   margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .logo-icon {

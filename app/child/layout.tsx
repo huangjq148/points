@@ -560,12 +560,13 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
             </div>
 
             <div className='space-y-3'>
-              <button
+              <Button
+                variant="default"
                 onClick={() => {
                   setShowSettingsModal(false);
                   router.push('/child/wallet');
                 }}
-                className='w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors'
+                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
               >
                 <div className='w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center'>
                   <UserIcon size={24} className='text-blue-600' />
@@ -578,9 +579,12 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   size={20}
                   className='text-gray-400 rotate-[-90deg]'
                 />
-              </button>
+              </Button>
 
-              <button className='w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors'>
+              <Button
+                variant="default"
+                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+              >
                 <div className='w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center'>
                   <Bell size={24} className='text-purple-600' />
                 </div>
@@ -592,9 +596,12 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   size={20}
                   className='text-gray-400 rotate-[-90deg]'
                 />
-              </button>
+              </Button>
 
-              <button className='w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors'>
+              <Button
+                variant="default"
+                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+              >
                 <div className='w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center'>
                   <Moon size={24} className='text-yellow-600' />
                 </div>
@@ -605,9 +612,12 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 <div className='w-12 h-6 bg-gray-200 rounded-full relative'>
                   <div className='absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow'></div>
                 </div>
-              </button>
+              </Button>
 
-              <button className='w-full flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors'>
+              <Button
+                variant="default"
+                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+              >
                 <div className='w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center'>
                   <HelpCircle size={24} className='text-green-600' />
                 </div>
@@ -619,7 +629,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   size={20}
                   className='text-gray-400 rotate-[-90deg]'
                 />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
