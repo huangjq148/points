@@ -29,23 +29,12 @@ export interface IUserMedal extends Document {
   isNew: boolean;
 }
 
-// 角色等级定义
-export interface IAvatarLevel extends Document {
-  level: number;
-  name: string;
-  title: string;
-  xpRequired: number;
-  icon: string;
-  description: string;
-}
-
 // 成长阶段
 export type AvatarStage = 'egg' | 'hatchling' | 'explorer' | 'adventurer' | 'hero' | 'legend';
 
 // 用户角色成长数据
 export interface IUserAvatar extends Document {
   userId: mongoose.Types.ObjectId;
-  level: number;
   currentXP: number;
   totalXP: number;
   stage: AvatarStage;
@@ -55,8 +44,6 @@ export interface IUserAvatar extends Document {
   unlockedAccessories: string[];
   petName?: string;
   lastTaskDate?: Date;
-  consecutiveDays: number;
-  maxConsecutiveDays: number;
   totalTasksCompleted: number;
 }
 
@@ -112,24 +99,10 @@ const UserMedalSchema = new Schema(
 
 UserMedalSchema.index({ userId: 1, medalId: 1 }, { unique: true });
 
-// 角色等级模型
-const AvatarLevelSchema = new Schema<IAvatarLevel>(
-  {
-    level: { type: Number, required: true, unique: true },
-    name: { type: String, required: true },
-    title: { type: String, required: true },
-    xpRequired: { type: Number, required: true },
-    icon: { type: String, required: true },
-    description: { type: String, required: true },
-  },
-  { timestamps: true }
-);
-
 // 用户角色成长模型
 const UserAvatarSchema = new Schema<IUserAvatar>(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    level: { type: Number, default: 1 },
     currentXP: { type: Number, default: 0 },
     totalXP: { type: Number, default: 0 },
     stage: { 
@@ -143,8 +116,6 @@ const UserAvatarSchema = new Schema<IUserAvatar>(
     unlockedAccessories: [{ type: String }],
     petName: { type: String },
     lastTaskDate: { type: Date },
-    consecutiveDays: { type: Number, default: 0 },
-    maxConsecutiveDays: { type: Number, default: 0 },
     totalTasksCompleted: { type: Number, default: 0 },
   },
   { timestamps: true }
@@ -181,7 +152,6 @@ const AvatarAccessorySchema = new Schema<IAvatarAccessory>(
 if (process.env.NODE_ENV === 'development') {
   delete (mongoose.models as Record<string, unknown>).MedalDefinition;
   delete (mongoose.models as Record<string, unknown>).UserMedal;
-  delete (mongoose.models as Record<string, unknown>).AvatarLevel;
   delete (mongoose.models as Record<string, unknown>).UserAvatar;
   delete (mongoose.models as Record<string, unknown>).AvatarSkin;
   delete (mongoose.models as Record<string, unknown>).AvatarAccessory;
@@ -194,9 +164,6 @@ export const MedalDefinition = mongoose.models.MedalDefinition ||
 export const UserMedal = mongoose.models.UserMedal || 
   mongoose.model<IUserMedal>('UserMedal', UserMedalSchema);
 
-export const AvatarLevel = mongoose.models.AvatarLevel || 
-  mongoose.model<IAvatarLevel>('AvatarLevel', AvatarLevelSchema);
-
 export const UserAvatar = mongoose.models.UserAvatar || 
   mongoose.model<IUserAvatar>('UserAvatar', UserAvatarSchema);
 
@@ -206,11 +173,12 @@ export const AvatarSkin = mongoose.models.AvatarSkin ||
 export const AvatarAccessory = mongoose.models.AvatarAccessory || 
   mongoose.model<IAvatarAccessory>('AvatarAccessory', AvatarAccessorySchema);
 
-export default {
+const gamificationModels = {
   MedalDefinition,
   UserMedal,
-  AvatarLevel,
   UserAvatar,
   AvatarSkin,
   AvatarAccessory,
 };
+
+export default gamificationModels;

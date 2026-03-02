@@ -41,13 +41,10 @@
   - 兑换奖励生成核销码
 - **积分钱包**：查看余额和收支记录
   - 金币（可消费货币）
-  - 荣誉分（等级和勋章用）
+  - 荣誉分（用于成就与勋章统计）
   - 交易历史
 - **成就展示**：展示任务完成统计和获得的勋章
-- **角色成长**：游戏化角色养成系统
-  - 完成任务获得经验值
-  - 升级解锁新外观
-  - 连续任务奖励加成
+- **角色外观**：角色皮肤与配饰配置
 
 ### 角色切换
 - **一键切换**：家长可无缝切换到孩子视角
@@ -56,19 +53,13 @@
 ### 游戏化系统
 - **双币种经济系统**：
   - 金币：可消费的通用货币，用于兑换奖励
-  - 荣誉分：无法消费，用于等级和勋章系统
+  - 荣誉分：无法消费，用于勋章和成就体系
   - 信用额度：支持透支消费
   - 利息系统：金币可产生利息收益
-- **角色成长系统**：
-  - 6个成长阶段（蛋→破壳→探险家→队长→英雄→传奇）
-  - 经验值升级机制
-  - 连续完成任务加成
 - **勋章系统**：
   - 任务大师勋章
-  - 连续打卡勋章
-  - 坚持勋章
+  - 累计里程碑勋章
   - 冠军勋章
-  - 4个等级（青铜、白银、黄金、钻石）
 - **成就系统**：
   - 累积型成就（任务数量、积分数量）
   - 行为型成就（连续打卡、特定时间完成）
@@ -193,7 +184,6 @@ pnpm dev
 | submittedAt | Date | 提交时间 |
 | approvedAt | Date | 审核时间 |
 | completedAt | Date | 完成时间 |
-| streakCount | Number | 连续完成次数 |
 | auditHistory | Array | 审核历史记录 |
 
 ### 3. TaskTemplate（任务模板表）
@@ -258,7 +248,7 @@ pnpm dev
 |------|------|------|
 | userId | ObjectId | 用户ID |
 | coins | Number | 金币数量（可消费） |
-| stars | Number | 荣誉分（等级用） |
+| stars | Number | 荣誉分（成就与勋章用） |
 | creditScore | Number | 信用分（0-100） |
 | creditLimit | Number | 信用额度 |
 | creditUsed | Number | 已用信用额度 |
@@ -288,7 +278,6 @@ pnpm dev
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | userId | ObjectId | 用户ID |
-| level | Number | 当前等级 |
 | currentXP | Number | 当前经验值 |
 | totalXP | Number | 总经验值 |
 | stage | Enum | 阶段：egg/hatchling/explorer/adventurer/hero/legend |
@@ -297,8 +286,6 @@ pnpm dev
 | equippedAccessories | Array | 已装备配饰ID列表 |
 | unlockedAccessories | Array | 已解锁配饰ID列表 |
 | petName | String | 宠物名字 |
-| consecutiveDays | Number | 当前连续天数 |
-| maxConsecutiveDays | Number | 最大连续天数 |
 | totalTasksCompleted | Number | 完成任务总数 |
 | lastTaskDate | Date | 最后任务日期 |
 
@@ -309,7 +296,7 @@ pnpm dev
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | type | Enum | 类型：task_master/streak_master/persistence/champion |
-| level | Enum | 等级：bronze/silver/gold/diamond |
+| level | Enum | 品阶：bronze/silver/gold/diamond |
 | name | String | 勋章名称 |
 | description | String | 描述 |
 | icon | String | 图标 |
@@ -339,7 +326,7 @@ pnpm dev
 |------|------|------|
 | dimension | Enum | 维度：accumulation/behavior/surprise |
 | category | Enum | 分类：task_count/points_count/category_count等 |
-| level | Enum | 等级：bronze/silver/gold/legendary |
+| level | Enum | 品阶：bronze/silver/gold/legendary |
 | name | String | 成就名称 |
 | description | String | 描述 |
 | hiddenDescription | String | 隐藏描述 |
@@ -534,17 +521,12 @@ points/
 - 连续21天加成：+10 XP
 
 ### 成长阶段
-1. **蛋** (Lv.1) - 待孵化的蛋
-2. **破壳** (Lv.2) - 小小破壳儿
-3. **探险家** (Lv.3-4) - 见习探险家
-4. **队长** (Lv.5-6) - 探险队长
-5. **英雄** (Lv.7-9) - 英雄
-6. **传奇** (Lv.10+) - 传奇
+1. **蛋** - 默认形态
+2. **探险伙伴** - 任务陪伴形态
 
 ### 勋章类型
 - **任务大师**：完成任务数量
-- **连续打卡**：连续完成任务天数
-- **坚持勋章**：最大连续天数
+- **坚持勋章**：累计任务里程碑
 - **冠军勋章**：特殊里程碑
 
 ## 许可证

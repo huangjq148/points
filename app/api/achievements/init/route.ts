@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { AchievementDefinition } from '@/models/Achievement';
 
@@ -165,9 +165,9 @@ const defaultAchievements = [
     category: 'streak_behavior',
     level: 'bronze',
     name: '自律达人',
-    description: '连续 7 天在 21:00 前完成所有日常任务',
+    description: '累计完成 7 次任务',
     icon: '📅',
-    conditionType: 'consecutive_days',
+    conditionType: 'total_tasks',
     requirement: 7,
     pointsReward: 200,
     honorPoints: 50,
@@ -180,9 +180,9 @@ const defaultAchievements = [
     category: 'streak_behavior',
     level: 'silver',
     name: '坚持不懈',
-    description: '连续 21 天完成任务',
+    description: '累计完成 21 次任务',
     icon: '🔥',
-    conditionType: 'consecutive_days',
+    conditionType: 'total_tasks',
     requirement: 21,
     pointsReward: 500,
     honorPoints: 100,
@@ -195,9 +195,9 @@ const defaultAchievements = [
     category: 'streak_behavior',
     level: 'gold',
     name: '习惯之王',
-    description: '连续 66 天完成任务',
+    description: '累计完成 66 次任务',
     icon: '👑',
-    conditionType: 'consecutive_days',
+    conditionType: 'total_tasks',
     requirement: 66,
     pointsReward: 1500,
     honorPoints: 300,
@@ -211,9 +211,9 @@ const defaultAchievements = [
     category: 'time_behavior',
     level: 'bronze',
     name: '晨间先锋',
-    description: '连续 3 天在 8:00 前完成“刷牙/整理床铺”',
+    description: '累计 3 次在 8:00 前完成“刷牙/整理床铺”',
     icon: '🌅',
-    conditionType: 'category_streak',
+    conditionType: 'category_tasks',
     requirement: 3,
     requirementDetail: { category: 'personal_hygiene' },
     pointsReward: 150,
@@ -327,7 +327,7 @@ const defaultAchievements = [
   },
 ];
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     await connectDB();
 
@@ -357,7 +357,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   try {
     await connectDB();
 

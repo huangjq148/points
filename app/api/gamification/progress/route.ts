@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
     if (!userAvatar) {
       userAvatar = await UserAvatar.create({
         userId: new mongoose.Types.ObjectId(userId),
-        level: 1,
         currentXP: 0,
         totalXP: 0,
         stage: 'egg',
@@ -67,8 +66,6 @@ export async function POST(request: NextRequest) {
         currentSkin: 'default',
         equippedAccessories: [],
         unlockedAccessories: [],
-        consecutiveDays: 0,
-        maxConsecutiveDays: 0,
         totalTasksCompleted: 0,
       });
     }
@@ -83,8 +80,6 @@ export async function POST(request: NextRequest) {
         totalTasksCompleted: newTotalTasksCompleted,
         totalXP: newTotalXP,
         currentXP: newTotalXP,
-        consecutiveDays: 0,
-        maxConsecutiveDays: 0,
         lastTaskDate: new Date(),
       },
       { new: true, upsert: true },

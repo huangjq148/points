@@ -34,8 +34,6 @@ interface AchievementProgressSnapshot {
   totalTasksCompleted?: number;
   totalPointsEarned?: number;
   categoryCounts?: Record<string, number>;
-  consecutiveDays?: number;
-  maxConsecutiveDays?: number;
   earlyCompletionCount?: number;
   birthdayTasks?: number;
   resubmitQuickCount?: number;
@@ -43,22 +41,6 @@ interface AchievementProgressSnapshot {
   lastResubmitAt?: Date;
   [key: string]: unknown;
 }
-
-interface UserAvatarProgress {
-  maxConsecutiveDays?: number;
-}
-
-const isSameDay = (d1: Date, d2: Date): boolean => {
-  return d1.getFullYear() === d2.getFullYear() &&
-         d1.getMonth() === d2.getMonth() &&
-         d1.getDate() === d2.getDate();
-};
-
-const isYesterday = (date: Date, today: Date): boolean => {
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  return isSameDay(date, yesterday);
-};
 
 const getHourFromDate = (date: Date): number => {
   return date.getHours();
@@ -85,8 +67,6 @@ export async function checkAndAwardAchievements(
         totalTasksCompleted: 0,
         totalPointsEarned: 0,
         categoryCounts: {},
-        consecutiveDays: 0,
-        maxConsecutiveDays: 0,
         earlyCompletionCount: 0,
         multiCategoryActive: 0,
         birthdayTasks: 0,
@@ -132,20 +112,6 @@ export async function checkAndAwardAchievements(
         }
       }
 
-      const lastTaskDate = progress.lastTaskDate;
-      if (!lastTaskDate) {
-        progressUpdates.consecutiveDays = 1;
-        progressUpdates.maxConsecutiveDays = Math.max(progress.maxConsecutiveDays || 0, 1);
-      } else {
-        if (isSameDay(new Date(lastTaskDate), completedAt)) {
-        } else if (isYesterday(new Date(lastTaskDate), completedAt)) {
-          progressUpdates.consecutiveDays = (progress.consecutiveDays || 0) + 1;
-          progressUpdates.maxConsecutiveDays = Math.max(progress.maxConsecutiveDays || 0, (progress.consecutiveDays || 0) + 1);
-        } else {
-          progressUpdates.consecutiveDays = 1;
-          progressUpdates.maxConsecutiveDays = Math.max(progress.maxConsecutiveDays || 0, 1);
-        }
-      }
       progressUpdates.lastTaskDate = completedAt;
       needsSave = true;
     }
@@ -168,7 +134,7 @@ export async function checkAndAwardAchievements(
         continue;
       }
 
-      const isUnlocked = await checkAchievementCondition(definition, progressData, context, userAvatar);
+      const isUnlocked = await checkAchievementCondition(definition, progressData, context);
       
       if (isUnlocked) {
         await UserAchievement.create({
@@ -225,8 +191,7 @@ export async function checkAndAwardAchievements(
 async function checkAchievementCondition(
   definition: IAchievementDefinition,
   progress: AchievementProgressSnapshot,
-  context?: TaskCompletionContext,
-  userAvatar?: UserAvatarProgress | null
+  context?: TaskCompletionContext
 ): Promise<boolean> {
   const { conditionType, requirement, requirementDetail } = definition;
 
@@ -243,7 +208,7 @@ async function checkAchievementCondition(
       return categoryCount >= requirement;
 
     case 'consecutive_days':
-      return (progress.consecutiveDays || 0) >= requirement;
+      return (progress.totalTasksCompleted || 0) >= requirement;
 
     case 'early_completion':
       return (progress.earlyCompletionCount || 0) >= requirement;
@@ -261,11 +226,10 @@ async function checkAchievementCondition(
 
     case 'category_streak':
       if (!requirementDetail?.category) return false;
-      return (progress.maxConsecutiveDays || 0) >= requirement;
+      return ((progress.categoryCounts as Record<string, number>)?.[requirementDetail.category] || 0) >= requirement;
 
     case 'streak_any_time':
-      if (!userAvatar) return false;
-      return (userAvatar.maxConsecutiveDays || 0) >= requirement;
+      return (progress.totalTasksCompleted || 0) >= requirement;
 
     default:
       return false;
@@ -291,7 +255,7 @@ function getProgressForDefinition(
       return Math.min(requirement, (progress.categoryCounts as Record<string, number>)[requirementDetail.category] || 0);
 
     case 'consecutive_days':
-      return Math.min(requirement, progress.consecutiveDays || 0);
+      return Math.min(requirement, progress.totalTasksCompleted || 0);
 
     case 'early_completion':
       return Math.min(requirement, progress.earlyCompletionCount || 0);
@@ -308,10 +272,11 @@ function getProgressForDefinition(
       return context?.isBirthday ? 1 : 0;
 
     case 'category_streak':
-      return Math.min(requirement, progress.maxConsecutiveDays || 0);
+      if (!requirementDetail?.category) return 0;
+      return Math.min(requirement, (progress.categoryCounts as Record<string, number>)[requirementDetail.category] || 0);
 
     case 'streak_any_time':
-      return Math.min(requirement, progress.maxConsecutiveDays || 0);
+      return Math.min(requirement, progress.totalTasksCompleted || 0);
 
     default:
       return 0;
@@ -324,15 +289,12 @@ export async function getUserAchievements(userId: string | mongoose.Types.Object
   const definitions = await AchievementDefinition.find({ isActive: true }).sort({ order: 1 });
   const userAchievements = await UserAchievement.find({ userId: userObjectId });
   let userProgress = await UserAchievementProgress.findOne({ userId: userObjectId });
-  const userAvatar = await UserAvatar.findOne({ userId: userObjectId });
 
   if (!userProgress) {
     userProgress = {
       totalTasksCompleted: 0,
       totalPointsEarned: 0,
       categoryCounts: {},
-      consecutiveDays: 0,
-      maxConsecutiveDays: 0,
       earlyCompletionCount: 0,
       multiCategoryActive: 0,
       birthdayTasks: 0,
@@ -353,7 +315,7 @@ export async function getUserAchievements(userId: string | mongoose.Types.Object
       progress = def.requirement;
       progressPercent = 100;
     } else {
-      progress = calculateProgress(def, userProgress, userAvatar);
+      progress = calculateProgress(def, userProgress);
       progressPercent = Math.min(100, Math.round((progress / def.requirement) * 100));
     }
 
@@ -382,8 +344,7 @@ export async function getUserAchievements(userId: string | mongoose.Types.Object
 
 function calculateProgress(
   def: IAchievementDefinition,
-  progress: AchievementProgressSnapshot,
-  userAvatar?: UserAvatarProgress | null
+  progress: AchievementProgressSnapshot
 ): number {
   const { conditionType, requirement, requirementDetail } = def;
 
@@ -400,7 +361,7 @@ function calculateProgress(
       return Math.min(requirement, categoryCount);
 
     case 'consecutive_days':
-      return Math.min(requirement, Math.max(progress.consecutiveDays || 0, progress.maxConsecutiveDays || 0));
+      return Math.min(requirement, progress.totalTasksCompleted || 0);
 
     case 'early_completion':
       return Math.min(requirement, progress.earlyCompletionCount || 0);
@@ -412,11 +373,11 @@ function calculateProgress(
       return Math.min(requirement, progress.birthdayTasks || 0);
 
     case 'category_streak':
-      return Math.min(requirement, progress.maxConsecutiveDays || 0);
+      if (!requirementDetail?.category) return 0;
+      return Math.min(requirement, (progress.categoryCounts as Record<string, number>)[requirementDetail.category] || 0);
 
     case 'streak_any_time':
-      if (!userAvatar) return 0;
-      return Math.min(requirement, userAvatar.maxConsecutiveDays || 0);
+      return Math.min(requirement, progress.totalTasksCompleted || 0);
 
     default:
       return 0;

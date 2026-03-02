@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     if (!userAvatar) {
       userAvatar = await UserAvatar.create({
         userId: new mongoose.Types.ObjectId(userId),
-        level: 1,
         currentXP: 0,
         totalXP: 0,
         stage: 'egg',
@@ -29,8 +28,6 @@ export async function GET(request: NextRequest) {
         currentSkin: 'default',
         equippedAccessories: [],
         unlockedAccessories: [],
-        consecutiveDays: 0,
-        maxConsecutiveDays: 0,
         totalTasksCompleted: 0,
       });
     }
