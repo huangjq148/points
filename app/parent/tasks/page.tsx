@@ -1,10 +1,9 @@
 "use client";
 
-import { Button, Pagination, TabFilter } from "@/components/ui";
+import { Button, Modal, Pagination, TabFilter } from "@/components/ui";
 import Select from "@/components/ui/Select";
 import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
-import AlertModal from "@/components/AlertModal";
 import { Edit2, Plus, LayoutGrid, Table2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
@@ -46,6 +45,7 @@ export interface PlainTask {
 }
 
 import request from "@/utils/request";
+import { useToast } from "@/components/ui/Toast";
 // import { formatDate } from "@/utils/date";
 // import Layout from '@/app/layout';
 
@@ -59,6 +59,7 @@ const TAB_ITEMS = [
 ] as const;
 
 function TasksPage() {
+  const toast = useToast();
   const searchParams = useSearchParams();
   const initialChildTaskFilter = searchParams.get("childId") || "all";
   const statusFromQuery = searchParams.get("status");
@@ -189,7 +190,7 @@ function TasksPage() {
     setShowTemplateManager(false);
     setTaskModalMode("add");
     setShowTaskModal(true);
-    showAlert(`已应用模板: ${template.name}`, "info");
+    toast.success(`已应用模板: ${template.name}`)
   };
 
   const handleDeleteTemplate = async (id: string) => {
@@ -668,11 +669,15 @@ function TasksPage() {
           photoPreview={taskPhotoPreview}
           toggleChild={toggleChild}
         />
-        <AlertModal
+        <Modal
           isOpen={alertState.isOpen}
           onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
-          message={alertState.message}
-          type={alertState.type}
+          alert={{
+            message: alertState.message,
+            type: alertState.type,
+          }}
+          showCloseButton={false}
+          title="提示"
         />
 
         {/* Confirm Delete Task */}

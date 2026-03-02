@@ -1,6 +1,6 @@
+import { Button, Modal } from "@/components/ui";
+import { Edit2, Plus, Trash2 } from "lucide-react";
 import { TaskTemplate } from "../page";
-import { Button, Modal, Input } from "@/components/ui";
-import { Edit2, Trash2, Plus } from "lucide-react";
 
 interface TemplateManagerProps {
   isOpen: boolean;
