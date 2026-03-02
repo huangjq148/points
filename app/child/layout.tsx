@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useApp } from '@/context/AppContext';
-import { usePathname, useRouter } from 'next/navigation';
-import { Button } from '@/components/ui';
-import { useState, useEffect } from 'react';
+import { useApp } from "@/context/AppContext";
+import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui";
+import { useState, useEffect } from "react";
 import {
   Lock,
   ChevronDown,
@@ -15,8 +15,11 @@ import {
   Moon,
   Home,
   ArrowUp,
-} from 'lucide-react';
-import ConfirmModal from '@/components/ConfirmModal';
+  ShoppingBag,
+  Wallet,
+  ClipboardList,
+} from "lucide-react";
+import ConfirmModal from "@/components/ConfirmModal";
 
 interface ChildLayoutProps {
   children: React.ReactNode;
@@ -43,11 +46,11 @@ function StarsBackground() {
   }, []);
 
   return (
-    <div className='fixed top-0 left-0 w-full h-full pointer-events-none z-0'>
+    <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
       {stars.map((star) => (
         <div
           key={star.id}
-          className='absolute bg-white rounded-full'
+          className="absolute bg-white rounded-full"
           style={{
             left: star.left,
             top: star.top,
@@ -62,111 +65,85 @@ function StarsBackground() {
   );
 }
 
-function PinVerification({
-  onVerified,
-  onCancel,
-}: {
-  onVerified: () => void;
-  onCancel: () => void;
-}) {
+function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onCancel: () => void }) {
   const { switchToParent } = useApp();
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState('');
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
     if (pin.length !== 4) {
-      setError('请输入4位PIN码');
+      setError("请输入4位PIN码");
       return;
     }
     const success = await switchToParent(pin);
     if (success) {
       onVerified();
     } else {
-      setError('PIN码错误');
-      setPin('');
+      setError("PIN码错误");
+      setPin("");
     }
   };
 
   return (
-    <div
-      className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4'
-      onClick={onCancel}
-    >
-      <div
-        className='bg-white rounded-3xl p-6 md:p-8 mx-4 max-w-sm w-full'
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className='text-center mb-6'>
-          <div className='text-5xl mb-2'>🔐</div>
-          <h2 className='text-xl font-bold text-gray-800'>家长验证</h2>
-          <p className='text-gray-600'>请输入4位PIN码</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="bg-white rounded-3xl p-6 md:p-8 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="text-center mb-6">
+          <div className="text-5xl mb-2">🔐</div>
+          <h2 className="text-xl font-bold text-gray-800">家长验证</h2>
+          <p className="text-gray-600">请输入4位PIN码</p>
         </div>
 
-        <div className='flex gap-2 justify-center mb-6'>
+        <div className="flex gap-2 justify-center mb-6">
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className='w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl flex items-center justify-center text-2xl font-bold border-2 border-gray-200'
+              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl flex items-center justify-center text-2xl font-bold border-2 border-gray-200"
             >
-              {pin[i] || ''}
+              {pin[i] || ""}
             </div>
           ))}
         </div>
 
-        <div className='grid grid-cols-3 gap-2 mb-6'>
+        <div className="grid grid-cols-3 gap-2 mb-6">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
             <Button
               key={num}
               onClick={() => pin.length < 4 && setPin(pin + num.toString())}
-              variant='secondary'
-              className='w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none'
+              variant="secondary"
+              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none"
             >
               {num}
             </Button>
           ))}
           <Button
             onClick={() => setPin(pin.slice(0, -1))}
-            variant='secondary'
-            className='w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none'
+            variant="secondary"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none"
           >
             删除
           </Button>
           <Button
-            onClick={() => pin.length < 4 && setPin(pin + '0')}
-            variant='secondary'
-            className='w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none'
+            onClick={() => pin.length < 4 && setPin(pin + "0")}
+            variant="secondary"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none"
           >
             0
           </Button>
           <Button
-            onClick={() => setPin('')}
-            variant='secondary'
-            className='w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none'
+            onClick={() => setPin("")}
+            variant="secondary"
+            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none"
           >
             清空
           </Button>
         </div>
 
-        {error && (
-          <div className='bg-red-100 text-red-600 px-4 py-2 rounded-xl text-center mb-4'>
-            {error}
-          </div>
-        )}
+        {error && <div className="bg-red-100 text-red-600 px-4 py-2 rounded-xl text-center mb-4">{error}</div>}
 
-        <Button
-          onClick={handleSubmit}
-          variant='primary'
-          fullWidth
-          className='mb-3'
-        >
+        <Button onClick={handleSubmit} variant="primary" fullWidth className="mb-3">
           确认
         </Button>
-        <Button
-          onClick={onCancel}
-          variant='error'
-          fullWidth
-          className='text-white font-semibold py-3'
-        >
+        <Button onClick={onCancel} variant="error" fullWidth className="text-white font-semibold py-3">
           取消
         </Button>
       </div>
@@ -179,9 +156,10 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isHomePage = pathname === '/child' || pathname === '/child/';
-  const isStorePage = pathname === '/child/store';
-  const isWalletPage = pathname === '/child/wallet';
+  const isHomePage = pathname === "/child" || pathname === "/child/";
+  const isStorePage = pathname === "/child/store";
+  const isWalletPage = pathname === "/child/wallet";
+  const isTaskPage = pathname === "/child/task";
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
@@ -193,12 +171,12 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     const handleScroll = () => {
       setShowScrollTop(window.scrollY > 300);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSwitchChild = (child: typeof currentUser) => {
@@ -219,9 +197,9 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
   return (
     <div
-      className='relative min-h-screen text-gray-800'
+      className="relative min-h-screen text-gray-800"
       style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       }}
     >
       <style jsx global>{`
@@ -273,55 +251,41 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
       <StarsBackground />
 
       {showPinModal && (
-        <PinVerification
-          onVerified={() => setShowPinModal(false)}
-          onCancel={() => setShowPinModal(false)}
-        />
+        <PinVerification onVerified={() => setShowPinModal(false)} onCancel={() => setShowPinModal(false)} />
       )}
 
       {showChildSwitcher && (
         <div
-          className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setShowChildSwitcher(false)}
         >
-          <div
-            className='bg-white rounded-3xl p-6 w-full max-w-sm'
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className='text-center mb-4'>
-              <div className='text-4xl mb-2'>🔄</div>
-              <h3 className='text-xl font-bold text-gray-800'>切换孩子</h3>
-              <p className='text-gray-600'>选择要切换的孩子</p>
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-4">
+              <div className="text-4xl mb-2">🔄</div>
+              <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
+              <p className="text-gray-600">选择要切换的孩子</p>
             </div>
-            <div className='space-y-3 mb-4'>
+            <div className="space-y-3 mb-4">
               {childList.map((child) => (
                 <div
                   key={child.id}
                   onClick={() => handleSwitchChild(child)}
                   className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${
                     child.id === currentUser?.id
-                      ? 'bg-blue-100 border-2 border-blue-400'
-                      : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                      ? "bg-blue-100 border-2 border-blue-400"
+                      : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
                   }`}
                 >
-                  <div className='text-3xl'>{child.avatar}</div>
-                  <div className='flex-1'>
-                    <p className='font-bold text-gray-800'>{child.username}</p>
-                    <p className='text-sm text-gray-500'>
-                      🪙 {child.availablePoints} 积分
-                    </p>
+                  <div className="text-3xl">{child.avatar}</div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-800">{child.username}</p>
+                    <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
                   </div>
-                  {child.id === currentUser?.id && (
-                    <span className='text-blue-500 font-bold'>当前</span>
-                  )}
+                  {child.id === currentUser?.id && <span className="text-blue-500 font-bold">当前</span>}
                 </div>
               ))}
             </div>
-            <Button
-              onClick={() => setShowChildSwitcher(false)}
-              variant='secondary'
-              fullWidth
-            >
+            <Button onClick={() => setShowChildSwitcher(false)} variant="secondary" fullWidth>
               取消
             </Button>
           </div>
@@ -332,56 +296,49 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         isOpen={showConfirmLogout}
         onClose={() => setShowConfirmLogout(false)}
         onConfirm={confirmLogout}
-        title='退出登录'
-        message='确定要退出当前账号吗？'
-        confirmText='退出'
-        cancelText='取消'
+        title="退出登录"
+        message="确定要退出当前账号吗？"
+        confirmText="退出"
+        cancelText="取消"
         // type='danger'
       />
 
       <header
-        className='fixed top-0 left-0 right-0 z-50 px-6 pt-4'
+        className="fixed top-0 left-0 right-0 z-50 px-6 pt-4"
         style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         }}
       >
-        <div className='flex justify-between items-start mb-6'>
-          <div className='flex items-center gap-3'>
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center gap-3">
             {!isHomePage && (
               <button
-                onClick={() => router.push('/child')}
-                className='w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30'
+                onClick={() => router.push("/child")}
+                className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
               >
                 <Home size={20} />
               </button>
             )}
-            <div
-              className='flex items-center gap-4'
-              onClick={() => setShowChildSwitcher(true)}
-            >
-              <div className='relative'>
+            <div className="flex items-center gap-4" onClick={() => setShowChildSwitcher(true)}>
+              <div className="relative">
                 <div
-                  className='w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 relative overflow-hidden'
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 relative overflow-hidden"
                   style={{
-                    background: isHomePage ? 'white' : 'white',
-                    borderColor: '#fbbf24',
+                    background: isHomePage ? "white" : "white",
+                    borderColor: "#fbbf24",
                   }}
                 >
-                  <span className='character-eye'>
-                    {currentUser?.avatar || '👦'}
-                  </span>
-                  <div className='absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50'></div>
+                  <span className="character-eye">{currentUser?.avatar || "👦"}</span>
+                  <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50"></div>
                 </div>
               </div>
               <div>
-                <h1 className='text-2xl font-black text-white drop-shadow-lg'>
-                  {currentUser?.username || '小探险家'}
-                </h1>
-                <div className='flex items-center gap-2 mt-1'>
-                  <span className='bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30'>
+                <h1 className="text-2xl font-black text-white drop-shadow-lg">{currentUser?.username || "小探险家"}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30">
                     ⭐ 小探险家
                   </span>
-                  <span className='bg-green-400/80 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse'>
+                  <span className="bg-green-400/80 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
                     在线
                   </span>
                 </div>
@@ -389,109 +346,130 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
             </div>
           </div>
 
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSettingsModal(true)}
-              className='w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30'
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
             >
               <Settings size={20} />
             </button>
             <button
               onClick={() => setShowPinModal(true)}
-              className='w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30'
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
             >
               <Lock size={20} />
             </button>
             <button
               onClick={handleLogout}
-              className='w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30'
+              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
             >
               <LogOut size={20} />
             </button>
-            <div className='h-10 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold bg-white/20 text-white border border-white/30'>
+            <div className="h-10 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold bg-white/20 text-white border border-white/30">
               🪙 {currentUser?.availablePoints || 0}
             </div>
           </div>
         </div>
       </header>
 
-      <main className='relative z-10 px-6 pb-24 pt-32'>
-        <div className='max-w-2xl mx-auto'>{children}</div>
+      <main className="relative z-10 px-6 pb-24 pt-32">
+        <div className="max-w-2xl mx-auto">{children}</div>
       </main>
 
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          className='fixed bottom-24 right-4 z-40 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-purple-600 shadow-lg hover:bg-white transition-all active:scale-95 border-2 border-purple-300'
+          className="fixed bottom-24 right-4 z-40 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-purple-600 shadow-lg hover:bg-white transition-all active:scale-95 border-2 border-purple-300"
         >
           <ArrowUp size={24} />
         </button>
       )}
 
-      <nav className='fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50 pb-safe'>
-        <div className='relative overflow-hidden rounded-2xl shadow-2xl'>
-          <div className='absolute inset-0 bg-white/90 backdrop-blur-xl border border-white/40'></div>
-          <div className='relative px-2 py-2 flex justify-between items-center'>
+      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50 pb-safe">
+        <div className="relative overflow-visible rounded-3xl shadow-[0_22px_44px_rgba(30,27,75,0.28)]">
+          <div className="absolute inset-0 bg-white/92 backdrop-blur-xl border-2 border-white/60 rounded-3xl"></div>
+          <div className="relative px-2 py-2.5 flex justify-between items-end">
             {[
               {
-                href: '/child',
-                icon: '🏠',
-                label: '首页',
+                href: "/child",
+                icon: Home,
+                label: "首页",
                 isActive: isHomePage,
-                bgColor: 'bg-blue-500',
-                bgLight: 'bg-blue-100',
-                glowColor: 'group-hover:shadow-blue-500/30',
+                bgColor: "from-blue-500 to-indigo-600",
+                textColor: "text-blue-700",
+                isCenter: false,
               },
               {
-                href: '/child/store',
-                icon: '🎁',
-                label: '商城',
+                href: "/child/task",
+                icon: ClipboardList,
+                label: "任务",
+                isActive: isTaskPage,
+                bgColor: "from-orange-500 to-amber-600",
+                textColor: "text-orange-700",
+                isCenter: false,
+              },
+              {
+                href: "/child/store",
+                icon: ShoppingBag,
+                label: "商城",
                 isActive: isStorePage,
-                bgColor: 'bg-pink-500',
-                bgLight: 'bg-pink-100',
-                glowColor: 'group-hover:shadow-pink-500/30',
+                bgColor: "from-pink-500 to-rose-600",
+                textColor: "text-pink-700",
+                isCenter: true,
               },
               {
-                href: '/child/wallet',
-                icon: '👤',
-                label: '我的',
+                href: "/child/wallet",
+                icon: Wallet,
+                label: "我的",
                 isActive: isWalletPage,
-                bgColor: 'bg-purple-500',
-                bgLight: 'bg-purple-100',
-                glowColor: 'group-hover:shadow-purple-500/30',
+                bgColor: "from-violet-500 to-purple-600",
+                textColor: "text-violet-700",
+                isCenter: false,
               },
             ].map((item) => (
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className={`group relative flex flex-col items-center px-3 py-1.5 rounded-xl transition-all duration-300 ${item.isActive ? 'text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`group relative flex flex-col items-center justify-center min-w-[70px] px-2 rounded-2xl cursor-pointer transition-all duration-200 ${
+                  item.isCenter ? "-mt-5 pt-0 pb-1" : "py-1.5"
+                } ${item.isActive ? "text-white" : `${item.textColor} hover:text-gray-800`}`}
               >
                 <div
-                  className={`absolute inset-0 rounded-xl transition-all duration-300 ${item.isActive ? item.bgColor : 'bg-gray-100 group-hover:bg-gray-200'} ${item.glowColor} shadow-lg`}
+                  className={`absolute inset-0 rounded-2xl transition-all duration-200 ${
+                    item.isActive
+                      ? `bg-gradient-to-br ${item.bgColor} shadow-[0_10px_20px_rgba(79,70,229,0.35)]`
+                      : "bg-slate-100 group-hover:bg-slate-200"
+                  }`}
                 ></div>
                 {item.isActive && (
-                  <div className='absolute inset-0 rounded-xl overflow-hidden'>
-                    <div className='absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent'></div>
+                  <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/35 via-white/10 to-transparent"></div>
                   </div>
                 )}
                 <div
-                  className={`relative w-11 h-11 rounded-lg flex items-center justify-center text-xl transition-transform duration-300 ${item.isActive ? 'scale-110' : 'group-hover:scale-110'}`}
+                  className={`relative ${
+                    item.isCenter ? "w-14 h-14 rounded-2xl" : "w-10 h-10 rounded-xl"
+                  } flex items-center justify-center transition-transform duration-200 ${
+                    item.isActive ? "scale-105" : "group-hover:scale-105"
+                  }`}
                 >
-                  {item.isActive ? (
-                    <span className='filter drop-shadow-sm'>{item.icon}</span>
-                  ) : (
-                    <span className='opacity-70 group-hover:opacity-100 transition-opacity'>
-                      {item.icon}
-                    </span>
-                  )}
+                  <item.icon
+                    size={item.isCenter ? 24 : 21}
+                    strokeWidth={item.isActive ? 2.6 : 2.3}
+                    className={`transition-opacity duration-200 ${
+                      item.isActive ? "opacity-100 drop-shadow-sm" : "opacity-80 group-hover:opacity-100"
+                    }`}
+                  />
                 </div>
                 <span
-                  className={`relative text-[10px] font-bold transition-all duration-300 ${item.isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`}
+                  className={`relative text-[11px] font-extrabold tracking-wide transition-all duration-200 ${
+                    item.isActive ? "opacity-100" : "opacity-75 group-hover:opacity-100"
+                  }`}
                 >
                   {item.label}
                 </span>
                 {item.isActive && (
-                  <div className='absolute -top-1 w-1 h-1 bg-white rounded-full animate-ping'></div>
+                  <div className="absolute -top-1 w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
                 )}
               </button>
             ))}
@@ -501,93 +479,81 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
       {showSettingsModal && (
         <div
-          className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center'
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center"
           onClick={() => setShowSettingsModal(false)}
         >
           <div
-            className='bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md'
+            className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className='flex justify-between items-center mb-6'>
-              <h3 className='text-xl font-bold text-gray-800'>设置</h3>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className='text-gray-400 hover:text-gray-600'
-              >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-800">设置</h3>
+              <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600">
                 ✕
               </button>
             </div>
 
-            <div className='space-y-3'>
+            <div className="space-y-3">
               <Button
                 variant="default"
                 onClick={() => {
                   setShowSettingsModal(false);
-                  router.push('/child/wallet');
+                  router.push("/child/wallet");
                 }}
-                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
               >
-                <div className='w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center'>
-                  <UserIcon size={24} className='text-blue-600' />
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <UserIcon size={24} className="text-blue-600" />
                 </div>
-                <div className='flex-1 text-left'>
-                  <p className='font-bold text-gray-800'>个人信息</p>
-                  <p className='text-sm text-gray-500'>查看和修改个人资料</p>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">个人信息</p>
+                  <p className="text-sm text-gray-500">查看和修改个人资料</p>
                 </div>
-                <ChevronDown
-                  size={20}
-                  className='text-gray-400 rotate-[-90deg]'
-                />
+                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
               </Button>
 
               <Button
                 variant="default"
-                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
               >
-                <div className='w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center'>
-                  <Bell size={24} className='text-purple-600' />
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Bell size={24} className="text-purple-600" />
                 </div>
-                <div className='flex-1 text-left'>
-                  <p className='font-bold text-gray-800'>通知设置</p>
-                  <p className='text-sm text-gray-500'>管理消息通知</p>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">通知设置</p>
+                  <p className="text-sm text-gray-500">管理消息通知</p>
                 </div>
-                <ChevronDown
-                  size={20}
-                  className='text-gray-400 rotate-[-90deg]'
-                />
+                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
               </Button>
 
               <Button
                 variant="default"
-                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
               >
-                <div className='w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center'>
-                  <Moon size={24} className='text-yellow-600' />
+                <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                  <Moon size={24} className="text-yellow-600" />
                 </div>
-                <div className='flex-1 text-left'>
-                  <p className='font-bold text-gray-800'>夜间模式</p>
-                  <p className='text-sm text-gray-500'>切换深色/浅色主题</p>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">夜间模式</p>
+                  <p className="text-sm text-gray-500">切换深色/浅色主题</p>
                 </div>
-                <div className='w-12 h-6 bg-gray-200 rounded-full relative'>
-                  <div className='absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow'></div>
+                <div className="w-12 h-6 bg-gray-200 rounded-full relative">
+                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow"></div>
                 </div>
               </Button>
 
               <Button
                 variant="default"
-                className='w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80'
+                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
               >
-                <div className='w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center'>
-                  <HelpCircle size={24} className='text-green-600' />
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <HelpCircle size={24} className="text-green-600" />
                 </div>
-                <div className='flex-1 text-left'>
-                  <p className='font-bold text-gray-800'>帮助中心</p>
-                  <p className='text-sm text-gray-500'>常见问题和使用指南</p>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-gray-800">帮助中心</p>
+                  <p className="text-sm text-gray-500">常见问题和使用指南</p>
                 </div>
-                <ChevronDown
-                  size={20}
-                  className='text-gray-400 rotate-[-90deg]'
-                />
+                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
               </Button>
             </div>
           </div>

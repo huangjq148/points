@@ -26,7 +26,7 @@ export default function TemplateManager({
       isOpen={isOpen}
       onClose={onClose}
       title="任务模板管理"
-      width="max-w-4xl"
+      width={800}
       footer={
         <Button
           onClick={onClose}
