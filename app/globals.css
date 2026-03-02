@@ -2497,3 +2497,586 @@ body {
   }
 }
 
+/* ========================================
+   父母页增强阴影样式
+   ======================================== */
+
+/* 增强侧边栏阴影 */
+.sidebar {
+  box-shadow: 
+    4px 0 24px rgba(0, 0, 0, 0.08),
+    8px 0 40px rgba(59, 130, 246, 0.06),
+    inset -1px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+.sidebar.collapsed {
+  box-shadow: 
+    4px 0 20px rgba(0, 0, 0, 0.06),
+    8px 0 32px rgba(59, 130, 246, 0.04);
+}
+
+/* Logo区域发光效果 */
+.logo-section {
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  margin: -10px 0 20px 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
+}
+
+/* 导航项增强阴影 */
+.desktop-nav-item {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.desktop-nav-item:hover {
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.15),
+    0 2px 8px rgba(59, 130, 246, 0.1);
+  transform: translateX(4px);
+}
+
+.desktop-nav-item.active {
+  box-shadow: 
+    0 8px 24px rgba(59, 130, 246, 0.35),
+    0 4px 12px rgba(59, 130, 246, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* 头部增强阴影 */
+.desktop-header {
+  box-shadow: 
+    0 4px 24px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 8px 32px rgba(59, 130, 246, 0.08);
+}
+
+.desktop-header > div {
+  box-shadow: 
+    0 2px 12px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* 用户头像区域阴影 */
+.desktop-header .w-10 {
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    0 2px 4px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* 增强卡片阴影系统 */
+.card {
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.06),
+    0 8px 32px rgba(59, 130, 246, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.card:hover {
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    0 20px 60px rgba(59, 130, 246, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+  transform: translateY(-4px);
+}
+
+/* 父级卡片特殊阴影 */
+.card-parent {
+  box-shadow: 
+    0 3px 16px rgba(0, 0, 0, 0.05),
+    0 6px 24px rgba(59, 130, 246, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.card-parent:hover {
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.08),
+    0 16px 48px rgba(59, 130, 246, 0.12);
+}
+
+/* 首页统计卡片增强 */
+.card .w-12 {
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 孩子档案卡片增强 */
+.card .text-3xl {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* 标签徽章阴影 */
+.card .rounded-lg {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 侧边栏切换按钮阴影 */
+.sidebar-toggle-btn {
+  box-shadow: 
+    2px 0 12px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar-toggle-btn:hover {
+  box-shadow: 
+    2px 0 16px rgba(59, 130, 246, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 徽章阴影增强 */
+.badge {
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.desktop-nav-item .badge {
+  box-shadow: 
+    0 2px 6px rgba(239, 68, 68, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.desktop-nav-item.active .badge {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* 折叠状态徽章 */
+.badge-collapsed {
+  box-shadow: 
+    0 2px 6px rgba(245, 158, 11, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 玻璃态卡片增强 */
+.glass-card {
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.15),
+    0 16px 48px rgba(31, 38, 135, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.glass-card:hover {
+  box-shadow: 
+    0 16px 48px rgba(31, 38, 135, 0.2),
+    0 24px 64px rgba(31, 38, 135, 0.15);
+}
+
+/* 主内容区域阴影过渡 */
+.main-area {
+  box-shadow: inset 4px 0 24px rgba(0, 0, 0, 0.02);
+}
+
+/* 移动端底部导航阴影 */
+.mobile-nav {
+  box-shadow: 
+    0 -4px 24px rgba(0, 0, 0, 0.08),
+    0 -2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* 按钮阴影增强 */
+button:not(.shadow-none) {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+button:not(.shadow-none):hover {
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 模态框阴影增强 */
+.modal-content {
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.25),
+    0 40px 100px rgba(0, 0, 0, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* 输入框阴影 */
+.input {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.input:focus {
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    0 4px 12px rgba(59, 130, 246, 0.15),
+    inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 任务卡片阴影 */
+.task-card {
+  box-shadow: 
+    0 3px 12px rgba(0, 0, 0, 0.05),
+    0 6px 20px rgba(59, 130, 246, 0.06);
+}
+
+.task-card:hover {
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.08),
+    0 16px 40px rgba(59, 130, 246, 0.12);
+}
+
+/* 任务图标阴影 */
+.task-icon {
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.3),
+    0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+/* 奖励卡片阴影 */
+.reward-card {
+  box-shadow: 
+    0 3px 12px rgba(0, 0, 0, 0.05),
+    0 6px 20px rgba(59, 130, 246, 0.06);
+}
+
+.reward-card:hover {
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.08),
+    0 16px 40px rgba(59, 130, 246, 0.12);
+}
+
+/* 奖励图标阴影 */
+.reward-icon {
+  box-shadow: 
+    0 4px 16px rgba(251, 191, 36, 0.3),
+    0 2px 8px rgba(251, 191, 36, 0.2);
+}
+
+/* 订单卡片阴影 */
+.order-card {
+  box-shadow: 
+    0 3px 12px rgba(0, 0, 0, 0.05),
+    0 6px 20px rgba(59, 130, 246, 0.06);
+}
+
+.order-card:hover {
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.08),
+    0 16px 40px rgba(59, 130, 246, 0.12);
+}
+
+/* 订单按钮阴影 */
+.order-btn-verify {
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.35),
+    0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.order-btn-verify:hover {
+  box-shadow: 
+    0 6px 24px rgba(59, 130, 246, 0.45),
+    0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+/* 状态徽章阴影 */
+.status-badge {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 子选择器芯片阴影 */
+.child-chip {
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.child-chip.selected {
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.35),
+    0 2px 8px rgba(59, 130, 246, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* 文件上传区域阴影 */
+.file-upload {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.03),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.file-upload:hover {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.03),
+    0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+/* 图片预览阴影 */
+.image-preview {
+  box-shadow: 
+    0 4px 20px rgba(59, 130, 246, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* 积分显示阴影 */
+.points-display {
+  box-shadow: 
+    0 4px 20px rgba(251, 191, 36, 0.4),
+    0 8px 32px rgba(251, 191, 36, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.points-display-child {
+  box-shadow: 
+    0 8px 30px rgba(59, 130, 246, 0.5),
+    0 16px 48px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* 导航栏阴影 */
+.nav-bar {
+  box-shadow: 
+    0 -4px 24px rgba(0, 0, 0, 0.08),
+    0 -8px 32px rgba(59, 130, 246, 0.1);
+}
+
+/* 导航项阴影 */
+.nav-item.active {
+  box-shadow: 
+    0 6px 20px rgba(59, 130, 246, 0.4),
+    0 3px 10px rgba(59, 130, 246, 0.3);
+}
+
+/* 玻璃态导航阴影 */
+.glass-nav {
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.15),
+    0 16px 48px rgba(31, 38, 135, 0.1);
+}
+
+/* 玻璃态输入框阴影 */
+.glass-input {
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.glass-input:focus {
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.1),
+    0 4px 12px rgba(59, 130, 246, 0.15),
+    inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 玻璃态遮罩阴影 */
+.glass-overlay {
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.2);
+}
+
+/* 微光效果卡片阴影增强 */
+.glass-shimmer {
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.15),
+    0 16px 48px rgba(31, 38, 135, 0.1);
+}
+
+/* 空状态阴影 */
+.empty-state-icon {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* 表格滚动条阴影 */
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 日期选择器阴影增强 */
+.react-datepicker {
+  box-shadow: 
+    0 20px 50px rgba(0, 0, 0, 0.2),
+    0 40px 80px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 模态框遮罩阴影 */
+.modal-overlay {
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.3);
+}
+
+/* 登录容器阴影 */
+.login-container::before {
+  filter: blur(60px);
+}
+
+/* 仪表板布局阴影 */
+.dashboard-layout {
+  filter: drop-shadow(0 0 40px rgba(59, 130, 246, 0.05));
+}
+
+/* 父主题背景增强 */
+.parent-theme {
+  box-shadow: inset 0 0 100px rgba(59, 130, 246, 0.05);
+}
+
+/* 渐变网格阴影 */
+.gradient-mesh {
+  box-shadow: inset 0 0 80px rgba(255, 255, 255, 0.5);
+}
+
+/* 工具类：多层阴影 */
+.shadow-soft {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-medium {
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-strong {
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 16px 48px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-glow {
+  box-shadow: 
+    0 0 20px rgba(59, 130, 246, 0.3),
+    0 0 40px rgba(59, 130, 246, 0.2);
+}
+
+.shadow-inner-soft {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* 悬浮阴影增强 */
+.hover\:shadow-lift:hover {
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.12),
+    0 24px 60px rgba(59, 130, 246, 0.15);
+  transform: translateY(-4px);
+}
+
+/* 彩色阴影 */
+.shadow-blue {
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.25);
+}
+
+.shadow-green {
+  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.25);
+}
+
+.shadow-yellow {
+  box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
+}
+
+.shadow-red {
+  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.25);
+}
+
+.shadow-purple {
+  box-shadow: 0 8px 32px rgba(167, 139, 250, 0.25);
+}
+
+/* 文本阴影 */
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 发光效果 */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+}
+
+.glow-yellow {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+}
+
+.glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+/* 3D 按压效果 */
+.press-effect {
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.press-effect:active {
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(2px);
+}
+
+/* 边缘阴影 */
+.shadow-edge-top {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-edge-bottom {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-edge-left {
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-edge-right {
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+}
+
+/* 浮动阴影动画 */
+@keyframes float-shadow {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float-shadow {
+  animation: float-shadow 3s ease-in-out infinite;
+}
+
+/* 脉冲阴影 */
+@keyframes pulse-shadow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.animate-pulse-shadow {
+  animation: pulse-shadow 2s ease-out infinite;
+}
+

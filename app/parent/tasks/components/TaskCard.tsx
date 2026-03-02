@@ -7,6 +7,7 @@ import { useState } from "react";
 export interface IDisplayedTask extends PlainTask {
   childName: string;
   childAvatar?: string;
+  isRecurring?: boolean;
 }
 
 interface TaskCardProps {

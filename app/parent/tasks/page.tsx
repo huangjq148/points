@@ -7,7 +7,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import AlertModal from "@/components/AlertModal";
 import { Edit2, Plus, LayoutGrid, Table2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import TaskCard, { IDisplayedTask } from "./components/TaskCard";
 import TaskTable from "./components/TaskTable";
 import TemplateManager from "./components/TemplateManager";
@@ -57,7 +57,7 @@ const TAB_ITEMS = [
   { key: "rejected", label: "已驳回" },
 ] as const;
 
-export default function TasksPage() {
+function TasksPage() {
   const searchParams = useSearchParams();
   const initialChildTaskFilter = searchParams.get("childId") || "all";
   const statusFromQuery = searchParams.get("status");
@@ -679,5 +679,21 @@ export default function TasksPage() {
           onUpdate={handleUpdateTemplate}
         />
     </>
+  );
+}
+
+// 包装组件以添加 Suspense
+export default function TasksPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </div>
+    }>
+      <TasksPage />
+    </Suspense>
   );
 }

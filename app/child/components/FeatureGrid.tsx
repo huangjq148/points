@@ -58,11 +58,10 @@ function FeatureCard({ icon, title, description, gradient, badge, onClick }: Fea
 
 interface FeatureGridProps {
   completedTasksCount: number;
-  earnedMedalsCount: number;
   onNavigate?: (path: string) => void;
 }
 
-export default function FeatureGrid({ completedTasksCount, earnedMedalsCount, onNavigate }: FeatureGridProps) {
+export default function FeatureGrid({ completedTasksCount, onNavigate }: FeatureGridProps) {
   const features = [
     { 
       icon: '🎁', 
@@ -78,13 +77,6 @@ export default function FeatureGrid({ completedTasksCount, earnedMedalsCount, on
       description: `本周完成 ${completedTasksCount} 项任务`, 
       gradient: 'from-blue-500 via-indigo-500 to-purple-600',
       path: '/child/task?filter=thisWeek'
-    },
-    { 
-      icon: '🏅', 
-      title: '成就墙', 
-      description: `${earnedMedalsCount}/24 徽章`, 
-      gradient: 'from-yellow-400 via-orange-500 to-amber-600',
-      path: '/child/achievements'
     },
     { 
       icon: '💰', 

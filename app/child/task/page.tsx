@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -55,7 +55,7 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: '需修改' },
 ];
 
-export default function TaskPage() {
+function TaskPage() {
   const { currentUser } = useApp();
   const searchParams = useSearchParams();
 
@@ -1029,5 +1029,21 @@ export default function TaskPage() {
 
       {/* 图片全屏预览 Modal */}
     </>
+  );
+}
+
+// 包装组件以添加 Suspense
+export default function TaskPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    }>
+      <TaskPage />
+    </Suspense>
   );
 }

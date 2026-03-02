@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { spawn, exec, type ChildProcess } from 'child_process';
+import { exec, type ChildProcess } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 
@@ -20,16 +20,19 @@ async function isCronServerRunning(): Promise<boolean> {
 }
 
 // 启动 cron 服务
-function startCronServer(): Promise<boolean> {
-  return new Promise((resolve, reject) => {
+async function startCronServer(): Promise<boolean> {
+  try {
     if (cronProcess) {
-      resolve(true);
-      return;
+      return true;
     }
 
-    const cronScriptPath = path.join(process.cwd(), 'cron-server.js');
+    // 使用 Function 构造器避免 Turbopack 静态分析
+    const dynamicImport = new Function('specifier', 'return import(specifier)');
+    const childProcess = await dynamicImport('child_process');
+    const pathModule = await dynamicImport('path');
+    const cronScriptPath = pathModule.join(process.cwd(), 'cron-server.js');
 
-    cronProcess = spawn('node', [cronScriptPath], {
+    cronProcess = childProcess.spawn('node', [cronScriptPath], {
       detached: true,
       stdio: 'ignore',
       env: {
@@ -40,14 +43,18 @@ function startCronServer(): Promise<boolean> {
       },
     });
 
-    cronProcess.unref();
+    if (cronProcess) {
+      cronProcess.unref();
+    }
 
     // 等待一下确认进程启动
-    setTimeout(async () => {
-      const isRunning = await isCronServerRunning();
-      resolve(isRunning);
-    }, 1000);
-  });
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const isRunning = await isCronServerRunning();
+    return isRunning;
+  } catch (error) {
+    console.error('启动 cron 服务失败:', error);
+    return false;
+  }
 }
 
 // 停止 cron 服务

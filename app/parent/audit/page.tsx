@@ -9,9 +9,9 @@ import request from "@/utils/request";
 import { Check, Image as ImageIcon, X, Zap, History } from "lucide-react";
 import { motion, PanInfo } from "framer-motion";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 
-export default function AuditPage() {
+function AuditPage() {
   const searchParams = useSearchParams();
   const initialChildFilter = searchParams.get("childId") || "all";
   const [selectedChildFilter, setSelectedChildFilter] = useState<string>(initialChildFilter);
@@ -444,5 +444,21 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// 包装组件以添加 Suspense
+export default function AuditPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </div>
+    }>
+      <AuditPage />
+    </Suspense>
   );
 }

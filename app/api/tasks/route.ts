@@ -5,8 +5,6 @@ import Task, { IAuditRecord, ITask } from "@/models/Task";
 import User from "@/models/User";
 import { getTokenPayload, getUserIdFromToken } from "@/lib/auth";
 import { updateGamificationProgress } from "@/lib/gamification/progress";
-import { checkAndAwardAchievements } from "@/lib/gamification/achievements";
-import type { TaskCompletionContext } from "@/lib/gamification/achievements";
 import { AccountModel, TransactionModel } from "@/models/Economy";
 
 interface ITaskQuery {
@@ -383,33 +381,11 @@ export async function PUT(request: NextRequest) {
         totalStars: account.stars,
       };
 
-      // 检查成就
-      const previousStatus = task.status;
-      const isResubmit = previousStatus === 'rejected';
-      const previousRejectedAt = task.rejectionReason ? task.updatedAt : undefined;
-      
-      const now = new Date();
-      const childBirthday = await User.findById(task.childId).select('birthday');
-      const isBirthday = childBirthday?.birthday && 
-        now.getMonth() === childBirthday.birthday.getMonth() &&
-        now.getDate() === childBirthday.birthday.getDate();
-
-      const achievementContext: TaskCompletionContext = {
-        task: task,
-        completedAt: now,
-        isResubmit,
-        previousRejectedAt,
-        isBirthday,
-      };
-
-      const achievementResult = await checkAndAwardAchievements(task.childId.toString(), achievementContext);
-
       return NextResponse.json({ 
         success: true, 
         task,
         gamification: gamificationResult,
         economy: economyResult,
-        achievements: achievementResult,
       });
     }
 

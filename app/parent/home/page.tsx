@@ -24,75 +24,78 @@ export default function HomePage() {
     <>
       <div className="grid grid-cols-2 gap-4 mb-6">
           <div
-            className="card cursor-pointer hover:scale-[1.02] transition-transform"
+            className="card cursor-pointer hover:shadow-lift transition-all duration-300"
             onClick={() => {
               router.push("/parent/overview");
             }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-yellow-200/80 backdrop-blur rounded-xl flex items-center justify-center">
-                <Clock size={24} className="text-yellow-600" />
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-400 rounded-xl flex items-center justify-center shadow-yellow">
+                <Clock size={24} className="text-yellow-700" />
               </div>
-              <span className="text-sm text-gray-600">待审核</span>
+              <span className="text-sm text-gray-600 font-medium">待审核</span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{totalSubmittedTasks}</p>
+            <p className="text-3xl font-bold text-gray-800 text-shadow-sm">{totalSubmittedTasks}</p>
           </div>
           <div
-            className="card cursor-pointer hover:scale-[1.02] transition-transform"
+            className="card cursor-pointer hover:shadow-lift transition-all duration-300"
             onClick={() => {
               router.push("/parent/orders");
             }}
           >
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 bg-blue-200/80 backdrop-blur rounded-xl flex items-center justify-center">
-                <Check size={24} className="text-blue-600" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center shadow-blue">
+                <Check size={24} className="text-white" />
               </div>
-              <span className="text-sm text-gray-600">待核销</span>
+              <span className="text-sm text-gray-600 font-medium">待核销</span>
             </div>
-            <p className="text-3xl font-bold text-gray-800">{totalPendingOrders}</p>
+            <p className="text-3xl font-bold text-gray-800 text-shadow-sm">{totalPendingOrders}</p>
           </div>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">孩子档案</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <span>👨‍👩‍👧‍👦</span>
+            <span>孩子档案</span>
+          </h2>
           <div className="flex flex-col gap-3">
             {childList.map((child: User) => {
               return (
                 <div
                   key={child.id as string}
-                  className="card flex items-center gap-4 cursor-pointer hover:bg-white/90 transition"
+                  className="card flex items-center gap-4 cursor-pointer hover:shadow-lift transition-all duration-300"
                 >
-                  <div className="text-3xl">{child.avatar}</div>
+                  <div className="text-3xl filter drop-shadow-md">{child.avatar}</div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{child.username}</p>
+                    <p className="font-semibold text-gray-800 text-shadow-sm">{child.username}</p>
                     <p className="text-sm text-gray-500 flex flex-wrap gap-2 mt-1">
-                      <span>积分: {child.availablePoints}</span>
+                      <span className="bg-gray-50 px-2 py-0.5 rounded-lg shadow-inner-soft">💰 积分: {child.availablePoints}</span>
                       <span
-                        className="text-orange-500 cursor-pointer hover:underline bg-orange-50 px-2 rounded-lg"
+                        className="text-orange-600 cursor-pointer hover:underline bg-gradient-to-r from-orange-50 to-orange-100 px-2 py-0.5 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/parent/tasks?status=uncompleted&childId=${child.id}`);
                         }}
                       >
-                        待完成: {child.pendingCount || 0}
+                        ⏳ 待完成: {child.pendingCount || 0}
                       </span>
                       <span
-                        className="text-blue-500 cursor-pointer hover:underline bg-blue-50 px-2 rounded-lg"
+                        className="text-blue-600 cursor-pointer hover:underline bg-gradient-to-r from-blue-50 to-blue-100 px-2 py-0.5 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/parent/audit?childId=${child.id}`);
                         }}
                       >
-                        待审核: {child.submittedCount || 0}
+                        📝 待审核: {child.submittedCount || 0}
                       </span>
                       <span
-                        className="text-green-500 cursor-pointer hover:underline bg-green-50 px-2 rounded-lg"
+                        className="text-green-600 cursor-pointer hover:underline bg-gradient-to-r from-green-50 to-green-100 px-2 py-0.5 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/parent/orders?status=pending&childId=${child.id}`);
                         }}
                       >
-                        待核销: {child.orderCount || 0}
+                        ✅ 待核销: {child.orderCount || 0}
                       </span>
                     </p>
                   </div>
@@ -101,16 +104,20 @@ export default function HomePage() {
               );
             })}
             {childList.length === 0 && (
-              <div className="card text-center py-8">
-                <Users size={48} className="mx-auto mb-2 text-gray-400" />
+              <div className="card text-center py-8 hover:shadow-medium transition-shadow">
+                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner-soft">
+                  <Users size={32} className="text-gray-400" />
+                </div>
                 <p className="text-gray-500 mb-4">还没有孩子档案</p>
-                <Button onClick={() => router.push("/parent/family")}>添加孩子</Button>
+                <Button onClick={() => router.push("/parent/family")} className="shadow-blue hover:shadow-glow transition-shadow">
+                  + 添加孩子
+                </Button>
               </div>
             )}
             {childList.length > 0 && (
               <Button
                 variant="secondary"
-                className="w-full border border-dashed border-gray-300 text-gray-500 hover:bg-gray-50 shadow-none"
+                className="w-full border-2 border-dashed border-gray-300 text-gray-500 hover:bg-gray-50 hover:border-gray-400 hover:shadow-soft transition-all"
                 onClick={() => router.push("/parent/family")}
               >
                 + 添加更多孩子

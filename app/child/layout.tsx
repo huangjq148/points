@@ -17,7 +17,6 @@ import {
   ArrowUp,
 } from 'lucide-react';
 import ConfirmModal from '@/components/ConfirmModal';
-import GamificationNotifier from '@/components/gamification/GamificationNotifier';
 
 interface ChildLayoutProps {
   children: React.ReactNode;
@@ -199,8 +198,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
   const isHomePage = pathname === '/child' || pathname === '/child/';
   const isStorePage = pathname === '/child/store';
-  const isAchievementsPage =
-    pathname === '/child/achievements';
   const isWalletPage = pathname === '/child/wallet';
 
   const [showPinModal, setShowPinModal] = useState(false);
@@ -291,9 +288,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
       `}</style>
 
       <StarsBackground />
-      <GamificationNotifier
-        onViewAchievements={() => router.push('/child/achievements')}
-      />
 
       {showPinModal && (
         <PinVerification
@@ -482,15 +476,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 bgColor: 'bg-pink-500',
                 bgLight: 'bg-pink-100',
                 glowColor: 'group-hover:shadow-pink-500/30',
-              },
-              {
-                href: '/child/achievements',
-                icon: '🏅',
-                label: '成就',
-                isActive: isAchievementsPage,
-                bgColor: 'bg-orange-500',
-                bgLight: 'bg-orange-100',
-                glowColor: 'group-hover:shadow-orange-500/30',
               },
               {
                 href: '/child/wallet',

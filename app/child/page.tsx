@@ -41,14 +41,6 @@ interface Task {
   auditHistory?: AuditRecord[];
 }
 
-interface Medal {
-  id: string;
-  name: string;
-  icon: string;
-  isEarned: boolean;
-  earnedAt?: string;
-}
-
 const LEVEL_TITLES = [
   '探险新手',
   '小小冒险家',
@@ -99,7 +91,6 @@ export default function ChildHome() {
   const toast = useToast();
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [medals, setMedals] = useState<Medal[]>([]);
   const [displayPoints, setDisplayPoints] = useState(0);
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -153,22 +144,9 @@ export default function ChildHome() {
     }
   }, [currentUser?.token]);
 
-  const fetchMedals = useCallback(async () => {
-    if (!currentUser?.token) return;
-    try {
-      const data = await request('/api/gamification/medals');
-      if (data.success) {
-        setMedals(data.data.medals || []);
-      }
-    } catch (error) {
-      console.error('获取徽章失败:', error);
-    }
-  }, [currentUser?.token]);
-
   useEffect(() => {
     fetchTasks();
-    fetchMedals();
-  }, [fetchTasks, fetchMedals]);
+  }, [fetchTasks]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -278,17 +256,6 @@ export default function ChildHome() {
   const completedTasks = useMemo(
     () => tasks.filter((t) => t.status === 'approved'),
     [tasks],
-  );
-  const displayMedals = useMemo(() => {
-    const earnedMedals = medals.filter((m) => m.isEarned).slice(0, 4);
-    const unearnedMedals = medals
-      .filter((m) => !m.isEarned)
-      .slice(0, Math.max(0, 4 - earnedMedals.length));
-    return [...earnedMedals, ...unearnedMedals];
-  }, [medals]);
-  const earnedMedalsCount = useMemo(
-    () => medals.filter((m) => m.isEarned).length,
-    [medals],
   );
   const maxStreak = useMemo(
     () => tasks.reduce((max, task) => Math.max(max, task.streakCount || 0), 0),
@@ -732,38 +699,8 @@ export default function ChildHome() {
 
           <FeatureGrid
             completedTasksCount={completedTasks.length}
-            earnedMedalsCount={earnedMedalsCount}
             onNavigate={handleNavigate}
           />
-
-          {/* 最近获得徽章展示 */}
-          <div className='mt-6 glass rounded-2xl p-4'>
-            <h3 className='text-white font-bold text-sm mb-3 flex items-center gap-2'>
-              <span>🎖️</span> 最近获得
-            </h3>
-            <div className='flex gap-3 overflow-x-auto hide-scrollbar pb-2'>
-              {displayMedals.map((medal) => (
-                <div
-                  key={medal.id}
-                  className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 border-white transform hover:scale-110 transition-transform cursor-pointer ${
-                    medal.isEarned
-                      ? 'bg-gradient-to-br from-yellow-300 to-yellow-500'
-                      : 'bg-gray-200 grayscale opacity-50'
-                  }`}
-                >
-                  {medal.icon}
-                </div>
-              ))}
-              {[...Array(Math.max(0, 4 - displayMedals.length))].map((_, i) => (
-                <div
-                  key={`empty-${i}`}
-                  className='flex-shrink-0 w-16 h-16 bg-gray-200 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 border-white grayscale opacity-50'
-                >
-                  🔒
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* 任务详情弹窗 */}

@@ -9,9 +9,9 @@ import { useSearchParams } from "next/navigation";
 import request from "@/utils/request";
 import { formatDate } from "@/utils/date";
 import ConfirmModal from "@/components/ConfirmModal";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 
-export default function OrdersPage() {
+function OrdersPage() {
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get("status");
   const initialActiveTab: "pending" | "history" = initialStatus === "history" ? "history" : "pending";
@@ -298,5 +298,21 @@ export default function OrdersPage() {
         </>
       )}
     </>
+  );
+}
+
+// 包装组件以添加 Suspense
+export default function OrdersPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-500">加载中...</p>
+        </div>
+      </div>
+    }>
+      <OrdersPage />
+    </Suspense>
   );
 }

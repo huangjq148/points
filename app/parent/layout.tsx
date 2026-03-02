@@ -2,11 +2,11 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy, Clock, PanelLeft } from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Clock, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useMemo, useState } from "react";
 
-type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "achievements" | "scheduled-jobs";
+type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "scheduled-jobs";
 
 const TAB_TITLE: Record<NavItemId, string> = {
   home: "首页",
@@ -15,7 +15,6 @@ const TAB_TITLE: Record<NavItemId, string> = {
   tasks: "任务管理",
   orders: "礼品核销",
   rewards: "奖品商城",
-  achievements: "勋章管理",
   family: "家庭成员",
   users: "系统用户",
   "scheduled-jobs": "定时任务",
@@ -43,7 +42,6 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       { id: "tasks", icon: Star, label: "任务" },
       { id: "orders", icon: Ticket, label: "核销", badge: totalPendingOrders },
       { id: "rewards", icon: Gift, label: "商城" },
-      { id: "achievements", icon: Trophy, label: "勋章" },
       { id: "family", icon: Users, label: "家庭" },
       { id: "users", icon: UserCog, label: "用户" },
       { id: "scheduled-jobs", icon: Clock, label: "定时任务" },
@@ -53,7 +51,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
   const activeTab: NavItemId = useMemo(() => {
     const pathSegments = pathname.split("/");
     const currentTab = pathSegments[pathSegments.length - 1];
-    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "achievements", "scheduled-jobs"].includes(currentTab)) {
+    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "scheduled-jobs"].includes(currentTab)) {
       return currentTab as NavItemId;
     }
     return "home"; // Default to home if path is not recognized
@@ -109,16 +107,16 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       <div className="main-wrapper flex flex-col min-h-screen">
         {/* Header - Fixed at top, always visible */}
         <header className="mobile-header desktop-header fixed top-0 left-0 right-0 z-50">
-          <div className="bg-white/90 backdrop-blur-xl lg:backdrop-blur-md px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between border-b border-gray-100">
+          <div className="bg-white/90 backdrop-blur-xl lg:backdrop-blur-md px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between border-b border-gray-100/50">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🌟</span>
-              <span className="font-bold text-blue-600">小小奋斗者</span>
+              <span className="text-2xl filter drop-shadow-md">🌟</span>
+              <span className="font-bold text-blue-600 text-shadow-sm">小小奋斗者</span>
             </div>
             <div className="flex gap-2 lg:hidden">
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 px-3 py-1.5 ">
                   <div className="relative">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-200">
                       👤
                     </div>
                   </div>
@@ -134,11 +132,11 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
             {/* Desktop header content */}
             <div className="hidden lg:flex items-center gap-4 w-full justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">{TAB_TITLE[activeTab]}</h1>
-                <p className="text-gray-500 text-sm mt-1">欢迎回来，开启美好的一天</p>
+                <h1 className="text-2xl font-bold text-gray-800 text-shadow-sm">{TAB_TITLE[activeTab]}</h1>
+                <p className="text-gray-500 text-sm mt-1">欢迎回来，开启美好的一天 ✨</p>
               </div>
-              <div className="bg-white/80 px-4 py-2 rounded-2xl flex items-center gap-3 border border-white shadow-sm">
-                <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-md shadow-blue-200 font-bold">
+              <div className="bg-white/90 px-4 py-2 rounded-2xl flex items-center gap-3 border border-white/60 shadow-medium">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
                   {currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
                 </div>
                 <div className="flex flex-col">
@@ -147,7 +145,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
                   </span>
                   <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">管理员</span>
                 </div>
-                <div className="h-8 w-[1px] bg-gray-100 mx-2" />
+                <div className="h-8 w-[1px] bg-gray-200 mx-2" />
                 <Button onClick={logout} variant="secondary" className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl border-none bg-transparent shadow-none transition-colors">
                   <LogOut size={20} />
                 </Button>
