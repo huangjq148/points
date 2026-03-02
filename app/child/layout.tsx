@@ -33,7 +33,14 @@ function generateStars() {
 }
 
 function StarsBackground() {
-  const [stars] = useState(generateStars);
+  const [stars, setStars] = useState<ReturnType<typeof generateStars>>([]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      setStars(generateStars());
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <div className='fixed top-0 left-0 w-full h-full pointer-events-none z-0'>
@@ -53,27 +60,6 @@ function StarsBackground() {
       ))}
     </div>
   );
-}
-
-const LEVEL_TITLES = [
-  '探险新手',
-  '小小冒险家',
-  '勇敢探险家',
-  '智慧先锋',
-  '金牌达人',
-  '传奇英雄',
-];
-const LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500];
-
-function getLevelInfo(totalXP: number) {
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (totalXP >= LEVEL_THRESHOLDS[i]) {
-      const level = i + 1;
-      const title = LEVEL_TITLES[Math.min(i, LEVEL_TITLES.length - 1)];
-      return { level, title };
-    }
-  }
-  return { level: 1, title: LEVEL_TITLES[0] };
 }
 
 function PinVerification({
@@ -192,9 +178,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const { currentUser, childList, switchToChild, logout } = useApp();
   const router = useRouter();
   const pathname = usePathname();
-
-  const totalXP = currentUser?.totalPoints || 0;
-  const levelInfo = getLevelInfo(totalXP);
 
   const isHomePage = pathname === '/child' || pathname === '/child/';
   const isStorePage = pathname === '/child/store';
@@ -389,15 +372,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   </span>
                   <div className='absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50'></div>
                 </div>
-                <div
-                  className='absolute -bottom-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white border-2 border-white shadow-lg'
-                  style={{
-                    background:
-                      'linear-gradient(to bottom right, #fbbf24, #f97316)',
-                  }}
-                >
-                  {levelInfo.level}
-                </div>
               </div>
               <div>
                 <h1 className='text-2xl font-black text-white drop-shadow-lg'>
@@ -405,7 +379,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 </h1>
                 <div className='flex items-center gap-2 mt-1'>
                   <span className='bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30'>
-                    ⭐ {levelInfo.title}
+                    ⭐ 小探险家
                   </span>
                   <span className='bg-green-400/80 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse'>
                     在线

@@ -275,14 +275,16 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     },
     {
       key: "deadline",
-      title: "截止时间",
+      title: "起止时间",
       render: (_, row) => {
         const task = row;
         const isOverdue = task.deadline && now > 0 && new Date(task.deadline).getTime() < now && task.status === "pending";
-        return task.deadline ? (
+        return task.startDate || task.deadline ? (
           <div className={`flex items-center gap-1 text-xs ${isOverdue ? "text-red-500 font-medium" : "text-gray-500"}`}>
             <Clock size={12} />
-            <span>{formatDate(task.deadline)}</span>
+            <span>
+              {task.startDate ? formatDate(task.startDate) : "即刻开始"} - {task.deadline ? formatDate(task.deadline) : "无截止"}
+            </span>
             {isOverdue && <span className="text-[10px] bg-red-100 px-1.5 py-0.5 rounded">逾期</span>}
           </div>
         ) : (
@@ -352,6 +354,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
         columns={columns}
         dataSource={tasks}
         actionColumn={actionColumn}
+        fixedColumns={{ left: ["name"], right: ["actions"] }}
         emptyText="暂无任务"
         minWidth={980}
         actionColumnWidth={120}
@@ -433,16 +436,19 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                 </div>
               ) : null}
 
-              {/* 截止时间 */}
-              {selectedTask.deadline && (
+              {/* 起止时间 */}
+              {(selectedTask.startDate || selectedTask.deadline) && (
                 <div>
-                  <h4 className="font-bold text-gray-700 mb-2">截止时间</h4>
+                  <h4 className="font-bold text-gray-700 mb-2">起止时间</h4>
                   <div className={`flex items-center gap-2 ${
                     selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending"
                       ? 'text-red-500' : 'text-gray-600'
                   }`}>
                     <Clock size={16} />
-                    <span>{formatDate(selectedTask.deadline)}</span>
+                    <span>
+                      {selectedTask.startDate ? formatDate(selectedTask.startDate) : "即刻开始"} -{" "}
+                      {selectedTask.deadline ? formatDate(selectedTask.deadline) : "无截止"}
+                    </span>
                     {selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending" && (
                       <span className="text-xs font-bold bg-red-100 px-2 py-0.5 rounded-full">已逾期</span>
                     )}

@@ -36,6 +36,7 @@ interface Task {
   points: number;
   status: string;
   requirePhoto?: boolean;
+  startDate?: string;
   deadline?: string;
   submittedAt?: string;
   approvedAt?: string;
@@ -49,6 +50,7 @@ interface Task {
 
 const STATUS_OPTIONS = [
   { value: '', label: '全部' },
+  { value: 'in_progress', label: '进行中' },
   { value: 'pending', label: '待开始' },
   { value: 'submitted', label: '审核中' },
   { value: 'approved', label: '已完成' },
@@ -90,7 +92,8 @@ function TaskPage() {
         const params = {
           page: pageNum,
           limit: limit,
-          ...(statusFilter && { status: statusFilter }),
+          ...(statusFilter && statusFilter !== 'in_progress' && { status: statusFilter }),
+          ...(statusFilter === 'in_progress' && { inProgress: 'true' }),
           ...(searchName && { searchName }),
           ...(startDate && { startDate: startDate.toISOString() }),
           ...(endDate && { endDate: endDate.toISOString() }),

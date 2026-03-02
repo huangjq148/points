@@ -16,6 +16,7 @@ export interface TaskFormData {
   requirePhoto: boolean;
   selectedChildren: string[];
   imageUrl: string;
+  startDate: Date | null;
   deadline: Date | null;
   saveAsTemplate: boolean;
 }
@@ -94,6 +95,46 @@ export default function TaskModal({
             </div>
           </div>
         )}
+
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              起始时间（必填）
+            </label>
+            <DatePicker
+              selected={taskData.startDate}
+              onChange={(date: Date | null) =>
+                setTaskData({ ...taskData, startDate: date })
+              }
+              placeholderText='设置起始时间'
+              showTimeInput
+              timeInputLabel='时间:'
+              timeFormat='HH:mm'
+              dateFormat='yyyy-MM-dd HH:mm'
+              selectsStart
+              maxDate={taskData.deadline || undefined}
+            />
+          </div>
+
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              截止时间（必填）
+            </label>
+            <DatePicker
+              selected={taskData.deadline}
+              onChange={(date: Date | null) =>
+                setTaskData({ ...taskData, deadline: date })
+              }
+              placeholderText='设置截止时间'
+              showTimeInput
+              timeInputLabel='时间:'
+              timeFormat='HH:mm'
+              dateFormat='yyyy-MM-dd HH:mm'
+              selectsEnd
+              minDate={taskData.startDate || undefined}
+            />
+          </div>
+        </div>
 
         <Input
           label='任务名称'
@@ -282,22 +323,6 @@ export default function TaskModal({
           </div>
         </div>
 
-        <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            截止时间（必填）
-          </label>
-          <DatePicker
-            selected={taskData.deadline}
-            onChange={(date: Date | null) =>
-              setTaskData({ ...taskData, deadline: date })
-            }
-            placeholderText='设置截止日期'
-            showTimeSelect
-            dateFormat='yyyy-MM-dd HH:mm:ss'
-            selectsEnd
-            minDate={mode === 'edit' ? new Date() : undefined}
-          />
-        </div>
       </div>
     </Modal>
   );

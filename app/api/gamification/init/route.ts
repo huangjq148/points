@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import { MedalDefinition, AvatarLevel, AvatarSkin, AvatarAccessory } from '@/models/Gamification';
+import { MedalDefinition, AvatarSkin, AvatarAccessory } from '@/models/Gamification';
 
 // 初始化勋章定义数据
 const defaultMedals = [
@@ -32,11 +32,11 @@ const defaultMedals = [
   {
     type: 'task_master' as const,
     level: 'gold' as const,
-    name: '坚持勇士',
-    description: '连续 21 天完成任务，养成好习惯！',
+    name: '稳步前进',
+    description: '累计完成 21 次任务，养成好习惯！',
     icon: '🥇',
     requirement: 21,
-    requirementType: 'consecutive' as const,
+    requirementType: 'total' as const,
     xpReward: 500,
     color: '#FFD700',
     order: 3,
@@ -58,10 +58,10 @@ const defaultMedals = [
     type: 'persistence' as const,
     level: 'bronze' as const,
     name: '小火苗',
-    description: '连续 3 天坚持，星星之火可以燎原！',
+    description: '累计完成 15 次任务，星星之火可以燎原！',
     icon: '🔥',
-    requirement: 3,
-    requirementType: 'consecutive' as const,
+    requirement: 15,
+    requirementType: 'total' as const,
     xpReward: 30,
     color: '#FF6B35',
     order: 5,
@@ -70,10 +70,10 @@ const defaultMedals = [
     type: 'persistence' as const,
     level: 'silver' as const,
     name: '坚持者',
-    description: '连续 7 天坚持，毅力可嘉！',
+    description: '累计完成 30 次任务，毅力可嘉！',
     icon: '📅',
-    requirement: 7,
-    requirementType: 'consecutive' as const,
+    requirement: 30,
+    requirementType: 'total' as const,
     xpReward: 100,
     color: '#4ECDC4',
     order: 6,
@@ -82,10 +82,10 @@ const defaultMedals = [
     type: 'persistence' as const,
     level: 'gold' as const,
     name: '习惯养成者',
-    description: '连续 30 天坚持，好习惯已养成！',
+    description: '累计完成 60 次任务，好习惯已养成！',
     icon: '✨',
-    requirement: 30,
-    requirementType: 'consecutive' as const,
+    requirement: 60,
+    requirementType: 'total' as const,
     xpReward: 800,
     color: '#FFE66D',
     order: 7,
@@ -94,28 +94,14 @@ const defaultMedals = [
     type: 'persistence' as const,
     level: 'diamond' as const,
     name: '不屈意志',
-    description: '连续 100 天坚持，意志力惊人！',
+    description: '累计完成 120 次任务，意志力惊人！',
     icon: '👑',
-    requirement: 100,
-    requirementType: 'consecutive' as const,
+    requirement: 120,
+    requirementType: 'total' as const,
     xpReward: 3000,
     color: '#9B59B6',
     order: 8,
   },
-];
-
-// 初始化等级数据
-const defaultLevels = [
-  { level: 1, name: '小小蛋', title: '待孵化的希望', xpRequired: 0, icon: '🥚', description: '一颗充满潜力的蛋，等待破壳而出' },
-  { level: 2, name: '破壳儿', title: '初生的探险家', xpRequired: 100, icon: '🐣', description: '成功破壳，开始探索这个世界' },
-  { level: 3, name: '见习探险家', title: '勇敢的初学者', xpRequired: 300, icon: '🐥', description: '迈开探索的步伐，充满好奇心' },
-  { level: 4, name: '初级探险家', title: '成长中的勇者', xpRequired: 600, icon: '🦆', description: '逐渐掌握探索的技巧' },
-  { level: 5, name: '中级探险家', title: '经验丰富的旅者', xpRequired: 1000, icon: '🐤', description: '已经历过许多冒险' },
-  { level: 6, name: '高级探险家', title: '技艺精湛的冒险者', xpRequired: 1500, icon: '🦅', description: '能够应对各种挑战' },
-  { level: 7, name: '探险队长', title: '团队的领袖', xpRequired: 2200, icon: '🦉', description: '带领伙伴们一起冒险' },
-  { level: 8, name: '冒险大师', title: '传奇的冒险者', xpRequired: 3000, icon: '🦚', description: '冒险界的传奇人物' },
-  { level: 9, name: '英雄', title: '万人敬仰的英雄', xpRequired: 4000, icon: '🦄', description: '用勇气和智慧创造奇迹' },
-  { level: 10, name: '传奇', title: '永恒的传说', xpRequired: 5500, icon: '🐉', description: '你的名字将被永远传颂' },
 ];
 
 // 初始化皮肤数据
@@ -139,7 +125,7 @@ const defaultAccessories = [
   { id: 'forest_bg', name: '森林背景', description: '生机勃勃的森林', unlockLevel: 8, type: 'background' as const, icon: '🌲', rarity: 'epic' as const },
 ];
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     await connectDB();
 
@@ -148,13 +134,6 @@ export async function POST(request: NextRequest) {
     if (medalCount === 0) {
       await MedalDefinition.insertMany(defaultMedals);
       console.log('✅ 勋章定义初始化完成');
-    }
-
-    // 初始化等级
-    const levelCount = await AvatarLevel.countDocuments();
-    if (levelCount === 0) {
-      await AvatarLevel.insertMany(defaultLevels);
-      console.log('✅ 等级定义初始化完成');
     }
 
     // 初始化皮肤
@@ -176,7 +155,6 @@ export async function POST(request: NextRequest) {
       message: '游戏化数据初始化成功',
       data: {
         medals: medalCount === 0 ? defaultMedals.length : '已存在',
-        levels: levelCount === 0 ? defaultLevels.length : '已存在',
         skins: skinCount === 0 ? defaultSkins.length : '已存在',
         accessories: accessoryCount === 0 ? defaultAccessories.length : '已存在',
       },
@@ -196,7 +174,6 @@ export async function GET() {
     await connectDB();
 
     const medals = await MedalDefinition.find().sort({ order: 1 });
-    const levels = await AvatarLevel.find().sort({ level: 1 });
     const skins = await AvatarSkin.find().sort({ unlockLevel: 1 });
     const accessories = await AvatarAccessory.find().sort({ unlockLevel: 1 });
 
@@ -204,7 +181,6 @@ export async function GET() {
       success: true,
       data: {
         medals,
-        levels,
         skins,
         accessories,
       },

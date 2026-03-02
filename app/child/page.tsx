@@ -31,58 +31,14 @@ interface Task {
   points: number;
   status: string;
   requirePhoto?: boolean;
+  startDate?: string;
   deadline?: string;
   submittedAt?: string;
   approvedAt?: string;
   rejectionReason?: string;
-  streakCount?: number;
   imageUrl?: string;
   photoUrl?: string;
   auditHistory?: AuditRecord[];
-}
-
-const LEVEL_TITLES = [
-  '探险新手',
-  '小小冒险家',
-  '勇敢探险家',
-  '智慧先锋',
-  '金牌达人',
-  '传奇英雄',
-];
-const LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500];
-
-function getLevelInfo(totalXP: number) {
-  for (let i = LEVEL_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (totalXP >= LEVEL_THRESHOLDS[i]) {
-      const level = i + 1;
-      const title = LEVEL_TITLES[Math.min(i, LEVEL_TITLES.length - 1)];
-      const currentThreshold = LEVEL_THRESHOLDS[i];
-      const nextThreshold =
-        LEVEL_THRESHOLDS[Math.min(i + 1, LEVEL_THRESHOLDS.length - 1)];
-      const progress =
-        nextThreshold > currentThreshold
-          ? ((totalXP - currentThreshold) /
-              (nextThreshold - currentThreshold)) *
-            100
-          : 100;
-      return {
-        level,
-        title,
-        progress,
-        currentXP: totalXP,
-        nextXP: nextThreshold,
-        tasksToNext: Math.max(0, nextThreshold - totalXP),
-      };
-    }
-  }
-  return {
-    level: 1,
-    title: LEVEL_TITLES[0],
-    progress: 0,
-    currentXP: totalXP,
-    nextXP: LEVEL_THRESHOLDS[1],
-    tasksToNext: LEVEL_THRESHOLDS[1] - totalXP,
-  };
 }
 
 export default function ChildHome() {
@@ -103,8 +59,6 @@ export default function ChildHome() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalPoints = currentUser?.availablePoints || 0;
-  const totalXP = currentUser?.totalPoints || 0;
-  const levelInfo = getLevelInfo(totalXP);
   useEffect(() => {
     const duration = 1500;
     const steps = 20;
@@ -134,7 +88,7 @@ export default function ChildHome() {
 
     try {
       const data = await request(
-        `/api/tasks?excludeCompletedBeforeDeadline=true&deadlineFrom=${todayStr}`,
+        `/api/tasks?inProgress=true&deadlineFrom=${todayStr}`,
       );
       if (data.success) {
         setTasks(data.tasks);
@@ -257,11 +211,6 @@ export default function ChildHome() {
     () => tasks.filter((t) => t.status === 'approved'),
     [tasks],
   );
-  const maxStreak = useMemo(
-    () => tasks.reduce((max, task) => Math.max(max, task.streakCount || 0), 0),
-    [tasks],
-  );
-
   const handleNavigate = (path: string) => {
     router.push(path);
   };
@@ -470,32 +419,9 @@ export default function ChildHome() {
                 </div>
 
                 <div className='bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-3 text-white shadow-lg transform rotate-3 hover:rotate-0 transition-transform cursor-pointer'>
-                  <div className='text-xs font-bold opacity-90'>连击天数</div>
-                  <div className='text-2xl font-black'>🔥 {maxStreak}</div>
+                  <div className='text-xs font-bold opacity-90'>任务完成</div>
+                  <div className='text-2xl font-black'>✅ {completedTasks.length}</div>
                 </div>
-              </div>
-
-              {/* 经验值进度条 */}
-              <div className='mb-4'>
-                <div className='flex justify-between text-xs font-bold text-gray-500 mb-2'>
-                  <span>Level {levelInfo.level}</span>
-                  <span>Level {levelInfo.level + 1}</span>
-                </div>
-                <div className='h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner relative'>
-                  <div
-                    className='h-full progress-glow rounded-full relative'
-                    style={{ width: `${levelInfo.progress}%` }}
-                  >
-                    <div className='absolute inset-0 bg-white/30 rounded-full'></div>
-                  </div>
-                  <div
-                    className='absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg'
-                    style={{ left: `${levelInfo.progress}%` }}
-                  ></div>
-                </div>
-                <p className='text-xs text-gray-500 mt-2 font-semibold'>
-                  再完成{levelInfo.tasksToNext}个任务升级！解锁新飞船 🚀
-                </p>
               </div>
 
               {/* 快捷统计 */}

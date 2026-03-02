@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     let childrenData: ChildData[] = [];
+    const now = new Date();
     // 在你的 GET 方法中
     if (user.role === "parent" && user.familyId) {
       childrenData = await User.aggregate([
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
           $match: { familyId: user.familyId, role: "child" }
         },
         {
-          // 2. 关联 Task 表：查询待完成任务 (status: pending)
+          // 2. 关联 Task 表：查询进行中任务
           $lookup: {
             from: "tasks",
             let: { child_id: "$_id" },
@@ -50,7 +51,19 @@ export async function GET(request: NextRequest) {
                   $expr: {
                     $and: [
                       { $eq: ["$childId", "$$child_id"] },
-                      { $eq: ["$status", "pending"] }
+                      { $in: ["$status", ["pending", "rejected"]] },
+                      {
+                        $or: [
+                          { $eq: ["$startDate", null] },
+                          { $lte: ["$startDate", now] }
+                        ]
+                      },
+                      {
+                        $or: [
+                          { $eq: ["$deadline", null] },
+                          { $gte: ["$deadline", now] }
+                        ]
+                      }
                     ]
                   }
                 }

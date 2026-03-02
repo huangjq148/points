@@ -40,6 +40,7 @@ export interface PlainTask {
   submittedAt?: string;
   approvedAt?: string;
   completedAt?: string;
+  startDate?: string;
   deadline?: string;
   createdAt: string;
   updatedAt: string;

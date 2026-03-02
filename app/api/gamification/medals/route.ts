@@ -53,7 +53,8 @@ export async function GET(request: NextRequest) {
         if (medal.requirementType === 'total') {
           progress = userAvatar.totalTasksCompleted;
         } else if (medal.requirementType === 'consecutive') {
-          progress = userAvatar.maxConsecutiveDays;
+          // 已移除连续天数机制：该类勋章不再累计进度
+          progress = 0;
         }
         progressPercent = Math.min(100, Math.round((progress / medal.requirement) * 100));
       }

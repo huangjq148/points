@@ -4,11 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Trophy,
-  Lock,
   Star,
   Sparkles,
   Flame,
-  Zap,
   Gift,
   Footprints,
   Eye,
@@ -130,7 +128,7 @@ const AchievementCard: React.FC<{
       case 'category_tasks':
         return `完成 ${achievement.requirement} 次任务`;
       case 'consecutive_days':
-        return `连续 ${achievement.requirement} 天完成任务`;
+        return `累计完成 ${achievement.requirement} 次任务`;
       case 'early_completion':
         return `提前完成任务 ${achievement.requirement} 次`;
       case 'specific_time':
@@ -140,7 +138,7 @@ const AchievementCard: React.FC<{
       case 'birthday_task':
         return `在生日当天完成任务`;
       case 'category_streak':
-        return `连续 ${achievement.requirement} 天完成任务`;
+        return `累计完成 ${achievement.requirement} 次任务`;
       default:
         return `达成条件`;
     }
@@ -359,11 +357,7 @@ export const MedalWall: React.FC<MedalWallProps> = ({
   const dimensionStats = stats.earnedByDimension || {};
   const totalByDimension = stats.totalByDimension || {};
 
-  const filteredEarnedCount = filteredAchievements.filter((a) => a.isEarned).length;
   const filteredUnearnedCount = filteredAchievements.filter((a) => !a.isEarned).length;
-
-  const earnedCount = achievements.filter((a) => a.isEarned).length;
-  const unearnedCount = achievements.filter((a) => !a.isEarned).length;
 
   return (
     <div className='space-y-6'>

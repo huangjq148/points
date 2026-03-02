@@ -55,12 +55,12 @@ export interface ITask extends Document {
   submittedAt?: Date;
   approvedAt?: Date;
   completedAt?: Date;
-  streakCount?: number;
   lastCompletedAt?: Date;
   isCompensated?: boolean;
   compensatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  startDate?: Date;
   deadline: Date;
   // 审核历史记录
   auditHistory: IAuditRecord[];
@@ -124,10 +124,10 @@ const TaskSchema = new Schema<ITask>(
     submittedAt: { type: Date },
     approvedAt: { type: Date },
     completedAt: { type: Date },
-    streakCount: { type: Number, default: 0 },
     lastCompletedAt: { type: Date },
     isCompensated: { type: Boolean, default: false },
     compensatedAt: { type: Date },
+    startDate: { type: Date },
     deadline: { type: Date },
     // 审核历史记录
     auditHistory: [

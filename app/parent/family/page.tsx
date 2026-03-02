@@ -275,6 +275,7 @@ export default function FamilyPage() {
         columns={columns}
         dataSource={familyMembers}
         actionColumn={actionColumn}
+        fixedColumns={{ left: ["username"], right: ["actions"] }}
         pageOptions={pageOptions}
         minWidth={600}
       />

@@ -1,12 +1,10 @@
 import { connectDB } from '@/lib/mongodb';
-import Task, { ExpiryPolicy } from '@/models/Task';
-import User from '@/models/User';
-import { MedalModel } from '@/models/Economy';
+import Task from '@/models/Task';
 
 /**
  * 每日零点任务重置逻辑
  * 1. 处理周期任务的过期策略
- * 2. 连续记录：如果任务在 00:00 前为 approved，则 streakCount + 1
+ * 2. 重置常规任务状态
  * 3. 清理过期的特殊任务
  * 4. 生成周期性任务（基于新的 isRecurring 字段）
  */
@@ -54,7 +52,7 @@ export async function resetDailyTasks() {
     
     console.log(`📋 Processed ${autoClosedCount} auto-closed, ${rolloverCount} rollover tasks`);
     
-    // 2. 重置常规任务状态并更新连续天数
+    // 2. 重置常规任务状态
     const regularTasks = await Task.find({
       taskCategory: 'regular',
       status: { $in: ['approved', 'rejected'] },
@@ -62,15 +60,8 @@ export async function resetDailyTasks() {
     });
     
     let resetCount = 0;
-    let streakUpdatedCount = 0;
     
     for (const task of regularTasks) {
-      // 如果任务在今日之前完成，增加连续天数
-      if (task.status === 'approved' && task.completedAt && task.completedAt < startOfToday) {
-        task.streakCount = (task.streakCount || 0) + 1;
-        streakUpdatedCount++;
-      }
-      
       // 重置任务状态
       task.status = 'pending';
       task.photoUrl = undefined;
@@ -82,7 +73,7 @@ export async function resetDailyTasks() {
       resetCount++;
     }
     
-    console.log(`✅ Reset ${resetCount} regular tasks, updated ${streakUpdatedCount} streak counts`);
+    console.log(`✅ Reset ${resetCount} regular tasks`);
     
     // 3. 清理已过期的特殊任务
     const expiredTasksResult = await Task.updateMany(
@@ -102,13 +93,9 @@ export async function resetDailyTasks() {
     const generatedCount = await generateRecurringTasks();
     console.log(`🔄 Generated ${generatedCount} recurring tasks`);
     
-    // 5. 检查并发放连续天数勋章
-    await checkAndAwardStreakMedals();
-    
     return {
       success: true,
       resetCount,
-      streakUpdatedCount,
       expiredCount: expiredTasksResult.modifiedCount,
       generatedCount,
       autoClosedCount,
@@ -222,65 +209,12 @@ async function generateRecurringTasks(): Promise<number> {
         expiryPolicy: template.expiryPolicy,
         originalTaskId: template._id,
         deadline,
-        streakCount: 0,
       });
       generatedCount++;
     }
   }
   
   return generatedCount;
-}
-
-/**
- * 检查并发放连续天数勋章
- */
-async function checkAndAwardStreakMedals() {
-  const children = await User.find({ role: 'child' });
-  
-  for (const child of children) {
-    const tasks = await Task.find({
-      childId: child._id,
-      taskCategory: 'regular',
-      status: 'approved'
-    });
-    
-    // 计算最高连续天数
-    const maxStreak = tasks.reduce((max, task) => Math.max(max, task.streakCount || 0), 0);
-    
-    // 连续天数勋章定义
-    const streakMedals = [
-      { type: 'streak_7', name: '坚持7天', requirement: 7, level: 'bronze', icon: '🔥' },
-      { type: 'streak_30', name: '坚持30天', requirement: 30, level: 'silver', icon: '⚡' },
-      { type: 'streak_90', name: '坚持90天', requirement: 90, level: 'gold', icon: '💪' },
-      { type: 'streak_365', name: '坚持一年', requirement: 365, level: 'diamond', icon: '👑' },
-    ];
-    
-    for (const medalDef of streakMedals) {
-      if (maxStreak >= medalDef.requirement) {
-        const existingMedal = await MedalModel.findOne({
-          userId: child._id,
-          type: medalDef.type
-        });
-        
-        if (!existingMedal) {
-          await MedalModel.create({
-            userId: child._id,
-            type: medalDef.type,
-            name: medalDef.name,
-            description: `连续完成任务${medalDef.requirement}天`,
-            icon: medalDef.icon,
-            level: medalDef.level,
-            requirement: medalDef.requirement,
-            requirementType: 'consecutive_days',
-            isEarned: true,
-            earnedAt: new Date(),
-            isNewBadge: true,
-          });
-          console.log(`🏅 Awarded ${medalDef.name} medal to ${child.username}`);
-        }
-      }
-    }
-  }
 }
 
 /**

@@ -250,12 +250,15 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
               {task.type === "daily" ? "日常" : task.type === "advanced" ? "进阶" : "挑战"}
             </span>
           </div>
-          {task.deadline && (
+          {(task.startDate || task.deadline) && (
             <div
               className={`flex items-center gap-1 text-[11px] font-medium ${isOverdue ? "text-red-500" : "text-gray-400"}`}
             >
               <Clock size={12} />
-              <span>{formatDate(task.deadline)}</span>
+              <span>
+                {task.startDate ? formatDate(task.startDate) : "即刻开始"} -{" "}
+                {task.deadline ? formatDate(task.deadline) : "无截止"}
+              </span>
             </div>
           )}
         </div>

@@ -9,11 +9,20 @@ import { AccountModel, TransactionModel } from "@/models/Economy";
 
 interface ITaskQuery {
   childId?: mongoose.Types.ObjectId;
-  status?: "pending" | "submitted" | "approved" | "rejected" | "expired" | "failed";
+  status?:
+    | "pending"
+    | "submitted"
+    | "approved"
+    | "rejected"
+    | "expired"
+    | "failed"
+    | { $in: Array<"pending" | "submitted" | "approved" | "rejected" | "expired" | "failed"> };
   userId?: mongoose.Types.ObjectId;
   name?: { $regex: string; $options: string };
   approvedAt?: { $gte?: Date; $lte?: Date };
+  startDate?: { $lte?: Date };
   deadline?: { $gte?: Date; $lte?: Date; $exists?: boolean; $eq?: Date | null };
+  $and?: Array<Record<string, unknown>>;
   $or?: Array<Record<string, unknown>>;
 }
 
@@ -45,6 +54,7 @@ export async function GET(request: NextRequest) {
     const deadlineTo = searchParams.get("deadlineTo");
     const includeExpired = searchParams.get("includeExpired") === "true";
     const excludeCompletedBeforeDeadline = searchParams.get("excludeCompletedBeforeDeadline") === "true";
+    const inProgress = searchParams.get("inProgress") === "true";
 
     // 注意：周期任务自动创建已移至定时任务管理器
     // 不再在获取任务列表时自动创建
@@ -58,6 +68,29 @@ export async function GET(request: NextRequest) {
     }
 
     if (status) query.status = status;
+
+    if (inProgress) {
+      const now = new Date();
+      if (!status) {
+        query.status = { $in: ["pending", "submitted", "rejected"] };
+      }
+      query.$and = [
+        {
+          $or: [
+            { startDate: { $exists: false } },
+            { startDate: { $eq: null } },
+            { startDate: { $lte: now } },
+          ],
+        },
+        {
+          $or: [
+            { deadline: { $exists: false } },
+            { deadline: { $eq: null } },
+            { deadline: { $gte: now } },
+          ],
+        },
+      ];
+    }
 
     // 添加搜索条件
     if (searchName) {
@@ -165,6 +198,7 @@ export async function GET(request: NextRequest) {
         submittedAt: task.submittedAt ? new Date(task.submittedAt).toISOString() : undefined,
         approvedAt: task.approvedAt ? new Date(task.approvedAt).toISOString() : undefined,
         completedAt: task.completedAt ? new Date(task.completedAt).toISOString() : undefined,
+        startDate: task.startDate ? new Date(task.startDate).toISOString() : undefined,
         deadline: task.deadline ? new Date(task.deadline).toISOString() : undefined,
         auditHistory,
       };
@@ -196,6 +230,7 @@ export async function POST(request: NextRequest) {
       icon,
       requirePhoto,
       imageUrl,
+      startDate,
       deadline,
     } = body;
 
@@ -215,6 +250,7 @@ export async function POST(request: NextRequest) {
       requirePhoto: requirePhoto || false,
       status: "pending",
       imageUrl,
+      startDate: startDate ? new Date(startDate) : new Date(),
       deadline: deadline ? new Date(deadline) : undefined,
     };
 
@@ -239,7 +275,7 @@ export async function PUT(request: NextRequest) {
 
     await connectDB();
     const body = await request.json();
-    const { taskId, status, photoUrl, rejectionReason, name, description, points, type, icon, requirePhoto, imageUrl, deadline } = body;
+    const { taskId, status, photoUrl, rejectionReason, name, description, points, type, icon, requirePhoto, imageUrl, startDate, deadline } = body;
 
     if (!taskId) {
       return NextResponse.json({ success: false, message: "缺少taskId" }, { status: 400 });
@@ -305,6 +341,9 @@ export async function PUT(request: NextRequest) {
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     if (photoUrl) updateData.photoUrl = photoUrl;
     if (rejectionReason !== undefined) updateData.rejectionReason = rejectionReason;
+    if (startDate !== undefined) {
+      updateData.startDate = startDate ? new Date(startDate) : undefined;
+    }
     if (deadline) updateData.deadline = new Date(deadline);
 
     // 保存更新后的任务

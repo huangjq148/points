@@ -39,6 +39,7 @@ export interface PlainTask {
   submittedAt?: string;
   approvedAt?: string;
   completedAt?: string;
+  startDate?: string;
   deadline?: string;
   createdAt: string;
   updatedAt: string;
@@ -97,6 +98,7 @@ function TasksPage() {
     requirePhoto: false,
     selectedChildren: [] as string[],
     imageUrl: "",
+    startDate: null as Date | null,
     deadline: null as Date | null,
     saveAsTemplate: false,
   });
@@ -283,6 +285,14 @@ function TasksPage() {
       showAlert("请设置截止时间", "error");
       return;
     }
+    if (!taskData.startDate) {
+      showAlert("请设置起始时间", "error");
+      return;
+    }
+    if (taskData.startDate > taskData.deadline) {
+      showAlert("起始时间不能晚于截止时间", "error");
+      return;
+    }
 
     let uploadedImageUrl = "";
     if (taskPhotoFile) {
@@ -349,6 +359,7 @@ function TasksPage() {
       selectedChildren: [],
       imageUrl: "",
       deadline: null,
+      startDate: null,
       saveAsTemplate: false,
     });
     setTaskPhotoFile(null);
@@ -362,6 +373,14 @@ function TasksPage() {
 
     if (!taskData.deadline) {
       showAlert("请设置截止时间", "error");
+      return;
+    }
+    if (!taskData.startDate) {
+      showAlert("请设置起始时间", "error");
+      return;
+    }
+    if (taskData.startDate > taskData.deadline) {
+      showAlert("起始时间不能晚于截止时间", "error");
       return;
     }
 
@@ -446,6 +465,7 @@ function TasksPage() {
       requirePhoto: task.requirePhoto,
       selectedChildren: [],
       imageUrl: task.imageUrl || "",
+      startDate: task.startDate ? new Date(task.startDate) : null,
       deadline: task.deadline ? new Date(task.deadline) : null,
       saveAsTemplate: false,
     });
@@ -460,10 +480,11 @@ function TasksPage() {
       const currentSelectedChildTaskFilter = selectedChildTaskFilter;
 
       let statusFilter = "";
+      let inProgress = false;
       if (activeTaskFilter === "completed") {
         statusFilter = "approved";
       } else if (activeTaskFilter === "uncompleted") {
-        statusFilter = "pending";
+        inProgress = true;
       } else if (activeTaskFilter === "submitted") {
         statusFilter = "submitted";
       } else if (activeTaskFilter === "rejected") {
@@ -476,6 +497,9 @@ function TasksPage() {
       };
       if (statusFilter) {
         params.status = statusFilter;
+      }
+      if (inProgress) {
+        params.inProgress = "true";
       }
       if (currentSelectedChildTaskFilter !== "all") {
         params.childId = currentSelectedChildTaskFilter;
@@ -537,6 +561,8 @@ function TasksPage() {
             </Button>
             <Button
               onClick={() => {
+                const defaultStartDate = new Date();
+                defaultStartDate.setHours(0, 0, 0, 0);
                 const defaultDeadline = new Date();
                 defaultDeadline.setHours(23, 59, 59, 999);
                 setTaskData({
@@ -549,6 +575,7 @@ function TasksPage() {
                   requirePhoto: false,
                   selectedChildren: [],
                   imageUrl: "",
+                  startDate: defaultStartDate,
                   deadline: defaultDeadline,
                   saveAsTemplate: false,
                 });

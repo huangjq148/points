@@ -608,6 +608,7 @@ export default function ScheduledJobsPage() {
           columns={columns}
           dataSource={jobs}
           actionColumn={actionColumn}
+          fixedColumns={{ left: ["name"], right: ["actions"] }}
           minWidth={1080}
           actionColumnWidth={96}
           emptyText="暂无定时任务"

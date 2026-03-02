@@ -50,29 +50,33 @@ export interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem("little_achievers_user");
-      if (savedUser) {
-        try {
-          return JSON.parse(savedUser);
-        } catch (error: unknown) {
-          localStorage.removeItem("little_achievers_user");
-        }
-      }
-    }
-    return null;
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [childList, setChildList] = useState<User[]>([]);
-  const [mode, setMode] = useState<"parent" | "child">(() => {
-    if (typeof window !== "undefined") {
-      const savedMode = localStorage.getItem("little_achievers_mode");
-      if (savedMode && (savedMode === "parent" || savedMode === "child")) {
-        return savedMode;
+  const [mode, setMode] = useState<"parent" | "child">("parent");
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedUser = localStorage.getItem("little_achievers_user");
+    let nextUser: User | null = null;
+    if (savedUser) {
+      try {
+        nextUser = JSON.parse(savedUser);
+      } catch (_error: unknown) {
+        localStorage.removeItem("little_achievers_user");
       }
     }
-    return "parent";
-  });
+
+    const savedMode = localStorage.getItem("little_achievers_mode");
+    queueMicrotask(() => {
+      if (nextUser) setCurrentUser(nextUser);
+      if (savedMode === "parent" || savedMode === "child") {
+        setMode(savedMode);
+      }
+      setIsHydrated(true);
+    });
+  }, []);
 
   const logout = () => {
     setCurrentUser(null);
@@ -86,6 +90,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     const verifyToken = async () => {
       if (typeof window === "undefined") return;
 
@@ -129,9 +135,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     verifyToken();
-  }, []); // Run once on mount
+  }, [currentUser?.token, isHydrated]); // Run after local state hydration
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (typeof window !== "undefined") {
       if (currentUser) {
         localStorage.setItem("little_achievers_user", JSON.stringify(currentUser));
