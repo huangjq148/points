@@ -2,11 +2,11 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Clock, PanelLeft } from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useMemo, useState } from "react";
 
-type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "scheduled-jobs";
+type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
 const TAB_TITLE: Record<NavItemId, string> = {
   home: "首页",
@@ -17,14 +17,12 @@ const TAB_TITLE: Record<NavItemId, string> = {
   rewards: "奖品商城",
   family: "家庭成员",
   users: "系统用户",
-  "scheduled-jobs": "定时任务",
 };
 
 export default function ParentLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { currentUser, logout, childList } = useApp();
   const router = useRouter();
-  // 计算家庭总计
   const totalPendingOrders = useMemo(
     () => childList.reduce((acc, child) => acc + (child.orderCount || 0), 0),
     [childList],
@@ -44,17 +42,16 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       { id: "rewards", icon: Gift, label: "商城" },
       { id: "family", icon: Users, label: "家庭" },
       { id: "users", icon: UserCog, label: "用户" },
-      { id: "scheduled-jobs", icon: Clock, label: "定时任务" },
     ],
     [totalPendingOrders, totalSubmittedTasks],
   );
   const activeTab: NavItemId = useMemo(() => {
     const pathSegments = pathname.split("/");
     const currentTab = pathSegments[pathSegments.length - 1];
-    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "scheduled-jobs"].includes(currentTab)) {
+    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users"].includes(currentTab)) {
       return currentTab as NavItemId;
     }
-    return "home"; // Default to home if path is not recognized
+    return "home";
   }, [pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -64,7 +61,6 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar - Desktop only */}
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="logo-section">
           <div className="logo-icon">🌟</div>
@@ -91,10 +87,8 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
             </div>
           ))}
         </div>
-
       </aside>
 
-      {/* Sidebar Toggle Button - positioned at right middle of sidebar */}
       <button
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         className="sidebar-toggle-btn"
@@ -103,9 +97,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
         <PanelLeft size={18} className={sidebarCollapsed ? 'rotate-180' : ''} />
       </button>
 
-      {/* Main Content */}
       <div className="main-wrapper flex flex-col min-h-screen">
-        {/* Header - Fixed at top, always visible */}
         <header className="mobile-header desktop-header fixed top-0 left-0 right-0 z-50">
           <div className="bg-white/90 backdrop-blur-xl lg:backdrop-blur-md px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between border-b border-gray-100/50">
             <div className="flex items-center gap-2">
@@ -129,7 +121,6 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
                 <LogOut size={20} />
               </Button>
             </div>
-            {/* Desktop header content */}
             <div className="hidden lg:flex items-center gap-4 w-full justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800 text-shadow-sm">{TAB_TITLE[activeTab]}</h1>
@@ -154,14 +145,10 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        {/* Main Content Area - Scrollable */}
         <main className="main-area flex-1 overflow-auto">
-          <div className="main-inner !m-0">
-            {children}
-          </div>
+          <div className="main-inner !m-0">{children}</div>
         </main>
 
-        {/* Mobile Bottom Navigation - Fixed */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 z-50 pb-safe">
           <div className="px-2 py-2">
             <TabFilter

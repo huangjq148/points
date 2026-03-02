@@ -128,3 +128,4 @@ git push origin $(git branch --show-current)
 2. **测试失败时停止** - 不提交有问题的代码
 3. **生成有意义的提交信息** - 基于实际修改内容
 4. **尊重.gitignore** - 不提交被忽略的文件
+/

@@ -415,9 +415,6 @@ pnpm dev
 ### 上传
 - `POST /api/upload` - 上传图片
 
-### 定时任务
-- `GET /api/cron/daily-reset` - 每日重置任务
-
 ## 项目结构
 
 ```
@@ -436,8 +433,7 @@ points/
 │   │   ├── achievements/    # 成就系统
 │   │   ├── stats/           # 统计
 │   │   ├── family/          # 家庭
-│   │   ├── upload/          # 文件上传
-│   │   └── cron/            # 定时任务
+│   │   └── upload/          # 文件上传
 │   ├── parent/              # 家长端页面
 │   │   ├── page.tsx         # 家长首页
 │   │   ├── home/            # 首页
@@ -470,7 +466,6 @@ points/
 ├── lib/                     # 工具库
 │   ├── mongodb.ts           # MongoDB 连接
 │   ├── auth.ts              # 认证工具
-│   ├── cron/                # 定时任务
 │   └── gamification/        # 游戏化逻辑
 ├── models/                  # 数据模型
 │   ├── User.ts

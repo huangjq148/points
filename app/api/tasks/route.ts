@@ -26,9 +26,6 @@ interface ITaskQuery {
   $or?: Array<Record<string, unknown>>;
 }
 
-// 注意：周期任务自动创建功能已移至定时任务管理器
-// 由 /api/scheduled-jobs 控制，不再在获取任务列表时自动创建
-
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("Authorization");
@@ -55,9 +52,6 @@ export async function GET(request: NextRequest) {
     const includeExpired = searchParams.get("includeExpired") === "true";
     const excludeCompletedBeforeDeadline = searchParams.get("excludeCompletedBeforeDeadline") === "true";
     const inProgress = searchParams.get("inProgress") === "true";
-
-    // 注意：周期任务自动创建已移至定时任务管理器
-    // 不再在获取任务列表时自动创建
 
     const query: ITaskQuery = {};
     if (authRole === "parent") {
