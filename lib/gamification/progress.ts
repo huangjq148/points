@@ -1,16 +1,9 @@
 import mongoose from 'mongoose';
-import { UserAvatar, MedalDefinition, UserMedal } from '@/models/Gamification';
+import { UserAvatar } from '@/models/Gamification';
 
 export interface GamificationUpdateResult {
   success: boolean;
   xpGained: number;
-  newMedals: Array<{
-    id: string;
-    name: string;
-    icon: string;
-    level: string;
-    xpReward: number;
-  }>;
   unlockedRewards: Array<{
     type: 'skin' | 'accessory';
     id: string;
@@ -26,7 +19,6 @@ export async function updateGamificationProgress(
   const result: GamificationUpdateResult = {
     success: false,
     xpGained: 0,
-    newMedals: [],
     unlockedRewards: [],
   };
 
@@ -54,32 +46,6 @@ export async function updateGamificationProgress(
 
     result.xpGained = xpGained;
 
-    const allMedals = await MedalDefinition.find();
-    const existingUserMedals = await UserMedal.find({ userId: userObjectId });
-    const existingMedalIds = new Set(existingUserMedals.map((um) => um.medalId.toString()));
-
-    for (const medal of allMedals) {
-      if (existingMedalIds.has(medal._id.toString())) continue;
-      if (medal.requirementType !== 'total') continue;
-      if (newTotalTasksCompleted < medal.requirement) continue;
-
-      await UserMedal.create({
-        userId: userObjectId,
-        medalId: medal._id,
-        earnedAt: new Date(),
-        progress: medal.requirement,
-        isNew: true,
-      });
-
-      result.newMedals.push({
-        id: medal._id.toString(),
-        name: medal.name,
-        icon: medal.icon,
-        level: medal.level,
-        xpReward: medal.xpReward,
-      });
-    }
-
     await UserAvatar.findOneAndUpdate(
       { userId: userObjectId },
       {
@@ -105,13 +71,11 @@ export async function getGamificationStats(userId: string | mongoose.Types.Objec
     const userObjectId = typeof userId === 'string' ? new mongoose.Types.ObjectId(userId) : userId;
 
     const userAvatar = await UserAvatar.findOne({ userId: userObjectId });
-    const medalCount = await UserMedal.countDocuments({ userId: userObjectId });
 
     if (!userAvatar) {
       return {
         totalXP: 0,
         totalTasksCompleted: 0,
-        medalCount: 0,
         stage: 'egg',
       };
     }
@@ -120,7 +84,6 @@ export async function getGamificationStats(userId: string | mongoose.Types.Objec
       totalXP: userAvatar.totalXP,
       currentXP: userAvatar.currentXP,
       totalTasksCompleted: userAvatar.totalTasksCompleted,
-      medalCount,
       stage: userAvatar.stage,
     };
   } catch (error) {

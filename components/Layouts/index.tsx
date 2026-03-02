@@ -2,17 +2,16 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, Trophy } from "lucide-react";
+import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
-type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users" | "achievements";
+type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
   const { currentUser, logout, childList } = useApp();
   const router = useRouter();
-  // 计算家庭总计
   const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
   const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
 
@@ -23,21 +22,18 @@ const Layout = ({ children }: { children: ReactNode }) => {
     { id: "tasks", icon: Star, label: "任务" },
     { id: "orders", icon: Ticket, label: "核销", badge: totalPendingOrders },
     { id: "rewards", icon: Gift, label: "商城" },
-    { id: "achievements", icon: Trophy, label: "勋章" },
     { id: "family", icon: Users, label: "家庭" },
     { id: "users", icon: UserCog, label: "用户" },
   ];
   const initialTab = (() => {
     const pathSegments = pathname.split("/");
     const currentTab = pathSegments[pathSegments.length - 1];
-    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users", "achievements"].includes(currentTab)) {
-      return currentTab as "home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users" | "achievements";
+    if (["home", "overview", "tasks", "rewards", "audit", "orders", "family", "users"].includes(currentTab)) {
+      return currentTab as NavItemId;
     }
-    return "home"; // Default to home if path is not recognized
+    return "home";
   })();
-  const [activeTab, setActiveTab] = useState<"home" | "overview" | "tasks" | "rewards" | "audit" | "orders" | "family" | "users" | "achievements">(
-    initialTab,
-  );
+  const [activeTab, setActiveTab] = useState<NavItemId>(initialTab);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -52,7 +48,6 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar - Desktop only */}
       <aside className="sidebar">
         <div className="logo-section">
           <div className="logo-icon">🌟</div>
@@ -77,9 +72,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
         <div className="mt-auto"></div>
       </aside>
 
-      {/* Main Content */}
       <div className="main-wrapper flex flex-col min-h-screen">
-        {/* Header - Fixed at top, always visible */}
         <header className="mobile-header desktop-header fixed top-0 left-0 right-0 z-50">
           <div className="bg-white/90 backdrop-blur-xl lg:backdrop-blur-md px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between border-b border-gray-100">
             <div className="flex items-center gap-2">
@@ -103,11 +96,10 @@ const Layout = ({ children }: { children: ReactNode }) => {
                 <LogOut size={20} />
               </Button>
             </div>
-            {/* Desktop header content */}
             <div className="hidden lg:flex items-center gap-4 w-full justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {activeTab === "home" ? "首页" : 
+                  {activeTab === "home" ? "首页" :
                    activeTab === "overview" ? "数据概览" :
                    activeTab === "audit" ? "任务审核" :
                    activeTab === "tasks" ? "任务管理" :
@@ -136,14 +128,10 @@ const Layout = ({ children }: { children: ReactNode }) => {
           </div>
         </header>
 
-        {/* Main Content Area - Scrollable */}
         <main className="main-area flex-1 overflow-auto">
-          <div className="main-inner !m-0">
-            {children}
-          </div>
+          <div className="main-inner !m-0">{children}</div>
         </main>
 
-        {/* Mobile Bottom Navigation - Fixed */}
         <nav className="lg:hidden mobile-nav fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-50">
           <TabFilter
             items={navItems.map(item => ({ key: item.id, label: item.label }))}

@@ -203,10 +203,6 @@ export default function ChildHome() {
     () => tasks.filter((t) => t.status === 'pending' || t.status === 'submitted'),
     [tasks],
   );
-  const pendingTasks = useMemo(
-    () => tasks.filter((t) => t.status === 'pending'),
-    [tasks],
-  );
   const completedTasks = useMemo(
     () => tasks.filter((t) => t.status === 'approved'),
     [tasks],
@@ -402,67 +398,52 @@ export default function ChildHome() {
             <div className='absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-2xl -ml-10 -mb-10'></div>
 
             <div className='relative z-10'>
-              <div className='flex justify-between items-start mb-4'>
-                <div>
-                  <div className='flex items-center gap-2 mb-1'>
+              <div className='flex items-center justify-between mb-6'>
+                {/* 左侧：星际能量和积分 */}
+                <div className='flex-1'>
+                  <div className='flex items-center gap-2 mb-2'>
                     <span className='text-2xl'>💎</span>
                     <span className='text-gray-500 font-bold text-sm uppercase tracking-wider'>
                       星际能量
                     </span>
                   </div>
                   <div className='flex items-baseline gap-2'>
-                    <span className='text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 drop-shadow-sm'>
+                    <span className='text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 drop-shadow-sm'>
                       {displayPoints.toLocaleString()}
                     </span>
-                    <span className='text-xl font-bold text-gray-400'>pts</span>
+                    <span className='text-2xl font-bold text-gray-400'>pts</span>
                   </div>
                 </div>
 
-                <div className='bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-3 text-white shadow-lg transform rotate-3 hover:rotate-0 transition-transform cursor-pointer'>
-                  <div className='text-xs font-bold opacity-90'>任务完成</div>
-                  <div className='text-2xl font-black'>✅ {completedTasks.length}</div>
-                </div>
-              </div>
-
-              {/* 快捷统计 */}
-              <div className='grid grid-cols-3 gap-3 mt-4'>
-                <div
-                  className='bg-blue-50 rounded-xl p-2 text-center border-2 border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors'
-                  onClick={() => {
-                    router.push(
-                      `/child/task?startDate=${dayjs().format(
-                        'YYYY-MM-DD',
-                      )}&endDate=${dayjs().format('YYYY-MM-DD')}`,
-                    );
-                  }}
-                >
-                  <div className='text-lg font-black text-blue-600'>
-                    {filteredTasks.length}
+                {/* 右侧：今日任务和已完成统计 */}
+                <div className='flex flex-col gap-3'>
+                  <div
+                    className='bg-blue-50 rounded-xl px-4 py-2 text-center border-2 border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors min-w-[160px]'
+                    onClick={() => {
+                      router.push(
+                        `/child/task?startDate=${dayjs().format(
+                          'YYYY-MM-DD',
+                        )}&endDate=${dayjs().format('YYYY-MM-DD')}`,
+                      );
+                    }}
+                  >
+                    <div className='text-lg font-black text-blue-600'>
+                      {filteredTasks.length}
+                    </div>
+                    <div className='text-[10px] font-bold text-blue-400 uppercase'>
+                      今日任务
+                    </div>
                   </div>
-                  <div className='text-[10px] font-bold text-blue-400 uppercase'>
-                    今日任务
-                  </div>
-                </div>
-                <div
-                  className='bg-green-50 rounded-xl p-2 text-center border-2 border-green-100 cursor-pointer hover:bg-green-100 transition-colors'
-                  onClick={() => router.push('/child/task?status=approved')}
-                >
-                  <div className='text-lg font-black text-green-600'>
-                    {completedTasks.length}
-                  </div>
-                  <div className='text-[10px] font-bold text-green-400 uppercase'>
-                    已完成
-                  </div>
-                </div>
-                <div
-                  className='bg-purple-50 rounded-xl p-2 text-center border-2 border-purple-100 cursor-pointer hover:bg-purple-100 transition-colors'
-                  onClick={() => router.push('/child/task?status=pending')}
-                >
-                  <div className='text-lg font-black text-purple-600'>
-                    {pendingTasks.length}
-                  </div>
-                  <div className='text-[10px] font-bold text-purple-400 uppercase'>
-                    待开始
+                  <div
+                    className='bg-green-50 rounded-xl px-4 py-2 text-center border-2 border-green-100 cursor-pointer hover:bg-green-100 transition-colors min-w-[160px]'
+                    onClick={() => router.push('/child/task?status=approved')}
+                  >
+                    <div className='text-lg font-black text-green-600'>
+                      {completedTasks.length}
+                    </div>
+                    <div className='text-[10px] font-bold text-green-400 uppercase'>
+                      已完成
+                    </div>
                   </div>
                 </div>
               </div>

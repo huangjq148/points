@@ -1,43 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/mongodb';
-import { UserAvatar, MedalDefinition, UserMedal } from '@/models/Gamification';
+import { UserAvatar } from '@/models/Gamification';
 import { getTokenPayload } from '@/lib/auth';
-
-interface AvatarProgressLike {
-  totalXP: number;
-  totalTasksCompleted: number;
-}
-
-async function checkAndAwardMedals(userId: string, userAvatar: AvatarProgressLike) {
-  const newMedals: Array<Record<string, unknown>> = [];
-  const allMedals = await MedalDefinition.find();
-  const existingUserMedals = await UserMedal.find({ userId: new mongoose.Types.ObjectId(userId) });
-  const existingMedalIds = new Set(existingUserMedals.map((um) => um.medalId.toString()));
-
-  for (const medal of allMedals) {
-    if (existingMedalIds.has(medal._id.toString())) continue;
-    if (medal.requirementType !== 'total') continue;
-
-    const requirementMet = userAvatar.totalTasksCompleted >= medal.requirement;
-    if (!requirementMet) continue;
-
-    await UserMedal.create({
-      userId: new mongoose.Types.ObjectId(userId),
-      medalId: medal._id,
-      earnedAt: new Date(),
-      progress: medal.requirement,
-      isNew: true,
-    });
-
-    newMedals.push({
-      ...medal.toObject(),
-      isNew: true,
-    });
-  }
-
-  return newMedals;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,18 +50,12 @@ export async function POST(request: NextRequest) {
       { new: true, upsert: true },
     );
 
-    const newMedals = await checkAndAwardMedals(userId, {
-      totalXP: newTotalXP,
-      totalTasksCompleted: newTotalTasksCompleted,
-    });
-
     return NextResponse.json({
       success: true,
       data: {
         xpGained,
         totalXP: userAvatar.totalXP,
         totalTasksCompleted: newTotalTasksCompleted,
-        newMedals,
       },
     });
   } catch (error) {
@@ -132,15 +91,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const medalCount = await UserMedal.countDocuments({ userId: new mongoose.Types.ObjectId(userId) });
-
     return NextResponse.json({
       success: true,
       data: {
         totalXP: userAvatar.totalXP,
         currentXP: userAvatar.currentXP,
         totalTasksCompleted: userAvatar.totalTasksCompleted,
-        medalCount,
         stage: userAvatar.stage,
       },
     });

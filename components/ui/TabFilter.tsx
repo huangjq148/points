@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Gift, FileText, Star, Ticket, Trophy, Users, UserCog, BarChart3 } from "lucide-react";
+import { Home, Gift, FileText, Star, Ticket, Users, UserCog, BarChart3 } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
   home: Home,
@@ -8,7 +8,6 @@ const iconMap: Record<string, React.ElementType> = {
   tasks: Star,
   orders: Ticket,
   rewards: Gift,
-  achievements: Trophy,
   family: Users,
   users: UserCog,
 };
@@ -52,8 +51,8 @@ export const TabFilter = <T extends string>({
                 }
               `}
             >
-              <IconComponent 
-                size={22} 
+              <IconComponent
+                size={22}
                 className={`mb-1 transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
