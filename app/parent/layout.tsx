@@ -1,6 +1,5 @@
 "use client";
 import Button from "@/components/ui/Button";
-import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
 import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -98,67 +97,33 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       </button>
 
       <div className="main-wrapper flex flex-col min-h-screen">
-        <header className="mobile-header desktop-header fixed top-0 left-0 right-0 z-50">
-          <div className="bg-white/90 backdrop-blur-xl lg:backdrop-blur-md px-4 lg:px-6 py-3 lg:py-4 flex items-center justify-between border-b border-gray-100/50">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl filter drop-shadow-md">🌟</span>
-              <span className="font-bold text-blue-600 text-shadow-sm">小小奋斗者</span>
+        <header className="desktop-header">
+          <div className="desktop-header-inner">
+            <div>
+              <h1 className="desktop-header-title">{TAB_TITLE[activeTab]}</h1>
+              <p className="desktop-header-subtitle">欢迎回来，开启美好的一天 ✨</p>
             </div>
-            <div className="flex gap-2 lg:hidden">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1.5 ">
-                  <div className="relative">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                      👤
-                    </div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">
-                    {currentUser?.username || "家长"}
-                  </span>
-                </div>
+            <div className="desktop-header-user">
+              <div className="desktop-header-avatar">
+                {currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
               </div>
-              <Button onClick={logout} variant="secondary" className="p-2 hover:bg-gray-100 rounded-xl text-gray-600 border-none bg-transparent shadow-none">
+              <div className="desktop-header-userinfo">
+                <span className="desktop-header-username">
+                  {currentUser?.username || "家长"}
+                </span>
+                <span className="desktop-header-role">管理员</span>
+              </div>
+              <div className="desktop-header-divider" />
+              <Button onClick={logout} variant="secondary" className="desktop-header-logout">
                 <LogOut size={20} />
               </Button>
-            </div>
-            <div className="hidden lg:flex items-center gap-4 w-full justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800 text-shadow-sm">{TAB_TITLE[activeTab]}</h1>
-                <p className="text-gray-500 text-sm mt-1">欢迎回来，开启美好的一天 ✨</p>
-              </div>
-              <div className="bg-white/90 px-4 py-2 rounded-2xl flex items-center gap-3 border border-white/60 shadow-medium">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-blue-200">
-                  {currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-gray-800 leading-none">
-                    {currentUser?.username || "家长"}
-                  </span>
-                  <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">管理员</span>
-                </div>
-                <div className="h-8 w-[1px] bg-gray-200 mx-2" />
-                <Button onClick={logout} variant="secondary" className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl border-none bg-transparent shadow-none transition-colors">
-                  <LogOut size={20} />
-                </Button>
-              </div>
             </div>
           </div>
         </header>
 
-        <main className="main-area flex-1 overflow-auto">
+        <main className="main-area overflow-auto">
           <div className="main-inner !m-0">{children}</div>
         </main>
-
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 z-50 pb-safe">
-          <div className="px-2 py-2">
-            <TabFilter
-              items={navItems.map(item => ({ key: item.id, label: item.label }))}
-              activeKey={activeTab}
-              onFilterChange={(key) => handleNavClick(key as NavItemId)}
-              className="bg-transparent border-none shadow-none p-0"
-            />
-          </div>
-        </nav>
       </div>
     </div>
   );
