@@ -83,7 +83,8 @@ export default function Modal({
       setStackPosition(modalStack.indexOf(modalIdRef.current));
     };
     updatePosition();
-    return modalStackManager.subscribe(updatePosition);
+    const unsubscribe = modalStackManager.subscribe(updatePosition);
+    return () => { unsubscribe(); };
   }, []);
 
   useEffect(() => {

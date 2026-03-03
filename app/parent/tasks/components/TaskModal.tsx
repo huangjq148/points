@@ -18,8 +18,34 @@ export interface TaskFormData {
   imageUrl: string;
   startDate: Date | null;
   deadline: Date | null;
+  scheduleMode: "single" | "range" | "week";
+  rangeStart: Date | null;
+  rangeEnd: Date | null;
+  weekReference: Date | null;
   saveAsTemplate: boolean;
 }
+
+const formatLocalDate = (date: Date) => date.toLocaleDateString("zh-CN");
+
+const getWeekBounds = (reference: Date) => {
+  const normalizedRef = new Date(reference);
+  normalizedRef.setHours(0, 0, 0, 0);
+  const day = normalizedRef.getDay();
+  const diffToMonday = (day + 6) % 7;
+  const monday = new Date(normalizedRef);
+  monday.setDate(normalizedRef.getDate() - diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  return { start: monday, end: sunday };
+};
+
+const SCHEDULE_MODES: { value: TaskFormData["scheduleMode"]; label: string }[] = [
+  { value: "single", label: "自定义时间" },
+  { value: "range", label: "按日期范围" },
+  { value: "week", label: "按周排期" },
+];
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -46,6 +72,12 @@ export default function TaskModal({
   photoPreview,
   toggleChild,
 }: TaskModalProps) {
+  const scheduleMode = taskData.scheduleMode || "single";
+  const showSinglePickers = mode === "edit" || scheduleMode === "single";
+  const rangeModeActive = mode === "add" && scheduleMode === "range";
+  const weekModeActive = mode === "add" && scheduleMode === "week";
+  const weekBounds = taskData.weekReference ? getWeekBounds(taskData.weekReference) : null;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -96,45 +128,143 @@ export default function TaskModal({
           </div>
         )}
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              起始时间（必填）
-            </label>
-            <DatePicker
-              selected={taskData.startDate}
-              onChange={(date: Date | null) =>
-                setTaskData({ ...taskData, startDate: date })
-              }
-              placeholderText='设置起始时间'
-              showTimeInput
-              timeInputLabel='时间:'
-              timeFormat='HH:mm'
-              dateFormat='yyyy-MM-dd HH:mm'
-              selectsStart
-              maxDate={taskData.deadline || undefined}
-            />
+        {mode === 'add' && (
+          <div className='space-y-3'>
+            <label className='text-sm font-medium text-gray-700'>排期方式</label>
+            <div className='flex gap-2'>
+              {SCHEDULE_MODES.map((option) => {
+                const isActive = scheduleMode === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type='button'
+                    onClick={() =>
+                      setTaskData((prev) => ({
+                        ...prev,
+                        scheduleMode: option.value,
+                        rangeStart: option.value === 'range' ? prev.rangeStart : null,
+                        rangeEnd: option.value === 'range' ? prev.rangeEnd : null,
+                        weekReference: option.value === 'week' ? prev.weekReference : null,
+                      }))
+                    }
+                    className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition ${
+                      isActive
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'bg-white border-gray-200 text-gray-600 hover:bg-blue-50'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className='text-xs text-gray-500'>
+              {scheduleMode === 'single'
+                ? '可自定义起始和截止时间'
+                : scheduleMode === 'range'
+                  ? '根据所选日期范围每天创建一条任务，默认 00:00 - 23:59'
+                  : '根据所选日期所在周（周一至周日）每日创建任务，默认 00:00 - 23:59'}
+            </p>
           </div>
+        )}
 
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              截止时间（必填）
+        {showSinglePickers && (
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>
+                起始时间（必填）
+              </label>
+              <DatePicker
+                selected={taskData.startDate}
+                onChange={(date: Date | null) =>
+                  setTaskData({ ...taskData, startDate: date })
+                }
+                placeholderText='设置起始时间'
+                showTimeInput
+                timeInputLabel='时间:'
+                timeFormat='HH:mm'
+                dateFormat='yyyy-MM-dd HH:mm'
+                selectsStart
+                maxDate={taskData.deadline || undefined}
+              />
+            </div>
+
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>
+                截止时间（必填）
+              </label>
+              <DatePicker
+                selected={taskData.deadline}
+                onChange={(date: Date | null) =>
+                  setTaskData({ ...taskData, deadline: date })
+                }
+                placeholderText='设置截止时间'
+                showTimeInput
+                timeInputLabel='时间:'
+                timeFormat='HH:mm'
+                dateFormat='yyyy-MM-dd HH:mm'
+                selectsEnd
+                minDate={taskData.startDate || undefined}
+              />
+            </div>
+          </div>
+        )}
+
+        {rangeModeActive && (
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>
+                起始日期
+              </label>
+              <DatePicker
+                selected={taskData.rangeStart}
+                onChange={(date: Date | null) =>
+                  setTaskData({ ...taskData, rangeStart: date })
+                }
+                placeholderText='开始日期'
+                dateFormat='yyyy-MM-dd'
+                selectsStart
+                maxDate={taskData.rangeEnd || undefined}
+              />
+            </div>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>
+                结束日期
+              </label>
+              <DatePicker
+                selected={taskData.rangeEnd}
+                onChange={(date: Date | null) =>
+                  setTaskData({ ...taskData, rangeEnd: date })
+                }
+                placeholderText='结束日期'
+                dateFormat='yyyy-MM-dd'
+                selectsEnd
+                minDate={taskData.rangeStart || undefined}
+              />
+            </div>
+          </div>
+        )}
+
+        {weekModeActive && (
+          <div className='space-y-2'>
+            <label className='block text-sm font-medium text-gray-700'>
+              参考日期（按所在周排期）
             </label>
             <DatePicker
-              selected={taskData.deadline}
+              selected={taskData.weekReference}
               onChange={(date: Date | null) =>
-                setTaskData({ ...taskData, deadline: date })
+                setTaskData({ ...taskData, weekReference: date })
               }
-              placeholderText='设置截止时间'
-              showTimeInput
-              timeInputLabel='时间:'
-              timeFormat='HH:mm'
-              dateFormat='yyyy-MM-dd HH:mm'
-              selectsEnd
-              minDate={taskData.startDate || undefined}
+              placeholderText='选择日期'
+              dateFormat='yyyy-MM-dd'
             />
+            {weekBounds && (
+              <p className='text-xs text-gray-500'>
+                本周范围：{formatLocalDate(weekBounds.start)} - {formatLocalDate(weekBounds.end)}
+              </p>
+            )}
           </div>
-        </div>
+        )}
 
         <Input
           label='任务名称'

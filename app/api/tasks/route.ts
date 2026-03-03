@@ -20,7 +20,7 @@ interface ITaskQuery {
   userId?: mongoose.Types.ObjectId;
   name?: { $regex: string; $options: string };
   approvedAt?: { $gte?: Date; $lte?: Date };
-  startDate?: { $lte?: Date };
+  startDate?: { $lte?: Date; $gt?: Date };
   deadline?: { $gte?: Date; $lte?: Date; $exists?: boolean; $eq?: Date | null };
   $and?: Array<Record<string, unknown>>;
   $or?: Array<Record<string, unknown>>;
@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
     const includeExpired = searchParams.get("includeExpired") === "true";
     const excludeCompletedBeforeDeadline = searchParams.get("excludeCompletedBeforeDeadline") === "true";
     const inProgress = searchParams.get("inProgress") === "true";
+    const futureTasks = searchParams.get("futureTasks") === "true";
 
     const query: ITaskQuery = {};
     if (authRole === "parent") {
@@ -63,7 +64,15 @@ export async function GET(request: NextRequest) {
 
     if (status) query.status = status;
 
-    if (inProgress) {
+    // 默认过滤掉未来的任务（startDate > 当前时间的任务）
+    // 孩子角色总是过滤未来任务；父母角色在查询"全部"（无特定状态筛选）时也过滤
+    const shouldFilterFutureTasks = !futureTasks && (authRole === "child" || (!status && !inProgress));
+
+    if (futureTasks) {
+      // 查询未来的任务：startDate > 当前时间
+      const now = new Date();
+      query.startDate = { $gt: now };
+    } else if (inProgress) {
       const now = new Date();
       if (!status) {
         query.status = { $in: ["pending", "submitted", "rejected"] };
@@ -84,6 +93,19 @@ export async function GET(request: NextRequest) {
           ],
         },
       ];
+    } else if (shouldFilterFutureTasks) {
+      // 过滤掉未来的任务：startDate 不存在、为 null，或者 startDate <= 当前时间
+      const now = new Date();
+      if (!query.$and) {
+        query.$and = [];
+      }
+      query.$and.push({
+        $or: [
+          { startDate: { $exists: false } },
+          { startDate: { $eq: null } },
+          { startDate: { $lte: now } },
+        ],
+      });
     }
 
     // 添加搜索条件

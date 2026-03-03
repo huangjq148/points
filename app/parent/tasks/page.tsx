@@ -13,6 +13,63 @@ import TemplateManager from "./components/TemplateManager";
 import EditTemplateModal from "./components/EditTemplateModal";
 import TaskModal, { TaskFormData } from "./components/TaskModal";
 
+const getDayStart = (date: Date) => {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  return start;
+};
+
+const getDayEnd = (date: Date) => {
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+  return end;
+};
+
+const getDatesInRange = (start: Date, end: Date) => {
+  const dates: Date[] = [];
+  const cursor = new Date(start);
+  cursor.setHours(0, 0, 0, 0);
+  const final = new Date(end);
+  final.setHours(0, 0, 0, 0);
+  while (cursor <= final) {
+    dates.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+};
+
+const getWeekDateRange = (reference: Date) => {
+  const normalized = new Date(reference);
+  normalized.setHours(0, 0, 0, 0);
+  const day = normalized.getDay();
+  const diffToMonday = (day + 6) % 7;
+  const monday = new Date(normalized);
+  monday.setDate(normalized.getDate() - diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(0, 0, 0, 0);
+  return { start: monday, end: sunday };
+};
+
+const createEmptyTaskFormData = (): TaskFormData => ({
+  name: "",
+  description: "",
+  points: 5,
+  icon: "⭐",
+  type: "daily",
+  requirePhoto: false,
+  selectedChildren: [],
+  imageUrl: "",
+  startDate: null,
+  deadline: null,
+  scheduleMode: "single",
+  rangeStart: null,
+  rangeEnd: null,
+  weekReference: null,
+  saveAsTemplate: false,
+});
+
 export interface TaskTemplate {
   _id?: string;
   name: string;
@@ -53,17 +110,20 @@ import { useToast } from "@/components/ui/Toast";
 const TAB_ITEMS = [
   { key: "all", label: "全部" },
   { key: "uncompleted", label: "未完成" },
+  { key: "not-started", label: "未开始" },
   { key: "submitted", label: "待审核" },
   { key: "completed", label: "已完成" },
   { key: "rejected", label: "已驳回" },
 ] as const;
+
+type TaskFilterKey = typeof TAB_ITEMS[number]["key"];
 
 function TasksPage() {
   const toast = useToast();
   const searchParams = useSearchParams();
   const initialChildTaskFilter = searchParams.get("childId") || "all";
   const statusFromQuery = searchParams.get("status");
-  const initialTaskFilter: "all" | "completed" | "uncompleted" | "submitted" | "rejected" =
+  const initialTaskFilter: TaskFilterKey =
     statusFromQuery === "completed" || statusFromQuery === "approved"
       ? "completed"
       : statusFromQuery === "uncompleted" || statusFromQuery === "pending"
@@ -79,9 +139,7 @@ function TasksPage() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskModalMode, setTaskModalMode] = useState<"add" | "edit">("add");
   const [tasks, setTasks] = useState<IDisplayedTask[]>([]);
-  const [activeTaskFilter, setActiveTaskFilter] = useState<
-    "all" | "completed" | "uncompleted" | "submitted" | "rejected"
-  >(initialTaskFilter);
+  const [activeTaskFilter, setActiveTaskFilter] = useState<TaskFilterKey>(initialTaskFilter);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [taskPhotoFile, setTaskPhotoFile] = useState<File | null>(null);
   const [taskPhotoPreview, setTaskPhotoPreview] = useState<string>("");
@@ -90,19 +148,7 @@ function TasksPage() {
   const [total, setTotal] = useState(0);
   const limit = 10;
 
-  const [taskData, setTaskData] = useState<TaskFormData>({
-    name: "",
-    description: "",
-    points: 5,
-    icon: "⭐",
-    type: "daily",
-    requirePhoto: false,
-    selectedChildren: [] as string[],
-    imageUrl: "",
-    startDate: null as Date | null,
-    deadline: null as Date | null,
-    saveAsTemplate: false,
-  });
+  const [taskData, setTaskData] = useState<TaskFormData>(() => createEmptyTaskFormData());
 
   const [alertState, setAlertState] = useState<{
     isOpen: boolean;
@@ -134,6 +180,8 @@ function TasksPage() {
     () => childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知",
     [childList, selectedChildTaskFilter],
   );
+
+
 
   // 初始化模板数据
   useEffect(() => {
@@ -186,6 +234,10 @@ function TasksPage() {
       points: template.points,
       icon: template.icon,
       type: template.type as "daily" | "advanced" | "challenge",
+      scheduleMode: "single",
+      rangeStart: null,
+      rangeEnd: null,
+      weekReference: null,
     }));
     setShowTemplateManager(false);
     setTaskModalMode("add");
@@ -282,16 +334,69 @@ function TasksPage() {
       showAlert("请输入任务名称", "error");
       return;
     }
-    if (!taskData.deadline) {
-      showAlert("请设置截止时间", "error");
-      return;
+
+    const scheduleMode = taskData.scheduleMode;
+    if (scheduleMode === "single") {
+      if (!taskData.deadline) {
+        showAlert("请设置截止时间", "error");
+        return;
+      }
+      if (!taskData.startDate) {
+        showAlert("请设置起始时间", "error");
+        return;
+      }
+      if (taskData.startDate > taskData.deadline) {
+        showAlert("起始时间不能晚于截止时间", "error");
+        return;
+      }
+    } else if (scheduleMode === "range") {
+      if (!taskData.rangeStart || !taskData.rangeEnd) {
+        showAlert("请设置起始/结束日期", "error");
+        return;
+      }
+      if (taskData.rangeStart > taskData.rangeEnd) {
+        showAlert("结束日期不能早于起始日期", "error");
+        return;
+      }
+    } else if (scheduleMode === "week") {
+      if (!taskData.weekReference) {
+        showAlert("请选择一个参考日期", "error");
+        return;
+      }
     }
-    if (!taskData.startDate) {
-      showAlert("请设置起始时间", "error");
-      return;
-    }
-    if (taskData.startDate > taskData.deadline) {
-      showAlert("起始时间不能晚于截止时间", "error");
+
+    const scheduleEntries = (() => {
+      if (scheduleMode === "single") {
+        return [
+          {
+            start: taskData.startDate!,
+            deadline: taskData.deadline!,
+          },
+        ];
+      }
+
+      if (scheduleMode === "range") {
+        const dates = getDatesInRange(taskData.rangeStart!, taskData.rangeEnd!);
+        return dates.map((date) => ({
+          start: getDayStart(date),
+          deadline: getDayEnd(date),
+        }));
+      }
+
+      if (scheduleMode === "week") {
+        const { start, end } = getWeekDateRange(taskData.weekReference!);
+        const dates = getDatesInRange(start, end);
+        return dates.map((date) => ({
+          start: getDayStart(date),
+          deadline: getDayEnd(date),
+        }));
+      }
+
+      return [];
+    })();
+
+    if (scheduleEntries.length === 0) {
+      showAlert("请选择有效的排期", "error");
       return;
     }
 
@@ -313,18 +418,22 @@ function TasksPage() {
     }
 
     for (const childId of taskData.selectedChildren) {
-      const res = await request("/api/tasks", {
-        method: "POST",
-        body: {
-          ...taskData,
-          childId,
-          imageUrl: uploadedImageUrl,
-        },
-      });
+      for (const schedule of scheduleEntries) {
+        const res = await request("/api/tasks", {
+          method: "POST",
+          body: {
+            ...taskData,
+            childId,
+            startDate: schedule.start,
+            deadline: schedule.deadline,
+            imageUrl: uploadedImageUrl,
+          },
+        });
 
-      if (!res.success) {
-        showAlert("添加失败", "error");
-        return;
+        if (!res.success) {
+          showAlert("添加失败", "error");
+          return;
+        }
       }
     }
 
@@ -350,19 +459,7 @@ function TasksPage() {
     }
 
     setShowTaskModal(false);
-    setTaskData({
-      name: "",
-      description: "",
-      points: 5,
-      icon: "⭐",
-      type: "daily",
-      requirePhoto: false,
-      selectedChildren: [],
-      imageUrl: "",
-      deadline: null,
-      startDate: null,
-      saveAsTemplate: false,
-    });
+    setTaskData(createEmptyTaskFormData());
     setTaskPhotoFile(null);
     setTaskPhotoPreview("");
     const updatedTasks = await fetchTasks();
@@ -468,6 +565,10 @@ function TasksPage() {
       imageUrl: task.imageUrl || "",
       startDate: task.startDate ? new Date(task.startDate) : null,
       deadline: task.deadline ? new Date(task.deadline) : null,
+      scheduleMode: "single",
+      rangeStart: null,
+      rangeEnd: null,
+      weekReference: null,
       saveAsTemplate: false,
     });
     setTaskPhotoFile(null);
@@ -482,6 +583,7 @@ function TasksPage() {
 
       let statusFilter = "";
       let inProgress = false;
+      let futureTasks = false;
       if (activeTaskFilter === "completed") {
         statusFilter = "approved";
       } else if (activeTaskFilter === "uncompleted") {
@@ -490,6 +592,9 @@ function TasksPage() {
         statusFilter = "submitted";
       } else if (activeTaskFilter === "rejected") {
         statusFilter = "rejected";
+      } else if (activeTaskFilter === "not-started") {
+        // 未开始的任务：开始时间在当前时间之后的任务
+        futureTasks = true;
       }
 
       const params: Record<string, string | number> = {
@@ -501,6 +606,9 @@ function TasksPage() {
       }
       if (inProgress) {
         params.inProgress = "true";
+      }
+      if (futureTasks) {
+        params.futureTasks = "true";
       }
       if (currentSelectedChildTaskFilter !== "all") {
         params.childId = currentSelectedChildTaskFilter;
@@ -526,7 +634,7 @@ function TasksPage() {
   // Handle filter changes
   const onFilterChange = (type: "status" | "child", value: string) => {
     if (type === "status") {
-      setActiveTaskFilter(value as "all" | "completed" | "uncompleted" | "submitted" | "rejected");
+      setActiveTaskFilter(value as TaskFilterKey);
     } else {
       setSelectedChildTaskFilter(value);
     }
@@ -535,121 +643,134 @@ function TasksPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              {selectedChildTaskFilter === "all"
-                ? "任务管理"
-                : selectedChildName}
-            </h2>
-            <p className="text-gray-500 text-sm mt-1">设置并监督孩子的每日任务</p>
-          </div>
-          <div className="flex gap-2 items-center">
-            <div className="w-40">
-              <Select
-                value={selectedChildTaskFilter}
-                onChange={(value) => onFilterChange("child", (value as string) || "all")}
-                options={childSelectOptions}
-              />
-            </div>
-            <Button
-              onClick={() => setShowTemplateManager(true)}
-              className="rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 px-4 py-2 shadow-sm flex items-center gap-2 group h-10"
-              variant="secondary"
-            >
-              <Edit2 size={18} className="group-hover:rotate-12 transition-transform" />
-              <span className="font-semibold text-sm">模板管理</span>
-            </Button>
-            <Button
-              onClick={() => {
-                const defaultStartDate = new Date();
-                defaultStartDate.setHours(0, 0, 0, 0);
-                const defaultDeadline = new Date();
-                defaultDeadline.setHours(23, 59, 59, 999);
-                setTaskData({
-                  ...taskData,
-                  name: "",
-                  description: "",
-                  points: 5,
-                  icon: "⭐",
-                  type: "daily",
-                  requirePhoto: false,
-                  selectedChildren: [],
-                  imageUrl: "",
-                  startDate: defaultStartDate,
-                  deadline: defaultDeadline,
-                  saveAsTemplate: false,
-                });
-                setTaskPhotoFile(null);
-                setTaskPhotoPreview("");
-                setTaskModalMode("add");
-                setShowTaskModal(true);
-              }}
-              className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-md shadow-blue-100 flex items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] h-10"
-            >
-              <Plus size={20} className="group-hover:rotate-90 transition-transform" />
-              <span className="font-semibold text-sm">添加任务</span>
-            </Button>
-          </div>
+      {/* 页面头部 - 优化样式 */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            {selectedChildTaskFilter === "all"
+              ? "任务管理"
+              : selectedChildName}
+          </h2>
+          <p className="text-gray-500 text-sm mt-1">设置并监督孩子的每日任务</p>
         </div>
-
-        {/* Tabs 和视图切换 */}
-        <div className="flex items-center justify-between mb-8">
-          <TabFilter
-            items={TAB_ITEMS}
-            activeKey={activeTaskFilter}
-            onFilterChange={(key) => onFilterChange("status", key)}
-          />
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-shrink-0 ml-4">
-            <button
-              onClick={() => setViewMode("card")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                viewMode === "card"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <LayoutGrid size={16} />
-              卡片
-            </button>
-            <button
-              onClick={() => setViewMode("table")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                viewMode === "table"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <Table2 size={16} />
-              表格
-            </button>
+        <div className="flex gap-2 items-center flex-wrap">
+          {/* 孩子选择器 - 优化样式 */}
+          <div className="w-36 lg:w-40">
+            <Select
+              value={selectedChildTaskFilter}
+              onChange={(value) => onFilterChange("child", (value as string) || "all")}
+              options={childSelectOptions}
+            />
           </div>
+          {/* 模板管理按钮 - 优化样式 */}
+          <Button
+            onClick={() => setShowTemplateManager(true)}
+            className="rounded-xl bg-white/80 backdrop-blur-sm border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 px-4 py-2 shadow-sm hover:shadow-md flex items-center gap-2 group h-10 transition-all"
+            variant="secondary"
+          >
+            <Edit2 size={16} className="group-hover:rotate-12 transition-transform duration-300" />
+            <span className="font-semibold text-sm hidden sm:inline">模板管理</span>
+            <span className="font-semibold text-sm sm:hidden">模板</span>
+          </Button>
+          {/* 添加任务按钮 - 优化样式 */}
+          <Button
+            onClick={() => {
+              const defaultStartDate = new Date();
+              defaultStartDate.setHours(0, 0, 0, 0);
+              const defaultDeadline = new Date();
+              defaultDeadline.setHours(23, 59, 59, 999);
+              const resetData = createEmptyTaskFormData();
+              resetData.startDate = defaultStartDate;
+              resetData.deadline = defaultDeadline;
+              setTaskData(resetData);
+              setTaskPhotoFile(null);
+              setTaskPhotoPreview("");
+              setTaskModalMode("add");
+              setShowTaskModal(true);
+            }}
+            className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-lg shadow-blue-200 flex items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] h-10"
+          >
+            <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
+            <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
+            <span className="font-semibold text-sm sm:hidden">添加</span>
+          </Button>
         </div>
+      </div>
 
-        {/* 任务列表 - 根据视图模式切换 */}
+      {/* Tabs 和视图切换 - 优化样式 */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <TabFilter
+          items={TAB_ITEMS}
+          activeKey={activeTaskFilter}
+          onFilterChange={(key) => onFilterChange("status", key)}
+        />
+        {/* 视图切换按钮 - 优化样式 */}
+        <div className="flex items-center gap-1 bg-gray-100/80 backdrop-blur-sm p-1 rounded-xl flex-shrink-0">
+          <button
+            onClick={() => setViewMode("card")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              viewMode === "card"
+                ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+            }`}
+          >
+            <LayoutGrid size={15} />
+            卡片
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+              viewMode === "table"
+                ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
+                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+            }`}
+          >
+            <Table2 size={15} />
+            表格
+          </button>
+        </div>
+      </div>
+
+        {/* 任务列表 - 根据视图模式切换 - 优化样式 */}
         {viewMode === "card" ? (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-6 overflow-y-auto custom-scrollbar p-1 pb-8"
-            style={{ maxHeight: "calc(100vh - 280px)" }}
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 overflow-y-auto custom-scrollbar p-1 pb-8"
+            style={{ maxHeight: "calc(100vh - 260px)" }}
           >
             {tasks.map((task) => (
               <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
             ))}
-            {tasks.length === 0 && <div className="text-center py-12 text-gray-400 col-span-full">暂无任务</div>}
+            {tasks.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <LayoutGrid size={32} className="text-gray-300" />
+                </div>
+                <p className="text-gray-500 font-medium">暂无任务</p>
+                <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+              </div>
+            )}
 
             {total > limit && (
-              <div className="col-span-full mt-4">
+              <div className="col-span-full mt-6">
                 <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
               </div>
             )}
           </div>
         ) : (
-          <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 280px)" }}>
+          <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 260px)" }}>
             <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
-            {tasks.length === 0 && <div className="text-center py-12 text-gray-400">暂无任务</div>}
+            {tasks.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <Table2 size={32} className="text-gray-300" />
+                </div>
+                <p className="text-gray-500 font-medium">暂无任务</p>
+                <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+              </div>
+            )}
 
             {total > limit && (
-              <div className="mt-4">
+              <div className="mt-6">
                 <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
               </div>
             )}
@@ -678,7 +799,9 @@ function TasksPage() {
           }}
           showCloseButton={false}
           title="提示"
-        />
+        >
+          <div className="py-4 text-center text-gray-600">{alertState.message}</div>
+        </Modal>
 
         {/* Confirm Delete Task */}
         <ConfirmModal

@@ -1,7 +1,7 @@
 "use client";
 
 import { IDisplayedTask } from "./TaskCard";
-import { Clock, Edit2, Trash2, Eye, Image as ImageIcon, History } from "lucide-react";
+import { Clock, Edit2, Trash2, Eye, Image as ImageIcon, History, Check, X, AlertCircle, PlayCircle, PauseCircle, User, Award, Calendar } from "lucide-react";
 import { Button, Modal, Image as ZoomImage, DataTable } from "@/components/ui";
 import type { DataTableColumn } from "@/components/ui";
 import { formatDate } from "@/utils/date";
@@ -20,39 +20,59 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
   const getStatusInfo = (task: IDisplayedTask) => {
     const isOverdue = task.deadline && now > 0 && new Date(task.deadline).getTime() < now && task.status === "pending";
+    const isNotStarted = task.startDate && now > 0 && new Date(task.startDate).getTime() > now && task.status === "pending";
     
     if (task.status === "approved") {
       return {
         label: "已完成",
-        className: "bg-emerald-100 text-emerald-700",
+        className: "bg-emerald-100 text-emerald-700 border-emerald-200",
         dotClass: "bg-emerald-500",
+        icon: <Check size={10} className="text-emerald-600" />,
+        gradient: "from-emerald-500 to-teal-600",
       };
     }
     if (task.status === "submitted") {
       return {
         label: "待审核",
-        className: "bg-amber-100 text-amber-700",
+        className: "bg-amber-100 text-amber-700 border-amber-200",
         dotClass: "bg-amber-500",
+        icon: <AlertCircle size={10} className="text-amber-600" />,
+        gradient: "from-amber-500 to-orange-600",
+      };
+    }
+    if (isNotStarted) {
+      return {
+        label: "未开始",
+        className: "bg-slate-100 text-slate-700 border-slate-200",
+        dotClass: "bg-slate-500",
+        icon: <PauseCircle size={10} className="text-slate-600" />,
+        gradient: "from-slate-500 to-gray-600",
       };
     }
     if (isOverdue) {
       return {
         label: "已逾期",
-        className: "bg-rose-100 text-rose-700",
+        className: "bg-rose-100 text-rose-700 border-rose-200",
         dotClass: "bg-rose-500",
+        icon: <AlertCircle size={10} className="text-rose-600" />,
+        gradient: "from-rose-500 to-red-600",
       };
     }
     if (task.status === "rejected") {
       return {
         label: "已驳回",
-        className: "bg-gray-100 text-gray-700",
+        className: "bg-gray-100 text-gray-700 border-gray-200",
         dotClass: "bg-gray-500",
+        icon: <X size={10} className="text-gray-600" />,
+        gradient: "from-gray-500 to-stone-600",
       };
     }
     return {
       label: "进行中",
-      className: "bg-blue-100 text-blue-700",
+      className: "bg-blue-100 text-blue-700 border-blue-200",
       dotClass: "bg-blue-500",
+      icon: <PlayCircle size={10} className="text-blue-600" />,
+      gradient: "from-blue-500 to-indigo-600",
     };
   };
 
@@ -210,29 +230,31 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       key: "name",
       title: "任务",
       render: (_, task) => {
+        const statusInfo = getStatusInfo(task);
         return (
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <span className="text-2xl">{task.icon}</span>
+            {/* 优化图标显示 */}
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-xl shadow-md flex-shrink-0 relative`}>
+              <span className="drop-shadow-sm">{task.icon}</span>
               {task.isRecurring && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center" title="周期任务">
-                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-100" title="周期任务">
+                  <svg className="w-2.5 h-2.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                 </div>
               )}
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-medium text-gray-800 text-sm">{task.name}</p>
+                <p className="font-semibold text-gray-800 text-sm truncate max-w-[180px]">{task.name}</p>
                 {task.isRecurring && (
-                  <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                  <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 font-medium flex-shrink-0">
                     周期
                   </span>
                 )}
               </div>
               {task.description && (
-                <p className="text-xs text-gray-500 truncate max-w-[200px]">
+                <p className="text-xs text-gray-500 truncate max-w-[200px] mt-0.5">
                   {task.description}
                 </p>
               )}
@@ -245,7 +267,8 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       key: "childName",
       title: "执行人",
       render: (_, row) => (
-        <span className="inline-flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-gradient-to-r from-yellow-50 to-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-100">
+          <User size={10} />
           {row.childAvatar} {row.childName}
         </span>
       ),
@@ -256,7 +279,8 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       render: (_, row) => {
         const statusInfo = getStatusInfo(row);
         return (
-          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-full ${statusInfo.className}`}>
+          <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border shadow-sm ${statusInfo.className}`}>
+            {statusInfo.icon}
             <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
             {statusInfo.label}
           </span>
@@ -266,12 +290,29 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     {
       key: "points",
       title: "积分",
-      render: (_, row) => <span className="text-sm font-bold text-blue-600">+{row.points}</span>,
+      render: (_, row) => (
+        <div className="inline-flex items-center gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 px-2.5 py-1 rounded-lg border border-blue-100">
+          <Award size={12} className="text-blue-600" />
+          <span className="text-sm font-bold text-blue-700">+{row.points}</span>
+        </div>
+      ),
     },
     {
       key: "type",
       title: "类型",
-      render: (_, row) => <span className="text-xs text-gray-600">{getTypeLabel(row.type)}</span>,
+      render: (_, row) => {
+        const typeStyles = {
+          daily: "bg-green-50 text-green-700 border-green-100",
+          advanced: "bg-purple-50 text-purple-700 border-purple-100",
+          challenge: "bg-orange-50 text-orange-700 border-orange-100",
+        };
+        return (
+          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg border ${typeStyles[row.type as keyof typeof typeStyles] || typeStyles.daily}`}>
+            <Award size={10} />
+            {getTypeLabel(row.type)}
+          </span>
+        );
+      },
     },
     {
       key: "deadline",
@@ -280,12 +321,12 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
         const task = row;
         const isOverdue = task.deadline && now > 0 && new Date(task.deadline).getTime() < now && task.status === "pending";
         return task.startDate || task.deadline ? (
-          <div className={`flex items-center gap-1 text-xs ${isOverdue ? "text-red-500 font-medium" : "text-gray-500"}`}>
-            <Clock size={12} />
+          <div className={`inline-flex items-center gap-1.5 text-xs ${isOverdue ? "text-rose-600 font-medium bg-rose-50 px-2 py-1 rounded-lg border border-rose-100" : "text-gray-500"}`}>
+            <Calendar size={12} className={isOverdue ? "text-rose-500" : ""} />
             <span>
               {task.startDate ? formatDate(task.startDate) : "即刻开始"} - {task.deadline ? formatDate(task.deadline) : "无截止"}
             </span>
-            {isOverdue && <span className="text-[10px] bg-red-100 px-1.5 py-0.5 rounded">逾期</span>}
+            {isOverdue && <span className="text-[9px] font-bold">逾期</span>}
           </div>
         ) : (
           <span className="text-xs text-gray-400">-</span>
@@ -295,7 +336,12 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     {
       key: "updatedAt",
       title: "更新时间",
-      render: (_, row) => <span className="text-xs text-gray-500">{formatDate(row.updatedAt)}</span>,
+      render: (_, row) => (
+        <div className="flex items-center gap-1 text-xs text-gray-400">
+          <Clock size={10} />
+          <span>{formatDate(row.updatedAt)}</span>
+        </div>
+      ),
     },
   ];
 
@@ -305,17 +351,17 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     render: (_, row) => {
       const task = row;
       return (
-        <div className="flex items-center justify-center gap-1">
+        <div className="flex items-center justify-center gap-0.5">
           <Button
             onClick={(e) => {
               e.stopPropagation();
               setSelectedTask(task);
             }}
             variant="secondary"
-            className="p-1.5 h-7 w-7 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-            title="查看"
+            className="p-1.5 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+            title="查看详情"
           >
-            <Eye size={14} />
+            <Eye size={15} />
           </Button>
           {task.status !== "approved" && (
             <>
@@ -325,10 +371,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   onEdit(task);
                 }}
                 variant="secondary"
-                className="p-1.5 h-7 w-7 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-                title="编辑"
+                className="p-1.5 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+                title="编辑任务"
               >
-                <Edit2 size={14} />
+                <Edit2 size={15} />
               </Button>
               <Button
                 onClick={(e) => {
@@ -336,12 +382,18 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   onDelete(task._id);
                 }}
                 variant="secondary"
-                className="p-1.5 h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border-none bg-transparent shadow-none"
-                title="删除"
+                className="p-1.5 h-8 w-8 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+                title="删除任务"
               >
-                <Trash2 size={14} />
+                <Trash2 size={15} />
               </Button>
             </>
+          )}
+          {task.status === "approved" && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 ml-1">
+              <Check size={12} />
+              已完成
+            </span>
           )}
         </div>
       );
@@ -361,19 +413,19 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
         onRowClick={(task) => setSelectedTask(task)}
       />
 
-      {/* 任务详情弹窗 */}
+      {/* 任务详情弹窗 - 优化样式 */}
       {selectedTask && (
         <Modal
           isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
-          width={600}
+          width={640}
           noInternalScroll={true}
           footer={
             <div className="flex gap-3 w-full">
               <Button
                 onClick={() => setSelectedTask(null)}
                 variant="secondary"
-                className="flex-1 py-3 font-semibold"
+                className="flex-1 py-3 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
               >
                 关闭
               </Button>
@@ -383,52 +435,81 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                     setSelectedTask(null);
                     onEdit(selectedTask);
                   }}
-                  className="flex-1 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md shadow-blue-100"
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 transition-all hover:shadow-xl"
                 >
+                  <Edit2 size={16} className="mr-2" />
                   编辑任务
                 </Button>
               )}
             </div>
           }
         >
-          <div className="space-y-6">
-            {/* 任务基本信息 */}
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-              <div className="text-5xl">{selectedTask.icon}</div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-gray-800 truncate">{selectedTask.name}</h3>
-                <p className="text-blue-600 font-bold">+{selectedTask.points} 积分</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-gray-500">执行人:</span>
-                  <span className="flex items-center gap-1 text-sm bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
-                    {selectedTask.childAvatar} {selectedTask.childName}
-                  </span>
+          <div className="space-y-5">
+            {/* 任务基本信息 - 优化头部设计 */}
+            {(() => {
+              const statusInfo = getStatusInfo(selectedTask);
+              return (
+                <div className={`relative overflow-hidden rounded-2xl border ${statusInfo.className} p-5`}>
+                  {/* 背景装饰 */}
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${statusInfo.gradient} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`} />
+                  
+                  <div className="relative flex items-center gap-4">
+                    {/* 大图标 */}
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-4xl shadow-lg flex-shrink-0`}>
+                      <span className="drop-shadow-md">{selectedTask.icon}</span>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-xl font-bold text-gray-800 truncate">{selectedTask.name}</h3>
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full border flex-shrink-0 ${statusInfo.className}`}>
+                          {statusInfo.icon}
+                          {statusInfo.label}
+                        </span>
+                      </div>
+                      
+                      {/* 积分和执行人 */}
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                          <Award size={14} className="text-blue-600" />
+                          <span className="text-sm font-bold text-blue-700">+{selectedTask.points} 积分</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                          <User size={14} className="text-amber-600" />
+                          <span className="text-sm font-medium text-amber-700">{selectedTask.childAvatar} {selectedTask.childName}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusInfo(selectedTask).className} flex-shrink-0`}>
-                {getStatusInfo(selectedTask).label}
-              </div>
-            </div>
+              );
+            })()}
 
             {/* 滚动区域 */}
-            <div className="space-y-6 max-h-[40vh] overflow-y-auto hide-scrollbar pr-1">
+            <div className="space-y-5 max-h-[45vh] overflow-y-auto custom-scrollbar pr-1">
               {/* 任务描述 */}
               {selectedTask.description && (
-                <div>
-                  <h4 className="font-bold text-gray-700 mb-2">任务描述</h4>
-                  <p className="text-gray-600 bg-gray-50 p-3 rounded-xl">{selectedTask.description}</p>
+                <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                  <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-blue-500 rounded-full" />
+                    任务描述
+                  </h4>
+                  <p className="text-gray-600 text-sm leading-relaxed">{selectedTask.description}</p>
                 </div>
               )}
 
               {/* 任务配图 */}
               {selectedTask.imageUrl ? (
                 <div>
-                  <h4 className="font-bold text-gray-700 mb-2">任务配图</h4>
-                  <div className="relative w-full h-48 rounded-xl overflow-hidden border border-gray-200">
+                  <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-purple-500 rounded-full" />
+                    任务配图
+                  </h4>
+                  <div className="relative w-full h-52 rounded-xl overflow-hidden border border-gray-200 shadow-md group">
                     <ZoomImage
                       src={selectedTask.imageUrl}
                       alt="任务配图"
-                      className="object-cover w-full h-full"
+                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                       enableZoom={true}
                       containerClassName="w-full h-full"
                     />
@@ -438,31 +519,45 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
               {/* 起止时间 */}
               {(selectedTask.startDate || selectedTask.deadline) && (
-                <div>
-                  <h4 className="font-bold text-gray-700 mb-2">起止时间</h4>
-                  <div className={`flex items-center gap-2 ${
-                    selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending"
-                      ? 'text-red-500' : 'text-gray-600'
-                  }`}>
-                    <Clock size={16} />
-                    <span>
-                      {selectedTask.startDate ? formatDate(selectedTask.startDate) : "即刻开始"} -{" "}
-                      {selectedTask.deadline ? formatDate(selectedTask.deadline) : "无截止"}
-                    </span>
-                    {selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending" && (
-                      <span className="text-xs font-bold bg-red-100 px-2 py-0.5 rounded-full">已逾期</span>
-                    )}
-                  </div>
+                <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                  <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-emerald-500 rounded-full" />
+                    起止时间
+                  </h4>
+                  {(() => {
+                    const isOverdue = selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending";
+                    return (
+                      <div className={`flex items-center gap-3 ${isOverdue ? 'text-rose-600' : 'text-gray-600'}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-rose-100' : 'bg-blue-100'}`}>
+                          <Calendar size={18} className={isOverdue ? 'text-rose-600' : 'text-blue-600'} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">
+                            {selectedTask.startDate ? formatDate(selectedTask.startDate) : "即刻开始"} -{" "}
+                            {selectedTask.deadline ? formatDate(selectedTask.deadline) : "无截止"}
+                          </div>
+                          {isOverdue && (
+                            <div className="text-xs font-semibold text-rose-600 mt-0.5 flex items-center gap-1">
+                              <AlertCircle size={12} />
+                              已逾期
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
               {/* 操作记录 */}
               <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <History size={18} className="text-blue-500" />
-                  <h4 className="font-bold text-gray-700">操作记录</h4>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-1 h-4 bg-amber-500 rounded-full" />
+                  <h4 className="font-semibold text-gray-700">操作记录</h4>
                   {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
-                    <span className="text-xs text-gray-400">({selectedTask.auditHistory.length} 条记录)</span>
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {selectedTask.auditHistory.length} 条记录
+                    </span>
                   )}
                 </div>
                 {renderAuditHistory(selectedTask)}
