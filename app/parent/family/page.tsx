@@ -153,37 +153,59 @@ export default function FamilyPage() {
   const columns = useMemo<DataTableColumn<FamilyMember>[]>(() => [
     {
       key: "username",
-      title: "账号/昵称",
+      title: "成员",
       render: (value, row) => (
-        <div className="flex items-center gap-2">
-          {row.type === "child" ? "👶" : "👤"}
-          {String(value ?? "-")}
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base ${
+            row.type === "child" 
+              ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600" 
+              : "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600"
+          }`}>
+            {row.type === "child" ? "👶" : "👤"}
+          </div>
+          <div className="flex flex-col">
+            <span className="font-medium text-gray-900">{String(value ?? "-")}</span>
+            {row.identity && (
+              <span className="text-xs text-gray-500">{String(row.identity)}</span>
+            )}
+          </div>
           {row.isMe && (
-            <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">我</span>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium border border-blue-200">
+              我
+            </span>
           )}
         </div>
       ),
     },
     {
-      key: "identity",
-      title: "身份",
-      render: (value) => (value == null || value === "" ? "-" : String(value)),
+      key: "role",
+      title: "角色",
+      render: (value) => {
+        const roleConfig: Record<string, { label: string; className: string }> = {
+          admin: { label: "管理员", className: "bg-purple-100 text-purple-700 border-purple-200" },
+          parent: { label: "家长", className: "bg-blue-100 text-blue-700 border-blue-200" },
+          child: { label: "孩子", className: "bg-green-100 text-green-700 border-green-200" },
+        };
+        const config = roleConfig[String(value)] || { label: "-", className: "bg-gray-100 text-gray-600 border-gray-200" };
+        return (
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${config.className}`}>
+            {config.label}
+          </span>
+        );
+      },
     },
     {
       key: "type",
       title: "类型",
-      render: (value) => (value === "child" ? "孩子" : "用户"),
-    },
-    {
-      key: "role",
-      title: "角色",
-      render: (value) => {
-        const val = value;
-        if (val === "admin") return "管理员";
-        if (val === "parent") return "家长";
-        if (val === "child") return "孩子";
-        return "-";
-      },
+      render: (value) => (
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+          value === "child" 
+            ? "bg-orange-50 text-orange-600 border-orange-200" 
+            : "bg-gray-50 text-gray-600 border-gray-200"
+        }`}>
+          {value === "child" ? "👶 孩子" : "👤 用户"}
+        </span>
+      ),
     },
   ], []);
 

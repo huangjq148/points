@@ -163,29 +163,31 @@ export function DataTable<TData>({
       right: pinned === "right" ? `${column.getAfter("right")}px` : undefined,
       zIndex: 20,
       background: bgColor,
-      boxShadow: pinned === "left" ? "2px 0 0 #dbeafe" : "-2px 0 0 #dbeafe",
+      boxShadow: pinned === "left" 
+        ? "4px 0 8px -4px rgba(0, 0, 0, 0.1)" 
+        : "-4px 0 8px -4px rgba(0, 0, 0, 0.1)",
     };
   };
 
   return (
     <div className="space-y-4">
       <div
-        className="bg-white rounded-2xl shadow-sm border border-blue-100 max-w-full overflow-x-auto scrollbar-thin"
+        className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-full overflow-x-auto"
         style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
       >
         <table className="w-full min-w-max text-left text-sm" style={{ minWidth: `${minWidth}px` }}>
-          <thead className="bg-blue-50 text-blue-800 text-xs">
+          <thead className="bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
+              <tr key={headerGroup.id} className="border-b border-gray-200">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className={`px-3 py-2.5 font-medium whitespace-nowrap ${
+                    className={`px-4 py-3 font-semibold whitespace-nowrap ${
                       header.column.id === actionColumnId ? "text-center" : ""
                     }`}
                     style={{
                       ...(header.column.id === actionColumnId ? { width: `${actionColumnWidth}px` } : {}),
-                      ...getPinnedStyles(header.column, "#eff6ff"),
+                      ...getPinnedStyles(header.column, "#f9fafb"),
                     }}
                   >
                     {flexRender(header.column.columnDef.header, header.getContext())}
@@ -194,24 +196,26 @@ export function DataTable<TData>({
               </tr>
             ))}
           </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
+          <tbody className="divide-y divide-gray-100">
+            {table.getRowModel().rows.map((row, index) => (
               <tr
                 key={row.id}
-                className={`border-t border-blue-50 hover:bg-blue-50/30 ${
-                  onRowClick ? "cursor-pointer" : ""
-                } ${getRowClassName ? getRowClassName(row.original) : ""}`}
+                className={`transition-colors duration-150 hover:bg-blue-50/50 ${
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                } ${onRowClick ? "cursor-pointer" : ""} ${
+                  getRowClassName ? getRowClassName(row.original) : ""
+                }`}
                 onClick={onRowClick ? () => onRowClick(row.original) : undefined}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className={`px-3 py-2.5 whitespace-nowrap ${
+                    className={`px-4 py-3 whitespace-nowrap text-gray-700 ${
                       cell.column.id === actionColumnId ? "text-center" : ""
                     }`}
                     style={{
                       ...(cell.column.id === actionColumnId ? { width: `${actionColumnWidth}px` } : {}),
-                      ...getPinnedStyles(cell.column, "#ffffff"),
+                      ...getPinnedStyles(cell.column, index % 2 === 0 ? "#ffffff" : "#f9fafb"),
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -221,8 +225,13 @@ export function DataTable<TData>({
             ))}
             {(tableData.length === 0 || loading) && (
               <tr>
-                <td colSpan={allColumns.length} className="p-8 text-center text-gray-400">
-                  {loading ? "加载中..." : emptyText}
+                <td colSpan={allColumns.length} className="p-12 text-center">
+                  <div className="flex flex-col items-center gap-2 text-gray-400">
+                    <svg className="w-12 h-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="text-sm">{loading ? "加载中..." : emptyText}</span>
+                  </div>
                 </td>
               </tr>
             )}
