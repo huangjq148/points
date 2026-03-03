@@ -643,17 +643,14 @@ function TasksPage() {
 
   return (
     <>
-      {/* 页面头部 - 优化样式 */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            {selectedChildTaskFilter === "all"
-              ? "任务管理"
-              : selectedChildName}
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">设置并监督孩子的每日任务</p>
-        </div>
-        <div className="flex gap-2 items-center flex-wrap">
+      {/* 筛选条件、Tabs 和操作按钮在同一行 */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+        <TabFilter
+          items={TAB_ITEMS}
+          activeKey={activeTaskFilter}
+          onFilterChange={(key) => onFilterChange("status", key)}
+        />
+        <div className="flex justify-end gap-2 items-center flex-wrap">
           {/* 孩子选择器 - 优化样式 */}
           <div className="w-36 lg:w-40">
             <Select
@@ -697,13 +694,8 @@ function TasksPage() {
         </div>
       </div>
 
-      {/* Tabs 和视图切换 - 优化样式 */}
+      {/* 视图切换 - 优化样式 */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <TabFilter
-          items={TAB_ITEMS}
-          activeKey={activeTaskFilter}
-          onFilterChange={(key) => onFilterChange("status", key)}
-        />
         {/* 视图切换按钮 - 优化样式 */}
         <div className="flex items-center gap-1 bg-gray-100/80 backdrop-blur-sm p-1 rounded-xl flex-shrink-0">
           <button

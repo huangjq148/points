@@ -256,8 +256,7 @@ export default function FamilyPage() {
         <p className="text-sm text-gray-600">确定将该成员移出家庭吗？</p>
       </Modal>
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">家庭成员管理 </h2>
+      <div className="flex justify-end mb-6">
         <div className="flex gap-2">
           {!currentUser?.familyId ? (
             <Button onClick={handleCreateFamily} className="flex items-center gap-2">

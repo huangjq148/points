@@ -137,8 +137,7 @@ export default function RewardsPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">积分商城</h2>
+      <div className="flex justify-end mb-4">
         <Button onClick={() => setShowAddReward(true)} className="flex items-center gap-2">
           <Plus size={18} /> 添加奖励
         </Button>

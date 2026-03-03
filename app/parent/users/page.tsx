@@ -262,8 +262,7 @@ export default function UsersPage() {
       </Modal>
 
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">用户管理</h2>
+        <div className="flex justify-end">
           <div className="flex gap-2">
             <Button
               onClick={() => {

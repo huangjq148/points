@@ -252,15 +252,6 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            家庭运营总览
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">看清优先级、节奏和孩子进展，先处理最关键的事</p>
-        </div>
-      </div>
-
       <div className="card">
         <h3 className="text-lg font-bold text-gray-800 mb-4">本周行动建议</h3>
         <div className="space-y-3">

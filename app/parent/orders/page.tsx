@@ -151,13 +151,13 @@ function OrdersPage() {
         type="danger"
       />
 
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            兑换核销
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">核销孩子兑换的礼品</p>
-        </div>
+      {/* 筛选条件和 Tabs 在同一行 */}
+      <div className="flex flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <TabFilter
+          items={orderTabs}
+          activeKey={activeTab}
+          onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
+        />
         <div className="flex items-center gap-2">
           {isLoading && (
             <div className="loading-spinner w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -176,13 +176,6 @@ function OrdersPage() {
           </div>
         </div>
       </div>
-
-      <TabFilter
-        items={orderTabs}
-        activeKey={activeTab}
-        onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
-        className="mb-8"
-      />
 
       {activeTab === "pending" ? (
         pendingOrders.length === 0 ? (
