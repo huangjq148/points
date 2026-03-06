@@ -73,6 +73,9 @@ export interface FamilyMember {
   isMe: boolean;
   phone?: string;
   identity?: string;
+  avatar?: string;
+  totalPoints?: number;
+  availablePoints?: number;
   createdAt?: string;
   updatedAt?: string;
 }

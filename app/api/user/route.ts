@@ -14,8 +14,31 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get("userId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
+    const search = searchParams.get("search");
+    const role = searchParams.get("role");
+    const gender = searchParams.get("gender");
     
     const query: Record<string, unknown> = {};
+    
+    // 搜索功能：支持用户名和昵称模糊搜索
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { username: { $regex: searchRegex } },
+        { nickname: { $regex: searchRegex } }
+      ];
+    }
+    
+    // 角色筛选
+    if (role && role !== 'all') {
+      query.role = role;
+    }
+    
+    // 性别筛选
+    if (gender && gender !== 'all') {
+      query.gender = gender;
+    }
+    
     const skip = (page - 1) * limit;
     
     const users = await User.find(query)
@@ -34,10 +57,13 @@ export async function GET(request: NextRequest) {
         identity: u.identity,
         nickname: u.nickname,
         gender: u.gender,
+        avatar: u.avatar,
+        totalPoints: u.totalPoints || 0,
+        availablePoints: u.availablePoints || 0,
         familyId: u.familyId,
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
-        type: "parent", // Consistent with frontend expectations
+        type: u.role === "child" ? "child" : "parent",
         isMe: u._id.toString() === userId,
       })),
       total,

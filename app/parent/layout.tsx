@@ -148,7 +148,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
         </header>
 
         <main className="main-area overflow-auto">
-          <div className="main-inner !m-0">{children}</div>
+          <div className="main-inner ">{children}</div>
         </main>
       </div>
     </div>

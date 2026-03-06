@@ -41,6 +41,12 @@ interface DataTableProps<TData> {
   };
   onRowClick?: (row: TData) => void;
   getRowClassName?: (row: TData) => string;
+  // 行选择相关属性
+  rowSelection?: {
+    selectedRowKeys: string[];
+    onChange: (selectedRowKeys: string[], selectedRows: TData[]) => void;
+    getRowKey: (row: TData) => string;
+  };
 }
 
 type TableColumnMeta = {
@@ -67,8 +73,107 @@ export function DataTable<TData>({
   fixedColumns,
   onRowClick,
   getRowClassName,
+  rowSelection,
 }: DataTableProps<TData>) {
   const tableData = useMemo(() => dataSource, [dataSource]);
+
+  // 计算是否全选
+  const isAllSelected = useMemo(() => {
+    if (!rowSelection || tableData.length === 0) return false;
+    return tableData.every(row => rowSelection.selectedRowKeys.includes(rowSelection.getRowKey(row)));
+  }, [rowSelection, tableData]);
+
+  const isIndeterminate = useMemo(() => {
+    if (!rowSelection || tableData.length === 0) return false;
+    const selectedCount = tableData.filter(row => rowSelection.selectedRowKeys.includes(rowSelection.getRowKey(row))).length;
+    return selectedCount > 0 && selectedCount < tableData.length;
+  }, [rowSelection, tableData]);
+
+  // 处理全选/取消全选
+  const handleSelectAll = () => {
+    if (!rowSelection) return;
+    if (isAllSelected) {
+      // 取消全选：移除当前页所有行的选中状态
+      const currentPageKeys = new Set(tableData.map(row => rowSelection.getRowKey(row)));
+      const newSelectedKeys = rowSelection.selectedRowKeys.filter(key => !currentPageKeys.has(key));
+      const newSelectedRows = rowSelection.selectedRowKeys
+        .map(key => tableData.find(row => rowSelection.getRowKey(row) === key))
+        .filter((row): row is TData => row !== undefined && !currentPageKeys.has(rowSelection.getRowKey(row)));
+      rowSelection.onChange(newSelectedKeys, newSelectedRows);
+    } else {
+      // 全选：添加当前页所有行
+      const currentPageKeys = tableData.map(row => rowSelection.getRowKey(row));
+      const newSelectedKeys = Array.from(new Set([...rowSelection.selectedRowKeys, ...currentPageKeys]));
+      const newSelectedRows = tableData.filter(row => newSelectedKeys.includes(rowSelection.getRowKey(row)));
+      rowSelection.onChange(newSelectedKeys, newSelectedRows);
+    }
+  };
+
+  // 处理单行选择
+  const handleSelectRow = (row: TData, checked: boolean) => {
+    if (!rowSelection) return;
+    const rowKey = rowSelection.getRowKey(row);
+    let newSelectedKeys: string[];
+    let newSelectedRows: TData[];
+    
+    if (checked) {
+      newSelectedKeys = [...rowSelection.selectedRowKeys, rowKey];
+      newSelectedRows = [...rowSelection.selectedRowKeys.map(key => 
+        tableData.find(r => rowSelection.getRowKey(r) === key) || row
+      ).filter((r, i, arr) => 
+        rowSelection.selectedRowKeys[i] !== rowKey || arr.findIndex(ar => rowSelection.getRowKey(ar) === rowSelection.selectedRowKeys[i]) === i
+      ), row];
+    } else {
+      newSelectedKeys = rowSelection.selectedRowKeys.filter(key => key !== rowKey);
+      newSelectedRows = tableData.filter(r => newSelectedKeys.includes(rowSelection.getRowKey(r)));
+    }
+    
+    rowSelection.onChange(newSelectedKeys, newSelectedRows);
+  };
+
+  // 构建选择列
+  const selectionColumn: ColumnDef<TData, unknown> | null = useMemo(() => {
+    if (!rowSelection) return null;
+    return {
+      id: "selection",
+      header: () => (
+        <div className="flex justify-center">
+          <input
+            type="checkbox"
+            checked={isAllSelected}
+            ref={(el) => {
+              if (el) {
+                el.indeterminate = isIndeterminate;
+              }
+            }}
+            onChange={handleSelectAll}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ),
+      cell: (ctx) => {
+        const row = ctx.row.original;
+        const rowKey = rowSelection.getRowKey(row);
+        const isSelected = rowSelection.selectedRowKeys.includes(rowKey);
+        return (
+          <div className="flex justify-center">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={(e) => handleSelectRow(row, e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        );
+      },
+      size: 48,
+      meta: {
+        fixed: "left",
+      } as TableColumnMeta,
+    };
+  }, [rowSelection, isAllSelected, isIndeterminate, tableData]);
 
   const mappedColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
     return columns.map((column) => ({
@@ -103,13 +208,15 @@ export function DataTable<TData>({
   }, [actionColumn, actionColumnWidth]);
 
   const allColumns = useMemo(() => {
-    if (mappedActionColumn) {
-      return [...mappedColumns, mappedActionColumn];
-    }
-    return mappedColumns;
-  }, [mappedColumns, mappedActionColumn]);
+    const cols: ColumnDef<TData, unknown>[] = [];
+    if (selectionColumn) cols.push(selectionColumn);
+    cols.push(...mappedColumns);
+    if (mappedActionColumn) cols.push(mappedActionColumn);
+    return cols;
+  }, [mappedColumns, mappedActionColumn, selectionColumn]);
 
   const actionColumnId = mappedActionColumn ? getColumnId(mappedActionColumn) : null;
+  const selectionColumnId = selectionColumn ? getColumnId(selectionColumn) : null;
 
   const columnPinning = useMemo<ColumnPinningState>(() => {
     const allColumnIds = allColumns
@@ -118,6 +225,11 @@ export function DataTable<TData>({
 
     const leftSet = new Set<string>(fixedColumns?.left ?? []);
     const rightSet = new Set<string>(fixedColumns?.right ?? []);
+
+    // 如果选择列存在，强制固定在左侧
+    if (selectionColumnId) {
+      leftSet.add(selectionColumnId);
+    }
 
     allColumns.forEach((column) => {
       const id = getColumnId(column);
@@ -139,7 +251,7 @@ export function DataTable<TData>({
       left: allColumnIds.filter((id) => leftSet.has(id)),
       right: allColumnIds.filter((id) => rightSet.has(id)),
     };
-  }, [actionColumnId, allColumns, fixedColumns]);
+  }, [actionColumnId, selectionColumnId, allColumns, fixedColumns]);
 
   const table = useReactTable({
     data: tableData,
@@ -184,9 +296,10 @@ export function DataTable<TData>({
                     key={header.id}
                     className={`px-4 py-3 font-semibold whitespace-nowrap ${
                       header.column.id === actionColumnId ? "text-center" : ""
-                    }`}
+                    } ${header.column.id === selectionColumnId ? "text-center w-12" : ""}`}
                     style={{
                       ...(header.column.id === actionColumnId ? { width: `${actionColumnWidth}px` } : {}),
+                      ...(header.column.id === selectionColumnId ? { width: "48px" } : {}),
                       ...getPinnedStyles(header.column, "#f9fafb"),
                     }}
                   >
@@ -212,9 +325,10 @@ export function DataTable<TData>({
                     key={cell.id}
                     className={`px-4 py-3 whitespace-nowrap text-gray-700 ${
                       cell.column.id === actionColumnId ? "text-center" : ""
-                    }`}
+                    } ${cell.column.id === selectionColumnId ? "text-center w-12" : ""}`}
                     style={{
                       ...(cell.column.id === actionColumnId ? { width: `${actionColumnWidth}px` } : {}),
+                      ...(cell.column.id === selectionColumnId ? { width: "48px" } : {}),
                       ...getPinnedStyles(cell.column, index % 2 === 0 ? "#ffffff" : "#f9fafb"),
                     }}
                   >
