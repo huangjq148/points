@@ -9,7 +9,7 @@
 
 interface LedgerItem {
   _id: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "deduction";
   name: string;
   points: number;
   date: string;
@@ -112,25 +112,33 @@ export default function WalletPage() {
          ) : (
            <>
              {ledgerData.length > 0 ? (
-               ledgerData.map((item) => (
-                 <div key={item._id} className="card-parent flex items-center gap-3">
-                   <div
-                     className={`text-2xl p-2 rounded-full ${item.type === "income" ? "bg-blue-50" : "bg-orange-50"}`}
-                   >
-                     {item.icon}
+               ledgerData.map((item) => {
+                 // 根据类型确定样式
+                 const isIncome = item.type === "income";
+                 const isDeduction = item.type === "deduction";
+                 const bgColor = isIncome ? "bg-blue-50" : isDeduction ? "bg-red-50" : "bg-orange-50";
+                 const textColor = isIncome ? "text-blue-600" : isDeduction ? "text-red-600" : "text-orange-600";
+                 const sign = isIncome ? "+" : "-";
+                 
+                 return (
+                   <div key={item._id} className="card-parent flex items-center gap-3">
+                     <div className={`text-2xl p-2 rounded-full ${bgColor}`}>
+                       {item.icon}
+                     </div>
+                     <div className="flex-1">
+                       <p className="font-medium text-gray-800">
+                         {isDeduction ? `家长扣除：${item.name}` : item.name}
+                       </p>
+                       <p className="text-xs text-gray-500">
+                         {formatDate(item.date)}
+                       </p>
+                     </div>
+                     <span className={`font-bold ${textColor}`}>
+                       {sign}{item.points}
+                     </span>
                    </div>
-                   <div className="flex-1">
-                     <p className="font-medium text-gray-800">{item.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatDate(item.date)}
-                    </p>
-                  </div>
-                   <span className={`font-bold ${item.type === "income" ? "text-blue-600" : "text-orange-600"}`}>
-                     {item.type === "income" ? "+" : "-"}
-                     {item.points}
-                   </span>
-                 </div>
-               ))
+                 );
+               })
              ) : (
                <div className="text-center py-8 text-gray-500">暂无记录</div>
              )}

@@ -7,9 +7,10 @@ import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import type { DataTableColumn } from "@/components/ui";
-import { Copy, Settings, Trash2, Users } from "lucide-react";
+import { Copy, Settings, Trash2, Users, MinusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import request from "@/utils/request";
+import DeductPointsModal from "@/components/parent/modals/DeductPointsModal";
 
 export default function FamilyPage() {
   const { currentUser, logout, refreshChildren } = useApp();
@@ -28,6 +29,15 @@ export default function FamilyPage() {
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [accountForm, setAccountForm] = useState({ username: "", password: "", role: "parent", identity: "" });
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
+
+  // 扣除积分弹窗状态
+  const [showDeductPointsModal, setShowDeductPointsModal] = useState(false);
+  const [deductPointsTarget, setDeductPointsTarget] = useState<{
+    id: string;
+    nickname: string;
+    avatar: string;
+    availablePoints: number;
+  } | null>(null);
 
   const token = currentUser?.token;
 
@@ -199,13 +209,34 @@ export default function FamilyPage() {
       title: "类型",
       render: (value) => (
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-          value === "child" 
-            ? "bg-orange-50 text-orange-600 border-orange-200" 
+          value === "child"
+            ? "bg-orange-50 text-orange-600 border-orange-200"
             : "bg-gray-50 text-gray-600 border-gray-200"
         }`}>
           {value === "child" ? "👶 孩子" : "👤 用户"}
         </span>
       ),
+    },
+    {
+      key: "points",
+      title: "积分",
+      render: (_, row) => {
+        if (row.type !== "child") {
+          return <span className="text-gray-400">-</span>;
+        }
+        return (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="text-amber-600 font-semibold">{row.availablePoints || 0}</span>
+              <span className="text-xs text-gray-400">可用</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 text-sm">{row.totalPoints || 0}</span>
+              <span className="text-xs text-gray-400">累计</span>
+            </div>
+          </div>
+        );
+      },
     },
   ], []);
 
@@ -213,7 +244,7 @@ export default function FamilyPage() {
       key: "actions",
       title: "操作",
       render: (_, row) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-center gap-2">
           {row.type === "parent" && (
             <Button
               variant="secondary"
@@ -231,6 +262,26 @@ export default function FamilyPage() {
               className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
             >
               <Settings size={18} />
+            </Button>
+          )}
+          {/* 孩子角色显示扣除积分按钮 - 只在有可扣除积分时显示 */}
+          {row.type === "child" && (row.availablePoints || 0) > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setDeductPointsTarget({
+                  id: row.id,
+                  nickname: row.nickname || row.username,
+                  avatar: row.avatar || "👶",
+                  availablePoints: row.availablePoints || 0,
+                });
+                setShowDeductPointsModal(true);
+              }}
+              className="text-orange-500 hover:bg-orange-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              title={`扣除积分（可扣: ${row.availablePoints}）`}
+            >
+              <MinusCircle size={18} />
             </Button>
           )}
           {!row.isMe && row.type === "parent" && (
@@ -407,6 +458,17 @@ export default function FamilyPage() {
           </div>
         </div>
       </Modal>
+
+      {/* 扣除积分弹窗 */}
+      <DeductPointsModal
+        isOpen={showDeductPointsModal}
+        onClose={() => setShowDeductPointsModal(false)}
+        child={deductPointsTarget}
+        onSuccess={() => {
+          // 扣除成功后刷新家庭成员列表
+          fetchFamilyMembers(page);
+        }}
+      />
     </>
   );
 }

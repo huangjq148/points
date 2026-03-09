@@ -39,6 +39,7 @@ interface LedgerOrder {
   pointsSpent: number;
   createdAt: Date;
   rewardIcon?: string;
+  type?: 'reward' | 'deduction';
 }
 
 export async function GET(request: NextRequest) {
@@ -129,11 +130,11 @@ export async function GET(request: NextRequest) {
       })),
       ...(orders as unknown as LedgerOrder[]).map((o) => ({
         _id: o._id,
-        type: 'expense',
+        type: o.type === 'deduction' ? 'deduction' : 'expense',
         name: o.rewardName,
         points: o.pointsSpent,
         date: o.createdAt,
-        icon: o.rewardIcon || '🎁'
+        icon: o.rewardIcon || (o.type === 'deduction' ? '⚠️' : '🎁')
       }))
     ];
 
