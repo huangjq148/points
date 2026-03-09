@@ -7,10 +7,11 @@ import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import type { DataTableColumn } from "@/components/ui";
-import { Copy, Settings, Trash2, Users, MinusCircle } from "lucide-react";
+import { Copy, Settings, Trash2, Users, MinusCircle, PlusCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import request from "@/utils/request";
 import DeductPointsModal from "@/components/parent/modals/DeductPointsModal";
+import RewardPointsModal from "@/components/parent/modals/RewardPointsModal";
 
 export default function FamilyPage() {
   const { currentUser, logout, refreshChildren } = useApp();
@@ -33,6 +34,15 @@ export default function FamilyPage() {
   // 扣除积分弹窗状态
   const [showDeductPointsModal, setShowDeductPointsModal] = useState(false);
   const [deductPointsTarget, setDeductPointsTarget] = useState<{
+    id: string;
+    nickname: string;
+    avatar: string;
+    availablePoints: number;
+  } | null>(null);
+
+  // 奖励积分弹窗状态
+  const [showRewardPointsModal, setShowRewardPointsModal] = useState(false);
+  const [rewardPointsTarget, setRewardPointsTarget] = useState<{
     id: string;
     nickname: string;
     avatar: string;
@@ -264,6 +274,26 @@ export default function FamilyPage() {
               <Settings size={18} />
             </Button>
           )}
+          {/* 孩子角色显示奖励积分按钮 */}
+          {row.type === "child" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setRewardPointsTarget({
+                  id: row.id,
+                  nickname: row.nickname || row.username,
+                  avatar: row.avatar || "👶",
+                  availablePoints: row.availablePoints || 0,
+                });
+                setShowRewardPointsModal(true);
+              }}
+              className="text-green-500 hover:bg-green-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              title="奖励积分"
+            >
+              <PlusCircle size={18} />
+            </Button>
+          )}
           {/* 孩子角色显示扣除积分按钮 - 只在有可扣除积分时显示 */}
           {row.type === "child" && (row.availablePoints || 0) > 0 && (
             <Button
@@ -466,6 +496,17 @@ export default function FamilyPage() {
         child={deductPointsTarget}
         onSuccess={() => {
           // 扣除成功后刷新家庭成员列表
+          fetchFamilyMembers(page);
+        }}
+      />
+
+      {/* 奖励积分弹窗 */}
+      <RewardPointsModal
+        isOpen={showRewardPointsModal}
+        onClose={() => setShowRewardPointsModal(false)}
+        child={rewardPointsTarget}
+        onSuccess={() => {
+          // 奖励成功后刷新家庭成员列表
           fetchFamilyMembers(page);
         }}
       />

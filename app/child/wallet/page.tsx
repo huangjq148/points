@@ -9,7 +9,7 @@
 
 interface LedgerItem {
   _id: string;
-  type: "income" | "expense" | "deduction";
+  type: "income" | "expense" | "deduction" | "reward";
   name: string;
   points: number;
   date: string;
@@ -112,34 +112,42 @@ export default function WalletPage() {
          ) : (
            <>
              {ledgerData.length > 0 ? (
-               ledgerData.map((item) => {
-                 // 根据类型确定样式
-                 const isIncome = item.type === "income";
-                 const isDeduction = item.type === "deduction";
-                 const bgColor = isIncome ? "bg-blue-50" : isDeduction ? "bg-red-50" : "bg-orange-50";
-                 const textColor = isIncome ? "text-blue-600" : isDeduction ? "text-red-600" : "text-orange-600";
-                 const sign = isIncome ? "+" : "-";
-                 
-                 return (
-                   <div key={item._id} className="card-parent flex items-center gap-3">
-                     <div className={`text-2xl p-2 rounded-full ${bgColor}`}>
-                       {item.icon}
-                     </div>
-                     <div className="flex-1">
-                       <p className="font-medium text-gray-800">
-                         {isDeduction ? `家长扣除：${item.name}` : item.name}
-                       </p>
-                       <p className="text-xs text-gray-500">
-                         {formatDate(item.date)}
-                       </p>
-                     </div>
-                     <span className={`font-bold ${textColor}`}>
-                       {sign}{item.points}
-                     </span>
-                   </div>
-                 );
-               })
-             ) : (
+                              ledgerData.map((item) => {
+                               // 根据类型确定样式
+                               const isIncome = item.type === "income";
+                               const isDeduction = item.type === "deduction";
+                               const isReward = item.type === "reward";
+                               const bgColor = isIncome ? "bg-blue-50" : isDeduction ? "bg-red-50" : isReward ? "bg-green-50" : "bg-orange-50";
+                               const textColor = isIncome ? "text-blue-600" : isDeduction ? "text-red-600" : isReward ? "text-green-600" : "text-orange-600";
+                               const sign = isIncome || isReward ? "+" : "-";
+               
+                               // 根据类型确定显示名称
+                               let displayName = item.name;
+                               if (isDeduction) {
+                                 displayName = `家长扣除：${item.name}`;
+                               } else if (isReward) {
+                                 displayName = `家长奖励：${item.name}`;
+                               }
+               
+                               return (
+                                 <div key={item._id} className="card-parent flex items-center gap-3">
+                                   <div className={`text-2xl p-2 rounded-full ${bgColor}`}>
+                                     {item.icon}
+                                   </div>
+                                   <div className="flex-1">
+                                     <p className="font-medium text-gray-800">
+                                       {displayName}
+                                     </p>
+                                     <p className="text-xs text-gray-500">
+                                       {formatDate(item.date)}
+                                     </p>
+                                   </div>
+                                   <span className={`font-bold ${textColor}`}>
+                                     {sign}{item.points}
+                                   </span>
+                                 </div>
+                               );
+                             })             ) : (
                <div className="text-center py-8 text-gray-500">暂无记录</div>
              )}
  

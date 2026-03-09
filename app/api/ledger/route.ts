@@ -130,9 +130,9 @@ export async function GET(request: NextRequest) {
       })),
       ...(orders as unknown as LedgerOrder[]).map((o) => ({
         _id: o._id,
-        type: o.type === 'deduction' ? 'deduction' : 'expense',
+        type: o.type === 'deduction' ? 'deduction' : o.type === 'reward' && o.pointsSpent < 0 ? 'reward' : 'expense',
         name: o.rewardName,
-        points: o.pointsSpent,
+        points: Math.abs(o.pointsSpent),
         date: o.createdAt,
         icon: o.rewardIcon || (o.type === 'deduction' ? '⚠️' : '🎁')
       }))
