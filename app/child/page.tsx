@@ -100,6 +100,21 @@ export default function ChildHome() {
 
   useEffect(() => {
     fetchTasks();
+
+    // 生成星星背景
+    const starsContainer = document.getElementById('stars-bg');
+    if (starsContainer) {
+      starsContainer.innerHTML = '';
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        star.style.opacity = Math.random().toString();
+        starsContainer.appendChild(star);
+      }
+    }
   }, [fetchTasks]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,6 +233,94 @@ export default function ChildHome() {
           font-family: 'Nunito', sans-serif;
         }
 
+        /* 星空背景 */
+        .stars-bg {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+          z-index: 0;
+        }
+
+        .star {
+          position: absolute;
+          width: 2px;
+          height: 2px;
+          background: white;
+          border-radius: 50%;
+          animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* 浮动动画 */
+        .float-anim {
+          animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+
+        /* 卡片悬停效果 */
+        .task-card {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .task-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+          background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* 进度环动画 */
+        .progress-ring {
+          transform: rotate(-90deg);
+          transition: stroke-dashoffset 0.5s ease;
+        }
+
+        /* 徽章发光效果 */
+        .badge-glow {
+          box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+          animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
+          50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
+        }
+
+        /* 完成任务动画 */
+        .complete-btn {
+          transition: all 0.3s ease;
+        }
+
+        .complete-btn:active {
+          transform: scale(0.95);
+        }
+
+        /* 玻璃拟态效果 - 深色主题 */
+        .glass {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-strong {
+          background: rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
         .card-3d {
           transform-style: preserve-3d;
           transition: transform 0.3s ease;
@@ -225,34 +328,6 @@ export default function ChildHome() {
 
         .card-3d:hover {
           transform: translateY(-5px) rotateX(5deg);
-        }
-
-        .glass {
-          background: rgba(255, 255, 255, 0.25);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-        }
-
-        .glass-strong {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px);
-          border: 2px solid rgba(255, 255, 255, 0.5);
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-15px) rotate(2deg);
-          }
-        }
-
-        .float-anim {
-          animation: float 4s ease-in-out infinite;
         }
 
         @keyframes pulse-ring {
@@ -345,7 +420,7 @@ export default function ChildHome() {
           top: 40px;
           bottom: 0;
           width: 4px;
-          background: linear-gradient(to bottom, #e5e7eb 0%, #e5e7eb 100%);
+          background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
           border-radius: 2px;
         }
 
@@ -380,6 +455,7 @@ export default function ChildHome() {
           animation: blink 4s infinite;
         }
 
+        /* 隐藏滚动条但保持功能 */
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -387,63 +463,111 @@ export default function ChildHome() {
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
+
+        /* 任务完成划线动画 */
+        .strikethrough {
+          position: relative;
+          display: inline-block;
+        }
+
+        .strikethrough::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 50%;
+          width: 0;
+          height: 2px;
+          background: #10b981;
+          transition: width 0.3s ease;
+        }
+
+        .strikethrough.active::after {
+          width: 100%;
+        }
+
+        /* 积分增加动画 */
+        @keyframes points-up {
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
+        }
+
+        .points-animation {
+          animation: points-up 1s ease-out forwards;
+        }
       `}</style>
 
-      <div className='relative min-h-screen text-gray-800'>
+      <div className='relative min-h-screen text-white'>
+        {/* 星空背景 */}
+        <div className='stars-bg' id='stars-bg'></div>
+
         {/* 主内容区 - 不包含Header和用户信息，由ChildLayout提供 */}
         <div className='relative z-10 px-6 pt-4 pb-6'>
-          {/* 主积分卡片 */}
-          <div className='glass-strong rounded-3xl p-6 shadow-2xl relative overflow-hidden card-3d'>
-            <div className='absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-300/30 to-orange-400/30 rounded-full blur-3xl -mr-10 -mt-10'></div>
-            <div className='absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/20 to-purple-400/20 rounded-full blur-2xl -ml-10 -mb-10'></div>
+          {/* 今日概览卡片 - 包含进度环和统计 */}
+          <div className='glass rounded-3xl p-6 shadow-2xl relative overflow-hidden float-anim'>
+            <div className='flex items-center justify-between mb-4'>
+              <h2 className='text-xl font-bold flex items-center gap-2'>
+                <span className='text-2xl'>🚀</span>
+                今日任务进度
+              </h2>
+              <span className='text-sm text-gray-300'>
+                {dayjs().format('M月D日 dddd')}
+              </span>
+            </div>
 
-            <div className='relative z-10'>
-              <div className='flex items-center justify-between mb-6'>
-                {/* 左侧：星际能量和积分 */}
-                <div className='flex-1'>
-                  <div className='flex items-center gap-2 mb-2'>
-                    <span className='text-2xl'>💎</span>
-                    <span className='text-gray-500 font-bold text-sm uppercase tracking-wider'>
-                      星际能量
+            <div className='grid grid-cols-3 gap-4'>
+              {/* 进度环 */}
+              <div className='col-span-1 flex flex-col items-center justify-center'>
+                <div className='relative w-24 h-24'>
+                  <svg className='w-full h-full transform -rotate-90'>
+                    <circle cx='48' cy='48' r='40' stroke='rgba(255,255,255,0.1)' strokeWidth='8' fill='none'></circle>
+                    <circle
+                      cx='48'
+                      cy='48'
+                      r='40'
+                      stroke='#10b981'
+                      strokeWidth='8'
+                      fill='none'
+                      strokeDasharray='251.2'
+                      strokeDashoffset={251.2 - (completedTasks.length / (filteredTasks.length + completedTasks.length || 1)) * 251.2}
+                      strokeLinecap='round'
+                      className='progress-ring'
+                    ></circle>
+                  </svg>
+                  <div className='absolute inset-0 flex items-center justify-center flex-col'>
+                    <span className='text-2xl font-bold'>
+                      {Math.round((completedTasks.length / (filteredTasks.length + completedTasks.length || 1)) * 100)}%
                     </span>
-                  </div>
-                  <div className='flex items-baseline gap-2'>
-                    <span className='text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 drop-shadow-sm'>
-                      {displayPoints.toLocaleString()}
-                    </span>
-                    <span className='text-2xl font-bold text-gray-400'>pts</span>
+                    <span className='text-xs text-gray-400'>完成度</span>
                   </div>
                 </div>
+              </div>
 
-                {/* 右侧：今日任务和已完成统计 */}
-                <div className='flex flex-col gap-3'>
-                  <div
-                    className='bg-blue-50 rounded-xl px-4 py-2 text-center border-2 border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors min-w-[160px]'
-                    onClick={() => {
-                      router.push(
-                        `/child/task?startDate=${dayjs().format(
-                          'YYYY-MM-DD',
-                        )}&endDate=${dayjs().format('YYYY-MM-DD')}`,
-                      );
-                    }}
-                  >
-                    <div className='text-lg font-black text-blue-600'>
-                      {filteredTasks.length}
-                    </div>
-                    <div className='text-[10px] font-bold text-blue-400 uppercase'>
-                      今日任务
-                    </div>
-                  </div>
-                  <div
-                    className='bg-green-50 rounded-xl px-4 py-2 text-center border-2 border-green-100 cursor-pointer hover:bg-green-100 transition-colors min-w-[160px]'
-                    onClick={() => router.push('/child/task?status=approved')}
-                  >
-                    <div className='text-lg font-black text-green-600'>
-                      {completedTasks.length}
-                    </div>
-                    <div className='text-[10px] font-bold text-green-400 uppercase'>
-                      已完成
-                    </div>
+              {/* 统计信息 */}
+              <div className='col-span-2 grid grid-cols-2 gap-3'>
+                <div
+                  className='bg-white/5 rounded-2xl p-4 text-center cursor-pointer hover:bg-white/10 transition-colors'
+                  onClick={() => router.push('/child/task?status=approved')}
+                >
+                  <div className='text-3xl mb-1'>📋</div>
+                  <div className='text-2xl font-bold text-blue-400'>{completedTasks.length}</div>
+                  <div className='text-xs text-gray-400'>已完成</div>
+                </div>
+                <div
+                  className='bg-white/5 rounded-2xl p-4 text-center cursor-pointer hover:bg-white/10 transition-colors'
+                  onClick={() => {
+                    router.push(
+                      `/child/task?status=pending`,
+                    );
+                  }}
+                >
+                  <div className='text-3xl mb-1'>⏳</div>
+                  <div className='text-2xl font-bold text-orange-400'>{filteredTasks.length}</div>
+                  <div className='text-xs text-gray-400'>待完成</div>
+                </div>
+                <div className='bg-white/5 rounded-2xl p-4 text-center col-span-2'>
+                  <div className='flex items-center justify-center gap-2'>
+                    <span className='text-yellow-400 text-xl'>💎</span>
+                    <span className='text-lg'>星际积分 <strong className='text-yellow-400'>{displayPoints.toLocaleString()}</strong></span>
                   </div>
                 </div>
               </div>
@@ -454,167 +578,212 @@ export default function ChildHome() {
         {/* 进行中的任务时间轴 */}
         <div className='relative z-10 px-6 mb-6'>
           <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-black text-white flex items-center gap-2 drop-shadow-md'>
-              <span className='bg-white/20 p-2 rounded-xl backdrop-blur-sm'>
-                🎯
-              </span>
-              进行中的任务
+            <h2 className='text-xl font-bold text-white flex items-center gap-2'>
+              <span className='text-2xl'>📜</span>
+              探险任务
             </h2>
             <button
-              className='text-white/80 text-sm font-bold hover:text-white transition-colors flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm'
+              className='text-sm text-blue-400 hover:text-blue-300 transition flex items-center gap-1'
               onClick={() => router.push('/child/task')}
             >
-              查看全部 <span className='text-lg'>→</span>
+              查看全部
+              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 5l7 7-7 7'></path></svg>
             </button>
           </div>
 
-          <div className='relative pl-2'>
-            <div className='timeline-line'></div>
-            <div className='space-y-4'>
-              {filteredTasks.map((task, index) => {
-                const isPending = task.status === 'pending';
-                const isSubmitted = task.status === 'submitted';
+          <div className='space-y-4'>
+            {filteredTasks.map((task, index) => {
+              const isPending = task.status === 'pending';
+              const isSubmitted = task.status === 'submitted';
+              const isRejected = task.status === 'rejected';
 
-                return (
-                  <motion.div
-                    key={task._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className='relative flex items-start gap-4 group cursor-pointer'
-                    id={`task-${task._id}`}
-                    onClick={() => {
-                      if (task.status === 'pending' || task.status === 'rejected') {
-                        openSubmitModal(task);
-                      } else {
-                        openTaskDetail(task);
-                      }
-                    }}
-                  >
-                    <div
-                      className={`relative z-10 w-12 h-12 ${
-                        isSubmitted ? 'bg-blue-500' : 'bg-gray-300'
-                      } rounded-2xl flex items-center justify-center text-2xl shadow-lg border-4 border-white ${isPending ? 'pulse-ring' : ''}`}
-                    >
+              return (
+                <motion.div
+                  key={task._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className='task-card glass rounded-2xl p-4 flex items-center gap-4 cursor-pointer'
+                  id={`task-${task._id}`}
+                  onClick={() => {
+                    if (task.status === 'pending' || task.status === 'rejected') {
+                      openSubmitModal(task);
+                    } else {
+                      openTaskDetail(task);
+                    }
+                  }}
+                >
+                  <div className='relative'>
+                    <div className='w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl'>
                       {task.icon}
                     </div>
-                    <div
-                      className={`flex-1 ${
-                        isSubmitted
-                          ? 'glass rounded-2xl border-l-4 border-blue-400 opacity-75'
-                          : 'glass-strong rounded-2xl border-l-4 border-blue-500 shadow-xl transform hover:scale-[1.02] transition-all'
-                      }`}
-                      style={{ padding: '16px' }}
-                    >
-                      <div className='flex justify-between items-start'>
-                        <div className='flex-1'>
-                          <div className='flex items-center gap-2 mb-1'>
-                            <h3 className='font-bold text-gray-800 text-lg'>
-                              {task.name}
-                            </h3>
-                            {isPending && (
-                              <span className='bg-blue-100 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold'>
-                                进行中
-                              </span>
-                            )}
-                            {isSubmitted && (
-                              <span className='bg-blue-100 text-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold'>
-                                审核中
-                              </span>
-                            )}
-                          </div>
-                          <p className='text-xs text-gray-500 flex items-center gap-1'>
-                            <span>{task.icon}</span>{' '}
-                            {isSubmitted ? '审核中' : '待完成'} • +{task.points}
-                            分
-                            {task.deadline &&
-                              (() => {
-                                const deadline = dayjs(task.deadline);
-                                const today = dayjs().startOf('day');
-                                const tomorrow = today.add(1, 'day');
-                                const isToday =
-                                  deadline.isAfter(today) &&
-                                  deadline.isBefore(tomorrow);
-                                const timeStr = deadline.format('HH:mm');
-                                const dateStr = !isToday
-                                  ? deadline.format('M月D日') + ' '
-                                  : '';
-                                return (
-                                  <>
-                                    {' '}
-                                    • 截止 {dateStr}
-                                    {timeStr}
-                                  </>
-                                );
-                              })()}
-                          </p>
-                          {isPending && (
-                            <div className='mt-2 flex gap-2'>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openSubmitModal(task);
-                                }}
-                                className='bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-all active:scale-95 flex items-center gap-1'
-                              >
-                                <span>✓</span> 完成
-                              </button>
-                            </div>
-                          )}
-                          {isSubmitted && (
-                            <div className='mt-2 flex gap-2'>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRecallTask(task);
-                                }}
-                                disabled={recallingTaskId === task._id}
-                                className='bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg hover:bg-amber-600 transition-all active:scale-95 flex items-center gap-1 disabled:opacity-50'
-                              >
-                                <span>🔙</span>{' '}
-                                {recallingTaskId === task._id
-                                  ? '撤回中...'
-                                  : '撤回修改'}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        <div className='text-right'>
-                          <div
-                            className='w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl'
-                          >
-                            {task.icon}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    {isPending && (
+                      <div className='absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-gray-900 animate-pulse'></div>
+                    )}
+                  </div>
 
-              {filteredTasks.length === 0 && (
-                <div className='text-center py-8 text-white/60'>
-                  <p>暂无进行中的任务</p>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center gap-2 mb-1'>
+                      <h3 className={`font-bold text-lg ${isRejected ? 'text-red-400' : 'text-white'}`}>
+                        {task.name}
+                      </h3>
+                      {isPending && (
+                        <span className='text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full'>
+                          进行中
+                        </span>
+                      )}
+                      {isSubmitted && (
+                        <span className='text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full'>
+                          审核中
+                        </span>
+                      )}
+                      {isRejected && (
+                        <span className='text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full'>
+                          需修改
+                        </span>
+                      )}
+                    </div>
+                    <div className='flex items-center gap-3 text-sm text-gray-400'>
+                      <span className='flex items-center gap-1'>
+                        <span>⏰</span>
+                        <span>
+                          截止{' '}
+                          {task.deadline &&
+                            (() => {
+                              const deadline = dayjs(task.deadline);
+                              const today = dayjs().startOf('day');
+                              const tomorrow = today.add(1, 'day');
+                              const isToday =
+                                deadline.isAfter(today) &&
+                                deadline.isBefore(tomorrow);
+                              const timeStr = deadline.format('HH:mm');
+                              const dateStr = !isToday
+                                ? deadline.format('M月D日') + ' '
+                                : '';
+                              return `${dateStr}${timeStr}`;
+                            })()}
+                        </span>
+                      </span>
+                      <span className='flex items-center gap-1 text-yellow-400'>
+                        <span>💎</span>
+                        <span>+{task.points}分</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {isPending || isRejected ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openSubmitModal(task);
+                      }}
+                      className='complete-btn bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-colors'
+                    >
+                      <span>完成</span>
+                    </button>
+                  ) : isSubmitted ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRecallTask(task);
+                      }}
+                      disabled={recallingTaskId === task._id}
+                      className='complete-btn bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-colors disabled:opacity-50'
+                    >
+                      <span>{recallingTaskId === task._id ? '撤回中...' : '撤回'}</span>
+                    </button>
+                  ) : null}
+                </motion.div>
+              );
+            })}
+
+            {filteredTasks.length === 0 && (
+              <div className='text-center py-8 text-white/60 glass rounded-2xl'>
+                <div className='text-4xl mb-2'>🎉</div>
+                <p>太棒了！今天的任务都完成了</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 星际基地功能区 */}
+        <div className='relative z-10 px-6 mb-6'>
+          <h2 className='text-xl font-bold text-white flex items-center gap-2 mb-4'>
+            <span className='text-2xl'>🌟</span>
+            星际基地
+          </h2>
+
+          <div className='grid grid-cols-2 gap-4'>
+            {/* 星际商城 */}
+            <div
+              onClick={() => handleNavigate('/child/store')}
+              className='relative rounded-2xl p-5 overflow-hidden cursor-pointer group'
+              style={{ background: 'linear-gradient(135deg, #ec4899 0%, #e11d48 100%)' }}
+            >
+              <div className='absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-500'></div>
+              <div className='relative z-10'>
+                <div className='flex items-start justify-between mb-3'>
+                  <div className='w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur-sm'>
+                    🎁
+                  </div>
+                  <span className='bg-white/20 px-2 py-1 rounded-full text-xs backdrop-blur-sm'>NEW</span>
                 </div>
-              )}
+                <h3 className='font-bold text-lg mb-1 text-white'>星际商城</h3>
+                <p className='text-sm text-white/80'>兑换喜欢的奖励</p>
+              </div>
+            </div>
+
+            {/* 探索日志 */}
+            <div
+              onClick={() => handleNavigate('/child/task?filter=thisWeek')}
+              className='relative rounded-2xl p-5 overflow-hidden cursor-pointer group'
+              style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%)' }}
+            >
+              <div className='absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-10 -mb-10 blur-2xl group-hover:scale-150 transition-transform duration-500'></div>
+              <div className='relative z-10'>
+                <div className='flex items-start justify-between mb-3'>
+                  <div className='w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur-sm'>
+                    📔
+                  </div>
+                  <span className='bg-green-400/20 text-green-300 px-2 py-1 rounded-full text-xs backdrop-blur-sm'>+{completedTasks.length}</span>
+                </div>
+                <h3 className='font-bold text-lg mb-1 text-white'>探索日志</h3>
+                <p className='text-sm text-white/80'>本周完成 {completedTasks.length} 项任务</p>
+              </div>
+            </div>
+
+            {/* 我的钱包 */}
+            <div
+              onClick={() => handleNavigate('/child/wallet')}
+              className='relative rounded-2xl p-5 overflow-hidden cursor-pointer group col-span-2'
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' }}
+            >
+              <div className='absolute top-1/2 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:scale-150 transition-transform duration-500'></div>
+              <div className='relative z-10 flex items-center justify-between'>
+                <div>
+                  <div className='flex items-center gap-3 mb-2'>
+                    <div className='w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur-sm'>
+                      💰
+                    </div>
+                    <div>
+                      <h3 className='font-bold text-lg text-white'>我的钱包</h3>
+                      <p className='text-sm text-white/80'>查看积分明细</p>
+                    </div>
+                  </div>
+                  <div className='flex gap-4 mt-3'>
+                    <div className='bg-white/10 rounded-lg px-3 py-1.5 text-sm'>
+                      <span className='text-white/60'>可用积分:</span>
+                      <span className='text-yellow-300 font-bold ml-1'>{displayPoints.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+                <svg className='w-8 h-8 text-white/40 group-hover:translate-x-2 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 5l7 7-7 7'></path></svg>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 功能入口 */}
-        <div className='relative z-10 px-6 mb-24'>
-          <h2 className='text-xl font-black text-white mb-4 flex items-center gap-2 drop-shadow-md'>
-            <span className='bg-white/20 p-2 rounded-xl backdrop-blur-sm'>
-              🚀
-            </span>
-            星际基地
-          </h2>
 
-          <FeatureGrid
-            completedTasksCount={completedTasks.length}
-            onNavigate={handleNavigate}
-          />
-        </div>
 
         {/* 任务详情弹窗 */}
         <Modal
@@ -622,11 +791,12 @@ export default function ChildHome() {
           onClose={() => setShowTaskDetail(null)}
           showCloseButton={false}
           width={500}
+          className='!bg-white !backdrop-blur-xl !border-gray-200'
           footer={
             selectedTask?.status === 'pending' ||
-            selectedTask?.status === 'rejected' ? (
+              selectedTask?.status === 'rejected' ? (
               <button
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 shadow-xl hover:shadow-blue-500/25 transition-shadow'
                 onClick={() => openSubmitModal(selectedTask!)}
               >
                 {selectedTask?.status === 'rejected'
@@ -635,14 +805,14 @@ export default function ChildHome() {
               </button>
             ) : selectedTask?.status === 'submitted' ? (
               <button
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-xl hover:shadow-orange-500/25 transition-shadow'
                 onClick={() => handleRecallTask(selectedTask!)}
               >
                 🔙 撤回修改
               </button>
             ) : (
               <button
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-slate-700 to-slate-900 shadow-xl'
+                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-slate-600 to-slate-800 shadow-xl'
                 onClick={() => setShowTaskDetail(null)}
               >
                 知道啦
@@ -654,7 +824,7 @@ export default function ChildHome() {
             <>
               {/* 任务基本信息 - 固定在顶部 */}
               <div className='flex items-center gap-5 mb-6'>
-                <div className='w-24 h-24 bg-gradient-to-br from-violet-100 to-purple-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-inner'>
+                <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-inner border border-blue-200'>
                   {selectedTask.icon}
                 </div>
                 <div className='flex-1'>
@@ -666,15 +836,14 @@ export default function ChildHome() {
                       +{selectedTask.points}
                     </span>
                     <span
-                      className={`text-xs px-3 py-1.5 rounded-full font-black flex items-center gap-1 ${
-                        selectedTask.status === 'approved'
+                      className={`text-xs px-3 py-1.5 rounded-full font-black flex items-center gap-1 ${selectedTask.status === 'approved'
                           ? 'bg-green-100 text-green-600'
                           : selectedTask.status === 'submitted'
                             ? 'bg-blue-100 text-blue-600'
                             : selectedTask.status === 'rejected'
                               ? 'bg-red-100 text-red-600'
                               : 'bg-slate-100 text-slate-600'
-                      }`}
+                        }`}
                     >
                       {selectedTask.status === 'approved'
                         ? '✓ 完成'
@@ -691,12 +860,12 @@ export default function ChildHome() {
               {/* 滚动区域 */}
               <div className='max-h-[45vh] overflow-y-auto custom-scrollbar pr-1 space-y-4'>
                 {selectedTask.imageUrl ||
-                selectedTask.description ||
-                selectedTask.requirePhoto ? (
-                  <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
+                  selectedTask.description ||
+                  selectedTask.requirePhoto ? (
+                  <div className='bg-gray-50 p-5 rounded-2xl border border-gray-200'>
                     {selectedTask.imageUrl ? (
                       <>
-                        <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-2'>
+                        <h4 className='text-xs font-black text-gray-500 uppercase tracking-wider mb-2'>
                           任务图片
                         </h4>
                         <div className='relative aspect-video rounded-xl overflow-hidden mb-6'>
@@ -714,7 +883,7 @@ export default function ChildHome() {
 
                     {selectedTask.description ? (
                       <>
-                        <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-2'>
+                        <h4 className='text-xs font-black text-gray-500 uppercase tracking-wider mb-2'>
                           任务描述
                         </h4>
                         <p className='text-gray-700 font-medium leading-relaxed'>
@@ -724,7 +893,7 @@ export default function ChildHome() {
                     ) : null}
 
                     {selectedTask.requirePhoto && (
-                      <div className='mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl'>
+                      <div className='mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl border border-amber-200'>
                         <span className='text-amber-500'>📸</span>
                         <span className='text-sm font-bold text-amber-600'>
                           需要上传照片才能完成
@@ -737,85 +906,85 @@ export default function ChildHome() {
                 {(selectedTask.status === 'approved' ||
                   selectedTask.status === 'submitted' ||
                   selectedTask.status === 'rejected') && (
-                  <div>
                     <div>
-                      {(selectedTask.status === 'approved' ||
-                        selectedTask.status === 'submitted' ||
-                        selectedTask.status === 'rejected') &&
-                        selectedTask.photoUrl && (
-                          <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl mb-4'>
-                            <h4 className='text-xs font-black text-blue-400 uppercase tracking-wider mb-2'>
-                              📸 提交的照片
-                            </h4>
-                            <div className='relative aspect-video rounded-xl overflow-hidden'>
-                              <Image
-                                src={selectedTask.photoUrl}
-                                alt='提交的照片'
-                                className='w-full h-full object-cover'
-                                enableZoom={true}
-                                zoomHint='点击查看大图'
-                                containerClassName='w-full h-full'
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                      <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-2xl'>
-                        <h4 className='text-xs font-black text-green-400 uppercase tracking-wider mb-2'>
-                          {selectedTask.status === 'approved'
-                            ? '✅ 审核通过'
-                            : selectedTask.status === 'rejected'
-                              ? '❌ 已拒绝'
-                              : '⏳ 审核中'}
-                        </h4>
-                        <div className='space-y-2'>
-                          {selectedTask.submittedAt && (
-                            <div className='flex justify-between items-center'>
-                              <span className='text-sm text-gray-500'>
-                                提交时间
-                              </span>
-                              <span className='text-sm font-bold text-gray-700'>
-                                {dayjs(selectedTask.submittedAt).format(
-                                  'M月D日 HH:mm',
-                                )}
-                              </span>
+                      <div>
+                        {(selectedTask.status === 'approved' ||
+                          selectedTask.status === 'submitted' ||
+                          selectedTask.status === 'rejected') &&
+                          selectedTask.photoUrl && (
+                            <div className='bg-blue-50 p-5 rounded-2xl mb-4 border border-blue-200'>
+                              <h4 className='text-xs font-black text-blue-600 uppercase tracking-wider mb-2'>
+                                📸 提交的照片
+                              </h4>
+                              <div className='relative aspect-video rounded-xl overflow-hidden'>
+                                <Image
+                                  src={selectedTask.photoUrl}
+                                  alt='提交的照片'
+                                  className='w-full h-full object-cover'
+                                  enableZoom={true}
+                                  zoomHint='点击查看大图'
+                                  containerClassName='w-full h-full'
+                                />
+                              </div>
                             </div>
                           )}
-                          {selectedTask.status === 'approved' &&
-                            selectedTask.approvedAt && (
+
+                        <div className='bg-green-50 p-5 rounded-2xl border border-green-200'>
+                          <h4 className='text-xs font-black text-green-600 uppercase tracking-wider mb-2'>
+                            {selectedTask.status === 'approved'
+                              ? '✅ 审核通过'
+                              : selectedTask.status === 'rejected'
+                                ? '❌ 已拒绝'
+                                : '⏳ 审核中'}
+                          </h4>
+                          <div className='space-y-2'>
+                            {selectedTask.submittedAt && (
                               <div className='flex justify-between items-center'>
                                 <span className='text-sm text-gray-500'>
-                                  审核时间
+                                  提交时间
                                 </span>
-                                <span className='text-sm font-bold text-green-600'>
-                                  {dayjs(selectedTask.approvedAt).format(
+                                <span className='text-sm font-bold text-gray-800'>
+                                  {dayjs(selectedTask.submittedAt).format(
                                     'M月D日 HH:mm',
                                   )}
                                 </span>
                               </div>
                             )}
-                          {selectedTask.rejectionReason && (
-                            <div className='flex justify-between items-center'>
-                              <span className='text-sm text-gray-500'>
-                                审核意见
-                              </span>
-                              <span className='text-sm font-bold'>
-                                {selectedTask.rejectionReason}
-                              </span>
-                            </div>
-                          )}
+                            {selectedTask.status === 'approved' &&
+                              selectedTask.approvedAt && (
+                                <div className='flex justify-between items-center'>
+                                  <span className='text-sm text-gray-500'>
+                                    审核时间
+                                  </span>
+                                  <span className='text-sm font-bold text-green-600'>
+                                    {dayjs(selectedTask.approvedAt).format(
+                                      'M月D日 HH:mm',
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                            {selectedTask.rejectionReason && (
+                              <div className='flex justify-between items-center'>
+                                <span className='text-sm text-gray-500'>
+                                  审核意见
+                                </span>
+                                <span className='text-sm font-bold text-red-600'>
+                                  {selectedTask.rejectionReason}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* 操作记录 */}
                 {selectedTask.auditHistory &&
                   selectedTask.auditHistory.length > 0 && (
                     <div>
-                      <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
-                        <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
+                      <div className='bg-gray-50 p-5 rounded-2xl border border-gray-200'>
+                        <h4 className='text-xs font-black text-gray-500 uppercase tracking-wider mb-4'>
                           📋 操作记录 ({selectedTask.auditHistory.length})
                         </h4>
                         <div className='space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar'>
@@ -826,13 +995,12 @@ export default function ChildHome() {
                             >
                               {/* 时间线节点 */}
                               <div
-                                className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
-                                  record.status === 'approved'
+                                className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${record.status === 'approved'
                                     ? 'bg-green-500'
                                     : record.status === 'rejected'
                                       ? 'bg-red-500'
                                       : 'bg-blue-500'
-                                }`}
+                                  }`}
                                 style={{ transform: 'translateX(-50%)' }}
                               />
 
@@ -857,14 +1025,14 @@ export default function ChildHome() {
                                     </span>
                                   )}
                                 </div>
-                                <p className='text-xs text-gray-400 mb-1'>
+                                <p className='text-xs text-gray-500 mb-1'>
                                   提交:{' '}
                                   {dayjs(record.submittedAt).format(
                                     'M月D日 HH:mm',
                                   )}
                                 </p>
                                 {record.auditedAt && (
-                                  <p className='text-xs text-gray-400 mb-1'>
+                                  <p className='text-xs text-gray-500 mb-1'>
                                     审核:{' '}
                                     {dayjs(record.auditedAt).format(
                                       'M月D日 HH:mm',
@@ -874,7 +1042,7 @@ export default function ChildHome() {
                                 {/* 提交的照片 */}
                                 {record.photoUrl && (
                                   <div className='mt-2'>
-                                    <p className='text-xs text-gray-400 mb-1'>
+                                    <p className='text-xs text-gray-500 mb-1'>
                                       提交的照片：
                                     </p>
                                     <div className='w-24 h-24 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
@@ -891,8 +1059,8 @@ export default function ChildHome() {
 
                                 {/* 审核意见 */}
                                 {record.auditNote && (
-                                  <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
-                                    <p className='text-xs text-gray-400 mb-1'>
+                                  <div className='mt-2 bg-white rounded-lg p-2 border border-gray-200'>
+                                    <p className='text-xs text-gray-500 mb-1'>
                                       家长意见：
                                     </p>
                                     <p className='text-xs text-gray-700'>
@@ -922,10 +1090,11 @@ export default function ChildHome() {
           }}
           title=''
           width={500}
+          className='!bg-white !backdrop-blur-xl !border-gray-200'
           footer={
             <div className='flex gap-3 w-full'>
               <button
-                className='flex-1 py-4 !rounded-2xl font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 border-none rounded-2xl'
+                className='flex-1 py-4 !rounded-2xl font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 border-none rounded-2xl transition-colors'
                 onClick={() => {
                   setShowSubmitModal(false);
                   setPhotoPreview('');
@@ -934,7 +1103,7 @@ export default function ChildHome() {
                 取消
               </button>
               <button
-                className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-xl hover:shadow-2xl hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 shadow-xl hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-shadow'
                 onClick={handleSubmitTask}
                 disabled={
                   submitting || (selectedTask?.requirePhoto && !photoFile)
@@ -950,7 +1119,7 @@ export default function ChildHome() {
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-              className='w-28 h-28 bg-gradient-to-br from-blue-100 via-blue-200 to-cyan-100 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4'
+              className='w-28 h-28 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4 border border-blue-200'
             >
               {selectedTask?.icon}
             </motion.div>
@@ -961,7 +1130,7 @@ export default function ChildHome() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 }}
-              className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-full mt-4 font-black shadow-lg'
+              className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full mt-4 font-black shadow-lg'
             >
               <span>⚡</span>
               <span>+{selectedTask?.points} 积分</span>
@@ -977,7 +1146,7 @@ export default function ChildHome() {
               onChange={handlePhotoSelect}
             />
             <div
-              className='group relative border-4 border-dashed border-purple-200 rounded-[2rem] p-2 cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-all'
+              className='group relative border-4 border-dashed border-blue-300 rounded-[2rem] p-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all'
               onClick={() => {
                 if (fileInputRef.current) {
                   fileInputRef.current.value = '';
@@ -1004,12 +1173,12 @@ export default function ChildHome() {
                 <div className='flex flex-col items-center gap-4 py-10'>
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
-                    className='w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center'
+                    className='w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center border border-blue-200'
                   >
                     <span className='text-4xl'>📸</span>
                   </motion.div>
                   <div className='text-center'>
-                    <p className='font-black text-gray-700 text-lg'>
+                    <p className='font-black text-gray-800 text-lg'>
                       上传任务照片
                     </p>
                     <p className='text-sm mt-1 text-gray-500'>

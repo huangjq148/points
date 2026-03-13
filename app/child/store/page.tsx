@@ -110,7 +110,7 @@ export default function StorePage() {
           placeholder="搜索礼物..."
           value={rewardSearchQuery}
           onChange={(e) => setRewardSearchQuery(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+          className="w-full px-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur text-gray-800"
         />
       </div>
 

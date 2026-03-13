@@ -83,13 +83,13 @@ export default function WalletPage() {
             selected={ledgerStartDate}
             onChange={(date: Date | null) => setLedgerStartDate(date)}
             placeholderText="开始日期"
-            className="border-blue-200"
+            className="border-blue-200 text-gray-800"
           />
           <DatePicker
             selected={ledgerEndDate}
             onChange={(date: Date | null) => setLedgerEndDate(date)}
             placeholderText="结束日期"
-            className="border-blue-200"
+            className="border-blue-200 text-gray-800"
           />
         </div>
         <div className="relative">
@@ -99,7 +99,7 @@ export default function WalletPage() {
             placeholder="搜索记录..."
             value={ledgerKeyword}
             onChange={(e) => setLedgerKeyword(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-blue-200 bg-white/80 backdrop-blur text-gray-800"
           />
         </div>
       </div>

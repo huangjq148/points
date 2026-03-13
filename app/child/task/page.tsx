@@ -157,13 +157,13 @@ function TaskPage() {
     setInitialFilterApplied(true);
   }, [searchParams, initialFilterApplied]);
 
-  // 当日期筛选条件变化时，重新获取任务
+  // 当筛选条件变化时，重新获取任务
   useEffect(() => {
-    if (initialFilterApplied || !searchParams.get('filter')) {
+    if (initialFilterApplied) {
       fetchTasks(1);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, initialFilterApplied, fetchTasks]);
+  }, [statusFilter, startDate, endDate, initialFilterApplied, fetchTasks]);
 
   const handleSearch = () => {
     fetchTasks(1);
@@ -399,7 +399,7 @@ function TaskPage() {
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className='w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-400 transition-colors'
+                className='w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-400 transition-colors text-gray-800'
               />
             </div>
 
@@ -411,7 +411,7 @@ function TaskPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className='px-3 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl text-sm focus:outline-none focus:border-blue-400'
+                  className='px-3 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl text-sm focus:outline-none focus:border-blue-400 text-gray-800'
                 >
                   {STATUS_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -428,14 +428,14 @@ function TaskPage() {
                   selected={startDate}
                   onChange={(date) => setStartDate(date)}
                   placeholderText='开始日期'
-                  className='border-gray-100 flex-1'
+                  className='border-gray-100 flex-1 text-gray-800'
                 />
                 <span className='text-gray-400'>-</span>
                 <DatePicker
                   selected={endDate}
                   onChange={(date) => setEndDate(date)}
                   placeholderText='结束日期'
-                  className='border-gray-100 flex-1'
+                  className='border-gray-100 flex-1 text-gray-800'
                 />
               </div>
             </div>

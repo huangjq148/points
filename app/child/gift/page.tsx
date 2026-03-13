@@ -188,14 +188,14 @@ export default function GiftPage() {
               placeholder="搜索礼物..."
               value={giftSearchQuery}
               onChange={(e) => setGiftSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-blue-200 bg-white/80 backdrop-blur text-gray-800"
             />
           </div>
           <DatePicker
             selected={giftDate}
             onChange={(date: Date | null) => setGiftDate(date)}
             placeholderText="兑换日期"
-            className="border-blue-200"
+            className="border-blue-200 text-gray-800"
           />
         </div>
         <div className="flex p-1 bg-white/50 backdrop-blur rounded-xl border border-blue-100 overflow-x-auto">

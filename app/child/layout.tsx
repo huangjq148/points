@@ -197,9 +197,9 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
   return (
     <div
-      className="relative min-h-screen text-gray-800"
+      className="relative min-h-screen text-white"
       style={{
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
       }}
     >
       <style jsx global>{`
@@ -306,7 +306,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
       <header
         className="fixed top-0 left-0 right-0 z-50 px-6 pt-4"
         style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
         }}
       >
         <div className="flex justify-between items-start mb-6">
