@@ -56,9 +56,8 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
 
   if (!habits || habits.length === 0) {
     return (
-      <div className="card">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">习惯养成</h3>
-        <div className="text-center py-6 text-gray-500">
+      <div className="card flex flex-col items-center justify-center min-h-[200px]">
+        <div className="text-center text-gray-500">
           <Target size={40} className="mx-auto mb-2 text-gray-300" />
           <p className="text-sm">暂无习惯数据</p>
           <p className="text-xs text-gray-400 mt-1">坚持21天养成一个好习惯</p>

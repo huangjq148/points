@@ -485,7 +485,13 @@ function TaskPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                       className={`group rounded-2xl border p-4 md:p-5 cursor-pointer transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${statusInfo.card}`}
-                      onClick={() => openTaskDetail(task)}
+                      onClick={() => {
+                        if (task.status === 'pending' || task.status === 'rejected') {
+                          openSubmitModal(task);
+                        } else {
+                          openTaskDetail(task);
+                        }
+                      }}
                     >
                       <div className='flex items-start gap-4'>
                         <div
@@ -949,7 +955,7 @@ function TaskPage() {
               取消
             </button>
             <button
-              className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl hover:shadow-2xl hover:shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed'
+              className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-xl hover:shadow-2xl hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed'
               onClick={handleSubmitTask}
               disabled={
                 submitting || (selectedTask?.requirePhoto && !photoFile)
@@ -963,13 +969,13 @@ function TaskPage() {
         {selectedTask && (
           <>
             <div className='text-center mb-8'>
-              <div className='w-28 h-28 bg-gradient-to-br from-amber-200 via-orange-200 to-yellow-200 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4'>
+              <div className='w-28 h-28 bg-gradient-to-br from-blue-100 via-blue-200 to-cyan-100 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4'>
                 {selectedTask.icon}
               </div>
               <h3 className='text-2xl font-black text-gray-800'>
                 {selectedTask.name}
               </h3>
-              <div className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-300 to-orange-400 text-white rounded-full mt-4 font-black shadow-lg'>
+              <div className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-full mt-4 font-black shadow-lg'>
                 <span>⚡</span>
                 <span>+{selectedTask.points} 积分</span>
               </div>

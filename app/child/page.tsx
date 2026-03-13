@@ -483,7 +483,13 @@ export default function ChildHome() {
                     transition={{ delay: index * 0.1 }}
                     className='relative flex items-start gap-4 group cursor-pointer'
                     id={`task-${task._id}`}
-                    onClick={() => openTaskDetail(task)}
+                    onClick={() => {
+                      if (task.status === 'pending' || task.status === 'rejected') {
+                        openSubmitModal(task);
+                      } else {
+                        openTaskDetail(task);
+                      }
+                    }}
                   >
                     <div
                       className={`relative z-10 w-12 h-12 ${
@@ -928,7 +934,7 @@ export default function ChildHome() {
                 取消
               </button>
               <button
-                className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl hover:shadow-2xl hover:shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-xl hover:shadow-2xl hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed'
                 onClick={handleSubmitTask}
                 disabled={
                   submitting || (selectedTask?.requirePhoto && !photoFile)
@@ -944,7 +950,7 @@ export default function ChildHome() {
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-              className='w-28 h-28 bg-gradient-to-br from-amber-200 via-orange-200 to-yellow-200 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4'
+              className='w-28 h-28 bg-gradient-to-br from-blue-100 via-blue-200 to-cyan-100 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4'
             >
               {selectedTask?.icon}
             </motion.div>
@@ -955,7 +961,7 @@ export default function ChildHome() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 }}
-              className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-300 to-orange-400 text-white rounded-full mt-4 font-black shadow-lg'
+              className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-full mt-4 font-black shadow-lg'
             >
               <span>⚡</span>
               <span>+{selectedTask?.points} 积分</span>
