@@ -11,7 +11,7 @@ import {
   ChevronRight,
   Calendar,
 } from 'lucide-react';
-import { Button, Modal, Image } from '@/components/ui';
+import { Button, Modal, Image, Input } from '@/components/ui';
 import DatePicker from '@/components/ui/DatePicker';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -389,17 +389,28 @@ function TaskPage() {
           <div className='flex flex-col gap-3'>
             {/* 搜索框 */}
             <div className='relative'>
-              <Search
+              {/* <Search
                 className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
                 size={18}
-              />
-              <input
+              /> */}
+              {/* <input
                 type='text'
                 placeholder='搜索任务名称...'
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className='w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-400 transition-colors text-gray-800'
+                className='w-full pl-10 pr-4 py-3 bg-white border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-400 transition-colors text-gray-900 placeholder:text-gray-500'
+              /> */}
+
+              <Input
+                labelPosition="left"
+                label="身份"
+                allowClear
+                isSearch
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="搜索任务名称..."
               />
             </div>
 
@@ -609,11 +620,10 @@ function TaskPage() {
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`w-10 h-10 rounded-full text-sm font-bold ${
-                            page === pageNum
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
+                          className={`w-10 h-10 rounded-full text-sm font-bold ${page === pageNum
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -643,7 +653,7 @@ function TaskPage() {
         zIndex={100}
         footer={
           selectedTask?.status === 'pending' ||
-          selectedTask?.status === 'rejected' ? (
+            selectedTask?.status === 'rejected' ? (
             <button
               className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
               onClick={() => openSubmitModal(selectedTask)}
@@ -688,15 +698,14 @@ function TaskPage() {
                     +{selectedTask.points}
                   </span>
                   <span
-                    className={`text-xs px-3 py-1.5 rounded-full font-black flex items-center gap-1 ${
-                      selectedTask.status === 'approved'
-                        ? 'bg-green-100 text-green-600'
-                        : selectedTask.status === 'submitted'
-                          ? 'bg-blue-100 text-blue-600'
-                          : selectedTask.status === 'rejected'
-                            ? 'bg-red-100 text-red-600'
-                            : 'bg-slate-100 text-slate-600'
-                    }`}
+                    className={`text-xs px-3 py-1.5 rounded-full font-black flex items-center gap-1 ${selectedTask.status === 'approved'
+                      ? 'bg-green-100 text-green-600'
+                      : selectedTask.status === 'submitted'
+                        ? 'bg-blue-100 text-blue-600'
+                        : selectedTask.status === 'rejected'
+                          ? 'bg-red-100 text-red-600'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
                   >
                     {selectedTask.status === 'approved'
                       ? '✓ 完成'
@@ -713,8 +722,8 @@ function TaskPage() {
             {/* 滚动区域 */}
             <div className='max-h-[45vh] overflow-y-auto custom-scrollbar pr-1 space-y-4'>
               {selectedTask.imageUrl ||
-              selectedTask.description ||
-              selectedTask.requirePhoto ? (
+                selectedTask.description ||
+                selectedTask.requirePhoto ? (
                 <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
                   {selectedTask.imageUrl ? (
                     <>
@@ -759,78 +768,78 @@ function TaskPage() {
               {(selectedTask.status === 'approved' ||
                 selectedTask.status === 'submitted' ||
                 selectedTask.status === 'rejected') && (
-                <div>
                   <div>
-                    {(selectedTask.status === 'approved' ||
-                      selectedTask.status === 'submitted' ||
-                      selectedTask.status === 'rejected') &&
-                      selectedTask.photoUrl && (
-                        <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl mb-4'>
-                          <h4 className='text-xs font-black text-blue-400 uppercase tracking-wider mb-2'>
-                            📸 提交的照片
-                          </h4>
-                          <div className='relative aspect-video rounded-xl overflow-hidden'>
-                            <Image
-                              src={selectedTask.photoUrl}
-                              alt='提交的照片'
-                              className='w-full h-full object-cover'
-                              enableZoom={true}
-                              zoomHint='点击查看大图'
-                              containerClassName='w-full h-full'
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                    <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-2xl'>
-                      <h4 className='text-xs font-black text-green-400 uppercase tracking-wider mb-2'>
-                        {selectedTask.status === 'approved'
-                          ? '✅ 审核通过'
-                          : selectedTask.status === 'rejected'
-                            ? '❌ 已拒绝'
-                            : '⏳ 审核中'}
-                      </h4>
-                      <div className='space-y-2'>
-                        {selectedTask.submittedAt && (
-                          <div className='flex justify-between items-center'>
-                            <span className='text-sm text-gray-500'>
-                              提交时间
-                            </span>
-                            <span className='text-sm font-bold text-gray-700'>
-                              {dayjs(selectedTask.submittedAt).format(
-                                'M月D日 HH:mm',
-                              )}
-                            </span>
+                    <div>
+                      {(selectedTask.status === 'approved' ||
+                        selectedTask.status === 'submitted' ||
+                        selectedTask.status === 'rejected') &&
+                        selectedTask.photoUrl && (
+                          <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl mb-4'>
+                            <h4 className='text-xs font-black text-blue-400 uppercase tracking-wider mb-2'>
+                              📸 提交的照片
+                            </h4>
+                            <div className='relative aspect-video rounded-xl overflow-hidden'>
+                              <Image
+                                src={selectedTask.photoUrl}
+                                alt='提交的照片'
+                                className='w-full h-full object-cover'
+                                enableZoom={true}
+                                zoomHint='点击查看大图'
+                                containerClassName='w-full h-full'
+                              />
+                            </div>
                           </div>
                         )}
-                        {selectedTask.status === 'approved' &&
-                          selectedTask.approvedAt && (
+
+                      <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-2xl'>
+                        <h4 className='text-xs font-black text-green-400 uppercase tracking-wider mb-2'>
+                          {selectedTask.status === 'approved'
+                            ? '✅ 审核通过'
+                            : selectedTask.status === 'rejected'
+                              ? '❌ 已拒绝'
+                              : '⏳ 审核中'}
+                        </h4>
+                        <div className='space-y-2'>
+                          {selectedTask.submittedAt && (
                             <div className='flex justify-between items-center'>
                               <span className='text-sm text-gray-500'>
-                                审核时间
+                                提交时间
                               </span>
-                              <span className='text-sm font-bold text-green-600'>
-                                {dayjs(selectedTask.approvedAt).format(
+                              <span className='text-sm font-bold text-gray-700'>
+                                {dayjs(selectedTask.submittedAt).format(
                                   'M月D日 HH:mm',
                                 )}
                               </span>
                             </div>
                           )}
-                        {selectedTask.rejectionReason && (
-                          <div className='flex justify-between items-center'>
-                            <span className='text-sm text-gray-500'>
-                              审核意见
-                            </span>
-                            <span className='text-sm font-bold'>
-                              {selectedTask.rejectionReason}
-                            </span>
-                          </div>
-                        )}
+                          {selectedTask.status === 'approved' &&
+                            selectedTask.approvedAt && (
+                              <div className='flex justify-between items-center'>
+                                <span className='text-sm text-gray-500'>
+                                  审核时间
+                                </span>
+                                <span className='text-sm font-bold text-green-600'>
+                                  {dayjs(selectedTask.approvedAt).format(
+                                    'M月D日 HH:mm',
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                          {selectedTask.rejectionReason && (
+                            <div className='flex justify-between items-center'>
+                              <span className='text-sm text-gray-500'>
+                                审核意见
+                              </span>
+                              <span className='text-sm font-bold'>
+                                {selectedTask.rejectionReason}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* 操作记录 */}
               {selectedTask.auditHistory &&
@@ -848,13 +857,12 @@ function TaskPage() {
                           >
                             {/* 时间线节点 */}
                             <div
-                              className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
-                                record.status === 'approved'
-                                  ? 'bg-green-500'
-                                  : record.status === 'rejected'
-                                    ? 'bg-red-500'
-                                    : 'bg-blue-500'
-                              }`}
+                              className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${record.status === 'approved'
+                                ? 'bg-green-500'
+                                : record.status === 'rejected'
+                                  ? 'bg-red-500'
+                                  : 'bg-blue-500'
+                                }`}
                               style={{ transform: 'translateX(-50%)' }}
                             />
 
