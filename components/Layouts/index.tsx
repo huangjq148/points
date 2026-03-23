@@ -2,7 +2,7 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users } from "lucide-react";
+import { ChevronDown, FileText, Gift, Home, LogOut, Star, Ticket, UserCog, UserRoundSwitch, Users } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -10,10 +10,12 @@ type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" 
 
 const Layout = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
-  const { currentUser, logout, childList } = useApp();
+  const { currentUser, logout, childList, savedChildSessions, favoriteChildIds, switchToChild, toggleFavoriteChild } = useApp();
   const router = useRouter();
   const totalPendingOrders = childList.reduce((acc, child) => acc + (child.orderCount || 0), 0);
   const totalSubmittedTasks = childList.reduce((acc, child) => acc + (child.submittedCount || 0), 0);
+  const [showChildMenu, setShowChildMenu] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const navItems: { id: NavItemId; icon: React.ElementType; label: string; badge?: number }[] = [
     { id: "home", icon: Home, label: "首页" },
@@ -45,6 +47,139 @@ const Layout = ({ children }: { children: ReactNode }) => {
     setActiveTab(itemId);
     router.push(`/parent/${itemId}`);
   };
+
+  const handleSwitchChild = (childId: string) => {
+    const target = savedChildSessions.find((child) => child.id === childId);
+    if (!target) return;
+    switchToChild(target);
+    setShowChildMenu(false);
+  };
+
+  const formatLastUsed = (lastUsedAt?: string) => {
+    if (!lastUsedAt) return "最近未记录";
+    const date = new Date(lastUsedAt);
+    if (Number.isNaN(date.getTime())) return "最近未记录";
+    return date.toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
+  const childCard = (child: typeof savedChildSessions[number]) => (
+    <div
+      key={child.id}
+      onClick={() => handleSwitchChild(child.id)}
+      className="w-full flex items-center gap-3 rounded-2xl border border-gray-100 px-3 py-3 text-left transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 cursor-pointer"
+    >
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-2xl shadow-sm">
+        {child.avatar || "👶"}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="truncate text-sm font-semibold text-gray-800">{child.username}</span>
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-600">已登录</span>
+          {favoriteChildIds.includes(child.id) && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">常用</span>
+          )}
+        </div>
+        <span className="block truncate text-xs text-gray-500">
+          {child.availablePoints !== undefined ? `🪙 ${child.availablePoints} · ` : ""}
+          {formatLastUsed(child.lastUsedAt)}
+        </span>
+        {favoriteChildIds.includes(child.id) && (
+          <span className="mt-1 inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+            已固定在前排
+          </span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleFavoriteChild(child.id);
+        }}
+        className="rounded-full p-2 text-gray-400 transition hover:bg-amber-50 hover:text-amber-500"
+        aria-label={favoriteChildIds.includes(child.id) ? "取消常用" : "设为常用"}
+      >
+        <Star size={16} fill={favoriteChildIds.includes(child.id) ? "currentColor" : "none"} />
+      </button>
+    </div>
+  );
+
+  const visibleChildren = showFavoritesOnly
+    ? savedChildSessions.filter((child) => favoriteChildIds.includes(child.id))
+    : savedChildSessions;
+
+  const childDrawer = showChildMenu ? (
+    <div className="fixed inset-0 z-50">
+      <button
+        aria-label="关闭孩子抽屉"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={() => setShowChildMenu(false)}
+      />
+      <aside className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl">
+        <div className="flex h-full flex-col">
+          <div className="border-b border-gray-100 px-5 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-lg font-black text-gray-800">孩子账号抽屉</p>
+                <p className="text-sm text-gray-500">切换、固定、筛选都在这里</p>
+              </div>
+              <Button
+                onClick={() => setShowChildMenu(false)}
+                variant="secondary"
+                className="rounded-xl border-none bg-gray-100 text-gray-600 shadow-none"
+              >
+                <ChevronDown size={16} />
+              </Button>
+            </div>
+            <div className="mt-3">
+              <Button
+                type="button"
+                onClick={() => setShowFavoritesOnly((v) => !v)}
+                variant="secondary"
+                className="w-full rounded-2xl border-none bg-amber-50 text-amber-700 shadow-none"
+              >
+                {showFavoritesOnly ? "显示全部孩子" : "只看常用孩子"}
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-auto p-4">
+            <div className="mb-3 grid grid-cols-2 gap-2 text-xs text-gray-500">
+              <div className="rounded-2xl bg-slate-50 px-3 py-2">
+                <span className="block font-bold text-slate-700">{savedChildSessions.length}</span>
+                <span>已保存账号</span>
+              </div>
+              <div className="rounded-2xl bg-amber-50 px-3 py-2">
+                <span className="block font-bold text-amber-700">{favoriteChildIds.length}</span>
+                <span>常用账号</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {visibleChildren.length > 0 ? (
+                visibleChildren.map((child) => childCard(child))
+              ) : (
+                <div className="rounded-2xl bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+                  {showFavoritesOnly ? "暂无常用孩子" : "暂无已登录孩子"}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="border-t border-gray-100 p-4">
+            <div className="flex gap-2">
+              <Button
+                onClick={() => router.push("/child")}
+                variant="secondary"
+                className="flex-1 rounded-xl border-none bg-blue-50 text-blue-600 shadow-none"
+              >
+                去孩子页
+              </Button>
+              <Button onClick={logout} variant="secondary" className="p-2 rounded-xl text-gray-600 border-none bg-transparent shadow-none">
+                <LogOut size={20} />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  ) : null;
 
   return (
     <div className="dashboard-layout">
@@ -92,6 +227,16 @@ const Layout = ({ children }: { children: ReactNode }) => {
                   </span>
                 </div>
               </div>
+              <div className="relative">
+                <Button
+                  onClick={() => setShowChildMenu((v) => !v)}
+                  variant="secondary"
+                  className="p-2 hover:bg-blue-50 rounded-xl text-blue-600 border-none bg-transparent shadow-none"
+                >
+                  <UserRoundSwitch size={20} />
+                </Button>
+                {childDrawer}
+              </div>
               <Button onClick={logout} variant="secondary" className="p-2 hover:bg-gray-100 rounded-xl text-gray-600 border-none bg-transparent shadow-none">
                 <LogOut size={20} />
               </Button>
@@ -120,6 +265,16 @@ const Layout = ({ children }: { children: ReactNode }) => {
                   <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1">管理员</span>
                 </div>
                 <div className="h-8 w-[1px] bg-gray-100 mx-2" />
+                <div className="relative">
+                  <Button
+                    onClick={() => setShowChildMenu((v) => !v)}
+                    variant="secondary"
+                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl border-none bg-transparent shadow-none transition-colors"
+                  >
+                    <UserRoundSwitch size={20} />
+                  </Button>
+                  {childDrawer}
+                </div>
                 <Button onClick={logout} variant="secondary" className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl border-none bg-transparent shadow-none transition-colors">
                   <LogOut size={20} />
                 </Button>

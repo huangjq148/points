@@ -22,6 +22,16 @@ export interface User {
   token?: string;
 }
 
+interface StoredSession {
+  user: User;
+  token: string;
+  lastUsedAt: string;
+}
+
+export interface SavedChildSession extends User {
+  lastUsedAt?: string;
+}
+
 interface ChildAPIResponse {
   id?: string;
   _id?: string;
@@ -39,10 +49,17 @@ interface ChildAPIResponse {
 export interface AppContextType {
   currentUser: User | null;
   childList: User[];
+  savedChildSessions: SavedChildSession[];
+  favoriteChildIds: string[];
+  childOrderIds: string[];
   mode: "parent" | "child";
   login: (username: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   switchToChild: (child: User) => void;
+  openChildLogin?: () => void;
+  toggleFavoriteChild: (childId: string) => void;
+  reorderChildSessions: (fromId: string, toId: string) => void;
+  resetChildOrder: () => void;
   switchToParent: (password?: string) => Promise<boolean>;
   refreshChildren: () => Promise<void>;
 }
@@ -52,8 +69,159 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [childList, setChildList] = useState<User[]>([]);
+  const [savedChildSessions, setSavedChildSessions] = useState<SavedChildSession[]>([]);
+  const [favoriteChildIds, setFavoriteChildIds] = useState<string[]>([]);
+  const [childOrderIds, setChildOrderIds] = useState<string[]>([]);
   const [mode, setMode] = useState<"parent" | "child">("parent");
   const [isHydrated, setIsHydrated] = useState(false);
+
+  const sessionStorageKey = "little_achievers_sessions";
+  const activeSessionKey = "little_achievers_active_session";
+  const favoritesKey = "little_achievers_favorite_children";
+  const childOrderKey = "little_achievers_child_order";
+
+  const readSessions = (): StoredSession[] => {
+    if (typeof window === "undefined") return [];
+    const raw = localStorage.getItem(sessionStorageKey);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw) as StoredSession[];
+      return Array.isArray(parsed) ? parsed.filter((item) => item?.user?.id && item?.token) : [];
+    } catch {
+      localStorage.removeItem(sessionStorageKey);
+      return [];
+    }
+  };
+
+  const writeSessions = (sessions: StoredSession[]) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(sessionStorageKey, JSON.stringify(sessions));
+  };
+
+  const readFavoriteChildIds = (): string[] => {
+    if (typeof window === "undefined") return [];
+    const raw = localStorage.getItem(favoritesKey);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
+    } catch {
+      localStorage.removeItem(favoritesKey);
+      return [];
+    }
+  };
+
+  const writeFavoriteChildIds = (ids: string[]) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(favoritesKey, JSON.stringify(ids));
+  };
+
+  const readChildOrderIds = (): string[] => {
+    if (typeof window === "undefined") return [];
+    const raw = localStorage.getItem(childOrderKey);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter((id) => typeof id === "string") : [];
+    } catch {
+      localStorage.removeItem(childOrderKey);
+      return [];
+    }
+  };
+
+  const writeChildOrderIds = (ids: string[]) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(childOrderKey, JSON.stringify(ids));
+  };
+
+  const syncSavedChildSessions = () => {
+    const favorites = readFavoriteChildIds();
+    const order = readChildOrderIds();
+    setSavedChildSessions(
+      readSessions()
+        .filter((session) => session.user.role === "child")
+        .sort((a, b) => {
+          const aOrder = order.indexOf(a.user.id);
+          const bOrder = order.indexOf(b.user.id);
+          if (aOrder !== -1 || bOrder !== -1) {
+            if (aOrder === -1) return 1;
+            if (bOrder === -1) return -1;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+          }
+          const aFav = favorites.includes(a.user.id) ? 1 : 0;
+          const bFav = favorites.includes(b.user.id) ? 1 : 0;
+          if (aFav !== bFav) return bFav - aFav;
+          return new Date(b.lastUsedAt).getTime() - new Date(a.lastUsedAt).getTime();
+        })
+        .map((session) => ({
+          ...session.user,
+          lastUsedAt: session.lastUsedAt,
+        })),
+    );
+  };
+
+  const syncFavoriteChildIds = () => {
+    setFavoriteChildIds(readFavoriteChildIds());
+  };
+
+  const syncChildOrderIds = () => {
+    setChildOrderIds(readChildOrderIds());
+  };
+
+  const upsertSession = (session: StoredSession) => {
+    const sessions = readSessions().filter((item) => item.user.id !== session.user.id);
+    sessions.push({
+      ...session,
+      lastUsedAt: new Date().toISOString(),
+    });
+    writeSessions(sessions);
+    localStorage.setItem(activeSessionKey, session.user.id);
+    localStorage.setItem("access_token", session.token);
+    syncSavedChildSessions();
+  };
+
+  const toggleFavoriteChild = (childId: string) => {
+    const current = readFavoriteChildIds();
+    const next = current.includes(childId) ? current.filter((id) => id !== childId) : [childId, ...current];
+    writeFavoriteChildIds(next);
+    setFavoriteChildIds(next);
+    syncSavedChildSessions();
+  };
+
+  const reorderChildSessions = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const current = readChildOrderIds();
+    const allChildIds = readSessions()
+      .filter((session) => session.user.role === "child")
+      .map((session) => session.user.id);
+    const ordered = Array.from(new Set([...current, ...allChildIds]));
+    const fromIndex = ordered.indexOf(fromId);
+    const toIndex = ordered.indexOf(toId);
+    if (fromIndex === -1 || toIndex === -1) return;
+    ordered.splice(fromIndex, 1);
+    ordered.splice(toIndex, 0, fromId);
+    writeChildOrderIds(ordered);
+    setChildOrderIds(ordered);
+    syncSavedChildSessions();
+  };
+
+  const resetChildOrder = () => {
+    localStorage.removeItem(childOrderKey);
+    setChildOrderIds([]);
+    syncSavedChildSessions();
+  };
+
+  const activateSession = (session: StoredSession | null) => {
+    if (!session) return;
+    setCurrentUser(session.user);
+    setMode(session.user.role === "child" ? "child" : "parent");
+    localStorage.setItem("little_achievers_user", JSON.stringify(session.user));
+    localStorage.setItem("little_achievers_mode", session.user.role === "child" ? "child" : "parent");
+    localStorage.setItem(activeSessionKey, session.user.id);
+    localStorage.setItem("access_token", session.token);
+    upsertSession({ ...session, lastUsedAt: new Date().toISOString() });
+    syncSavedChildSessions();
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -63,19 +231,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (savedUser) {
       try {
         nextUser = JSON.parse(savedUser);
-      } catch (_error: unknown) {
+      } catch {
         localStorage.removeItem("little_achievers_user");
       }
     }
 
     const savedMode = localStorage.getItem("little_achievers_mode");
+    const savedSessionId = localStorage.getItem(activeSessionKey);
+    const sessions = readSessions();
     queueMicrotask(() => {
-      if (nextUser) setCurrentUser(nextUser);
-      if (savedMode === "parent" || savedMode === "child") {
-        setMode(savedMode);
+      syncSavedChildSessions();
+      syncFavoriteChildIds();
+      syncChildOrderIds();
+      if (savedSessionId) {
+        const active = sessions.find((session) => session.user.id === savedSessionId);
+        if (active) {
+          activateSession(active);
+        } else if (nextUser) {
+          setCurrentUser(nextUser);
+          if (savedMode === "parent" || savedMode === "child") {
+            setMode(savedMode);
+          }
+        }
+      } else if (nextUser) {
+        setCurrentUser(nextUser);
+        if (savedMode === "parent" || savedMode === "child") {
+          setMode(savedMode);
+        }
       }
       setIsHydrated(true);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const logout = () => {
@@ -85,6 +271,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") {
       localStorage.removeItem("little_achievers_user");
       localStorage.removeItem("little_achievers_mode");
+      localStorage.removeItem("little_achievers_active_session");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem(sessionStorageKey);
+      localStorage.removeItem(favoritesKey);
+      localStorage.removeItem(childOrderKey);
     }
     window.location.href = "/";
   };
@@ -119,15 +310,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         const data = await res.json();
         if (data.success && data.user) {
-          setCurrentUser((prev) => {
-            if (!prev) return null;
-            return {
-              ...prev,
-              ...data.user,
-              token: prev.token, // Keep token
-            };
-          });
+          const activeSession = readSessions().find((session) => session.user.id === currentUser.id);
+          const mergedUser = {
+            ...currentUser,
+            ...data.user,
+            token: currentUser.token,
+          };
+          setCurrentUser(mergedUser);
           setChildList(data.user.children || []);
+          if (typeof window !== "undefined" && activeSession?.token) {
+            upsertSession({
+              user: mergedUser,
+              token: activeSession.token,
+              lastUsedAt: activeSession.lastUsedAt,
+            });
+          }
+          syncSavedChildSessions();
+          syncFavoriteChildIds();
+          syncChildOrderIds();
         }
       } catch (error) {
         console.error("Token verification failed:", error);
@@ -135,6 +335,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     verifyToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.token, isHydrated]); // Run after local state hydration
 
   useEffect(() => {
@@ -148,7 +349,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       localStorage.setItem("little_achievers_mode", mode);
     }
-  }, [currentUser, mode]);
+  }, [currentUser, mode, isHydrated]);
 
   const login = async (username: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
@@ -187,6 +388,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         setCurrentUser(user);
+        if (data.token) {
+          upsertSession({ user, token: data.token, lastUsedAt: new Date().toISOString() });
+        }
+        syncSavedChildSessions();
+        syncFavoriteChildIds();
+        syncChildOrderIds();
 
         // Map children to User objects
         const childrenAsUsers: User[] = (data.children || []).map((c: ChildAPIResponse) => ({
@@ -236,7 +443,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 
   const switchToChild = (child: User) => {
-    setMode("child");
+    const sessions = readSessions();
+    const session = sessions.find((item) => item.user.id === child.id && item.token);
+    if (!session) {
+      return;
+    }
+    activateSession(session);
   };
 
   const switchToParent = async (password?: string): Promise<boolean> => {
@@ -250,6 +462,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (data.success) {
         setMode("parent");
         setChildList(data.children || []);
+        if (currentUser?.token) {
+          upsertSession({ user: currentUser, token: currentUser.token, lastUsedAt: new Date().toISOString() });
+        }
+        syncSavedChildSessions();
+        syncFavoriteChildIds();
+        syncChildOrderIds();
         return true;
       }
       return false;
@@ -279,6 +497,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             orderCount: c.orderCount,
           })),
         );
+        syncSavedChildSessions();
+        syncFavoriteChildIds();
       }
     } catch (_error) {
       console.error("Refresh children error:", _error);
@@ -290,10 +510,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         currentUser,
         childList,
+        savedChildSessions,
+        favoriteChildIds,
+        childOrderIds,
         mode,
         login,
         logout,
         switchToChild,
+        openChildLogin: undefined,
+        toggleFavoriteChild,
+        reorderChildSessions,
+        resetChildOrder,
         switchToParent,
         refreshChildren,
       }}

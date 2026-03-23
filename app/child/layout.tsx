@@ -2,7 +2,7 @@
 
 import { useApp } from "@/context/AppContext";
 import { usePathname, useRouter } from "next/navigation";
-import { Button } from "@/components/ui";
+import { Button, Input, PasswordInput } from "@/components/ui";
 import { useState, useEffect } from "react";
 import {
   Lock,
@@ -90,7 +90,7 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4" onClick={onCancel}>
       <div className="bg-white rounded-3xl p-6 md:p-8 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🔐</div>
@@ -156,8 +156,66 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
   );
 }
 
+function ChildAccountSignIn({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const { login } = useApp();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!username.trim() || !password.trim()) {
+      setError("请输入孩子账号和密码");
+      return;
+    }
+    setLoading(true);
+    const result = await login(username.trim(), password);
+    setLoading(false);
+    if (result.success) {
+      onSuccess();
+    } else {
+      setError(result.message || "登录失败");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="text-center mb-5">
+          <div className="text-4xl mb-2">👶</div>
+          <h3 className="text-xl font-bold text-gray-800">添加/切换孩子账号</h3>
+          <p className="text-gray-600 text-sm">登录后会保留之前已登录的孩子账号</p>
+        </div>
+
+        <div className="space-y-4">
+          <Input label="孩子账号" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="请输入孩子账号" />
+          <PasswordInput label="密码" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="请输入密码" />
+        </div>
+
+        {error && <div className="mt-4 rounded-xl bg-red-100 px-4 py-2 text-center text-sm text-red-600">{error}</div>}
+
+        <div className="mt-5 flex gap-3">
+          <Button variant="secondary" fullWidth onClick={onClose}>
+            取消
+          </Button>
+          <Button fullWidth onClick={handleSubmit} disabled={loading}>
+            {loading ? "登录中..." : "登录"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChildLayout({ children }: ChildLayoutProps) {
-  const { currentUser, childList, switchToChild, logout } = useApp();
+  const { currentUser, savedChildSessions, favoriteChildIds, switchToChild, toggleFavoriteChild, reorderChildSessions, resetChildOrder, logout } = useApp();
   const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -169,9 +227,11 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
+  const [showChildAccountSignIn, setShowChildAccountSignIn] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [draggingChildId, setDraggingChildId] = useState<string | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("little_achievers_notifications") !== "false";
@@ -225,13 +285,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSwitchChild = (child: typeof currentUser) => {
-    if (child) {
-      switchToChild(child);
-      setShowChildSwitcher(false);
-    }
-  };
-
   const handleLogout = () => {
     setShowConfirmLogout(true);
   };
@@ -254,6 +307,23 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const shellBackground = isDarkMode
     ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 48%, #312e81 100%)"
     : "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)";
+
+  const currentSessionIndex = savedChildSessions.findIndex((child) => child.id === currentUser?.id);
+  const nextSession = currentSessionIndex >= 0 ? savedChildSessions[(currentSessionIndex + 1) % savedChildSessions.length] : null;
+  const previousSession =
+    currentSessionIndex > 0
+      ? savedChildSessions[currentSessionIndex - 1]
+      : savedChildSessions.length > 1
+        ? savedChildSessions[savedChildSessions.length - 1]
+        : null;
+
+  const handleDropChild = (targetId: string) => {
+    if (!draggingChildId) return;
+    if (draggingChildId !== targetId) {
+      reorderChildSessions(draggingChildId, targetId);
+    }
+    setDraggingChildId(null);
+  };
 
   return (
     <div
@@ -296,13 +366,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         .character-eye {
           animation: blink 4s infinite;
         }
-        .glass-strong {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 2px solid rgba(255, 255, 255, 0.5);
-          border-radius: 1.5rem;
-        }
         .pb-safe {
           padding-bottom: env(safe-area-inset-bottom, 0px);
         }
@@ -316,7 +379,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
       {showChildSwitcher && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
           onClick={() => setShowChildSwitcher(false)}
         >
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
@@ -325,31 +388,111 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
               <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
               <p className="text-gray-600">选择要切换的孩子</p>
             </div>
-            <div className="space-y-3 mb-4">
-              {childList.map((child) => (
-                <div
-                  key={child.id}
-                  onClick={() => handleSwitchChild(child)}
-                  className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition ${
-                    child.id === currentUser?.id
-                      ? "bg-blue-100 border-2 border-blue-400"
-                      : "bg-gray-50 hover:bg-gray-100 border-2 border-transparent"
-                  }`}
-                >
-                  <div className="text-3xl">{child.avatar}</div>
-                  <div className="flex-1">
-                    <p className="font-bold text-gray-800">{child.username}</p>
-                    <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
-                  </div>
-                  {child.id === currentUser?.id && <span className="text-blue-500 font-bold">当前</span>}
+            <div className="mb-4 rounded-2xl bg-slate-50 p-4 text-slate-800">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">已登录孩子</p>
+                  <p className="text-sm text-slate-600">
+                    {savedChildSessions.length > 0 ? `${savedChildSessions.length} 个账号可切换` : "当前设备还没有其他孩子账号"}
+                  </p>
                 </div>
-              ))}
+                <Button
+                  onClick={resetChildOrder}
+                  variant="secondary"
+                  className="h-9 rounded-xl border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none"
+                >
+                  恢复顺序
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => previousSession && switchToChild(previousSession)}
+                  variant="secondary"
+                  disabled={!previousSession}
+                  className="h-10 rounded-xl border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none disabled:opacity-40"
+                >
+                  上一个
+                </Button>
+                <Button
+                  onClick={() => nextSession && switchToChild(nextSession)}
+                  variant="secondary"
+                  disabled={!nextSession}
+                  className="h-10 rounded-xl border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none disabled:opacity-40"
+                >
+                  下一个
+                </Button>
+              </div>
             </div>
+            <div className="space-y-3 mb-4 max-h-[42vh] overflow-y-auto pr-1">
+              {savedChildSessions.map((child, index) => {
+                const isActive = child.id === currentUser?.id;
+                const isFavorite = favoriteChildIds.includes(child.id);
+
+                return (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => switchToChild(child)}
+                    draggable
+                    onDragStart={() => setDraggingChildId(child.id)}
+                    onDragEnd={() => setDraggingChildId(null)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleDropChild(child.id)}
+                    className={`w-full flex items-center gap-4 rounded-2xl border p-4 text-left transition ${
+                      isActive ? "border-blue-300 bg-blue-50" : "border-slate-100 bg-gray-50 hover:bg-gray-100"
+                    } ${draggingChildId === child.id ? "scale-[0.99] opacity-70" : ""}`}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 text-2xl shadow-sm">
+                      {child.avatar || "👶"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-bold text-gray-800">{child.username}</p>
+                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">#{index + 1}</span>
+                      </div>
+                      <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        {isActive && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">当前</span>}
+                        {isFavorite && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">常用</span>}
+                        <span className="text-[10px] font-medium text-slate-400">拖动可排序</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavoriteChild(child.id);
+                      }}
+                      className="rounded-full p-2 text-gray-400 transition hover:bg-amber-50 hover:text-amber-500"
+                      aria-label={isFavorite ? "取消常用" : "设为常用"}
+                    >
+                      <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
+                    </button>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mb-4 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              只要该孩子账号在本设备上登录过，就可以直接切换。
+            </div>
+            <Button onClick={() => setShowChildAccountSignIn(true)} variant="secondary" fullWidth className="mb-3">
+              添加/切换孩子账号
+            </Button>
             <Button onClick={() => setShowChildSwitcher(false)} variant="secondary" fullWidth>
               取消
             </Button>
           </div>
         </div>
+      )}
+
+      {showChildAccountSignIn && (
+        <ChildAccountSignIn
+          onClose={() => setShowChildAccountSignIn(false)}
+          onSuccess={() => {
+            setShowChildAccountSignIn(false);
+            setShowChildSwitcher(false);
+          }}
+        />
       )}
 
       <ConfirmModal
@@ -432,7 +575,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         </div>
       </header>
 
-      <main className="relative z-10 px-6 pb-24 pt-32">
+      <main className="relative z-10 px-6 pb-24 pt-44">
         <div className="max-w-2xl mx-auto">{children}</div>
       </main>
 
@@ -539,7 +682,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
       {showSettingsModal && (
         <div
-          className="fixed inset-0 bg-black/55 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 bg-black/55 backdrop-blur-md z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setShowSettingsModal(false)}
         >
           <div
