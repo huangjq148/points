@@ -66,6 +66,8 @@ function TaskPage() {
   const { currentUser } = useApp();
   const searchParams = useSearchParams();
   const initialTaskId = searchParams.get('taskId');
+  const statusFromQuery = searchParams.get('status');
+  const normalizedStatusFromQuery = statusFromQuery === 'all' ? '' : statusFromQuery;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -151,7 +153,7 @@ function TaskPage() {
       setSearchName(searchNameParam);
     }
     if (status) {
-      setStatusFilter(status);
+      setStatusFilter(status === 'all' ? '' : status);
     }
     if (type) {
       setTypeFilter(type);
@@ -184,14 +186,14 @@ function TaskPage() {
 
     const nextFilters = {
       searchName: searchNameParam,
-      statusFilter: status || '',
+      statusFilter: normalizedStatusFromQuery || '',
       typeFilter: type || '',
       startDate: startDateParam ? dayjs(startDateParam).startOf('day').toDate() : null,
       endDate: endDateParam ? dayjs(endDateParam).endOf('day').toDate() : null,
     };
     setAppliedFilters(nextFilters);
     setInitialFilterApplied(true);
-  }, [searchParams, initialFilterApplied, fetchTasks]);
+  }, [searchParams, initialFilterApplied, fetchTasks, normalizedStatusFromQuery]);
 
   useEffect(() => {
     if (!currentUser?.token || !initialFilterApplied || hasInitialLoaded) return;

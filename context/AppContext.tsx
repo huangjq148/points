@@ -60,7 +60,7 @@ export interface AppContextType {
   toggleFavoriteChild: (childId: string) => void;
   reorderChildSessions: (fromId: string, toId: string) => void;
   resetChildOrder: () => void;
-  switchToParent: (password?: string) => Promise<boolean>;
+  switchToParent: () => Promise<boolean>;
   refreshChildren: () => Promise<void>;
 }
 
@@ -451,26 +451,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     activateSession(session);
   };
 
-  const switchToParent = async (password?: string): Promise<boolean> => {
+  const switchToParent = async (): Promise<boolean> => {
     if (!currentUser) return false;
     try {
-      const verifyPassword = password || currentUser.password;
-      const data = await request("/api/auth", {
-        method: "POST",
-        body: { username: currentUser.username, password: verifyPassword, action: "verify-password" },
-      });
-      if (data.success) {
-        setMode("parent");
-        setChildList(data.children || []);
-        if (currentUser?.token) {
-          upsertSession({ user: currentUser, token: currentUser.token, lastUsedAt: new Date().toISOString() });
-        }
-        syncSavedChildSessions();
-        syncFavoriteChildIds();
-        syncChildOrderIds();
-        return true;
+      setMode("parent");
+      if (currentUser?.token) {
+        upsertSession({ user: currentUser, token: currentUser.token, lastUsedAt: new Date().toISOString() });
       }
-      return false;
+      syncSavedChildSessions();
+      syncFavoriteChildIds();
+      syncChildOrderIds();
+      return true;
     } catch (_error: unknown) {
       console.error("Switch to parent error:", _error);
       return false;

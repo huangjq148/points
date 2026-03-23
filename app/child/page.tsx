@@ -46,6 +46,16 @@ export default function ChildHome() {
   const router = useRouter();
   const toast = useToast();
 
+  const buildTaskListUrl = useCallback((status: string) => {
+    const today = dayjs();
+    const params = new URLSearchParams({
+      status,
+      startDate: today.startOf('day').format('YYYY-MM-DD'),
+      endDate: today.endOf('day').format('YYYY-MM-DD'),
+    });
+    return `/child/task?${params.toString()}`;
+  }, []);
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [displayPoints, setDisplayPoints] = useState(0);
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
@@ -576,20 +586,23 @@ export default function ChildHome() {
               {/* 统计信息 */}
               <div className='col-span-2 flex flex-col gap-2'>
                 <div className='flex gap-2 flex-wrap'>
-                  <div className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center'>
+                  <div
+                    className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
+                    onClick={() => router.push(buildTaskListUrl('all'))}
+                  >
                     <div className='text-lg font-bold text-cyan-300 leading-none'>{totalTasks}</div>
                     <div className='text-[11px] text-gray-400 mt-1'>总任务</div>
                   </div>
                   <div
                     className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
-                    onClick={() => router.push('/child/task?status=approved')}
+                    onClick={() => router.push(buildTaskListUrl('approved'))}
                   >
                     <div className='text-lg font-bold text-blue-400 leading-none'>{completedTaskCount}</div>
                     <div className='text-[11px] text-gray-400 mt-1'>已完成</div>
                   </div>
                   <div
                     className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
-                    onClick={() => router.push('/child/task?status=pending')}
+                    onClick={() => router.push(buildTaskListUrl('pending'))}
                   >
                     <div className='text-lg font-bold text-orange-400 leading-none'>{pendingVisibleCount}</div>
                     <div className='text-[11px] text-gray-400 mt-1'>待完成</div>

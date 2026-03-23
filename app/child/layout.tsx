@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button, Input, PasswordInput } from "@/components/ui";
 import { useState, useEffect } from "react";
 import {
-  Lock,
   Settings,
   LogOut,
   User as UserIcon,
@@ -66,92 +65,6 @@ function StarsBackground() {
           }}
         />
       ))}
-    </div>
-  );
-}
-
-function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onCancel: () => void }) {
-  const { switchToParent } = useApp();
-  const [pin, setPin] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = async () => {
-    if (pin.length !== 4) {
-      setError("请输入4位PIN码");
-      return;
-    }
-    const success = await switchToParent(pin);
-    if (success) {
-      onVerified();
-    } else {
-      setError("PIN码错误");
-      setPin("");
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4" onClick={onCancel}>
-      <div className="bg-white rounded-3xl p-6 md:p-8 mx-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-        <div className="text-center mb-6">
-          <div className="text-5xl mb-2">🔐</div>
-          <h2 className="text-xl font-bold text-gray-800">家长验证</h2>
-          <p className="text-gray-600">请输入4位PIN码</p>
-        </div>
-
-        <div className="flex gap-2 justify-center mb-6">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl flex items-center justify-center text-2xl font-bold border-2 border-gray-200"
-            >
-              {pin[i] || ""}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-            <Button
-              key={num}
-              onClick={() => pin.length < 4 && setPin(pin + num.toString())}
-              variant="secondary"
-              className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none"
-            >
-              {num}
-            </Button>
-          ))}
-          <Button
-            onClick={() => setPin(pin.slice(0, -1))}
-            variant="secondary"
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none"
-          >
-            删除
-          </Button>
-          <Button
-            onClick={() => pin.length < 4 && setPin(pin + "0")}
-            variant="secondary"
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-xl font-bold hover:bg-gray-200 p-0 shadow-none border-none"
-          >
-            0
-          </Button>
-          <Button
-            onClick={() => setPin("")}
-            variant="secondary"
-            className="w-12 h-12 md:w-14 md:h-14 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 p-0 shadow-none border-none"
-          >
-            清空
-          </Button>
-        </div>
-
-        {error && <div className="bg-red-100 text-red-600 px-4 py-2 rounded-xl text-center mb-4">{error}</div>}
-
-        <Button onClick={handleSubmit} variant="primary" fullWidth className="mb-3">
-          确认
-        </Button>
-        <Button onClick={onCancel} variant="error" fullWidth className="text-white font-semibold py-3">
-          取消
-        </Button>
-      </div>
     </div>
   );
 }
@@ -225,7 +138,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const isWalletPage = pathname === "/child/wallet";
   const isTaskPage = pathname === "/child/task";
 
-  const [showPinModal, setShowPinModal] = useState(false);
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
   const [showChildAccountSignIn, setShowChildAccountSignIn] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -372,10 +284,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
       `}</style>
 
       <StarsBackground />
-
-      {showPinModal && (
-        <PinVerification onVerified={() => setShowPinModal(false)} onCancel={() => setShowPinModal(false)} />
-      )}
 
       {showChildSwitcher && (
         <div
@@ -555,12 +463,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
               className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
             >
               <Settings size={20} />
-            </button>
-            <button
-              onClick={() => setShowPinModal(true)}
-              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
-            >
-              <Lock size={20} />
             </button>
             <button
               onClick={handleLogout}

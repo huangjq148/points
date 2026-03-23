@@ -9,7 +9,6 @@ interface DeductPointsRequest {
   childId: string;
   points: number;
   reason: string;
-  pin?: string;
 }
 
 export async function POST(request: NextRequest) {
