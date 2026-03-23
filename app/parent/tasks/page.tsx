@@ -167,7 +167,7 @@ function TasksPage() {
   const [showEditTemplateModal, setShowEditTemplateModal] = useState(false);
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
-  
+
   // 视图切换状态: 'card' | 'table'
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
   const childSelectOptions = useMemo(
@@ -638,10 +638,6 @@ function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <div className="card-parent">
-        <h2 className="text-xl font-black text-slate-800">任务管理</h2>
-        <p className="mt-1 text-sm text-slate-500">先筛选任务，再切换卡片或表格视图进行编辑。</p>
-      </div>
       {/* 筛选条件、Tabs 和操作按钮在同一行 */}
       <div className="card-parent flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -692,30 +688,23 @@ function TasksPage() {
             <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
             <span className="font-semibold text-sm sm:hidden">添加</span>
           </Button>
-        </div>
-      </div>
-
-      {/* 视图切换 - 优化样式 */}
-      <div className="card-parent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-2xl flex-shrink-0 border border-slate-200">
+          {/* 视图切换 - 优化样式 */}
           <button
             onClick={() => setViewMode("card")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-              viewMode === "card"
-                ? "bg-slate-900 text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${viewMode === "card"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+              }`}
           >
             <LayoutGrid size={15} />
             卡片
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-              viewMode === "table"
-                ? "bg-slate-900 text-white shadow-sm"
-                : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${viewMode === "table"
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+              }`}
           >
             <Table2 size={15} />
             表格
@@ -769,62 +758,62 @@ function TasksPage() {
         </div>
       )}
 
-        {/* Task Modal */}
-        <TaskModal
-          isOpen={showTaskModal}
-          onClose={() => setShowTaskModal(false)}
-          mode={taskModalMode}
-          childList={childList}
-          taskData={taskData}
-          setTaskData={setTaskData}
-          onSubmit={taskModalMode === "add" ? handleAddTask : handleUpdateTask}
-          onPhotoSelect={handleTaskPhotoSelect}
-          photoPreview={taskPhotoPreview}
-          toggleChild={toggleChild}
-        />
-        <Modal
-          isOpen={alertState.isOpen}
-          onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
-          alert={{
-            message: alertState.message,
-            type: alertState.type,
-          }}
-          showCloseButton={false}
-          title="提示"
-        >
-          <div className="py-4 text-center text-slate-600">{alertState.message}</div>
-        </Modal>
+      {/* Task Modal */}
+      <TaskModal
+        isOpen={showTaskModal}
+        onClose={() => setShowTaskModal(false)}
+        mode={taskModalMode}
+        childList={childList}
+        taskData={taskData}
+        setTaskData={setTaskData}
+        onSubmit={taskModalMode === "add" ? handleAddTask : handleUpdateTask}
+        onPhotoSelect={handleTaskPhotoSelect}
+        photoPreview={taskPhotoPreview}
+        toggleChild={toggleChild}
+      />
+      <Modal
+        isOpen={alertState.isOpen}
+        onClose={() => setAlertState((prev) => ({ ...prev, isOpen: false }))}
+        alert={{
+          message: alertState.message,
+          type: alertState.type,
+        }}
+        showCloseButton={false}
+        title="提示"
+      >
+        <div className="py-4 text-center text-slate-600">{alertState.message}</div>
+      </Modal>
 
-        {/* Confirm Delete Task */}
-        <ConfirmModal
-          isOpen={!!taskToDelete}
-          onClose={() => setTaskToDelete(null)}
-          onConfirm={handleDeleteTask}
-          title="确认删除任务"
-          message="确定要删除这个任务吗？此操作无法撤销。"
-          confirmText="删除"
-          type="danger"
-        />
+      {/* Confirm Delete Task */}
+      <ConfirmModal
+        isOpen={!!taskToDelete}
+        onClose={() => setTaskToDelete(null)}
+        onConfirm={handleDeleteTask}
+        title="确认删除任务"
+        message="确定要删除这个任务吗？此操作无法撤销。"
+        confirmText="删除"
+        type="danger"
+      />
 
-        {/* Template Manager Modal */}
-        <TemplateManager
-          isOpen={showTemplateManager}
-          onClose={() => setShowTemplateManager(false)}
-          templates={templates}
-          onApply={handleApplyTemplate}
-          onEdit={handleEditTemplate}
-          onDelete={handleDeleteTemplate}
-          onNew={() => handleEditTemplate({ name: "", points: 5, icon: "⭐", type: "daily", description: "" })}
-        />
+      {/* Template Manager Modal */}
+      <TemplateManager
+        isOpen={showTemplateManager}
+        onClose={() => setShowTemplateManager(false)}
+        templates={templates}
+        onApply={handleApplyTemplate}
+        onEdit={handleEditTemplate}
+        onDelete={handleDeleteTemplate}
+        onNew={() => handleEditTemplate({ name: "", points: 5, icon: "⭐", type: "daily", description: "" })}
+      />
 
-        {/* Edit Template Modal */}
-        <EditTemplateModal
-          isOpen={showEditTemplateModal}
-          onClose={() => setShowEditTemplateModal(false)}
-          editingTemplate={editingTemplate}
-          setEditingTemplate={setEditingTemplate}
-          onUpdate={handleUpdateTemplate}
-        />
+      {/* Edit Template Modal */}
+      <EditTemplateModal
+        isOpen={showEditTemplateModal}
+        onClose={() => setShowEditTemplateModal(false)}
+        editingTemplate={editingTemplate}
+        setEditingTemplate={setEditingTemplate}
+        onUpdate={handleUpdateTemplate}
+      />
     </div>
   );
 }

@@ -160,10 +160,6 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="card-parent">
-        <h2 className="text-xl font-black text-slate-800">家庭概览</h2>
-        <p className="mt-1 text-sm text-slate-500">查看当前任务节奏、积分流动和孩子表现，优先处理最关键的事情。</p>
-      </div>
       {/* 筛选器和刷新 */}
       <div className="card-parent flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">

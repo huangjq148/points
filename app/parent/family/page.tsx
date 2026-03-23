@@ -176,11 +176,10 @@ export default function FamilyPage() {
       title: "成员",
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base ${
-            row.type === "child" 
-              ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600" 
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base ${row.type === "child"
+              ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600"
               : "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600"
-          }`}>
+            }`}>
             {row.type === "child" ? "👶" : "👤"}
           </div>
           <div className="flex flex-col">
@@ -218,11 +217,10 @@ export default function FamilyPage() {
       key: "type",
       title: "类型",
       render: (value) => (
-        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-          value === "child"
+        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${value === "child"
             ? "bg-orange-50 text-orange-600 border-orange-200"
             : "bg-slate-50 text-slate-600 border-slate-200"
-        }`}>
+          }`}>
           {value === "child" ? "👶 孩子" : "👤 用户"}
         </span>
       ),
@@ -251,82 +249,82 @@ export default function FamilyPage() {
   ], []);
 
   const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
-      key: "actions",
-      title: "操作",
-      render: (_, row) => (
-        <div className="flex justify-center gap-2">
-          {row.type === "parent" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setEditingMember(row);
-                setAccountForm({
-                  username: row.username,
-                  password: "",
-                  role: row.role,
-                  identity: row.identity || "",
-                });
-                setShowEditAccountModal(true);
-              }}
+    key: "actions",
+    title: "操作",
+    render: (_, row) => (
+      <div className="flex justify-center gap-2">
+        {row.type === "parent" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setEditingMember(row);
+              setAccountForm({
+                username: row.username,
+                password: "",
+                role: row.role,
+                identity: row.identity || "",
+              });
+              setShowEditAccountModal(true);
+            }}
             className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-            >
-              <Settings size={18} />
-            </Button>
-          )}
-          {/* 孩子角色显示奖励积分按钮 */}
-          {row.type === "child" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setRewardPointsTarget({
-                  id: row.id,
-                  nickname: row.nickname || row.username,
-                  avatar: row.avatar || "👶",
-                  availablePoints: row.availablePoints || 0,
-                });
-                setShowRewardPointsModal(true);
-              }}
-              className="text-green-500 hover:bg-green-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-              title="奖励积分"
-            >
-              <PlusCircle size={18} />
-            </Button>
-          )}
-          {/* 孩子角色显示扣除积分按钮 - 只在有可扣除积分时显示 */}
-          {row.type === "child" && (row.availablePoints || 0) > 0 && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setDeductPointsTarget({
-                  id: row.id,
-                  nickname: row.nickname || row.username,
-                  avatar: row.avatar || "👶",
-                  availablePoints: row.availablePoints || 0,
-                });
-                setShowDeductPointsModal(true);
-              }}
-              className="text-orange-500 hover:bg-orange-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-              title={`扣除积分（可扣: ${row.availablePoints}）`}
-            >
-              <MinusCircle size={18} />
-            </Button>
-          )}
-          {!row.isMe && row.type === "parent" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setDeleteMemberId(row.id)}
-              className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-            >
-              <Trash2 size={18} />
-            </Button>
-          )}
-        </div>
-      ),
-    }), []);
+          >
+            <Settings size={18} />
+          </Button>
+        )}
+        {/* 孩子角色显示奖励积分按钮 */}
+        {row.type === "child" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setRewardPointsTarget({
+                id: row.id,
+                nickname: row.nickname || row.username,
+                avatar: row.avatar || "👶",
+                availablePoints: row.availablePoints || 0,
+              });
+              setShowRewardPointsModal(true);
+            }}
+            className="text-green-500 hover:bg-green-50 p-2 rounded-xl border-none bg-transparent shadow-none"
+            title="奖励积分"
+          >
+            <PlusCircle size={18} />
+          </Button>
+        )}
+        {/* 孩子角色显示扣除积分按钮 - 只在有可扣除积分时显示 */}
+        {row.type === "child" && (row.availablePoints || 0) > 0 && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setDeductPointsTarget({
+                id: row.id,
+                nickname: row.nickname || row.username,
+                avatar: row.avatar || "👶",
+                availablePoints: row.availablePoints || 0,
+              });
+              setShowDeductPointsModal(true);
+            }}
+            className="text-orange-500 hover:bg-orange-50 p-2 rounded-xl border-none bg-transparent shadow-none"
+            title={`扣除积分（可扣: ${row.availablePoints}）`}
+          >
+            <MinusCircle size={18} />
+          </Button>
+        )}
+        {!row.isMe && row.type === "parent" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setDeleteMemberId(row.id)}
+            className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
+          >
+            <Trash2 size={18} />
+          </Button>
+        )}
+      </div>
+    ),
+  }), []);
 
   const pageOptions = useMemo(() => ({
     currentPage: page,
@@ -337,10 +335,6 @@ export default function FamilyPage() {
 
   return (
     <div className="space-y-6">
-      <div className="card-parent">
-        <h2 className="text-xl font-black text-slate-800">家庭成员</h2>
-        <p className="mt-1 text-sm text-slate-500">管理家庭关系、邀请成员，并为孩子加减积分。</p>
-      </div>
       <Modal
         isOpen={!!deleteMemberId}
         onClose={() => setDeleteMemberId(null)}
@@ -363,18 +357,16 @@ export default function FamilyPage() {
         <p className="text-sm text-slate-600">确定将该成员移出家庭吗？</p>
       </Modal>
 
-      <div className="card-parent flex justify-end">
-        <div className="flex gap-2">
-          {!currentUser?.familyId ? (
-            <Button onClick={handleCreateFamily} className="flex items-center gap-2">
-              <Users size={20} /> 创建家庭
-            </Button>
-          ) : (
-            <Button onClick={() => setShowInviteModal(true)} variant="success" className="flex items-center gap-2">
-              <Users size={20} /> 邀请成员
-            </Button>
-          )}
-        </div>
+      <div className="flex gap-2">
+        {!currentUser?.familyId ? (
+          <Button onClick={handleCreateFamily} className="flex items-center gap-2">
+            <Users size={20} /> 创建家庭
+          </Button>
+        ) : (
+          <Button onClick={() => setShowInviteModal(true)} variant="success" className="flex items-center gap-2">
+            <Users size={20} /> 邀请成员
+          </Button>
+        )}
       </div>
 
       <div className="w-full min-w-0 overflow-x-hidden">

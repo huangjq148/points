@@ -22,10 +22,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
-      <div className="card-parent">
-        <h2 className="text-xl font-black text-slate-800">家长首页</h2>
-        <p className="mt-1 text-sm text-slate-500">先看待审核和待核销，再进入孩子档案和家庭管理。</p>
-      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div
             className="card-parent cursor-pointer hover:shadow-lift transition-all duration-300"
@@ -65,7 +61,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-3">
             {childList.map((child: User) => {
               return (
-                <div
+              <div
                   key={child.id as string}
                   className="card-parent flex items-center gap-4 cursor-pointer hover:shadow-lift transition-all duration-300"
                 >

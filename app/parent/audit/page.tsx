@@ -183,10 +183,6 @@ function AuditPage() {
   return (
     <div className="space-y-6">
       <div className="card-parent flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-xl font-black text-slate-800">任务审核</h2>
-          <p className="mt-1 text-sm text-slate-500">优先处理待提交任务，保持反馈闭环及时。</p>
-        </div>
         <div className="w-40">
           <Select
             value={selectedChildFilter}

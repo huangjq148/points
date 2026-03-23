@@ -34,7 +34,7 @@ const TAB_TITLE: Record<NavItemId, { title: string; desc: string }> = {
   },
   family: {
     title: "家庭成员",
-    desc: "添加、管理家庭成员，分配角色和权限",
+    desc: "管理家庭关系、邀请成员，并为孩子加减积分。",
   },
   users: {
     title: "系统用户",

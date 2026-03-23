@@ -21,19 +21,19 @@ function UsersPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   // 从 URL 读取筛选状态
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const limit = 10;
-  
+
   // 筛选状态
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [roleFilter, setRoleFilter] = useState(searchParams.get("role") || "all");
   const [genderFilter, setGenderFilter] = useState(searchParams.get("gender") || "all");
-  
+
   // 批量操作状态
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
@@ -52,7 +52,7 @@ function UsersPageContent() {
     nickname: "",
     gender: "none" as "boy" | "girl" | "none",
   });
-  
+
   // 表单验证错误
   const [formErrors, setFormErrors] = useState<{
     username?: string;
@@ -67,7 +67,7 @@ function UsersPageContent() {
         page: pageNum,
         limit,
       };
-      
+
       // 添加搜索和筛选参数
       if (searchQuery.trim()) {
         params.search = searchQuery.trim();
@@ -78,7 +78,7 @@ function UsersPageContent() {
       if (genderFilter && genderFilter !== "all") {
         params.gender = genderFilter;
       }
-      
+
       const data = await request("/api/user", { params });
       if (data.success) {
         setFamilyMembers(data.users);
@@ -169,7 +169,7 @@ function UsersPageContent() {
   // 更新 URL 参数
   const updateQueryParams = useCallback((updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value && value !== "all") {
         params.set(key, value);
@@ -177,7 +177,7 @@ function UsersPageContent() {
         params.delete(key);
       }
     });
-    
+
     const newQuery = params.toString();
     const newUrl = newQuery ? `${pathname}?${newQuery}` : pathname;
     router.replace(newUrl, { scroll: false });
@@ -216,17 +216,17 @@ function UsersPageContent() {
   }, [pathname, router]);
 
   // 处理行选择变化
-  const handleRowSelectionChange = useCallback((keys: string[], rows: FamilyMember[]) => {
+  const handleRowSelectionChange = useCallback((keys: string[]) => {
     setSelectedRowKeys(keys);
   }, []);
 
   // 批量删除
   const handleBatchDelete = useCallback(async () => {
     if (!currentUser?.token || selectedRowKeys.length === 0) return;
-    
+
     let successCount = 0;
     let failCount = 0;
-    
+
     for (const id of selectedRowKeys) {
       try {
         const data = await request(`/api/user?id=${id}`, {
@@ -241,7 +241,7 @@ function UsersPageContent() {
         failCount++;
       }
     }
-    
+
     if (successCount > 0) {
       toast.success(`成功删除 ${successCount} 个用户`);
       setSelectedRowKeys([]);
@@ -390,45 +390,45 @@ function UsersPageContent() {
   ], []);
 
   const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
-      key: "actions",
-      title: "操作",
-      render: (_, row) => (
-        <div className="flex justify-center gap-2">
-          {row.role !== "child" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setEditingMember(row);
-                setAccountForm({
-                  username: row.username,
-                  password: "",
-                  role: row.role,
-                  identity: row.identity || "",
-                  nickname: row.nickname || "",
-                  gender: (row.gender as "boy" | "girl" | "none") || "none",
-                });
-                setFormErrors({});
-                setShowEditAccountModal(true);
-              }}
-              className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-            >
-              <Settings size={18} />
-            </Button>
-          )}
-          {!row.isMe && row.role !== "child" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setDeleteUserId(row.id)}
-              className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-            >
-              <Trash2 size={18} />
-            </Button>
-          )}
-        </div>
-      ),
-    }), []);
+    key: "actions",
+    title: "操作",
+    render: (_, row) => (
+      <div className="flex justify-center gap-2">
+        {row.role !== "child" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setEditingMember(row);
+              setAccountForm({
+                username: row.username,
+                password: "",
+                role: row.role,
+                identity: row.identity || "",
+                nickname: row.nickname || "",
+                gender: (row.gender as "boy" | "girl" | "none") || "none",
+              });
+              setFormErrors({});
+              setShowEditAccountModal(true);
+            }}
+            className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
+          >
+            <Settings size={18} />
+          </Button>
+        )}
+        {!row.isMe && row.role !== "child" && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setDeleteUserId(row.id)}
+            className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
+          >
+            <Trash2 size={18} />
+          </Button>
+        )}
+      </div>
+    ),
+  }), []);
 
   const pageOptions = useMemo(() => ({
     currentPage: page,
@@ -437,12 +437,10 @@ function UsersPageContent() {
     onPageChange: setPage,
   }), [page, total, limit]);
 
+  const activeFilterCount = [searchQuery.trim(), roleFilter !== "all", genderFilter !== "all"].filter(Boolean).length;
+  const hasActiveFilters = activeFilterCount > 0;
   return (
     <div className="space-y-6">
-      <div className="card-parent">
-        <h2 className="text-xl font-black text-slate-800">系统用户</h2>
-        <p className="mt-1 text-sm text-slate-500">搜索、筛选和批量管理家庭后台账号。</p>
-      </div>
       <Modal
         isOpen={!!deleteUserId}
         onClose={() => setDeleteUserId(null)}
@@ -526,83 +524,106 @@ function UsersPageContent() {
         </div>
       </Modal>
 
-      <div className="card-parent space-y-6 min-w-0">
-        {/* 搜索和筛选工具栏 - 一行显示 */}
-        <div className="flex flex-wrap items-center justify-between gap-3 min-w-0">
-          {/* 左侧：搜索和筛选 */}
-          <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-            {/* 搜索框 */}
-            <div className="relative w-full max-w-[300px] min-w-0">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
-              <input
-                type="text"
-                placeholder="搜索用户名或昵称..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-9 pr-8 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white/85"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => handleSearch("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-
-            {/* 角色筛选 */}
-            <div className="w-full max-w-[300px] min-w-0">
-              <Select
-                value={roleFilter}
-                onChange={handleRoleFilter}
-                options={[
-                  { value: "all", label: "全部角色" },
-                  { value: "admin", label: "管理员" },
-                  { value: "parent", label: "家长" },
-                  { value: "child", label: "孩子" },
-                ]}
-                placeholder="筛选角色"
-              />
-            </div>
-
-            {/* 性别筛选 */}
-            <div className="w-full max-w-[300px] min-w-0">
-              <Select
-                value={genderFilter}
-                onChange={handleGenderFilter}
-                options={[
-                  { value: "all", label: "全部性别" },
-                  { value: "boy", label: "男" },
-                  { value: "girl", label: "女" },
-                  { value: "none", label: "未设置" },
-                ]}
-                placeholder="筛选性别"
-              />
-            </div>
-
-            {/* 清除筛选按钮 */}
-            {(searchQuery || roleFilter !== "all" || genderFilter !== "all") && (
+      <div className="space-y-5">
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
+          <div className="relative min-w-0">
+            <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              type="text"
+              placeholder="搜索用户名或昵称..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-10 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+            />
+            {searchQuery && (
               <button
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline whitespace-nowrap px-1"
+                onClick={() => handleSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                aria-label="清空搜索"
               >
-                清除
+                <X size={14} />
               </button>
             )}
           </div>
 
-          {/* 右侧：刷新和添加用户按钮 */}
-          <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <Select
+              value={roleFilter}
+              onChange={handleRoleFilter}
+              options={[
+                { value: "all", label: "全部角色" },
+                { value: "admin", label: "管理员" },
+                { value: "parent", label: "家长" },
+                { value: "child", label: "孩子" },
+              ]}
+              placeholder="筛选角色"
+            />
+          </div>
+
+          <div className="min-w-0">
+            <Select
+              value={genderFilter}
+              onChange={handleGenderFilter}
+              options={[
+                { value: "all", label: "全部性别" },
+                { value: "boy", label: "男" },
+                { value: "girl", label: "女" },
+                { value: "none", label: "未设置" },
+              ]}
+              placeholder="筛选性别"
+            />
+          </div>
+
+          <div className="flex min-w-0 items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+              className="h-[42px] whitespace-nowrap px-4 text-sm shadow-none"
+            >
+              清除筛选
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 md:px-5">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+            <span>
+              找到 <span className="font-semibold text-slate-800">{total}</span> 个用户
+            </span>
+            {searchQuery && <span>，搜索 “{searchQuery}”</span>}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedRowKeys.length > 0 && (
+              <>
+                <span className="text-sm text-slate-600">
+                  已选择 <span className="font-semibold text-slate-800">{selectedRowKeys.length}</span> 个用户
+                </span>
+                <Button variant="secondary" size="sm" onClick={() => setShowBatchRoleModal(true)} className="px-3">
+                  <UserCog size={16} />
+                  修改角色
+                </Button>
+                <Button variant="error" size="sm" onClick={() => setShowBatchDeleteModal(true)} className="px-3">
+                  <Trash size={16} />
+                  批量删除
+                </Button>
+                <button
+                  onClick={() => setSelectedRowKeys([])}
+                  className="rounded-full px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                >
+                  取消选择
+                </button>
+              </>
+            )}
             <Button
               variant="secondary"
               onClick={handleRefresh}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
+              className="h-10 px-4 text-sm shadow-none"
               title="刷新数据"
             >
               <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-              <span className="hidden sm:inline">刷新</span>
+              <span>刷新</span>
             </Button>
             <Button
               onClick={() => {
@@ -617,70 +638,28 @@ function UsersPageContent() {
                 setFormErrors({});
                 setShowAddAccountModal(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
+              className="h-10 px-4 text-sm"
             >
-              <Plus size={16} /> <span className="hidden sm:inline">添加用户</span>
-              <span className="sm:hidden">添加</span>
+              <Plus size={16} /> <span>添加用户</span>
             </Button>
           </div>
         </div>
 
-        {/* 结果统计 */}
-        {(searchQuery || roleFilter !== "all" || genderFilter !== "all") && (
-          <div className="text-sm text-slate-500">
-            找到 <span className="font-medium text-slate-700">{total}</span> 个用户
-            {searchQuery && <span>，搜索 &quot;{searchQuery}&quot;</span>}
-          </div>
-        )}
-
-        {/* 批量操作工具栏 */}
-        {selectedRowKeys.length > 0 && (
-          <div className="flex items-center justify-between gap-4 p-4 bg-blue-50/80 border border-blue-100 rounded-2xl">
-            <div className="text-sm text-blue-800">
-              已选择 <span className="font-semibold">{selectedRowKeys.length}</span> 个用户
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowBatchRoleModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-xl hover:bg-blue-50 transition-colors"
-              >
-                <UserCog size={16} />
-                修改角色
-              </button>
-              <button
-                onClick={() => setShowBatchDeleteModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-xl hover:bg-red-50 transition-colors"
-              >
-                <Trash size={16} />
-                批量删除
-              </button>
-              <button
-                onClick={() => setSelectedRowKeys([])}
-                className="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800 transition-colors"
-              >
-                取消选择
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="w-full min-w-0 overflow-x-hidden">
-          <DataTable
-            columns={columns}
-            dataSource={familyMembers}
-            actionColumn={actionColumn}
-            fixedColumns={{ left: ["username"], right: ["actions"] }}
-            pageOptions={pageOptions}
-            minWidth={800}
-            loading={loading}
-            emptyText={searchQuery || roleFilter !== "all" || genderFilter !== "all" ? "没有找到匹配的用户" : "暂无用户数据"}
-            rowSelection={{
-              selectedRowKeys,
-              onChange: handleRowSelectionChange,
-              getRowKey: (row) => row.id,
-            }}
-          />
-        </div>
+        <DataTable
+          columns={columns}
+          dataSource={familyMembers}
+          actionColumn={actionColumn}
+          fixedColumns={{ left: ["username"], right: ["actions"] }}
+          pageOptions={pageOptions}
+          minWidth={800}
+          loading={loading}
+          emptyText={hasActiveFilters ? "没有找到匹配的用户" : "暂无用户数据"}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: handleRowSelectionChange,
+            getRowKey: (row) => row.id,
+          }}
+        />
       </div>
 
       <Modal

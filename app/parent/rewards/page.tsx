@@ -137,15 +137,9 @@ export default function RewardsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="card-parent flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-xl font-black text-slate-800">奖品商城</h2>
-          <p className="mt-1 text-sm text-slate-500">管理奖励上架、库存和兑换门槛。</p>
-        </div>
-        <Button onClick={() => setShowAddReward(true)} className="flex items-center gap-2">
-          <Plus size={18} /> 添加奖励
-        </Button>
-      </div>
+      <Button onClick={() => setShowAddReward(true)} className="flex items-center gap-2">
+        <Plus size={18} /> 添加奖励
+      </Button>
       {rewards.length === 0 ? (
         <div className="card-parent text-center py-12 text-slate-500">
           <Gift size={48} className="mx-auto mb-2 opacity-50" />
