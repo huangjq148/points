@@ -540,7 +540,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {hasLeftSection && (
               <div
                 className={cx(
-                  'absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none',
+                  'absolute left-3 top-1/2 -translate-y-1/2 z-10 flex items-center pointer-events-none',
                   statusClasses.icon
                 )}
               >
@@ -561,7 +561,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               aria-invalid={mergedStatus === 'error'}
               aria-describedby={describedBy}
               className={cx(
-                'w-full border backdrop-blur-sm transition-all duration-200',
+                'relative z-0 w-full border backdrop-blur-sm transition-all duration-200',
                 'focus:outline-none',
                 'disabled:bg-gray-100 disabled:cursor-not-allowed',
                 'placeholder:text-gray-400',
@@ -579,7 +579,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             />
 
             {hasRightSection && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2">
                 {finalEndNodes}
               </div>
             )}

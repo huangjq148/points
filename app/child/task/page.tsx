@@ -56,6 +56,12 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: '需修改' },
 ];
 
+const TYPE_OPTIONS = [
+  { value: '', label: '全部类型' },
+  { value: 'daily', label: '日常任务' },
+  { value: 'custom', label: '自定义任务' },
+];
+
 function TaskPage() {
   const { currentUser } = useApp();
   const searchParams = useSearchParams();
@@ -69,10 +75,19 @@ function TaskPage() {
 
   const [searchName, setSearchName] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [initialFilterApplied, setInitialFilterApplied] = useState(false);
   const [pendingOpenTaskId, setPendingOpenTaskId] = useState<string | null>(initialTaskId);
+  const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState({
+    searchName: '',
+    statusFilter: '',
+    typeFilter: '',
+    startDate: null as Date | null,
+    endDate: null as Date | null,
+  });
 
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -85,7 +100,10 @@ function TaskPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTasks = useCallback(
-    async (pageNum: number = 1) => {
+    async (
+      pageNum: number = 1,
+      filters = appliedFilters,
+    ) => {
       if (!currentUser?.token) return;
 
       setLoading(true);
@@ -93,11 +111,12 @@ function TaskPage() {
         const params = {
           page: pageNum,
           limit: limit,
-          ...(statusFilter && statusFilter !== 'in_progress' && { status: statusFilter }),
-          ...(statusFilter === 'in_progress' && { inProgress: 'true' }),
-          ...(searchName && { searchName }),
-          ...(startDate && { startDate: startDate.toISOString() }),
-          ...(endDate && { endDate: endDate.toISOString() }),
+          ...(filters.statusFilter && filters.statusFilter !== 'in_progress' && { status: filters.statusFilter }),
+          ...(filters.statusFilter === 'in_progress' && { inProgress: 'true' }),
+          ...(filters.typeFilter && { type: filters.typeFilter }),
+          ...(filters.searchName && { searchName: filters.searchName }),
+          ...(filters.startDate && { startDate: dayjs(filters.startDate).format('YYYY-MM-DD') }),
+          ...(filters.endDate && { endDate: dayjs(filters.endDate).format('YYYY-MM-DD') }),
         };
 
         const data = await request('/api/tasks', {
@@ -114,7 +133,7 @@ function TaskPage() {
         setLoading(false);
       }
     },
-    [currentUser?.token, statusFilter, searchName, startDate, endDate],
+    [currentUser?.token, appliedFilters],
   );
 
   // 处理URL查询参数（从首页跳转或探索日志进入）
@@ -122,20 +141,28 @@ function TaskPage() {
     if (initialFilterApplied) return;
 
     const filter = searchParams.get('filter');
+    const searchNameParam = searchParams.get('searchName') || '';
     const status = searchParams.get('status');
+    const type = searchParams.get('type');
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
 
+    if (searchNameParam) {
+      setSearchName(searchNameParam);
+    }
     if (status) {
       setStatusFilter(status);
     }
+    if (type) {
+      setTypeFilter(type);
+    }
 
     if (startDateParam) {
-      setStartDate(new Date(startDateParam + ' 00:00:00'));
+      setStartDate(dayjs(startDateParam).startOf('day').toDate());
     }
 
     if (endDateParam) {
-      setEndDate(new Date(endDateParam + ' 23:59:59'));
+      setEndDate(dayjs(endDateParam).endOf('day').toDate());
     }
 
     if (filter === 'thisWeek' && !startDateParam && !endDateParam) {
@@ -155,15 +182,22 @@ function TaskPage() {
       setEndDate(sunday);
     }
 
+    const nextFilters = {
+      searchName: searchNameParam,
+      statusFilter: status || '',
+      typeFilter: type || '',
+      startDate: startDateParam ? dayjs(startDateParam).startOf('day').toDate() : null,
+      endDate: endDateParam ? dayjs(endDateParam).endOf('day').toDate() : null,
+    };
+    setAppliedFilters(nextFilters);
     setInitialFilterApplied(true);
-  }, [searchParams, initialFilterApplied]);
+  }, [searchParams, initialFilterApplied, fetchTasks]);
 
-  // 当筛选条件变化时，重新获取任务
   useEffect(() => {
-    if (initialFilterApplied) {
-      fetchTasks(1);
-    }
-  }, [statusFilter, startDate, endDate, initialFilterApplied, fetchTasks]);
+    if (!currentUser?.token || !initialFilterApplied || hasInitialLoaded) return;
+    void fetchTasks(1);
+    setHasInitialLoaded(true);
+  }, [currentUser?.token, fetchTasks, hasInitialLoaded, initialFilterApplied]);
 
   useEffect(() => {
     if (!pendingOpenTaskId || tasks.length === 0) return;
@@ -175,14 +209,32 @@ function TaskPage() {
   }, [pendingOpenTaskId, tasks]);
 
   const handleSearch = () => {
-    fetchTasks(1);
+    const nextFilters = {
+      searchName,
+      statusFilter,
+      typeFilter,
+      startDate,
+      endDate,
+    };
+    setAppliedFilters(nextFilters);
+    fetchTasks(1, nextFilters);
   };
 
   const handleReset = () => {
     setSearchName('');
     setStatusFilter('');
+    setTypeFilter('');
     setStartDate(null);
     setEndDate(null);
+    const nextFilters = {
+      searchName: '',
+      statusFilter: '',
+      typeFilter: '',
+      startDate: null,
+      endDate: null,
+    };
+    setAppliedFilters(nextFilters);
+    fetchTasks(1, nextFilters);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -267,6 +319,32 @@ function TaskPage() {
     }
   };
 
+  const handleStartTask = async (task: Task) => {
+    if (!task._id || !currentUser?.token) return;
+
+    setSelectedTask(task);
+    try {
+      const data = await request('/api/tasks', {
+        method: 'PUT',
+        body: {
+          taskId: task._id,
+          status: 'in_progress',
+        },
+      });
+
+      if (data.success) {
+        const nextTask = { ...task, status: 'in_progress' };
+        setTasks((prev) => prev.map((item) => (item._id === task._id ? nextTask : item)));
+        setSelectedTask(nextTask);
+        if (showTaskDetail?._id === task._id) {
+          setShowTaskDetail(nextTask);
+        }
+      }
+    } catch (error) {
+      console.error('Start task error:', error);
+    }
+  };
+
   const openTaskDetail = (task: Task) => {
     setSelectedTask(task);
     setShowTaskDetail(task);
@@ -280,6 +358,16 @@ function TaskPage() {
 
   const getStatusInfo = (status: string) => {
     switch (status) {
+      case 'in_progress':
+        return {
+          label: '进行中',
+          bg: 'bg-blue-100',
+          text: 'text-blue-700',
+          dot: 'bg-blue-500',
+          iconWrap: 'bg-blue-100 text-blue-700',
+          card: 'border-blue-200/80 bg-blue-50/70',
+          action: 'bg-blue-500 hover:bg-blue-600 text-white',
+        };
       case 'approved':
         return {
           label: '已完成',
@@ -332,6 +420,35 @@ function TaskPage() {
           action: 'bg-blue-500 hover:bg-blue-600 text-white',
         };
     }
+  };
+
+  const getLatestAuditRecord = (task: Task) => {
+    if (!task.auditHistory?.length) return null;
+    return task.auditHistory[0];
+  };
+
+  const getParentFeedback = (task: Task) => {
+    const latestAudit = getLatestAuditRecord(task);
+    if (latestAudit?.auditNote) {
+      return {
+        label: latestAudit.status === 'approved' ? '家长反馈' : '驳回原因',
+        text: latestAudit.auditNote,
+        className:
+          latestAudit.status === 'approved'
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+            : 'bg-rose-50 text-rose-700 border-rose-100',
+      };
+    }
+
+    if (task.rejectionReason) {
+      return {
+        label: '驳回原因',
+        text: task.rejectionReason,
+        className: 'bg-rose-50 text-rose-700 border-rose-100',
+      };
+    }
+
+    return null;
   };
 
   const getDeadlineInfo = (deadline?: string, status?: string) => {
@@ -395,29 +512,24 @@ function TaskPage() {
       <div className='min-h-screen px-4 py-4 relative'>
         {/* 搜索区域 */}
         <div className='glass-strong rounded-3xl p-4 mb-4 shadow-xl relative z-10'>
-          <div className='flex flex-col gap-3'>
-            {/* 搜索框 */}
-            <div className='relative'>
+          <div className='flex flex-col gap-4'>
+            {/* 筛选条件 */}
+            <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
+              {/* 搜索框 */}
               <Input
                 labelPosition="left"
                 allowClear
                 isSearch
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="搜索任务名称..."
               />
-            </div>
-
-            {/* 筛选条件 */}
-            <div className='flex flex-wrap gap-2 items-center'>
-              {/* 状态筛选 */}
-              <div className='flex items-center gap-2'>
-                <Filter size={16} className='text-gray-400' />
+              <div className='flex items-center gap-2 rounded-2xl bg-slate-50/90 border border-slate-100 px-3 py-2.5'>
+                <Filter size={16} className='text-slate-400 shrink-0' />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className='px-3 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl text-sm focus:outline-none focus:border-blue-400 text-gray-800'
+                  className='w-full bg-transparent text-sm focus:outline-none text-gray-800'
                 >
                   {STATUS_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -427,21 +539,35 @@ function TaskPage() {
                 </select>
               </div>
 
-              {/* 日期筛选 */}
-              <div className='flex items-center gap-2 flex-1 min-w-[200px]'>
-                <Calendar size={16} className='text-gray-400' />
+              <div className='flex items-center gap-2 rounded-2xl bg-slate-50/90 border border-slate-100 px-3 py-2.5'>
+                <span className='text-slate-400 text-sm font-bold shrink-0'>类型</span>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className='w-full bg-transparent text-sm focus:outline-none text-gray-800'
+                >
+                  {TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className='flex items-center gap-2 rounded-2xl bg-slate-50/90 border border-slate-100 px-3 py-2.5 md:col-span-2 xl:col-span-1'>
+              <Calendar size={16} className='text-slate-400 shrink-0' />
+              <div className='grid grid-cols-2 gap-2 flex-1'>
                 <DatePicker
                   selected={startDate}
                   onChange={(date) => setStartDate(date)}
                   placeholderText='开始日期'
-                  className='border-gray-100 flex-1 text-gray-800'
+                  className='border-0 bg-white/80'
                 />
-                <span className='text-gray-400'>-</span>
                 <DatePicker
                   selected={endDate}
                   onChange={(date) => setEndDate(date)}
                   placeholderText='结束日期'
-                  className='border-gray-100 flex-1 text-gray-800'
+                  className='border-0 bg-white/80'
                 />
               </div>
             </div>
@@ -481,8 +607,10 @@ function TaskPage() {
                   const statusInfo = getStatusInfo(task.status);
                   const deadlineInfo = getDeadlineInfo(task.deadline, task.status);
                   const isPending = task.status === 'pending';
+                  const isInProgress = task.status === 'in_progress';
                   const isRejected = task.status === 'rejected';
                   const isSubmitted = task.status === 'submitted';
+                  const parentFeedback = getParentFeedback(task);
 
                   return (
                     <motion.div
@@ -490,7 +618,7 @@ function TaskPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`group rounded-2xl border p-4 md:p-5 cursor-pointer transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 ${statusInfo.card}`}
+                      className={`group rounded-[1.5rem] border p-4 md:p-5 cursor-pointer transition-all shadow-sm hover:shadow-lg hover:-translate-y-0.5 ${statusInfo.card}`}
                       onClick={() => {
                         if (task.status === 'pending' || task.status === 'rejected') {
                           openSubmitModal(task);
@@ -540,6 +668,20 @@ function TaskPage() {
                               </span>
                             )}
 
+                            {task.startDate && (
+                              <span className='inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700'>
+                                <span className='w-1.5 h-1.5 rounded-full bg-indigo-500' />
+                                开始 {dayjs(task.startDate).format('MM/DD')}
+                              </span>
+                            )}
+
+                            {task.deadline && (
+                              <span className='inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700'>
+                                <span className='w-1.5 h-1.5 rounded-full bg-rose-500' />
+                                截止 {dayjs(task.deadline).format('MM/DD')}
+                              </span>
+                            )}
+
                             {task.updatedAt && (
                               <span className='text-xs text-gray-400'>
                                 更新于 {dayjs(task.updatedAt).format('YYYY/MM/DD')}
@@ -547,16 +689,32 @@ function TaskPage() {
                             )}
                           </div>
 
-                          {task.rejectionReason && (
+                          {parentFeedback ? (
+                            <div className={`mt-2 rounded-lg border px-2 py-1.5 text-xs ${parentFeedback.className}`}>
+                              <span className='font-bold'>{parentFeedback.label}：</span>
+                              <span className='ml-1 font-medium'>{parentFeedback.text}</span>
+                            </div>
+                          ) : task.rejectionReason ? (
                             <p className='mt-2 text-xs text-rose-600 bg-rose-100/70 rounded-lg px-2 py-1.5'>
                               ✏️ {task.rejectionReason}
                             </p>
-                          )}
+                          ) : null}
                         </div>
                       </div>
 
                       <div className='mt-3 flex justify-end'>
-                        {(isPending || isRejected) && (
+                        {isPending && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStartTask(task);
+                            }}
+                            className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${statusInfo.action}`}
+                          >
+                            开始任务
+                          </button>
+                        )}
+                        {isRejected && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -564,7 +722,18 @@ function TaskPage() {
                             }}
                             className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${statusInfo.action}`}
                           >
-                            {isRejected ? '重新提交' : '去完成'}
+                            重新提交
+                          </button>
+                        )}
+                        {isInProgress && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openSubmitModal(task);
+                            }}
+                            className="px-4 py-2 text-sm font-bold rounded-full transition-colors bg-emerald-500 hover:bg-emerald-600 text-white"
+                          >
+                            提交审核
                           </button>
                         )}
                         {isSubmitted && (
@@ -647,15 +816,32 @@ function TaskPage() {
         showCloseButton={false}
         zIndex={100}
         footer={
-          selectedTask?.status === 'pending' ||
-            selectedTask?.status === 'rejected' ? (
+          selectedTask?.status === 'pending' ? (
+            <button
+              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+              onClick={() => {
+                setShowTaskDetail(null);
+                handleStartTask(selectedTask);
+              }}
+            >
+              🚀 开始任务
+            </button>
+          ) : selectedTask?.status === 'rejected' ? (
             <button
               className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
               onClick={() => openSubmitModal(selectedTask)}
             >
-              {selectedTask?.status === 'rejected'
-                ? '💪 重新提交'
-                : '🚀 开始任务'}
+              💪 重新提交
+            </button>
+          ) : selectedTask?.status === 'in_progress' ? (
+            <button
+              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-sky-500 to-cyan-500 shadow-xl'
+              onClick={() => {
+                setShowTaskDetail(null);
+                openSubmitModal(selectedTask);
+              }}
+            >
+              ✅ 提交审核
             </button>
           ) : selectedTask?.status === 'submitted' ? (
             <button
@@ -681,7 +867,7 @@ function TaskPage() {
           <>
             {/* 任务基本信息 - 固定在顶部 */}
             <div className='flex items-center gap-5 mb-6'>
-              <div className='w-24 h-24 bg-gradient-to-br from-violet-100 to-purple-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-inner'>
+              <div className='w-24 h-24 bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-inner'>
                 {selectedTask.icon}
               </div>
               <div className='flex-1'>
@@ -795,6 +981,22 @@ function TaskPage() {
                               : '⏳ 审核中'}
                         </h4>
                         <div className='space-y-2'>
+                          {selectedTask.startDate && (
+                            <div className='flex justify-between items-center'>
+                              <span className='text-sm text-gray-500'>开始时间</span>
+                              <span className='text-sm font-bold text-gray-700'>
+                                {dayjs(selectedTask.startDate).format('M月D日 HH:mm')}
+                              </span>
+                            </div>
+                          )}
+                          {selectedTask.deadline && (
+                            <div className='flex justify-between items-center'>
+                              <span className='text-sm text-gray-500'>截止时间</span>
+                              <span className='text-sm font-bold text-gray-700'>
+                                {dayjs(selectedTask.deadline).format('M月D日 HH:mm')}
+                              </span>
+                            </div>
+                          )}
                           {selectedTask.submittedAt && (
                             <div className='flex justify-between items-center'>
                               <span className='text-sm text-gray-500'>

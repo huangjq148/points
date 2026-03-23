@@ -89,9 +89,10 @@ export interface PlainTask {
   type: "daily" | "advanced" | "challenge";
   icon: string;
   requirePhoto: boolean;
-  status: "pending" | "submitted" | "approved" | "rejected";
+  status: "pending" | "in_progress" | "submitted" | "approved" | "rejected";
   photoUrl?: string;
   imageUrl?: string;
+  rejectionReason?: string;
   submittedAt?: string;
   approvedAt?: string;
   completedAt?: string;

@@ -85,6 +85,23 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
   };
 
   const styles = getStatusStyles();
+  const latestAudit = task.auditHistory?.[0];
+  const parentFeedback = latestAudit?.auditNote
+    ? {
+        label: latestAudit.status === "approved" ? "家长反馈" : "驳回原因",
+        text: latestAudit.auditNote,
+        className:
+          latestAudit.status === "approved"
+            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+            : "bg-rose-50 text-rose-700 border-rose-100",
+      }
+    : task.rejectionReason
+      ? {
+          label: "驳回原因",
+          text: task.rejectionReason,
+          className: "bg-rose-50 text-rose-700 border-rose-100",
+        }
+      : null;
 
   // 渲染操作记录 - 数据已按时间倒序排列（最新的在最前面）
   const renderAuditHistory = () => {
@@ -193,9 +210,9 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                     </span>
                   </div>
                   {record.auditNote ? (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-1">审核意见：</p>
-                      <p className="text-sm text-gray-700">{record.auditNote}</p>
+                    <div className={`rounded-lg p-3 ${record.status === 'approved' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                      <p className={`text-xs mb-1 ${record.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'}`}>审核意见：</p>
+                      <p className={`text-sm font-medium ${record.status === 'approved' ? 'text-emerald-800' : 'text-rose-700'}`}>{record.auditNote}</p>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-400 italic">未填写审核意见</p>
@@ -253,6 +270,12 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                   {task.childName}
                 </span>
               </div>
+              {parentFeedback && (
+                <div className={`mt-2 inline-flex max-w-full items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] ${parentFeedback.className}`}>
+                  <span className="font-bold shrink-0">{parentFeedback.label}</span>
+                  <span className="truncate">{parentFeedback.text}</span>
+                </div>
+              )}
             </div>
           </div>
           {/* 积分显示优化 */}

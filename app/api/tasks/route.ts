@@ -9,14 +9,16 @@ import { AccountModel, TransactionModel } from "@/models/Economy";
 
 interface ITaskQuery {
   childId?: mongoose.Types.ObjectId;
+  type?: "daily" | "custom";
   status?:
     | "pending"
+    | "in_progress"
     | "submitted"
     | "approved"
     | "rejected"
     | "expired"
     | "failed"
-    | { $in: Array<"pending" | "submitted" | "approved" | "rejected" | "expired" | "failed"> };
+    | { $in: Array<"pending" | "in_progress" | "submitted" | "approved" | "rejected" | "expired" | "failed"> };
   userId?: mongoose.Types.ObjectId;
   name?: { $regex: string; $options: string };
   approvedAt?: { $gte?: Date; $lte?: Date };
@@ -42,6 +44,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const childId = searchParams.get("childId");
     const status = searchParams.get("status") as ITask["status"];
+    const type = searchParams.get("type") as ITask["type"] | null;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const searchName = searchParams.get("searchName");
@@ -63,6 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (status) query.status = status;
+    if (type) query.type = type;
 
     // 默认不做额外时间裁剪，避免“全部”页面被服务端静默截断
     // 需要“进行中/未开始”时由前端显式传参
@@ -75,7 +79,7 @@ export async function GET(request: NextRequest) {
     } else if (inProgress) {
       const now = new Date();
       if (!status) {
-        query.status = { $in: ["pending", "submitted", "rejected"] };
+        query.status = { $in: ["pending", "in_progress", "submitted", "rejected"] };
       }
       query.$and = [
         {
@@ -116,8 +120,16 @@ export async function GET(request: NextRequest) {
     // 添加日期范围筛选
     if (startDate || endDate) {
       const dateQuery: Record<string, Date> = {};
-      if (startDate) dateQuery.$gte = new Date(startDate);
-      if (endDate) dateQuery.$lte = new Date(endDate);
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        dateQuery.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateQuery.$lte = end;
+      }
       query.approvedAt = dateQuery;
     }
 

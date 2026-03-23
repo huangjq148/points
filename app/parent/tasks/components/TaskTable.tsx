@@ -89,6 +89,30 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     }
   };
 
+  const getParentFeedback = (task: IDisplayedTask) => {
+    const latestAudit = task.auditHistory?.[0];
+    if (latestAudit?.auditNote) {
+      return {
+        label: latestAudit.status === "approved" ? "家长反馈" : "驳回原因",
+        text: latestAudit.auditNote,
+        className:
+          latestAudit.status === "approved"
+            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+            : "bg-rose-50 text-rose-700 border-rose-100",
+      };
+    }
+
+    if (task.rejectionReason) {
+      return {
+        label: "驳回原因",
+        text: task.rejectionReason,
+        className: "bg-rose-50 text-rose-700 border-rose-100",
+      };
+    }
+
+    return null;
+  };
+
   // 渲染操作记录
   const renderAuditHistory = (task: IDisplayedTask) => {
     if (!task.auditHistory || task.auditHistory.length === 0) {
@@ -200,9 +224,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                     </span>
                   </div>
                   {record.auditNote ? (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-500 mb-1">审核意见：</p>
-                      <p className="text-sm text-gray-700">{record.auditNote}</p>
+                    <div className={`rounded-lg p-3 ${record.status === 'approved' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                      <p className={`text-xs mb-1 ${record.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'}`}>审核意见：</p>
+                      <p className={`text-sm font-medium ${record.status === 'approved' ? 'text-emerald-800' : 'text-rose-700'}`}>{record.auditNote}</p>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-400 italic">未填写审核意见</p>
@@ -229,6 +253,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       title: "任务",
       render: (_, task) => {
         const statusInfo = getStatusInfo(task);
+        const parentFeedback = getParentFeedback(task);
         return (
           <div className="flex items-center gap-3">
             {/* 优化图标显示 */}
@@ -255,6 +280,12 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                 <p className="text-xs text-gray-500 truncate max-w-[200px] mt-0.5">
                   {task.description}
                 </p>
+              )}
+              {parentFeedback && (
+                <div className={`mt-1 inline-flex max-w-[220px] items-center gap-1 rounded-md border px-2 py-0.5 text-[10px] ${parentFeedback.className}`}>
+                  <span className="font-bold shrink-0">{parentFeedback.label}</span>
+                  <span className="truncate">{parentFeedback.text}</span>
+                </div>
               )}
             </div>
           </div>

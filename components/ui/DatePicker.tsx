@@ -28,7 +28,7 @@ const CustomDatePicker = memo(({
 }: CustomDatePickerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const defaultClassName = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-sm";
+  const defaultClassName = "relative z-0 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-sm text-gray-900 placeholder:text-gray-400";
   
   // 组合样式
   const combinedClassName = `
@@ -42,7 +42,7 @@ const CustomDatePicker = memo(({
     <div ref={containerRef} className={`relative w-full group ${icon && iconPosition === 'right' ? 'has-right-icon' : ''}`}>
       {icon && (
         <div className={`
-          absolute top-1/2 -translate-y-1/2 text-gray-400 z-10 transition-colors group-focus-within:text-blue-500
+          absolute top-1/2 -translate-y-1/2 text-gray-400 z-20 transition-colors group-focus-within:text-blue-500
           ${iconPosition === 'left' ? "left-3" : "right-3"}
         `}>
           {icon}

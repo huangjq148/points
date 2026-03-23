@@ -4,7 +4,7 @@ export type TaskType = "daily" | "custom";
 export type TaskCategory = "personal_hygiene" | "learning" | "housework" | "social" | "other";
 export type TaskDifficulty = "easy" | "normal" | "hard";
 export type RecurrencePattern = "minutely" | "daily" | "weekly" | "custom_days" | "none";
-export type TaskStatus = "pending" | "submitted" | "approved" | "rejected" | "expired" | "failed";
+export type TaskStatus = "pending" | "in_progress" | "submitted" | "approved" | "rejected" | "expired" | "failed";
 
 // 审核记录
 export interface IAuditRecord {
@@ -94,7 +94,7 @@ const TaskSchema = new Schema<ITask>(
     },
     status: {
       type: String,
-      enum: ["pending", "submitted", "approved", "rejected", "expired", "failed"],
+      enum: ["pending", "in_progress", "submitted", "approved", "rejected", "expired", "failed"],
       default: "pending",
     },
     photoUrl: { type: String },
