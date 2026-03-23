@@ -6,20 +6,25 @@ import { Button } from "@/components/ui";
 import { useState, useEffect } from "react";
 import {
   Lock,
-  ChevronDown,
   Settings,
   LogOut,
   User as UserIcon,
   Bell,
-  HelpCircle,
   Moon,
   Home,
   ArrowUp,
   ShoppingBag,
   Wallet,
   ClipboardList,
+  Volume2,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Star,
+  MessageCircleQuestion,
 } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useToast } from "@/components/ui/Toast";
 
 interface ChildLayoutProps {
   children: React.ReactNode;
@@ -153,6 +158,7 @@ function PinVerification({ onVerified, onCancel }: { onVerified: () => void; onC
 
 export default function ChildLayout({ children }: ChildLayoutProps) {
   const { currentUser, childList, switchToChild, logout } = useApp();
+  const toast = useToast();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -166,6 +172,42 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("little_achievers_notifications") !== "false";
+  });
+  const [reducedMotion, setReducedMotion] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("little_achievers_reduced_motion") === "true";
+  });
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("little_achievers_theme") === "dark";
+  });
+  const [focusReminderEnabled, setFocusReminderEnabled] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem("little_achievers_focus_reminder") !== "false";
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("little_achievers_notifications", String(notificationsEnabled));
+  }, [notificationsEnabled]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("little_achievers_reduced_motion", String(reducedMotion));
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("little_achievers_theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("little_achievers_focus_reminder", String(focusReminderEnabled));
+  }, [focusReminderEnabled]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -174,6 +216,10 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -195,11 +241,25 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     setShowConfirmLogout(false);
   };
 
+  const copySupportText = async () => {
+    const text = `我是 ${currentUser?.username || "孩子"}，我需要帮助。`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("已复制求助信息");
+    } catch {
+      toast.error("复制失败，请手动重试");
+    }
+  };
+
+  const shellBackground = isDarkMode
+    ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 48%, #312e81 100%)"
+    : "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)";
+
   return (
     <div
       className="relative min-h-screen text-white"
       style={{
-        background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
+        background: shellBackground,
       }}
     >
       <style jsx global>{`
@@ -306,7 +366,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
       <header
         className="fixed top-0 left-0 right-0 z-50 px-6 pt-4"
         style={{
-          background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)",
+          background: shellBackground,
         }}
       >
         <div className="flex justify-between items-start mb-6">
@@ -479,82 +539,170 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
       {showSettingsModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center"
+          className="fixed inset-0 bg-black/55 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setShowSettingsModal(false)}
         >
           <div
-            className="bg-white rounded-t-3xl sm:rounded-3xl p-6 w-full max-w-md"
+            className="w-full max-w-lg overflow-hidden rounded-t-[2rem] sm:rounded-[2rem] bg-white text-slate-800 shadow-[0_28px_90px_rgba(15,23,42,0.28)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-gray-800">设置</h3>
-              <button onClick={() => setShowSettingsModal(false)} className="text-gray-400 hover:text-gray-600">
-                ✕
-              </button>
+            <div className="relative overflow-hidden bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-6 py-5 text-white">
+              <div className="absolute inset-0 opacity-30">
+                <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/30 blur-2xl" />
+                <div className="absolute left-4 bottom-0 h-20 w-20 rounded-full bg-cyan-300/30 blur-2xl" />
+              </div>
+              <div className="relative flex items-start justify-between gap-4">
+                <div>
+                  <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
+                    <Sparkles size={14} />
+                    孩子设置
+                  </div>
+                  <h3 className="text-2xl font-black">个人中心</h3>
+                  <p className="mt-1 text-sm text-white/80">管理提醒、主题和使用帮助</p>
+                </div>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <Button
-                variant="default"
-                onClick={() => {
-                  setShowSettingsModal(false);
-                  router.push("/child/wallet");
-                }}
-                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
-              >
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <UserIcon size={24} className="text-blue-600" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-bold text-gray-800">个人信息</p>
-                  <p className="text-sm text-gray-500">查看和修改个人资料</p>
-                </div>
-                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
-              </Button>
+            <div className="space-y-4 px-5 py-5 sm:px-6">
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => {
+                    setShowSettingsModal(false);
+                    router.push("/child/wallet");
+                  }}
+                  className="rounded-3xl border border-sky-100 bg-sky-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-sky-50"
+                >
+                  <UserIcon size={20} className="text-sky-600" />
+                  <p className="mt-3 text-sm font-bold">个人信息</p>
+                  <p className="mt-1 text-[11px] text-slate-500">资料与积分</p>
+                </button>
+                <button
+                  onClick={() => {
+                    setNotificationsEnabled((v) => {
+                      const next = !v;
+                      toast.info(next ? "通知已开启" : "通知已关闭");
+                      return next;
+                    });
+                  }}
+                  className="rounded-3xl border border-violet-100 bg-violet-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-violet-50"
+                >
+                  <Bell size={20} className="text-violet-600" />
+                  <p className="mt-3 text-sm font-bold">通知</p>
+                  <p className="mt-1 text-[11px] text-slate-500">{notificationsEnabled ? "已开启" : "已关闭"}</p>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsDarkMode((v) => {
+                      const next = !v;
+                      toast.success(next ? "已切换到深色主题" : "已切换到浅色主题");
+                      return next;
+                    });
+                  }}
+                  className="rounded-3xl border border-amber-100 bg-amber-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-amber-50"
+                >
+                  <Moon size={20} className="text-amber-600" />
+                  <p className="mt-3 text-sm font-bold">主题</p>
+                  <p className="mt-1 text-[11px] text-slate-500">{isDarkMode ? "深色" : "浅色"}</p>
+                </button>
+              </div>
 
-              <Button
-                variant="default"
-                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
-              >
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Bell size={24} className="text-purple-600" />
+              <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/80 p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+                  <ShieldCheck size={18} className="text-emerald-600" />
+                  快捷偏好
                 </div>
-                <div className="flex-1 text-left">
-                  <p className="font-bold text-gray-800">通知设置</p>
-                  <p className="text-sm text-gray-500">管理消息通知</p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      setFocusReminderEnabled((v) => {
+                        const next = !v;
+                        toast.info(next ? "专注提醒已开启" : "专注提醒已关闭");
+                        return next;
+                      });
+                    }}
+                    className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm transition hover:bg-slate-50"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-800">专注提醒</p>
+                      <p className="text-xs text-slate-500">提醒我按时查看任务和奖励</p>
+                    </div>
+                    <span
+                      className={`relative h-7 w-12 rounded-full transition ${
+                        focusReminderEnabled ? "bg-emerald-500" : "bg-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${
+                          focusReminderEnabled ? "left-6" : "left-1"
+                        }`}
+                      />
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setReducedMotion((v) => !v)}
+                    className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm transition hover:bg-slate-50"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-800">减少动画</p>
+                      <p className="text-xs text-slate-500">降低弹窗与页面动画强度</p>
+                    </div>
+                    <span className={`text-sm font-bold ${reducedMotion ? "text-emerald-600" : "text-slate-400"}`}>
+                      {reducedMotion ? "开启" : "关闭"}
+                    </span>
+                  </button>
                 </div>
-                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
-              </Button>
+              </div>
 
-              <Button
-                variant="default"
-                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
-              >
-                <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                  <Moon size={24} className="text-yellow-600" />
+              <div className="rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-sm">
+                <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+                  <MessageCircleQuestion size={18} className="text-blue-600" />
+                  帮助与支持
                 </div>
-                <div className="flex-1 text-left">
-                  <p className="font-bold text-gray-800">夜间模式</p>
-                  <p className="text-sm text-gray-500">切换深色/浅色主题</p>
+                <div className="grid gap-3">
+                  <button
+                    onClick={() => {
+                      toast.info("遇到问题时可以先查看任务页和钱包页的说明。");
+                      setShowSettingsModal(false);
+                      router.push("/child/wallet");
+                    }}
+                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-800">查看使用指南</p>
+                      <p className="text-xs text-slate-500">从钱包页查看积分和记录</p>
+                    </div>
+                    <ArrowRight size={18} className="text-slate-400" />
+                  </button>
+                  <button
+                    onClick={copySupportText}
+                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-800">复制求助消息</p>
+                      <p className="text-xs text-slate-500">可直接发给家长或管理员</p>
+                    </div>
+                    <Volume2 size={18} className="text-slate-400" />
+                  </button>
                 </div>
-                <div className="w-12 h-6 bg-gray-200 rounded-full relative">
-                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full shadow"></div>
-                </div>
-              </Button>
+              </div>
 
-              <Button
-                variant="default"
-                className="w-full flex items-center gap-4 p-4 !rounded-2xl !justify-start !bg-white/60 hover:!bg-white/80"
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-4 text-rose-600 transition hover:bg-rose-100"
               >
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <HelpCircle size={24} className="text-green-600" />
-                </div>
+                <LogOut size={18} />
                 <div className="flex-1 text-left">
-                  <p className="font-bold text-gray-800">帮助中心</p>
-                  <p className="text-sm text-gray-500">常见问题和使用指南</p>
+                  <p className="font-bold">退出登录</p>
+                  <p className="text-xs text-rose-500/80">切换到其他账号</p>
                 </div>
-                <ChevronDown size={20} className="text-gray-400 rotate-[-90deg]" />
-              </Button>
+                <Star size={16} className="opacity-60" />
+              </button>
             </div>
           </div>
         </div>

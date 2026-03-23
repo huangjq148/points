@@ -110,8 +110,6 @@ function AuditPage() {
     // 显示所有历史记录（包括待审核的）
     const allAudits = task.auditHistory;
 
-    const totalCount = task.auditHistory.length;
-
     return (
       <div className="space-y-4">
         {allAudits.map((record: AuditRecord, index: number) => (
@@ -123,7 +121,7 @@ function AuditPage() {
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                  第 {totalCount - index} 次操作 · 提交
+                  第 {index + 1} 次操作 · 提交
                 </span>
                 <span className="text-xs text-gray-400">
                   {formatDate(record.submittedAt)}
@@ -135,7 +133,7 @@ function AuditPage() {
                   <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
                     <ZoomImage
                       src={record.photoUrl}
-                      alt={`第 ${totalCount - index} 次提交的照片`}
+                      alt={`第 ${index + 1} 次提交的照片`}
                       className="object-cover w-full h-full"
                       enableZoom={true}
                       containerClassName="w-full h-full"

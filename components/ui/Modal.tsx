@@ -10,28 +10,28 @@ type ModalId = symbol;
 type ModalListener = () => void;
 
 const defaultBaseZIndex = 9998;
-// Track the z-order of active modals so subsequent overlays render above older ones.
-const modalStack: ModalId[] = [];
+// Track the z-order of active modals so the most recently opened modal stays on top.
+const modalOrders = new Map<ModalId, number>();
+let modalOrderSeed = 0;
 const modalListeners = new Set<ModalListener>();
 const emitStackChange = () => modalListeners.forEach((listener) => listener());
 
 const modalStackManager = {
   add(id: ModalId) {
-    if (!modalStack.includes(id)) {
-      modalStack.push(id);
-      emitStackChange();
-    }
+    modalOrders.set(id, ++modalOrderSeed);
+    emitStackChange();
   },
   remove(id: ModalId) {
-    const index = modalStack.indexOf(id);
-    if (index !== -1) {
-      modalStack.splice(index, 1);
+    if (modalOrders.delete(id)) {
       emitStackChange();
     }
   },
   subscribe(listener: ModalListener) {
     modalListeners.add(listener);
     return () => modalListeners.delete(listener);
+  },
+  getOrder(id: ModalId) {
+    return modalOrders.get(id) ?? -1;
   },
 };
 
@@ -80,7 +80,7 @@ export default function Modal({
 
   useEffect(() => {
     const updatePosition = () => {
-      setStackPosition(modalStack.indexOf(modalIdRef.current));
+      setStackPosition(modalStackManager.getOrder(modalIdRef.current));
     };
     updatePosition();
     const unsubscribe = modalStackManager.subscribe(updatePosition);
@@ -205,6 +205,7 @@ export default function Modal({
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
           style={{ zIndex: overlayZIndex }}
+          onPointerDownCapture={() => modalStackManager.add(modalIdRef.current)}
           onClick={onClose}
         >
           {modalBody}

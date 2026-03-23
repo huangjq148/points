@@ -5,7 +5,6 @@ import { useApp } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  Search,
   Filter,
   ChevronLeft,
   ChevronRight,
@@ -60,6 +59,7 @@ const STATUS_OPTIONS = [
 function TaskPage() {
   const { currentUser } = useApp();
   const searchParams = useSearchParams();
+  const initialTaskId = searchParams.get('taskId');
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,6 +72,7 @@ function TaskPage() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [initialFilterApplied, setInitialFilterApplied] = useState(false);
+  const [pendingOpenTaskId, setPendingOpenTaskId] = useState<string | null>(initialTaskId);
 
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -162,8 +163,16 @@ function TaskPage() {
     if (initialFilterApplied) {
       fetchTasks(1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, startDate, endDate, initialFilterApplied, fetchTasks]);
+
+  useEffect(() => {
+    if (!pendingOpenTaskId || tasks.length === 0) return;
+    const matchedTask = tasks.find((task) => task._id === pendingOpenTaskId);
+    if (matchedTask) {
+      openTaskDetail(matchedTask);
+      setPendingOpenTaskId(null);
+    }
+  }, [pendingOpenTaskId, tasks]);
 
   const handleSearch = () => {
     fetchTasks(1);
@@ -389,22 +398,8 @@ function TaskPage() {
           <div className='flex flex-col gap-3'>
             {/* 搜索框 */}
             <div className='relative'>
-              {/* <Search
-                className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-400'
-                size={18}
-              /> */}
-              {/* <input
-                type='text'
-                placeholder='搜索任务名称...'
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className='w-full pl-10 pr-4 py-3 bg-white border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-400 transition-colors text-gray-900 placeholder:text-gray-500'
-              /> */}
-
               <Input
                 labelPosition="left"
-                label="身份"
                 allowClear
                 isSearch
                 value={searchName}
@@ -869,7 +864,7 @@ function TaskPage() {
                             <div className='ml-2'>
                               <div className='flex items-center gap-2 mb-1'>
                                 <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
-                                  第 {selectedTask.auditHistory!.length - index}{' '}
+                                  第 {index + 1}{' '}
                                   次操作
                                 </span>
                                 {record.status === 'approved' ? (
@@ -909,7 +904,7 @@ function TaskPage() {
                                   <div className='w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
                                     <Image
                                       src={record.photoUrl}
-                                      alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
+                                      alt={`第 ${index + 1} 次提交的照片`}
                                       className='w-full h-full object-cover'
                                       enableZoom={true}
                                       containerClassName='w-full h-full'

@@ -1048,7 +1048,7 @@ export default function ChildHome() {
                                     <div className='w-24 h-24 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
                                       <Image
                                         src={record.photoUrl}
-                                        alt={`第 ${selectedTask.auditHistory!.length - index} 次提交的照片`}
+                                        alt={`第 ${index + 1} 次提交的照片`}
                                         className='w-full h-full object-cover'
                                         enableZoom={true}
                                         containerClassName='w-full h-full'

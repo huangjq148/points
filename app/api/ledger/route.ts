@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import Task from '@/models/Task';
 import Order from '@/models/Order';
 import mongoose from 'mongoose';
-import { getTokenPayload, getUserIdFromToken } from '@/lib/auth';
+import { getTokenPayload } from '@/lib/auth';
 
 interface DateFilter {
   $gte?: Date;
@@ -27,10 +27,25 @@ interface OrderQuery {
 interface LedgerTask {
   _id: mongoose.Types.ObjectId;
   name: string;
+  description?: string;
   points: number;
+  status: string;
+  requirePhoto?: boolean;
   approvedAt?: Date;
   updatedAt: Date;
+  submittedAt?: Date;
+  rejectionReason?: string;
+  photoUrl?: string;
   icon?: string;
+  imageUrl?: string;
+  auditHistory?: Array<{
+    submittedAt: Date;
+    photoUrl?: string;
+    submitNote?: string;
+    auditedAt?: Date;
+    status?: 'approved' | 'rejected';
+    auditNote?: string;
+  }>;
 }
 
 interface LedgerOrder {
@@ -122,19 +137,47 @@ export async function GET(request: NextRequest) {
     const ledger = [
       ...(tasks as unknown as LedgerTask[]).map((t) => ({
         _id: t._id,
+        sourceType: 'task',
+        sourceId: t._id.toString(),
         type: 'income',
         name: t.name,
         points: t.points,
         date: t.approvedAt || t.updatedAt,
-        icon: t.icon || '⭐'
+        icon: t.icon || '⭐',
+        taskDetail: {
+          _id: t._id.toString(),
+          name: t.name,
+          description: t.description || "",
+          icon: t.icon || "⭐",
+          points: t.points,
+          status: t.status,
+          requirePhoto: t.requirePhoto || false,
+          approvedAt: t.approvedAt || null,
+          submittedAt: t.submittedAt || null,
+          updatedAt: t.updatedAt,
+          rejectionReason: t.rejectionReason || "",
+          photoUrl: t.photoUrl || "",
+          imageUrl: t.imageUrl || "",
+          auditHistory: (t.auditHistory || []).map((record) => ({
+            submittedAt: record.submittedAt,
+            photoUrl: record.photoUrl || "",
+            submitNote: record.submitNote || "",
+            auditedAt: record.auditedAt || null,
+            status: record.status || undefined,
+            auditNote: record.auditNote || "",
+          })),
+        },
       })),
       ...(orders as unknown as LedgerOrder[]).map((o) => ({
         _id: o._id,
+        sourceType: 'order',
+        sourceId: o._id.toString(),
         type: o.type === 'deduction' ? 'deduction' : o.type === 'reward' && o.pointsSpent < 0 ? 'reward' : 'expense',
         name: o.rewardName,
         points: Math.abs(o.pointsSpent),
         date: o.createdAt,
-        icon: o.rewardIcon || (o.type === 'deduction' ? '⚠️' : '🎁')
+        icon: o.rewardIcon || (o.type === 'deduction' ? '⚠️' : '🎁'),
+        feedback: o.rewardName,
       }))
     ];
 

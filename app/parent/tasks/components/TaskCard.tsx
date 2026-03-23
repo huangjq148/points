@@ -98,8 +98,6 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
     }
 
     const history = task.auditHistory;
-    const totalCount = history.length;
-
     return (
       <div className="space-y-4">
         {history.map((record: AuditRecord, index: number) => (
@@ -122,7 +120,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                      第 {totalCount - index} 次操作 · 提交
+                      第 {index + 1} 次操作 · 提交
                     </span>
                     <span className="text-xs text-gray-400">
                       {formatDate(record.submittedAt)}
@@ -141,7 +139,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                     <div className="w-full max-w-[200px] h-40 rounded-xl overflow-hidden border-2 border-blue-100 shadow-sm hover:shadow-md transition-shadow">
                       <ZoomImage
                         src={record.photoUrl}
-                        alt={`第 ${totalCount - index} 次提交的照片凭证`}
+                        alt={`第 ${index + 1} 次提交的照片凭证`}
                         className="object-cover w-full h-full"
                         enableZoom={true}
                         zoomHint="点击查看大图"
