@@ -73,7 +73,7 @@ export const TabFilter = <T extends string>({
             key={tab.key}
             onClick={() => onFilterChange(tab.key)}
             className={`
-              relative px-6 py-2 text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-300
+              relative px-4 py-1.5 text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-300
               ${
                 isActive
                   ? "bg-slate-900 text-white shadow-sm"

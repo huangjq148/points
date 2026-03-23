@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Modal, Pagination, TabFilter } from "@/components/ui";
+import { Button, Modal, Pagination, TabFilter, Input } from "@/components/ui";
 import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
 import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -170,6 +170,7 @@ function TasksPage() {
 
   // 视图切换状态: 'card' | 'table'
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
+  const [taskNameFilter, setTaskNameFilter] = useState("");
   // 初始化模板数据
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -567,6 +568,7 @@ function TasksPage() {
   const fetchTasks = useCallback(
     async (pageNum: number = 1) => {
       const currentSelectedChildTaskFilter = selectedChildTaskFilter;
+      const currentTaskNameFilter = taskNameFilter.trim();
 
       let statusFilter = "";
       let inProgress = false;
@@ -600,6 +602,9 @@ function TasksPage() {
       if (currentSelectedChildTaskFilter !== "all") {
         params.childId = currentSelectedChildTaskFilter;
       }
+      if (currentTaskNameFilter) {
+        params.searchName = currentTaskNameFilter;
+      }
 
       const data = (await request("/api/tasks", {
         params,
@@ -611,7 +616,7 @@ function TasksPage() {
       }
       return [];
     },
-    [activeTaskFilter, selectedChildTaskFilter],
+    [activeTaskFilter, selectedChildTaskFilter, taskNameFilter],
   );
 
   useEffect(() => {
@@ -628,81 +633,110 @@ function TasksPage() {
     setPage(1);
   };
 
+  const handleTaskNameFilterChange = (value: string) => {
+    setTaskNameFilter(value);
+    setPage(1);
+  };
+
   return (
     <div className="space-y-6">
       {/* 筛选条件、Tabs 和操作按钮在同一行 */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <TabFilter
-            items={TAB_ITEMS}
-            activeKey={activeTaskFilter}
-            onFilterChange={(key) => onFilterChange("status", key)}
-          />
-        </div>
-        <div className="flex justify-end gap-2 items-center flex-wrap">
-          {/* 孩子选择器 - 优化样式 */}
-          <ChildFilterSelect
-            childList={childList.map((child) => ({
-              id: child.id,
-              username: child.username,
-              avatar: child.avatar,
-            }))}
-            selectedChildId={selectedChildTaskFilter === "all" ? null : selectedChildTaskFilter}
-            onChange={(value) => onFilterChange("child", value ?? "all")}
-          />
-          {/* 模板管理按钮 - 优化样式 */}
-          <Button
-            onClick={() => setShowTemplateManager(true)}
-            className="rounded-xl bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-0 h-[34px] leading-none shadow-sm hover:shadow-md flex items-center gap-2 group transition-all"
-            variant="secondary"
-          >
-            <Edit2 size={16} className="group-hover:rotate-12 transition-transform duration-300" />
-            <span className="font-semibold text-sm hidden sm:inline">模板管理</span>
-            <span className="font-semibold text-sm sm:hidden">模板</span>
-          </Button>
-          {/* 添加任务按钮 - 优化样式 */}
-          <Button
-            onClick={() => {
-              const defaultStartDate = new Date();
-              defaultStartDate.setHours(0, 0, 0, 0);
-              const defaultDeadline = new Date();
-              defaultDeadline.setHours(23, 59, 59, 999);
-              const resetData = createEmptyTaskFormData();
-              resetData.startDate = defaultStartDate;
-              resetData.deadline = defaultDeadline;
-              setTaskData(resetData);
-              setTaskPhotoFile(null);
-              setTaskPhotoPreview("");
-              setTaskModalMode("add");
-              setShowTaskModal(true);
-            }}
-            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-0 h-[34px] leading-none shadow-sm flex items-center gap-2 group transition-colors"
-          >
-            <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
-            <span className="font-semibold text-sm sm:hidden">添加</span>
-          </Button>
-          {/* 视图切换 - 优化样式 */}
-          <button
-            onClick={() => setViewMode("card")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${viewMode === "card"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-              }`}
-          >
-            <LayoutGrid size={15} />
-            卡片
-          </button>
-          <button
-            onClick={() => setViewMode("table")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${viewMode === "table"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-              }`}
-          >
-            <Table2 size={15} />
-            表格
-          </button>
+      <div className="rounded-2xl border border-slate-200/80 bg-white/90 shadow-sm">
+        <div className="flex flex-col gap-2 px-3 py-2.5">
+
+          <div className="grid gap-2 lg:grid-cols-2 lg:items-center">
+            <div className="flex items-center gap-2">
+              <TabFilter
+                items={TAB_ITEMS}
+                activeKey={activeTaskFilter}
+                onFilterChange={(key) => onFilterChange("status", key)}
+              />
+            </div>
+            <div className="flex justify-start lg:justify-end">
+              <ChildFilterSelect
+                childList={childList.map((child) => ({
+                  id: child.id,
+                  username: child.username,
+                  avatar: child.avatar,
+                }))}
+                selectedChildId={selectedChildTaskFilter === "all" ? null : selectedChildTaskFilter}
+                onChange={(value) => onFilterChange("child", value ?? "all")}
+                buttonClassName="whitespace-nowrap bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-2 lg:grid-cols-2 lg:items-center">
+            <div className="flex items-center">
+              <Input
+                value={taskNameFilter}
+                onChange={(e) => handleTaskNameFilterChange(e.target.value)}
+                placeholder="按任务名筛选"
+                isSearch
+                allowClear
+                size="sm"
+                className="w-full max-w-[200px]"
+                containerClassName="w-full max-w-[200px]"
+                inputWrapperClassName="bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <Button
+                onClick={() => setShowTemplateManager(true)}
+                className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
+                variant="secondary"
+              >
+                <Edit2 size={15} className="mr-1.5" />
+                <span className="font-semibold text-sm hidden sm:inline">模板管理</span>
+                <span className="font-semibold text-sm sm:hidden">模板</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  const defaultStartDate = new Date();
+                  defaultStartDate.setHours(0, 0, 0, 0);
+                  const defaultDeadline = new Date();
+                  defaultDeadline.setHours(23, 59, 59, 999);
+                  const resetData = createEmptyTaskFormData();
+                  resetData.startDate = defaultStartDate;
+                  resetData.deadline = defaultDeadline;
+                  setTaskData(resetData);
+                  setTaskPhotoFile(null);
+                  setTaskPhotoPreview("");
+                  setTaskModalMode("add");
+                  setShowTaskModal(true);
+                }}
+                className="h-8 rounded-lg bg-slate-900 px-3 text-white shadow-sm transition-colors hover:bg-slate-800"
+              >
+                <Plus size={17} className="mr-1.5" />
+                <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
+                <span className="font-semibold text-sm sm:hidden">添加</span>
+              </Button>
+              <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
+                <button
+                  onClick={() => setViewMode("card")}
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-all ${
+                    viewMode === "card"
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  }`}
+                >
+                  <LayoutGrid size={15} />
+                  卡片
+                </button>
+                <button
+                  onClick={() => setViewMode("table")}
+                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-all ${
+                    viewMode === "table"
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  }`}
+                >
+                  <Table2 size={15} />
+                  表格
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

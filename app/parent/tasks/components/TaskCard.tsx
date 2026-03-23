@@ -26,61 +26,73 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
   const getStatusStyles = () => {
     if (task.status === "approved") {
       return {
-        className: "bg-white/95 border-emerald-200/70",
+        className: "bg-gradient-to-br from-emerald-50 to-white border-emerald-300/80 shadow-emerald-100/60",
         statusLabel: "已完成",
-        statusClass: "bg-slate-50 text-slate-700 border-slate-200",
+        statusClass: "bg-emerald-500 text-white border-emerald-400",
         dotClass: "bg-emerald-500",
-        icon: <Check size={12} className="text-emerald-600" />,
-        gradient: "from-slate-700 to-slate-500",
+        icon: <Check size={12} className="text-white" />,
+        gradient: "from-emerald-600 to-emerald-500",
+        tooltipClass: "bg-emerald-600 text-white",
+        accentClass: "bg-emerald-500",
       };
     }
     if (task.status === "submitted") {
       return {
-        className: "bg-white/95 border-amber-200/70",
+        className: "bg-gradient-to-br from-amber-50 to-white border-amber-300/80 shadow-amber-100/60",
         statusLabel: "待审核",
-        statusClass: "bg-slate-50 text-slate-700 border-slate-200",
+        statusClass: "bg-amber-500 text-white border-amber-400",
         dotClass: "bg-amber-500",
-        icon: <AlertCircle size={12} className="text-amber-600" />,
-        gradient: "from-slate-600 to-slate-500",
+        icon: <AlertCircle size={12} className="text-white" />,
+        gradient: "from-amber-600 to-orange-500",
+        tooltipClass: "bg-amber-600 text-white",
+        accentClass: "bg-amber-500",
       };
     }
     if (isNotStarted) {
       return {
-        className: "bg-white/95 border-slate-200/70",
+        className: "bg-gradient-to-br from-sky-50 to-white border-sky-300/80 shadow-sky-100/60",
         statusLabel: "未开始",
-        statusClass: "bg-slate-50 text-slate-700 border-slate-200",
-        dotClass: "bg-slate-500",
-        icon: <PauseCircle size={12} className="text-slate-600" />,
-        gradient: "from-slate-500 to-slate-600",
+        statusClass: "bg-sky-500 text-white border-sky-400",
+        dotClass: "bg-sky-500",
+        icon: <PauseCircle size={12} className="text-white" />,
+        gradient: "from-sky-600 to-cyan-500",
+        tooltipClass: "bg-sky-600 text-white",
+        accentClass: "bg-sky-500",
       };
     }
     if (isOverdue) {
       return {
-        className: "bg-white/95 border-rose-200/70",
+        className: "bg-gradient-to-br from-rose-50 to-white border-rose-300/80 shadow-rose-100/60",
         statusLabel: "已逾期",
-        statusClass: "bg-slate-50 text-slate-700 border-slate-200",
+        statusClass: "bg-rose-600 text-white border-rose-500",
         dotClass: "bg-rose-500",
-        icon: <AlertCircle size={12} className="text-rose-600" />,
-        gradient: "from-rose-600 to-slate-600",
+        icon: <AlertCircle size={12} className="text-white" />,
+        gradient: "from-rose-600 to-pink-500",
+        tooltipClass: "bg-rose-700 text-white",
+        accentClass: "bg-rose-500",
       };
     }
     if (task.status === "rejected") {
       return {
-        className: "bg-white/95 border-slate-200/70",
+        className: "bg-gradient-to-br from-zinc-50 to-white border-zinc-300/80 shadow-zinc-100/60",
         statusLabel: "已驳回",
-        statusClass: "bg-slate-50 text-slate-700 border-slate-200",
-        dotClass: "bg-slate-500",
-        icon: <X size={12} className="text-slate-600" />,
-        gradient: "from-slate-600 to-slate-500",
+        statusClass: "bg-zinc-600 text-white border-zinc-500",
+        dotClass: "bg-zinc-500",
+        icon: <X size={12} className="text-white" />,
+        gradient: "from-zinc-700 to-zinc-500",
+        tooltipClass: "bg-zinc-700 text-white",
+        accentClass: "bg-zinc-500",
       };
     }
     return {
-        className: "bg-white/95 border-slate-200/70",
+      className: "bg-gradient-to-br from-indigo-50 to-white border-indigo-300/80 shadow-indigo-100/60",
       statusLabel: "进行中",
-      statusClass: "bg-slate-50 text-slate-700 border-slate-200",
-      dotClass: "bg-slate-500",
-      icon: <PlayCircle size={12} className="text-slate-600" />,
-      gradient: "from-slate-700 to-slate-500",
+      statusClass: "bg-indigo-600 text-white border-indigo-500",
+      dotClass: "bg-indigo-500",
+      icon: <PlayCircle size={12} className="text-white" />,
+      gradient: "from-indigo-600 to-blue-500",
+      tooltipClass: "bg-indigo-700 text-white",
+      accentClass: "bg-indigo-500",
     };
   };
 
@@ -236,14 +248,34 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
   return (
     <>
       <div
-        className={`group relative flex flex-col rounded-[28px] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border ${styles.className} overflow-hidden min-w-0 cursor-pointer bg-white/90 backdrop-blur-sm`}
+        className={`group relative flex flex-col rounded-[24px] transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 border overflow-hidden min-w-0 cursor-pointer ${styles.className}`}
         onClick={() => setShowDetailModal(true)}
       >
+        {/* <div className={`absolute left-0 top-0 h-full w-1.5 ${styles.accentClass}`} /> */}
+        <div
+          className="absolute right-0 top-0 z-10 group/status"
+          title={styles.statusLabel}
+        >
+          <div
+            className={`relative h-10 w-10 overflow-hidden shadow-sm ${styles.statusClass}`}
+            style={{ clipPath: "polygon(100% 0, 0 0, 100% 100%)" }}
+          >
+            <span className="absolute right-[7px] top-2.5 text-white drop-shadow-sm">
+              {styles.icon}
+            </span>
+          </div>
+          <div
+            className={`pointer-events-none absolute right-2 top-10 z-20 whitespace-nowrap rounded-lg px-2 py-1 text-[11px] font-semibold opacity-0 shadow-lg transition-all duration-200 group-hover/status:opacity-100 group-hover/status:translate-y-0 translate-y-1 ${styles.tooltipClass}`}
+          >
+            {styles.statusLabel}
+          </div>
+        </div>
+
         {/* Header: Icon & Points */}
-        <div className="p-5 sm:p-5 flex flex-col gap-4">
+        <div className="p-4 sm:p-4 flex flex-col gap-3 pl-5">
           <div className="flex items-start gap-4">
             {/* 优化图标区域 - 添加渐变背景 */}
-            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br ${styles.gradient} flex items-center justify-center text-2xl shadow-md group-hover:scale-105 transition-transform duration-300 relative flex-shrink-0`}>
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${styles.gradient} flex items-center justify-center text-xl shadow-md group-hover:scale-105 transition-transform duration-300 relative flex-shrink-0`}>
               <span className="drop-shadow-md">{task.icon}</span>
               {/* 周期任务标识 */}
               {task.isRecurring && (
@@ -257,17 +289,10 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-slate-800 text-base sm:text-[17px] line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                  <h3 className="pr-12 font-bold text-slate-900 text-[15px] sm:text-base line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
                     {task.name}
                   </h3>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {/* 优化状态标签 */}
-                    <span
-                      className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full border ${styles.statusClass} shadow-sm`}
-                    >
-                      <span className={`w-1.5 h-1.5 rounded-full ${styles.dotClass}`} />
-                      {styles.statusLabel}
-                    </span>
                     {/* 执行人标签 */}
                     <span className="inline-flex max-w-full items-center gap-1 text-[10px] font-medium px-2.5 py-1 rounded-full bg-gradient-to-r from-yellow-50 to-amber-50 text-amber-700 border border-amber-100">
                       <User size={10} />
@@ -275,47 +300,49 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                     </span>
                   </div>
                 </div>
-                <div className="flex-shrink-0 bg-slate-50 rounded-2xl px-3 py-2 border border-slate-200/70 text-right min-w-[74px]">
-                  <span className="block text-lg sm:text-xl font-black text-slate-800 leading-none">
+                <div className="flex-shrink-0 rounded-2xl px-3 py-1.5 border border-white/70 text-right min-w-[68px] bg-white/85 shadow-sm">
+                  <span className="block text-base sm:text-lg font-black text-slate-900 leading-none">
                     +{task.points}
                   </span>
-                  <span className="block text-[9px] text-slate-500 font-medium uppercase tracking-wider mt-0.5">
+                  <span className="block text-[9px] text-slate-600 font-medium uppercase tracking-wider mt-0.5">
                     积分
                   </span>
                 </div>
               </div>
-              {parentFeedback && (
-                <div className={`mt-3 inline-flex max-w-full items-center gap-1.5 rounded-xl border px-3 py-2 text-[11px] ${parentFeedback.className}`}>
-                  <span className="font-bold shrink-0">{parentFeedback.label}</span>
-                  <span className="truncate">{parentFeedback.text}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
         {/* Body: Info */}
-        <div className="px-5 pb-4 flex-1">
-          <p className="text-sm text-slate-500 line-clamp-2 mb-4 min-h-[3rem] leading-relaxed">
+        <div className="px-4 pb-3 flex-1">
+          <p className="text-xs sm:text-sm text-slate-500 line-clamp-2 mb-3 min-h-[2.5rem] leading-relaxed">
             {task.description || "暂无任务详情描述"}
           </p>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100/60">
-            {/* 任务类型标签 */}
-            <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-xl ${
-              task.type === "daily" 
-                ? "bg-green-50 text-green-700 border border-green-100" 
-                : task.type === "advanced" 
-                ? "bg-purple-50 text-purple-700 border border-purple-100"
-                : "bg-orange-50 text-orange-700 border border-orange-100"
-            }`}>
-              <Award size={10} />
-              {task.type === "daily" ? "日常" : task.type === "advanced" ? "进阶" : "挑战"}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-slate-100/60">
+            <div className="flex flex-wrap items-center gap-2">
+              {/* 任务类型标签 */}
+              <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-xl ${
+                task.type === "daily" 
+                  ? "bg-green-50 text-green-700 border border-green-100" 
+                  : task.type === "advanced" 
+                  ? "bg-purple-50 text-purple-700 border border-purple-100"
+                  : "bg-orange-50 text-orange-700 border border-orange-100"
+              }`}>
+                <Award size={10} />
+                {task.type === "daily" ? "日常" : task.type === "advanced" ? "进阶" : "挑战"}
+              </span>
+              {parentFeedback && (
+                <span className={`inline-flex max-w-full items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-xl border ${parentFeedback.className}`}>
+                  <span className="font-bold shrink-0">{parentFeedback.label}</span>
+                  <span className="truncate">{parentFeedback.text}</span>
+                </span>
+              )}
+            </div>
             {/* 时间显示 */}
             {(task.startDate || task.deadline) && (
               <div
-                className={`inline-flex items-center gap-1.5 text-[11px] font-medium max-w-full ${isOverdue ? "text-rose-600 bg-rose-50 px-2.5 py-1.5 rounded-xl border border-rose-100" : "text-slate-400"}`}
+                className={`inline-flex items-center gap-1.5 text-[11px] font-medium max-w-full ${isOverdue ? "text-rose-700 bg-rose-50 px-2 py-1 rounded-xl border border-rose-100" : "text-slate-400"}`}
               >
                 <Calendar size={12} className={isOverdue ? "text-rose-500" : ""} />
                 <span className="truncate">
@@ -330,7 +357,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
 
         {/* Footer: Actions */}
         {task.status !== "approved" ? (
-          <div className="px-5 py-3 bg-white/70 backdrop-blur-sm flex justify-between items-center gap-3 border-t border-slate-100/80">
+          <div className="px-4 py-2.5 bg-white/70 backdrop-blur-sm flex justify-between items-center gap-3 border-t border-slate-100/80">
             <div className="flex items-center gap-1 text-[10px] text-slate-400 min-w-0">
               <Clock size={10} />
               <span className="truncate">{formatDate(task.updatedAt)}</span>
@@ -361,7 +388,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             </div>
           </div>
         ) : (
-          <div className="px-5 py-3 bg-white/70 backdrop-blur-sm flex justify-between items-center gap-3 border-t border-slate-100/80">
+          <div className="px-4 py-2.5 bg-white/70 backdrop-blur-sm flex justify-between items-center gap-3 border-t border-slate-100/80">
             <div className="flex items-center gap-1 text-[10px] text-slate-400 min-w-0">
               <Clock size={10} />
               <span className="truncate">{formatDate(task.updatedAt)}</span>

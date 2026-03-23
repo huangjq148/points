@@ -25,54 +25,54 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     if (task.status === "approved") {
       return {
         label: "已完成",
-        className: "bg-slate-50 text-slate-700 border-slate-200",
+        className: "bg-emerald-500 text-white border-emerald-400",
         dotClass: "bg-emerald-500",
-        icon: <Check size={10} className="text-emerald-600" />,
-        gradient: "from-slate-700 to-slate-500",
+        icon: <Check size={10} className="text-white" />,
+        gradient: "from-emerald-600 to-emerald-500",
       };
     }
     if (task.status === "submitted") {
       return {
         label: "待审核",
-        className: "bg-slate-50 text-slate-700 border-slate-200",
+        className: "bg-amber-500 text-white border-amber-400",
         dotClass: "bg-amber-500",
-        icon: <AlertCircle size={10} className="text-amber-600" />,
-        gradient: "from-slate-600 to-slate-500",
+        icon: <AlertCircle size={10} className="text-white" />,
+        gradient: "from-amber-600 to-orange-500",
       };
     }
     if (isNotStarted) {
       return {
         label: "未开始",
-        className: "bg-slate-50 text-slate-700 border-slate-200",
-        dotClass: "bg-slate-500",
-        icon: <PauseCircle size={10} className="text-slate-600" />,
-        gradient: "from-slate-500 to-slate-600",
+        className: "bg-sky-500 text-white border-sky-400",
+        dotClass: "bg-sky-500",
+        icon: <PauseCircle size={10} className="text-white" />,
+        gradient: "from-sky-600 to-cyan-500",
       };
     }
     if (isOverdue) {
       return {
         label: "已逾期",
-        className: "bg-slate-50 text-slate-700 border-slate-200",
+        className: "bg-rose-600 text-white border-rose-500",
         dotClass: "bg-rose-500",
-        icon: <AlertCircle size={10} className="text-rose-600" />,
-        gradient: "from-rose-600 to-slate-600",
+        icon: <AlertCircle size={10} className="text-white" />,
+        gradient: "from-rose-600 to-pink-500",
       };
     }
     if (task.status === "rejected") {
       return {
         label: "已驳回",
-        className: "bg-slate-50 text-slate-700 border-slate-200",
-        dotClass: "bg-slate-500",
-        icon: <X size={10} className="text-slate-600" />,
-        gradient: "from-slate-600 to-slate-500",
+        className: "bg-zinc-600 text-white border-zinc-500",
+        dotClass: "bg-zinc-500",
+        icon: <X size={10} className="text-white" />,
+        gradient: "from-zinc-700 to-zinc-500",
       };
     }
     return {
       label: "进行中",
-      className: "bg-slate-50 text-slate-700 border-slate-200",
-      dotClass: "bg-slate-500",
-      icon: <PlayCircle size={10} className="text-slate-600" />,
-      gradient: "from-slate-700 to-slate-500",
+      className: "bg-indigo-600 text-white border-indigo-500",
+      dotClass: "bg-indigo-500",
+      icon: <PlayCircle size={10} className="text-white" />,
+      gradient: "from-indigo-600 to-blue-500",
     };
   };
 
@@ -255,9 +255,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
         const statusInfo = getStatusInfo(task);
         const parentFeedback = getParentFeedback(task);
         return (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 py-0.5">
             {/* 优化图标显示 */}
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-xl shadow-sm flex-shrink-0 relative`}>
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-lg shadow-sm flex-shrink-0 relative`}>
               <span className="drop-shadow-sm">{task.icon}</span>
               {task.isRecurring && (
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200" title="周期任务">
@@ -269,7 +269,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-slate-800 text-sm truncate max-w-[180px]">{task.name}</p>
+                <p className="font-semibold text-slate-800 text-sm truncate max-w-[180px] leading-tight">{task.name}</p>
                 {task.isRecurring && (
                   <span className="text-[9px] bg-slate-50 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-medium flex-shrink-0">
                     周期

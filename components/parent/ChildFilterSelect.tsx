@@ -91,7 +91,7 @@ export default function ChildFilterSelect({
       <button
         ref={buttonRef}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm ${buttonClassName}`}
+        className={`flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm ${buttonClassName}`}
       >
         <Users size={14} className="text-slate-400" />
         <span className="max-w-[80px] truncate">{displayText}</span>
