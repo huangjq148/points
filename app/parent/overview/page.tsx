@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useOverviewData } from "./hooks/useOverviewData";
 import TimeRangeFilter, { TimeRange } from "./components/TimeRangeFilter";
-import ChildFilter from "./components/ChildFilter";
+import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
 import PointsFlow from "./components/PointsFlow";
 import HabitTracking from "./components/HabitTracking";
 import ComparisonChart from "./components/ComparisonChart";
@@ -169,7 +169,7 @@ export default function OverviewPage() {
             customStartDate={customDates?.start}
             customEndDate={customDates?.end}
           />
-          <ChildFilter
+          <ChildFilterSelect
             childList={childList.map((c) => ({
               id: c.id,
               username: c.username,

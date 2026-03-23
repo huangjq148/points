@@ -2,7 +2,7 @@
 
 import { IDisplayedOrder } from "@/app/typings";
 import { Button, TabFilter } from "@/components/ui";
-import Select, { SelectOption } from "@/components/ui/Select";
+import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
 import { useApp } from "@/context/AppContext";
 import { Clock3, CircleCheckBig, CreditCard, Gift, RefreshCw, Ticket, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -27,17 +27,6 @@ function OrdersPage() {
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const historyPageCount = useMemo(() => Math.ceil(historyTotal / 10), [historyTotal]);
-
-  const childOptions: SelectOption[] = useMemo(
-    () => [
-      { value: "all", label: "全部孩子" },
-      ...childList.map((child) => ({
-        value: child.id.toString(),
-        label: child.username,
-      })),
-    ],
-    [childList],
-  );
 
   const fetchOrders = useCallback(
     async (status: string, page: number = 1, fetchLimit: number = 100) => {
@@ -220,18 +209,17 @@ function OrdersPage() {
             onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
           />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="w-full sm:w-44">
-              <Select
-                value={selectedChildFilter}
-                onChange={(value) => {
-                  if (value) {
-                    setSelectedChildFilter(value.toString());
-                  }
-                }}
-                options={childOptions}
-                placeholder="选择孩子"
-              />
-            </div>
+            <ChildFilterSelect
+              childList={childList.map((child) => ({
+                id: child.id,
+                username: child.username,
+                avatar: child.avatar,
+              }))}
+              selectedChildId={selectedChildFilter === "all" ? null : selectedChildFilter}
+              onChange={(value) => {
+                setSelectedChildFilter(value ?? "all");
+              }}
+            />
           </div>
         </div>
       </div>
@@ -327,7 +315,9 @@ function OrdersPage() {
                   <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
                     <span>孩子范围</span>
                     <span className="font-medium text-slate-900">
-                      {selectedChildFilter === "all" ? "全部孩子" : childOptions.find((opt) => opt.value.toString() === selectedChildFilter)?.label}
+                      {selectedChildFilter === "all"
+                        ? "全部孩子"
+                        : childList.find((child) => child.id === selectedChildFilter)?.username}
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">

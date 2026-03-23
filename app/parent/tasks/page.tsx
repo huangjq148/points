@@ -1,12 +1,12 @@
 "use client";
 
 import { Button, Modal, Pagination, TabFilter } from "@/components/ui";
-import Select from "@/components/ui/Select";
+import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
 import { useApp } from "@/context/AppContext";
 import ConfirmModal from "@/components/ConfirmModal";
 import { Edit2, Plus, LayoutGrid, Table2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import TaskCard, { IDisplayedTask } from "./components/TaskCard";
 import TaskTable from "./components/TaskTable";
 import TemplateManager from "./components/TemplateManager";
@@ -170,14 +170,6 @@ function TasksPage() {
 
   // 视图切换状态: 'card' | 'table'
   const [viewMode, setViewMode] = useState<"card" | "table">("card");
-  const childSelectOptions = useMemo(
-    () => [
-      { value: "all", label: "全部孩子" },
-      ...childList.map((child) => ({ value: child.id, label: child.username })),
-    ],
-    [childList],
-  );
-
   // 初始化模板数据
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -639,7 +631,7 @@ function TasksPage() {
   return (
     <div className="space-y-6">
       {/* 筛选条件、Tabs 和操作按钮在同一行 */}
-      <div className="card-parent flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <TabFilter
             items={TAB_ITEMS}
@@ -649,17 +641,19 @@ function TasksPage() {
         </div>
         <div className="flex justify-end gap-2 items-center flex-wrap">
           {/* 孩子选择器 - 优化样式 */}
-          <div className="w-36 lg:w-40">
-            <Select
-              value={selectedChildTaskFilter}
-              onChange={(value) => onFilterChange("child", (value as string) || "all")}
-              options={childSelectOptions}
-            />
-          </div>
+          <ChildFilterSelect
+            childList={childList.map((child) => ({
+              id: child.id,
+              username: child.username,
+              avatar: child.avatar,
+            }))}
+            selectedChildId={selectedChildTaskFilter === "all" ? null : selectedChildTaskFilter}
+            onChange={(value) => onFilterChange("child", value ?? "all")}
+          />
           {/* 模板管理按钮 - 优化样式 */}
           <Button
             onClick={() => setShowTemplateManager(true)}
-            className="rounded-xl bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-2 shadow-sm hover:shadow-md flex items-center gap-2 group h-10 transition-all"
+            className="rounded-xl bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-0 h-[34px] leading-none shadow-sm hover:shadow-md flex items-center gap-2 group transition-all"
             variant="secondary"
           >
             <Edit2 size={16} className="group-hover:rotate-12 transition-transform duration-300" />
@@ -682,7 +676,7 @@ function TasksPage() {
               setTaskModalMode("add");
               setShowTaskModal(true);
             }}
-            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 shadow-sm flex items-center gap-2 group transition-colors h-10"
+            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-0 h-[34px] leading-none shadow-sm flex items-center gap-2 group transition-colors"
           >
             <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
             <span className="font-semibold text-sm hidden sm:inline">添加任务</span>

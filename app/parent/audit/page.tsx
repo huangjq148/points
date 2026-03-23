@@ -2,14 +2,14 @@
 
 import { IDisplayedTask, AuditRecord } from "@/app/typings";
 import { Button, Input, Modal, Pagination, Image as ZoomImage } from "@/components/ui";
-import Select, { SelectOption } from "@/components/ui/Select";
+import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
 import { useApp } from "@/context/AppContext";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
 import { Check, Image as ImageIcon, X, Zap, History } from "lucide-react";
 import { motion, PanInfo } from "framer-motion";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 
 function AuditPage() {
   const searchParams = useSearchParams();
@@ -22,17 +22,6 @@ function AuditPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const limit = 10;
-
-  const childOptions: SelectOption[] = useMemo(
-    () => [
-      { value: "all", label: "全部孩子" },
-      ...childList.map((child) => ({
-        value: child.id.toString(),
-        label: child.username,
-      })),
-    ],
-    [childList],
-  );
 
   const pendingTasks = tasks;
 
@@ -182,19 +171,18 @@ function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <div className="card-parent flex items-center justify-between gap-4 flex-wrap">
-        <div className="w-40">
-          <Select
-            value={selectedChildFilter}
-            onChange={(value) => {
-              if (value) {
-                onFilterChange(value.toString());
-              }
-            }}
-            options={childOptions}
-            placeholder="选择孩子"
-          />
-        </div>
+      <div className="w-40">
+        <ChildFilterSelect
+          childList={childList.map((child) => ({
+            id: child.id,
+            username: child.username,
+            avatar: child.avatar,
+          }))}
+          selectedChildId={selectedChildFilter === "all" ? null : selectedChildFilter}
+          onChange={(value) => {
+            onFilterChange(value ?? "all");
+          }}
+        />
       </div>
       {pendingTasks.length === 0 ? (
         <div className="card-parent text-center py-12 text-slate-500">
@@ -349,7 +337,7 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
   const handleDragEnd = (event: unknown, info: PanInfo) => {
     setIsDragging(false);
     setDragX(0);
-    
+
     if (info.offset.x > THRESHOLD) {
       onApprove();
     } else if (info.offset.x < -THRESHOLD) {
@@ -379,20 +367,18 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
     >
       {/* 背景层 - 滑动时显示 */}
       <div className="absolute inset-0 flex items-center justify-between px-6">
-        <div 
-          className={`flex items-center gap-2 transition-opacity duration-200 ${
-            dragX < -THRESHOLD * 0.3 ? 'opacity-100' : 'opacity-0'
-          }`}
+        <div
+          className={`flex items-center gap-2 transition-opacity duration-200 ${dragX < -THRESHOLD * 0.3 ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
             <X className="text-white" size={24} />
           </div>
           <span className="text-red-600 font-bold">驳回</span>
         </div>
-        <div 
-          className={`flex items-center gap-2 transition-opacity duration-200 ${
-            dragX > THRESHOLD * 0.3 ? 'opacity-100' : 'opacity-0'
-          }`}
+        <div
+          className={`flex items-center gap-2 transition-opacity duration-200 ${dragX > THRESHOLD * 0.3 ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           <span className="text-green-600 font-bold">通过</span>
           <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
@@ -409,7 +395,7 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
         onDrag={handleDrag}
         onDragStart={() => setIsDragging(true)}
         onDragEnd={handleDragEnd}
-        animate={{ 
+        animate={{
           x: dragX,
           backgroundColor: getBackgroundColor()
         }}

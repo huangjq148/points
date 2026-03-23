@@ -11,42 +11,87 @@ export type SelectOption = {
 const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
   control: (provided) => ({
     ...provided,
-    backgroundColor: "rgba(255, 255, 255, 0.88)",
+    backgroundColor: "rgba(255, 255, 255, 0.96)",
     borderColor: "rgba(226, 232, 240, 1)",
-    borderRadius: "16px",
-    minHeight: "42px",
-    padding: "2px 4px",
+    borderRadius: "18px",
+    minHeight: "44px",
+    padding: "1px 4px",
     boxShadow: "none",
+    cursor: "pointer",
+    transition: "all 160ms ease",
     "&:hover": {
       borderColor: "rgba(148, 163, 184, 1)",
+      backgroundColor: "rgba(255, 255, 255, 1)",
     },
     "&:focus-within": {
       borderColor: "rgba(59, 130, 246, 1)",
-      boxShadow: "0 0 0 3px rgba(96, 165, 250, 0.18)",
+      boxShadow: "0 0 0 4px rgba(96, 165, 250, 0.16)",
+    },
+  }),
+  valueContainer: (provided) => ({
+    ...provided,
+    paddingLeft: 8,
+    paddingRight: 4,
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    color: "var(--color-slate-700)",
+    fontWeight: 500,
+    fontSize: "14px",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "var(--color-slate-700)",
+    fontWeight: 500,
+    fontSize: "14px",
+  }),
+  input: (provided) => ({
+    ...provided,
+    color: "#0f172a",
+    fontSize: "14px",
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
+  dropdownIndicator: (provided, state) => ({
+    ...provided,
+    color: state.isFocused ? "#3b82f6" : "#94a3b8",
+    paddingLeft: 6,
+    paddingRight: 8,
+    transition: "all 160ms ease",
+    "&:hover": {
+      color: "#3b82f6",
     },
   }),
   menu: (provided) => ({
     ...provided,
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    borderRadius: "20px",
     border: "1px solid rgba(226, 232, 240, 1)",
-    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.08)",
+    boxShadow: "0 20px 45px rgba(15, 23, 42, 0.1)",
     overflow: "hidden",
     zIndex: 100,
+    marginTop: 8,
+    padding: 6,
   }),
   menuPortal: (provided) => ({
     ...provided,
-    zIndex: 100,
+    zIndex: 120,
   }),
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "rgba(59, 130, 246, 0.08)"
+      ? "rgba(59, 130, 246, 0.09)"
       : state.isFocused
-        ? "rgba(59, 130, 246, 0.05)"
+        ? "rgba(59, 130, 246, 0.06)"
         : "transparent",
-    color: state.isSelected ? "#1e3a8a" : "#334155",
+    color: state.isSelected ? "#2563eb" : "var(--color-slate-700)",
     cursor: "pointer",
+    borderRadius: "14px",
+    marginBottom: 2,
+    padding: "10px 12px",
+    fontWeight: state.isSelected ? 600 : 500,
+    fontSize: "14px",
   }),
 };
 
@@ -89,8 +134,10 @@ export default function CustomSelect({
         placeholder={placeholder}
         styles={{ ...customSelectStyles, ...styles }}
         instanceId="custom-select"
-        className="react-select-container"
+        className="react-select-container select-surface"
         classNamePrefix="react-select"
+        isSearchable={false}
+        blurInputOnSelect
         menuPortalTarget={
           shouldUsePortal
             ? typeof document !== "undefined"
@@ -101,6 +148,16 @@ export default function CustomSelect({
             : null
         }
         menuPosition={shouldUsePortal ? "fixed" : "absolute"}
+        noOptionsMessage={() => "暂无选项"}
+        theme={(theme) => ({
+          ...theme,
+          colors: {
+            ...theme.colors,
+            primary: "#3b82f6",
+            primary25: "rgba(59, 130, 246, 0.06)",
+            primary50: "rgba(59, 130, 246, 0.1)",
+          },
+        })}
       />
     </div>
   );
