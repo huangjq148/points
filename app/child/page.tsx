@@ -88,7 +88,7 @@ export default function ChildHome() {
 
     try {
       const data = await request(
-        `/api/tasks?inProgress=true&deadlineFrom=${todayStr}`,
+        `/api/tasks?deadlineFrom=${todayStr}`,
       );
       if (data.success) {
         setTasks(data.tasks);
@@ -214,14 +214,45 @@ export default function ChildHome() {
     setShowTaskDetail(null);
   };
 
-  const filteredTasks = useMemo(
-    () => tasks.filter((t) => t.status === 'pending' || t.status === 'submitted'),
-    [tasks],
-  );
   const completedTasks = useMemo(
     () => tasks.filter((t) => t.status === 'approved'),
     [tasks],
   );
+  const totalTasks = tasks.length;
+  const completedTaskCount = completedTasks.length;
+  const completionRate = totalTasks > 0 ? Math.round((completedTaskCount / totalTasks) * 100) : 0;
+  const now = dayjs();
+  const todayStart = now.startOf('day');
+  const todayEnd = now.endOf('day');
+
+  const visibleTasks = useMemo(() => {
+    return tasks
+      .filter((task) => {
+        const startDate = task.startDate ? dayjs(task.startDate) : null;
+        const deadline = task.deadline ? dayjs(task.deadline) : null;
+        const isCompletedToday =
+          task.status === 'approved' &&
+          !!deadline &&
+          deadline.valueOf() >= todayStart.valueOf() &&
+          deadline.valueOf() <= todayEnd.valueOf();
+        const isStartedAndUncompleted =
+          (!startDate || startDate.valueOf() <= now.valueOf()) &&
+          task.status !== 'approved';
+        const isFutureToday =
+          !!startDate &&
+          startDate.valueOf() > now.valueOf() &&
+          startDate.valueOf() <= todayEnd.valueOf();
+
+        return isCompletedToday || isStartedAndUncompleted || isFutureToday;
+      })
+      .sort((a, b) => {
+        const aStart = a.startDate ? dayjs(a.startDate).valueOf() : 0;
+        const bStart = b.startDate ? dayjs(b.startDate).valueOf() : 0;
+        return aStart - bStart;
+      });
+  }, [now.valueOf(), tasks, todayEnd.valueOf(), todayStart.valueOf()]);
+
+  const pendingVisibleCount = visibleTasks.filter((t) => t.status !== 'approved').length;
   const handleNavigate = (path: string) => {
     router.push(path);
   };
@@ -503,8 +534,8 @@ export default function ChildHome() {
         {/* 主内容区 - 不包含Header和用户信息，由ChildLayout提供 */}
         <div className='relative z-10 px-6 pt-4 pb-6'>
           {/* 今日概览卡片 - 包含进度环和统计 */}
-          <div className='glass rounded-3xl p-6 shadow-2xl relative overflow-hidden float-anim'>
-            <div className='flex items-center justify-between mb-4'>
+          <div className='glass rounded-3xl p-4 shadow-2xl relative overflow-hidden float-anim'>
+            <div className='flex items-center justify-between mb-3'>
               <h2 className='text-xl font-bold flex items-center gap-2'>
                 <span className='text-2xl'>🚀</span>
                 今日任务进度
@@ -514,28 +545,28 @@ export default function ChildHome() {
               </span>
             </div>
 
-            <div className='grid grid-cols-3 gap-4'>
+            <div className='grid grid-cols-3 gap-3 items-center'>
               {/* 进度环 */}
               <div className='col-span-1 flex flex-col items-center justify-center'>
-                <div className='relative w-24 h-24'>
+                <div className='relative w-20 h-20'>
                   <svg className='w-full h-full transform -rotate-90'>
-                    <circle cx='48' cy='48' r='40' stroke='rgba(255,255,255,0.1)' strokeWidth='8' fill='none'></circle>
+                    <circle cx='40' cy='40' r='34' stroke='rgba(255,255,255,0.1)' strokeWidth='7' fill='none'></circle>
                     <circle
-                      cx='48'
-                      cy='48'
-                      r='40'
+                      cx='40'
+                      cy='40'
+                      r='34'
                       stroke='#10b981'
-                      strokeWidth='8'
+                      strokeWidth='7'
                       fill='none'
-                      strokeDasharray='251.2'
-                      strokeDashoffset={251.2 - (completedTasks.length / (filteredTasks.length + completedTasks.length || 1)) * 251.2}
+                      strokeDasharray='213.6'
+                      strokeDashoffset={213.6 - (completionRate / 100) * 213.6}
                       strokeLinecap='round'
                       className='progress-ring'
                     ></circle>
                   </svg>
                   <div className='absolute inset-0 flex items-center justify-center flex-col'>
-                    <span className='text-2xl font-bold'>
-                      {Math.round((completedTasks.length / (filteredTasks.length + completedTasks.length || 1)) * 100)}%
+                    <span className='text-xl font-bold leading-none'>
+                      {completionRate}%
                     </span>
                     <span className='text-xs text-gray-400'>完成度</span>
                   </div>
@@ -543,31 +574,35 @@ export default function ChildHome() {
               </div>
 
               {/* 统计信息 */}
-              <div className='col-span-2 grid grid-cols-2 gap-3'>
-                <div
-                  className='bg-white/5 rounded-2xl p-4 text-center cursor-pointer hover:bg-white/10 transition-colors'
-                  onClick={() => router.push('/child/task?status=approved')}
-                >
-                  <div className='text-3xl mb-1'>📋</div>
-                  <div className='text-2xl font-bold text-blue-400'>{completedTasks.length}</div>
-                  <div className='text-xs text-gray-400'>已完成</div>
+              <div className='col-span-2 flex flex-col gap-2'>
+                <div className='flex gap-2 flex-wrap'>
+                  <div className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center'>
+                    <div className='text-lg font-bold text-cyan-300 leading-none'>{totalTasks}</div>
+                    <div className='text-[11px] text-gray-400 mt-1'>总任务</div>
+                  </div>
+                  <div
+                    className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
+                    onClick={() => router.push('/child/task?status=approved')}
+                  >
+                    <div className='text-lg font-bold text-blue-400 leading-none'>{completedTaskCount}</div>
+                    <div className='text-[11px] text-gray-400 mt-1'>已完成</div>
+                  </div>
+                  <div
+                    className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
+                    onClick={() => router.push('/child/task?status=pending')}
+                  >
+                    <div className='text-lg font-bold text-orange-400 leading-none'>{pendingVisibleCount}</div>
+                    <div className='text-[11px] text-gray-400 mt-1'>待完成</div>
+                  </div>
                 </div>
-                <div
-                  className='bg-white/5 rounded-2xl p-4 text-center cursor-pointer hover:bg-white/10 transition-colors'
-                  onClick={() => {
-                    router.push(
-                      `/child/task?status=pending`,
-                    );
-                  }}
-                >
-                  <div className='text-3xl mb-1'>⏳</div>
-                  <div className='text-2xl font-bold text-orange-400'>{filteredTasks.length}</div>
-                  <div className='text-xs text-gray-400'>待完成</div>
-                </div>
-                <div className='bg-white/5 rounded-2xl p-4 text-center col-span-2'>
-                  <div className='flex items-center justify-center gap-2'>
-                    <span className='text-yellow-400 text-xl'>💎</span>
-                    <span className='text-lg'>星际积分 <strong className='text-yellow-400'>{displayPoints.toLocaleString()}</strong></span>
+                <div className='bg-white/5 rounded-xl px-3 py-2 text-center'>
+                  <div className='flex items-center justify-center gap-2 text-sm'>
+                    <span className='text-yellow-400 text-lg'>💎</span>
+                    <span>星际积分</span>
+                    <strong className='text-yellow-400'>{displayPoints.toLocaleString()}</strong>
+                  </div>
+                  <div className='mt-1 text-[11px] text-gray-400'>
+                    完成进度 {completedTaskCount}/{totalTasks}
                   </div>
                 </div>
               </div>
@@ -592,10 +627,29 @@ export default function ChildHome() {
           </div>
 
           <div className='space-y-4'>
-            {filteredTasks.map((task, index) => {
+            {visibleTasks.map((task, index) => {
               const isPending = task.status === 'pending';
               const isSubmitted = task.status === 'submitted';
               const isRejected = task.status === 'rejected';
+              const isCompleted = task.status === 'approved';
+              const startDate = task.startDate ? dayjs(task.startDate) : null;
+              const deadline = task.deadline ? dayjs(task.deadline) : null;
+              const isFutureToday = !!startDate && startDate.valueOf() > now.valueOf() && startDate.valueOf() <= todayEnd.valueOf();
+              const isCompletedToday =
+                isCompleted &&
+                !!deadline &&
+                deadline.valueOf() >= todayStart.valueOf() &&
+                deadline.valueOf() <= todayEnd.valueOf();
+              const isDisabled = isFutureToday;
+              const stateLabel = isCompletedToday
+                ? '今日已完成'
+                : isFutureToday
+                  ? '未开始'
+                  : isSubmitted
+                    ? '审核中'
+                    : isRejected
+                      ? '需修改'
+                      : '进行中';
 
               return (
                 <motion.div
@@ -603,9 +657,10 @@ export default function ChildHome() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className='task-card glass rounded-2xl p-4 flex items-center gap-4 cursor-pointer'
+                  className={`task-card glass rounded-2xl p-3 flex items-center gap-3 ${isDisabled ? 'opacity-60' : 'cursor-pointer'}`}
                   id={`task-${task._id}`}
                   onClick={() => {
+                    if (isDisabled) return;
                     if (task.status === 'pending' || task.status === 'rejected') {
                       openSubmitModal(task);
                     } else {
@@ -614,56 +669,44 @@ export default function ChildHome() {
                   }}
                 >
                   <div className='relative'>
-                    <div className='w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl'>
+                    <div className='w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center text-xl'>
                       {task.icon}
                     </div>
-                    {isPending && (
+                    {isPending && !isDisabled && (
                       <div className='absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-gray-900 animate-pulse'></div>
                     )}
                   </div>
 
                   <div className='flex-1 min-w-0'>
                     <div className='flex items-center gap-2 mb-1'>
-                      <h3 className={`font-bold text-lg ${isRejected ? 'text-red-400' : 'text-white'}`}>
+                      <h3 className={`font-bold text-base ${isRejected ? 'text-red-400' : 'text-white'}`}>
                         {task.name}
                       </h3>
-                      {isPending && (
-                        <span className='text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full'>
-                          进行中
-                        </span>
-                      )}
-                      {isSubmitted && (
-                        <span className='text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full'>
-                          审核中
-                        </span>
-                      )}
-                      {isRejected && (
-                        <span className='text-xs bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full'>
-                          需修改
-                        </span>
-                      )}
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full ${
+                        isCompletedToday
+                          ? 'bg-green-500/20 text-green-300'
+                          : isFutureToday
+                            ? 'bg-gray-500/20 text-gray-300'
+                            : isRejected
+                              ? 'bg-red-500/20 text-red-300'
+                              : isSubmitted
+                                ? 'bg-blue-500/20 text-blue-300'
+                                : 'bg-blue-500/20 text-blue-300'
+                      }`}>
+                        {stateLabel}
+                      </span>
                     </div>
-                    <div className='flex items-center gap-3 text-sm text-gray-400'>
+                    <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400'>
                       <span className='flex items-center gap-1'>
                         <span>⏰</span>
-                        <span>
-                          截止{' '}
-                          {task.deadline &&
-                            (() => {
-                              const deadline = dayjs(task.deadline);
-                              const today = dayjs().startOf('day');
-                              const tomorrow = today.add(1, 'day');
-                              const isToday =
-                                deadline.isAfter(today) &&
-                                deadline.isBefore(tomorrow);
-                              const timeStr = deadline.format('HH:mm');
-                              const dateStr = !isToday
-                                ? deadline.format('M月D日') + ' '
-                                : '';
-                              return `${dateStr}${timeStr}`;
-                            })()}
-                        </span>
+                        <span>{task.startDate ? `${dayjs(task.startDate).format('M/D HH:mm')} 开始` : '无开始时间'}</span>
                       </span>
+                      {task.deadline && (
+                        <span className='flex items-center gap-1'>
+                          <span>🏁</span>
+                          <span>{dayjs(task.deadline).format('M/D HH:mm')}</span>
+                        </span>
+                      )}
                       <span className='flex items-center gap-1 text-yellow-400'>
                         <span>💎</span>
                         <span>+{task.points}分</span>
@@ -671,13 +714,20 @@ export default function ChildHome() {
                     </div>
                   </div>
 
-                  {isPending || isRejected ? (
+                  {isDisabled ? (
+                    <button
+                      disabled
+                      className='complete-btn bg-white/10 text-white/40 px-4 py-2 rounded-xl font-semibold flex items-center gap-2 cursor-not-allowed'
+                    >
+                      <span>未开始</span>
+                    </button>
+                  ) : isPending || isRejected ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         openSubmitModal(task);
                       }}
-                      className='complete-btn bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-colors'
+                      className='complete-btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-colors'
                     >
                       <span>完成</span>
                     </button>
@@ -688,16 +738,23 @@ export default function ChildHome() {
                         handleRecallTask(task);
                       }}
                       disabled={recallingTaskId === task._id}
-                      className='complete-btn bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 px-6 py-2.5 rounded-xl font-semibold flex items-center gap-2 transition-colors disabled:opacity-50'
+                      className='complete-btn bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-colors disabled:opacity-50'
                     >
                       <span>{recallingTaskId === task._id ? '撤回中...' : '撤回'}</span>
+                    </button>
+                  ) : isCompletedToday ? (
+                    <button
+                      disabled
+                      className='complete-btn bg-green-500/15 text-green-300 px-4 py-2 rounded-xl font-semibold flex items-center gap-2 cursor-default'
+                    >
+                      <span>已完成</span>
                     </button>
                   ) : null}
                 </motion.div>
               );
             })}
 
-            {filteredTasks.length === 0 && (
+            {visibleTasks.length === 0 && (
               <div className='text-center py-8 text-white/60 glass rounded-2xl'>
                 <div className='text-4xl mb-2'>🎉</div>
                 <p>太棒了！今天的任务都完成了</p>
@@ -748,7 +805,7 @@ export default function ChildHome() {
                   <span className='bg-green-400/20 text-green-300 px-2 py-1 rounded-full text-xs backdrop-blur-sm'>+{completedTasks.length}</span>
                 </div>
                 <h3 className='font-bold text-lg mb-1 text-white'>探索日志</h3>
-                <p className='text-sm text-white/80'>本周完成 {completedTasks.length} 项任务</p>
+                <p className='text-sm text-white/80'>本周完成 {completedTaskCount} 项任务</p>
               </div>
             </div>
 

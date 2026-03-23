@@ -64,9 +64,9 @@ export async function GET(request: NextRequest) {
 
     if (status) query.status = status;
 
-    // 默认过滤掉未来的任务（startDate > 当前时间的任务）
-    // 孩子角色总是过滤未来任务；父母角色在查询"全部"（无特定状态筛选）时也过滤
-    const shouldFilterFutureTasks = !futureTasks && (authRole === "child" || (!status && !inProgress));
+    // 默认不做额外时间裁剪，避免“全部”页面被服务端静默截断
+    // 需要“进行中/未开始”时由前端显式传参
+    const shouldFilterFutureTasks = false;
 
     if (futureTasks) {
       // 查询未来的任务：startDate > 当前时间
@@ -143,7 +143,8 @@ export async function GET(request: NextRequest) {
     }
 
     // 包含已过期的任务（未完成的且截止日期在今天之前）
-    if (!includeExpired && !deadlineFrom && !deadlineTo) {
+    // 仅在明确请求“进行中”时排除过期任务；“全部”需要返回完整集合
+    if (authRole === "child" && inProgress && !includeExpired && !deadlineFrom && !deadlineTo) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (!query.$or) {

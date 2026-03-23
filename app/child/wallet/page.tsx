@@ -363,7 +363,7 @@ export default function WalletPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-700">
-                      {selectedLedgerItem.type === "income" ? "任务奖励" : "家长反馈"}
+                      {selectedLedgerItem.type === "income" ? "任务奖励" : selectedLedgerItem.type === "expense" ? "兑换礼物" : "家长反馈"}
                     </p>
                     <p className="text-xs text-slate-500">{formatDate(selectedLedgerItem.date)}</p>
                   </div>
@@ -443,9 +443,9 @@ export default function WalletPage() {
                     </div>
                     <p className="text-sm leading-6 text-slate-600">{selectedLedgerItem.feedback || "暂无反馈内容"}</p>
                   </div>
-                  {selectedLedgerItem.type !== "income" && (
+                  {selectedLedgerItem.type === "expense" && (
                     <Button className="w-full" onClick={() => router.push("/child/gift")}>
-                      查看兑换记录
+                      查看兑换的礼物
                       <ExternalLink size={16} />
                     </Button>
                   )}
