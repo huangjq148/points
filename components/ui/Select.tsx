@@ -11,21 +11,26 @@ export type SelectOption = {
 const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
   control: (provided) => ({
     ...provided,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderColor: "rgba(59, 130, 246, 0.2)",
-    borderRadius: "16px",
-    padding: "4px",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderColor: "rgba(226, 232, 240, 1)",
+    borderRadius: "14px",
+    minHeight: "40px",
+    padding: "2px 4px",
     boxShadow: "none",
     "&:hover": {
-      borderColor: "rgba(59, 130, 246, 0.5)",
+      borderColor: "rgba(148, 163, 184, 1)",
+    },
+    "&:focus-within": {
+      borderColor: "rgba(15, 23, 42, 1)",
+      boxShadow: "0 0 0 3px rgba(148, 163, 184, 0.18)",
     },
   }),
   menu: (provided) => ({
     ...provided,
     backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    border: "1px solid rgba(59, 130, 246, 0.2)",
-    boxShadow: "0 10px 40px rgba(0, 0, 0, 0.15)",
+    borderRadius: "14px",
+    border: "1px solid rgba(226, 232, 240, 1)",
+    boxShadow: "0 18px 40px rgba(15, 23, 42, 0.08)",
     overflow: "hidden",
     zIndex: 100,
   }),
@@ -36,11 +41,11 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "rgba(59, 130, 246, 0.1)"
+      ? "rgba(15, 23, 42, 0.06)"
       : state.isFocused
-        ? "rgba(59, 130, 246, 0.05)"
+        ? "rgba(15, 23, 42, 0.04)"
         : "transparent",
-    color: state.isSelected ? "#2563eb" : "#1e3a5f",
+    color: state.isSelected ? "#0f172a" : "#334155",
     cursor: "pointer",
   }),
 };

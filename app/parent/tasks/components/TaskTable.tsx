@@ -25,54 +25,54 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
     if (task.status === "approved") {
       return {
         label: "已完成",
-        className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+        className: "bg-slate-50 text-slate-700 border-slate-200",
         dotClass: "bg-emerald-500",
         icon: <Check size={10} className="text-emerald-600" />,
-        gradient: "from-emerald-500 to-teal-600",
+        gradient: "from-slate-700 to-slate-500",
       };
     }
     if (task.status === "submitted") {
       return {
         label: "待审核",
-        className: "bg-amber-100 text-amber-700 border-amber-200",
+        className: "bg-slate-50 text-slate-700 border-slate-200",
         dotClass: "bg-amber-500",
         icon: <AlertCircle size={10} className="text-amber-600" />,
-        gradient: "from-amber-500 to-orange-600",
+        gradient: "from-slate-600 to-slate-500",
       };
     }
     if (isNotStarted) {
       return {
         label: "未开始",
-        className: "bg-slate-100 text-slate-700 border-slate-200",
+        className: "bg-slate-50 text-slate-700 border-slate-200",
         dotClass: "bg-slate-500",
         icon: <PauseCircle size={10} className="text-slate-600" />,
-        gradient: "from-slate-500 to-gray-600",
+        gradient: "from-slate-500 to-slate-600",
       };
     }
     if (isOverdue) {
       return {
         label: "已逾期",
-        className: "bg-rose-100 text-rose-700 border-rose-200",
+        className: "bg-slate-50 text-slate-700 border-slate-200",
         dotClass: "bg-rose-500",
         icon: <AlertCircle size={10} className="text-rose-600" />,
-        gradient: "from-rose-500 to-red-600",
+        gradient: "from-rose-600 to-slate-600",
       };
     }
     if (task.status === "rejected") {
       return {
         label: "已驳回",
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-slate-50 text-slate-700 border-slate-200",
         dotClass: "bg-gray-500",
         icon: <X size={10} className="text-gray-600" />,
-        gradient: "from-gray-500 to-stone-600",
+        gradient: "from-slate-600 to-slate-500",
       };
     }
     return {
       label: "进行中",
-      className: "bg-blue-100 text-blue-700 border-blue-200",
-      dotClass: "bg-blue-500",
-      icon: <PlayCircle size={10} className="text-blue-600" />,
-      gradient: "from-blue-500 to-indigo-600",
+      className: "bg-slate-50 text-slate-700 border-slate-200",
+      dotClass: "bg-slate-500",
+      icon: <PlayCircle size={10} className="text-slate-600" />,
+      gradient: "from-slate-700 to-slate-500",
     };
   };
 
@@ -138,7 +138,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                 ? 'bg-green-500'
                 : record.status === 'rejected'
                 ? 'bg-red-500'
-                : 'bg-blue-500'
+                : 'bg-slate-500'
             }`} style={{ transform: 'translateX(-50%)' }} />
 
             <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
@@ -146,7 +146,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                       第 {index + 1} 次操作 · 提交
                     </span>
                     <span className="text-xs text-gray-400">
@@ -163,7 +163,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                 {record.photoUrl ? (
                   <div className="mt-3">
                     <p className="text-xs text-gray-500 mb-2 font-medium">孩子提交的凭证照片：</p>
-                    <div className="w-full max-w-[200px] h-40 rounded-xl overflow-hidden border-2 border-blue-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="w-full max-w-[200px] h-40 rounded-xl overflow-hidden border-2 border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                       <ZoomImage
                         src={record.photoUrl}
                         alt={`第 ${index + 1} 次提交的照片凭证`}
@@ -185,8 +185,8 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
                 {/* 孩子提交的备注 */}
                 {record.submitNote && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <p className="text-xs text-blue-600 font-medium mb-1">孩子留言：</p>
+                  <div className="mt-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <p className="text-xs text-slate-600 font-medium mb-1">孩子留言：</p>
                     <p className="text-sm text-gray-700">{record.submitNote}</p>
                   </div>
                 )}
@@ -198,23 +198,23 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   <div className="flex items-center gap-2 mb-3">
                     {record.status === 'approved' ? (
                       <>
-                        <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                          <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                        <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                           审核通过
                         </span>
                       </>
                     ) : (
                       <>
-                        <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                          <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </div>
-                        <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                        <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                           审核驳回
                         </span>
                       </>
@@ -224,9 +224,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                     </span>
                   </div>
                   {record.auditNote ? (
-                    <div className={`rounded-lg p-3 ${record.status === 'approved' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                      <p className={`text-xs mb-1 ${record.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'}`}>审核意见：</p>
-                      <p className={`text-sm font-medium ${record.status === 'approved' ? 'text-emerald-800' : 'text-rose-700'}`}>{record.auditNote}</p>
+                    <div className="rounded-lg p-3 bg-slate-50">
+                      <p className="text-xs mb-1 text-slate-600">审核意见：</p>
+                      <p className="text-sm font-medium text-slate-700">{record.auditNote}</p>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-400 italic">未填写审核意见</p>
@@ -235,7 +235,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               ) : (
                 <div className="border-t-2 border-dashed border-gray-200 pt-4 mt-4">
                   <div className="flex items-center gap-2 text-amber-600">
-                    <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-slate-500 animate-pulse" />
                     <span className="text-xs font-medium">等待审核中...</span>
                   </div>
                 </div>
@@ -257,10 +257,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
         return (
           <div className="flex items-center gap-3">
             {/* 优化图标显示 */}
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-xl shadow-md flex-shrink-0 relative`}>
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-xl shadow-sm flex-shrink-0 relative`}>
               <span className="drop-shadow-sm">{task.icon}</span>
               {task.isRecurring && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm border border-blue-100" title="周期任务">
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200" title="周期任务">
                   <svg className="w-2.5 h-2.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
@@ -271,7 +271,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               <div className="flex items-center gap-2">
                 <p className="font-semibold text-gray-800 text-sm truncate max-w-[180px]">{task.name}</p>
                 {task.isRecurring && (
-                  <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 font-medium flex-shrink-0">
+                  <span className="text-[9px] bg-slate-50 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-medium flex-shrink-0">
                     周期
                   </span>
                 )}
@@ -296,7 +296,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       key: "childName",
       title: "执行人",
       render: (_, row) => (
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-gradient-to-r from-yellow-50 to-amber-50 text-amber-700 px-2.5 py-1 rounded-full border border-amber-100">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-slate-50 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">
           <User size={10} />
           {row.childAvatar} {row.childName}
         </span>
@@ -320,9 +320,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       key: "points",
       title: "积分",
       render: (_, row) => (
-        <div className="inline-flex items-center gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 px-2.5 py-1 rounded-lg border border-blue-100">
-          <Award size={12} className="text-blue-600" />
-          <span className="text-sm font-bold text-blue-700">+{row.points}</span>
+        <div className="inline-flex items-center gap-1 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+          <Award size={12} className="text-slate-600" />
+          <span className="text-sm font-bold text-slate-700">+{row.points}</span>
         </div>
       ),
     },
@@ -331,9 +331,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       title: "类型",
       render: (_, row) => {
         const typeStyles = {
-          daily: "bg-green-50 text-green-700 border-green-100",
-          advanced: "bg-purple-50 text-purple-700 border-purple-100",
-          challenge: "bg-orange-50 text-orange-700 border-orange-100",
+          daily: "bg-slate-50 text-slate-700 border-slate-200",
+          advanced: "bg-stone-50 text-stone-700 border-stone-200",
+          challenge: "bg-neutral-50 text-neutral-700 border-neutral-200",
         };
         return (
           <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg border ${typeStyles[row.type as keyof typeof typeStyles] || typeStyles.daily}`}>
@@ -366,10 +366,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
       key: "updatedAt",
       title: "更新时间",
       render: (_, row) => (
-        <div className="flex items-center gap-1 text-xs text-gray-400">
-          <Clock size={10} />
-          <span>{formatDate(row.updatedAt)}</span>
-        </div>
+          <div className="flex items-center gap-1 text-xs text-gray-400">
+            <Clock size={10} />
+            <span>{formatDate(row.updatedAt)}</span>
+          </div>
       ),
     },
   ];
@@ -387,7 +387,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               setSelectedTask(task);
             }}
             variant="secondary"
-            className="p-1.5 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+            className="p-1.5 h-8 w-8 text-gray-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
             title="查看详情"
           >
             <Eye size={15} />
@@ -400,7 +400,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   onEdit(task);
                 }}
                 variant="secondary"
-                className="p-1.5 h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+                className="p-1.5 h-8 w-8 text-gray-400 hover:text-slate-700 hover:bg-slate-50 rounded-lg transition-all border-none bg-transparent shadow-none hover:shadow-sm"
                 title="编辑任务"
               >
                 <Edit2 size={15} />
@@ -431,16 +431,18 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        dataSource={tasks}
-        actionColumn={actionColumn}
-        fixedColumns={{ left: ["name"], right: ["actions"] }}
-        emptyText="暂无任务"
-        minWidth={980}
-        actionColumnWidth={120}
-        onRowClick={(task) => setSelectedTask(task)}
-      />
+      <div className="w-full min-w-0 overflow-x-hidden">
+        <DataTable
+          columns={columns}
+          dataSource={tasks}
+          actionColumn={actionColumn}
+          fixedColumns={{ left: ["name"], right: ["actions"] }}
+          emptyText="暂无任务"
+          minWidth={980}
+          actionColumnWidth={120}
+          onRowClick={(task) => setSelectedTask(task)}
+        />
+      </div>
 
       {/* 任务详情弹窗 - 优化样式 */}
       {selectedTask && (
@@ -454,7 +456,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               <Button
                 onClick={() => setSelectedTask(null)}
                 variant="secondary"
-                className="flex-1 py-3 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+                className="flex-1 py-3 font-semibold rounded-xl hover:bg-slate-100 transition-colors"
               >
                 关闭
               </Button>
@@ -464,7 +466,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                     setSelectedTask(null);
                     onEdit(selectedTask);
                   }}
-                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 transition-all hover:shadow-xl"
+                  className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors"
                 >
                   <Edit2 size={16} className="mr-2" />
                   编辑任务
@@ -479,12 +481,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               const statusInfo = getStatusInfo(selectedTask);
               return (
                 <div className={`relative overflow-hidden rounded-2xl border ${statusInfo.className} p-5`}>
-                  {/* 背景装饰 */}
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${statusInfo.gradient} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`} />
-                  
                   <div className="relative flex items-center gap-4">
                     {/* 大图标 */}
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-4xl shadow-lg flex-shrink-0`}>
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-4xl shadow-sm flex-shrink-0`}>
                       <span className="drop-shadow-md">{selectedTask.icon}</span>
                     </div>
                     
@@ -499,13 +498,13 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                       
                       {/* 积分和执行人 */}
                       <div className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-1.5 rounded-lg border border-blue-100">
-                          <Award size={14} className="text-blue-600" />
-                          <span className="text-sm font-bold text-blue-700">+{selectedTask.points} 积分</span>
+                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                          <Award size={14} className="text-slate-600" />
+                          <span className="text-sm font-bold text-slate-700">+{selectedTask.points} 积分</span>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
-                          <User size={14} className="text-amber-600" />
-                          <span className="text-sm font-medium text-amber-700">{selectedTask.childAvatar} {selectedTask.childName}</span>
+                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                          <User size={14} className="text-slate-600" />
+                          <span className="text-sm font-medium text-slate-700">{selectedTask.childAvatar} {selectedTask.childName}</span>
                         </div>
                       </div>
                     </div>
@@ -518,9 +517,9 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
             <div className="space-y-5 max-h-[45vh] overflow-y-auto custom-scrollbar pr-1">
               {/* 任务描述 */}
               {selectedTask.description && (
-                <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100">
                   <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-blue-500 rounded-full" />
+                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
                     任务描述
                   </h4>
                   <p className="text-gray-600 text-sm leading-relaxed">{selectedTask.description}</p>
@@ -531,10 +530,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               {selectedTask.imageUrl ? (
                 <div>
                   <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-purple-500 rounded-full" />
+                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
                     任务配图
                   </h4>
-                  <div className="relative w-full h-52 rounded-xl overflow-hidden border border-gray-200 shadow-md group">
+                  <div className="relative w-full h-52 rounded-2xl overflow-hidden border border-gray-200 shadow-md group">
                     <ZoomImage
                       src={selectedTask.imageUrl}
                       alt="任务配图"
@@ -548,17 +547,17 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
               {/* 起止时间 */}
               {(selectedTask.startDate || selectedTask.deadline) && (
-                <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
+                <div className="bg-gray-50/80 rounded-2xl p-4 border border-gray-100">
                   <h4 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                    <span className="w-1 h-4 bg-emerald-500 rounded-full" />
+                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
                     起止时间
                   </h4>
                   {(() => {
                     const isOverdue = selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending";
                     return (
                       <div className={`flex items-center gap-3 ${isOverdue ? 'text-rose-600' : 'text-gray-600'}`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-rose-100' : 'bg-blue-100'}`}>
-                          <Calendar size={18} className={isOverdue ? 'text-rose-600' : 'text-blue-600'} />
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-rose-100' : 'bg-slate-100'}`}>
+                          <Calendar size={18} className={isOverdue ? 'text-rose-600' : 'text-slate-600'} />
                         </div>
                         <div className="flex-1">
                           <div className="text-sm font-medium">
@@ -581,7 +580,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               {/* 操作记录 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-1 h-4 bg-amber-500 rounded-full" />
+                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
                   <h4 className="font-semibold text-gray-700">操作记录</h4>
                   {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
                     <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">

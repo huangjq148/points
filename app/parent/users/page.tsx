@@ -522,13 +522,13 @@ function UsersPageContent() {
         </div>
       </Modal>
 
-      <div className="space-y-6">
+      <div className="space-y-6 min-w-0">
         {/* 搜索和筛选工具栏 - 一行显示 */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 min-w-0">
           {/* 左侧：搜索和筛选 */}
-          <div className="flex flex-wrap items-center gap-2 flex-1">
+          <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
             {/* 搜索框 */}
-            <div className="relative" style={{ minWidth: '300px', width: '300px' }}>
+            <div className="relative w-full max-w-[300px] min-w-0">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
@@ -548,7 +548,7 @@ function UsersPageContent() {
             </div>
 
             {/* 角色筛选 */}
-            <div style={{ minWidth: '300px', width: '300px' }}>
+            <div className="w-full max-w-[300px] min-w-0">
               <Select
                 value={roleFilter}
                 onChange={handleRoleFilter}
@@ -563,7 +563,7 @@ function UsersPageContent() {
             </div>
 
             {/* 性别筛选 */}
-            <div style={{ minWidth: '300px', width: '300px' }}>
+            <div className="w-full max-w-[300px] min-w-0">
               <Select
                 value={genderFilter}
                 onChange={handleGenderFilter}
@@ -660,21 +660,23 @@ function UsersPageContent() {
           </div>
         )}
 
-        <DataTable
-          columns={columns}
-          dataSource={familyMembers}
-          actionColumn={actionColumn}
-          fixedColumns={{ left: ["username"], right: ["actions"] }}
-          pageOptions={pageOptions}
-          minWidth={800}
-          loading={loading}
-          emptyText={searchQuery || roleFilter !== "all" || genderFilter !== "all" ? "没有找到匹配的用户" : "暂无用户数据"}
-          rowSelection={{
-            selectedRowKeys,
-            onChange: handleRowSelectionChange,
-            getRowKey: (row) => row.id,
-          }}
-        />
+        <div className="w-full min-w-0 overflow-x-hidden">
+          <DataTable
+            columns={columns}
+            dataSource={familyMembers}
+            actionColumn={actionColumn}
+            fixedColumns={{ left: ["username"], right: ["actions"] }}
+            pageOptions={pageOptions}
+            minWidth={800}
+            loading={loading}
+            emptyText={searchQuery || roleFilter !== "all" || genderFilter !== "all" ? "没有找到匹配的用户" : "暂无用户数据"}
+            rowSelection={{
+              selectedRowKeys,
+              onChange: handleRowSelectionChange,
+              getRowKey: (row) => row.id,
+            }}
+          />
+        </div>
       </div>
 
       <Modal

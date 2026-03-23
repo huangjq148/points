@@ -8,7 +8,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { CSSProperties, ReactNode, useMemo } from "react";
+import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
 import Pagination from "./Pagination";
 
 interface PageOptions {
@@ -90,7 +90,7 @@ export function DataTable<TData>({
   }, [rowSelection, tableData]);
 
   // 处理全选/取消全选
-  const handleSelectAll = () => {
+  const handleSelectAll = useCallback(() => {
     if (!rowSelection) return;
     if (isAllSelected) {
       // 取消全选：移除当前页所有行的选中状态
@@ -107,10 +107,10 @@ export function DataTable<TData>({
       const newSelectedRows = tableData.filter(row => newSelectedKeys.includes(rowSelection.getRowKey(row)));
       rowSelection.onChange(newSelectedKeys, newSelectedRows);
     }
-  };
+  }, [rowSelection, isAllSelected, tableData]);
 
   // 处理单行选择
-  const handleSelectRow = (row: TData, checked: boolean) => {
+  const handleSelectRow = useCallback((row: TData, checked: boolean) => {
     if (!rowSelection) return;
     const rowKey = rowSelection.getRowKey(row);
     let newSelectedKeys: string[];
@@ -129,7 +129,7 @@ export function DataTable<TData>({
     }
     
     rowSelection.onChange(newSelectedKeys, newSelectedRows);
-  };
+  }, [rowSelection, tableData]);
 
   // 构建选择列
   const selectionColumn: ColumnDef<TData, unknown> | null = useMemo(() => {
@@ -173,7 +173,7 @@ export function DataTable<TData>({
         fixed: "left",
       } as TableColumnMeta,
     };
-  }, [rowSelection, isAllSelected, isIndeterminate, tableData]);
+  }, [rowSelection, isAllSelected, isIndeterminate, handleSelectAll, handleSelectRow]);
 
   const mappedColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
     return columns.map((column) => ({
@@ -284,13 +284,16 @@ export function DataTable<TData>({
   return (
     <div className="space-y-4">
       <div
-        className="bg-white rounded-xl shadow-sm border border-gray-200 max-w-full overflow-x-auto"
+        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-sm border border-slate-200 max-w-full min-w-0 overflow-x-auto"
         style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
       >
-        <table className="w-full min-w-max text-left text-sm" style={{ minWidth: `${minWidth}px` }}>
-          <thead className="bg-gray-50 text-gray-700 text-xs uppercase tracking-wider">
+        <table
+          className="w-full text-left text-sm"
+          style={{ minWidth: `${minWidth}px` }}
+        >
+          <thead className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b border-gray-200">
+              <tr key={headerGroup.id} className="border-b border-slate-200">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
@@ -309,12 +312,12 @@ export function DataTable<TData>({
               </tr>
             ))}
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {table.getRowModel().rows.map((row, index) => (
               <tr
                 key={row.id}
-                className={`transition-colors duration-150 hover:bg-blue-50/50 ${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                className={`transition-colors duration-150 hover:bg-slate-50/80 ${
+                  index % 2 === 0 ? "bg-white" : "bg-slate-50/30"
                 } ${onRowClick ? "cursor-pointer" : ""} ${
                   getRowClassName ? getRowClassName(row.original) : ""
                 }`}
@@ -329,7 +332,7 @@ export function DataTable<TData>({
                     style={{
                       ...(cell.column.id === actionColumnId ? { width: `${actionColumnWidth}px` } : {}),
                       ...(cell.column.id === selectionColumnId ? { width: "48px" } : {}),
-                      ...getPinnedStyles(cell.column, index % 2 === 0 ? "#ffffff" : "#f9fafb"),
+                      ...getPinnedStyles(cell.column, index % 2 === 0 ? "#ffffff" : "#f8fafc"),
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

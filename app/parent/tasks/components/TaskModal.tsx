@@ -96,14 +96,14 @@ export default function TaskModal({
           </Button>
           <Button
             onClick={onSubmit}
-            className='flex-1 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md shadow-blue-100'
+            className='flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors'
           >
             {mode === 'add' ? '确认添加' : '保存修改'}
           </Button>
         </div>
       }
     >
-      <div className='space-y-4 pt-2 pb-6 max-h-[calc(80vh-200px)] overflow-y-auto custom-scrollbar pr-2 pl-2'>
+      <div className='space-y-5 pt-2 pb-6 max-h-[calc(80vh-200px)] overflow-y-auto custom-scrollbar pr-2 pl-2'>
         {mode === 'add' && childList && toggleChild && (
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -116,7 +116,7 @@ export default function TaskModal({
                   onClick={() => toggleChild(child.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all border-2 ${
                     taskData.selectedChildren.includes(child.id)
-                      ? 'bg-blue-50 border-blue-500 text-blue-700'
+                      ? 'bg-slate-50 border-slate-300 text-slate-800'
                       : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100'
                   }`}
                 >
@@ -149,8 +149,8 @@ export default function TaskModal({
                     }
                     className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition ${
                       isActive
-                        ? 'bg-blue-600 border-blue-600 text-white'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-blue-50'
+                        ? 'bg-slate-900 border-slate-900 text-white'
+                        : 'bg-white border-gray-200 text-gray-600 hover:bg-slate-50'
                     }`}
                   >
                     {option.label}
@@ -266,117 +266,119 @@ export default function TaskModal({
           </div>
         )}
 
-        <Input
-          label='任务名称'
-          value={taskData.name}
-          onChange={(e) => setTaskData({ ...taskData, name: e.target.value })}
-          placeholder='如：整理书包'
-          className='rounded-xl border-gray-200'
-        />
-
-        <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            任务描述（可选）
-          </label>
-          <textarea
-            value={taskData.description}
-            onChange={(e) =>
-              setTaskData({ ...taskData, description: e.target.value })
-            }
-            placeholder='详细描述任务要求，帮助孩子更好地理解'
-            className='w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none'
-            rows={3}
+        <div className='space-y-3'>
+          <Input
+            label='任务名称'
+            value={taskData.name}
+            onChange={(e) => setTaskData({ ...taskData, name: e.target.value })}
+            placeholder='如：整理书包'
+            className='rounded-xl border-gray-200'
           />
-        </div>
 
-        <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
-            任务配图（可选）
-          </label>
-          <label className='relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 rounded-2xl hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer group'>
-            <input
-              type='file'
-              accept='image/*'
-              onChange={onPhotoSelect}
-              className='hidden'
-            />
-            <div className='flex flex-col items-center gap-2'>
-              <div className='w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform'>
-                <Camera className='text-blue-500' size={20} />
-              </div>
-              <span className='text-xs font-medium text-gray-500'>
-                {mode === 'add' ? '点击上传或拖拽图片' : '点击上传或更换图片'}
-              </span>
-            </div>
-          </label>
-          {photoPreview && (
-            <div className='mt-3 relative rounded-xl overflow-hidden border border-gray-100 shadow-sm'>
-              <Image
-                src={photoPreview}
-                alt='预览'
-                className='w-full h-32 object-cover'
-                enableZoom={false}
-                containerClassName='w-full h-32'
-              />
-            </div>
-          )}
-        </div>
-
-        <div className='grid grid-cols-2 gap-4'>
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-2'>
-              积分奖励
+              任务描述（可选）
             </label>
-            <Input
-              type='number'
-              value={taskData.points}
+            <textarea
+              value={taskData.description}
               onChange={(e) =>
-                setTaskData({
-                  ...taskData,
-                  points: parseInt(e.target.value) || 0,
-                })
+                setTaskData({ ...taskData, description: e.target.value })
               }
-              className='rounded-xl border-gray-200'
+              placeholder='详细描述任务要求，帮助孩子更好地理解'
+              className='w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-100 outline-none transition-all resize-none'
+              rows={3}
             />
           </div>
-          <div className='flex-1'>
+
+          <div>
             <label className='block text-sm font-medium text-gray-700 mb-2'>
-              任务类型
+              任务配图（可选）
             </label>
-            <div className='flex gap-2'>
-              {(['daily', 'advanced', 'challenge'] as const).map((type) => (
-                <Button
-                  key={type}
-                  type='button'
-                  onClick={() => setTaskData({ ...taskData, type })}
-                  variant={taskData.type === type ? 'primary' : 'default'}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all shadow-none ${
-                    taskData.type === type
-                      ? 'border-blue-600 shadow-sm'
-                      : 'hover:bg-blue-50 hover:border-blue-200'
-                  }`}
-                >
-                  {type === 'daily'
-                    ? '日常'
-                    : type === 'advanced'
-                      ? '进阶'
-                      : '挑战'}
-                </Button>
-              ))}
+            <label className='relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 rounded-2xl hover:border-slate-400 hover:bg-slate-50/60 transition-all cursor-pointer group'>
+              <input
+                type='file'
+                accept='image/*'
+                onChange={onPhotoSelect}
+                className='hidden'
+              />
+              <div className='flex flex-col items-center gap-2'>
+                <div className='w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform'>
+                  <Camera className='text-slate-600' size={20} />
+                </div>
+                <span className='text-xs font-medium text-gray-500'>
+                  {mode === 'add' ? '点击上传或拖拽图片' : '点击上传或更换图片'}
+                </span>
+              </div>
+            </label>
+            {photoPreview && (
+              <div className='mt-3 relative rounded-xl overflow-hidden border border-gray-100 shadow-sm'>
+                <Image
+                  src={photoPreview}
+                  alt='预览'
+                  className='w-full h-32 object-cover'
+                  enableZoom={false}
+                  containerClassName='w-full h-32'
+                />
+              </div>
+            )}
+          </div>
+
+          <div className='grid grid-cols-2 gap-4'>
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>
+                积分奖励
+              </label>
+              <Input
+                type='number'
+                value={taskData.points}
+                onChange={(e) =>
+                  setTaskData({
+                    ...taskData,
+                    points: parseInt(e.target.value) || 0,
+                  })
+                }
+                className='rounded-xl border-gray-200'
+              />
+            </div>
+            <div className='flex-1'>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>
+                任务类型
+              </label>
+              <div className='flex gap-2'>
+                {(['daily', 'advanced', 'challenge'] as const).map((type) => (
+                  <Button
+                    key={type}
+                    type='button'
+                    onClick={() => setTaskData({ ...taskData, type })}
+                    variant={taskData.type === type ? 'primary' : 'default'}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all shadow-none ${
+                      taskData.type === type
+                        ? 'border-slate-400 bg-slate-50 text-slate-800 shadow-sm'
+                        : 'hover:bg-slate-50 hover:border-slate-200'
+                    }`}
+                  >
+                    {type === 'daily'
+                      ? '日常'
+                      : type === 'advanced'
+                        ? '进阶'
+                        : '挑战'}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
         {mode === 'add' && (
           <div className='space-y-3 pt-2'>
-            <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer'>
+              <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors cursor-pointer'>
               <input
                 type='checkbox'
                 checked={taskData.requirePhoto}
                 onChange={(e) =>
                   setTaskData({ ...taskData, requirePhoto: e.target.checked })
                 }
-                className='w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500'
+                className='w-5 h-5 rounded-lg border-gray-300 text-slate-900 focus:ring-slate-200'
               />
               <div className='flex flex-col'>
                 <span className='text-sm font-semibold text-gray-700'>
@@ -387,14 +389,14 @@ export default function TaskModal({
                 </span>
               </div>
             </label>
-            <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer'>
+              <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors cursor-pointer'>
               <input
                 type='checkbox'
                 checked={taskData.saveAsTemplate}
                 onChange={(e) =>
                   setTaskData({ ...taskData, saveAsTemplate: e.target.checked })
                 }
-                className='w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500'
+                className='w-5 h-5 rounded-lg border-gray-300 text-slate-900 focus:ring-slate-200'
               />
               <div className='flex flex-col'>
                 <span className='text-sm font-semibold text-gray-700'>
@@ -408,14 +410,14 @@ export default function TaskModal({
 
         {mode === 'edit' && (
           <div className='pt-2'>
-            <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer'>
+            <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors cursor-pointer'>
               <input
                 type='checkbox'
                 checked={taskData.requirePhoto}
                 onChange={(e) =>
                   setTaskData({ ...taskData, requirePhoto: e.target.checked })
                 }
-                className='w-5 h-5 rounded-lg border-gray-300 text-blue-600 focus:ring-blue-500'
+                className='w-5 h-5 rounded-lg border-gray-300 text-slate-900 focus:ring-slate-200'
               />
               <div className='flex flex-col'>
                 <span className='text-sm font-semibold text-gray-700'>
@@ -442,8 +444,8 @@ export default function TaskModal({
                   onClick={() => setTaskData({ ...taskData, icon })}
                   className={`w-10 h-10 rounded-xl text-xl leading-none flex items-center justify-center transition-all ${
                     taskData.icon === icon
-                      ? 'bg-blue-100 ring-2 ring-blue-500 ring-offset-1 scale-110'
-                      : 'bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-500'
+                      ? 'bg-slate-200 ring-2 ring-slate-400 ring-offset-1 scale-110'
+                      : 'bg-gray-50 hover:bg-slate-100 text-gray-400 hover:text-slate-600'
                   }`}
                 >
                   <span className='leading-none'>{icon}</span>

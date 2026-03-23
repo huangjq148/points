@@ -86,13 +86,15 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
     <div className="dashboard-layout">
       <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="logo-section">
-          <div className="logo-icon">🌟</div>
-          {!sidebarCollapsed && (
-            <>
-              <div className="logo-title">小小奋斗者</div>
-              <div className="logo-subtitle">家长管理后台</div>
-            </>
-          )}
+          <div className="logo-brand">
+            <div className="logo-icon">🌟</div>
+            {!sidebarCollapsed && (
+              <div className="logo-copy">
+                <div className="logo-title">小小奋斗者</div>
+                <div className="logo-subtitle">家长管理后台</div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="desktop-nav">

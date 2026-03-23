@@ -945,7 +945,7 @@ body {
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .main-wrapper {
@@ -953,7 +953,9 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
   margin-left: 280px;
+  overflow-x: hidden;
   transition: margin-left 0.3s ease;
 }
 
@@ -1067,14 +1069,16 @@ body {
 .main-area {
   height: calc(100vh - 100px);
   overflow-y: auto;
-  overflow-x: visible;
+  overflow-x: hidden;
   padding: 24px 32px 24px 32px;
+  min-width: 0;
 }
 
 .main-inner {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  min-width: 0;
 }
 
 .sidebar {
@@ -1191,6 +1195,7 @@ body {
   overflow-y: auto;
   padding-right: 4px;
   min-height: 0; /* Important for flex child scroll */
+  overflow-x: visible;
 }
 
 /* Custom Scrollbar for desktop-nav */
@@ -1361,23 +1366,35 @@ body {
 }
 
 .logo-section {
-  text-align: center;
-  padding: 20px 16px;
-  margin-bottom: 20px;
+  padding: 12px 12px 10px;
+  margin-bottom: 14px;
   background: rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow:
     0 4px 16px rgba(59, 130, 246, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 .logo-icon {
-  font-size: 52px;
-  margin-bottom: 8px;
+  flex-shrink: 0;
+  font-size: 36px;
+  line-height: 1;
   animation: bounce 2s ease-in-out infinite;
+}
+
+.logo-copy {
+  min-width: 0;
+  text-align: left;
 }
 
 @keyframes bounce {
@@ -1391,14 +1408,14 @@ body {
 }
 
 .logo-title {
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 1px;
 }
 
 .logo-subtitle {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--primary);
   font-weight: 500;
 }
@@ -2625,9 +2642,9 @@ body {
 /* Logo区域发光效果 */
 .logo-section {
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
-  border-radius: 20px;
-  padding: 20px;
-  margin: -10px 0 20px 0;
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+  margin: 0 0 14px 0;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
 }
 

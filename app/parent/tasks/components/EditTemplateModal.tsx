@@ -35,7 +35,7 @@ export default function EditTemplateModal({
           </Button>
           <Button
             onClick={onUpdate}
-            className="flex-1 py-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold shadow-md shadow-blue-100"
+            className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors"
           >
             确认更新
           </Button>
@@ -99,8 +99,8 @@ export default function EditTemplateModal({
                 variant={editingTemplate.type === type ? "primary" : "default"}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all shadow-none ${
                   editingTemplate.type === type
-                    ? "border-blue-600 shadow-sm"
-                    : "hover:bg-blue-50"
+                    ? "border-slate-400 bg-slate-50 text-slate-800 shadow-sm"
+                    : "hover:bg-slate-50"
                 }`}
               >
                 {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}

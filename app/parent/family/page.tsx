@@ -373,14 +373,16 @@ export default function FamilyPage() {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        dataSource={familyMembers}
-        actionColumn={actionColumn}
-        fixedColumns={{ left: ["username"], right: ["actions"] }}
-        pageOptions={pageOptions}
-        minWidth={600}
-      />
+      <div className="w-full min-w-0 overflow-x-hidden">
+        <DataTable
+          columns={columns}
+          dataSource={familyMembers}
+          actionColumn={actionColumn}
+          fixedColumns={{ left: ["username"], right: ["actions"] }}
+          pageOptions={pageOptions}
+          minWidth={600}
+        />
+      </div>
 
       <Modal isOpen={showEditAccountModal} onClose={() => setShowEditAccountModal(false)} title="编辑账号">
         <div className="space-y-4">

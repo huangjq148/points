@@ -177,12 +177,6 @@ function TasksPage() {
     ],
     [childList],
   );
-  const selectedChildName = useMemo(
-    () => childList.find((c) => c.id === selectedChildTaskFilter)?.username || "未知",
-    [childList, selectedChildTaskFilter],
-  );
-
-
 
   // 初始化模板数据
   useEffect(() => {
@@ -663,7 +657,7 @@ function TasksPage() {
           {/* 模板管理按钮 - 优化样式 */}
           <Button
             onClick={() => setShowTemplateManager(true)}
-            className="rounded-xl bg-white/80 backdrop-blur-sm border border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 px-4 py-2 shadow-sm hover:shadow-md flex items-center gap-2 group h-10 transition-all"
+            className="rounded-xl bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 px-4 py-2 shadow-sm hover:shadow-md flex items-center gap-2 group h-10 transition-all"
             variant="secondary"
           >
             <Edit2 size={16} className="group-hover:rotate-12 transition-transform duration-300" />
@@ -686,7 +680,7 @@ function TasksPage() {
               setTaskModalMode("add");
               setShowTaskModal(true);
             }}
-            className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 shadow-lg shadow-blue-200 flex items-center gap-2 group transition-all hover:scale-[1.02] active:scale-[0.98] h-10"
+            className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 shadow-sm flex items-center gap-2 group transition-colors h-10"
           >
             <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
             <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
@@ -697,14 +691,13 @@ function TasksPage() {
 
       {/* 视图切换 - 优化样式 */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        {/* 视图切换按钮 - 优化样式 */}
-        <div className="flex items-center gap-1 bg-gray-100/80 backdrop-blur-sm p-1 rounded-xl flex-shrink-0">
+        <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl flex-shrink-0 border border-slate-200">
           <button
             onClick={() => setViewMode("card")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               viewMode === "card"
-                ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-800 hover:bg-slate-50"
             }`}
           >
             <LayoutGrid size={15} />
@@ -714,8 +707,8 @@ function TasksPage() {
             onClick={() => setViewMode("table")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
               viewMode === "table"
-                ? "bg-white text-blue-600 shadow-sm ring-1 ring-black/5"
-                : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-800 hover:bg-slate-50"
             }`}
           >
             <Table2 size={15} />
@@ -724,51 +717,51 @@ function TasksPage() {
         </div>
       </div>
 
-        {/* 任务列表 - 根据视图模式切换 - 优化样式 */}
-        {viewMode === "card" ? (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 overflow-y-auto custom-scrollbar p-1 pb-8"
-            style={{ maxHeight: "calc(100vh - 260px)" }}
-          >
-            {tasks.map((task) => (
-              <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
-            ))}
-            {tasks.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center py-16 text-gray-400">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <LayoutGrid size={32} className="text-gray-300" />
-                </div>
-                <p className="text-gray-500 font-medium">暂无任务</p>
-                <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+      {/* 任务列表 - 根据视图模式切换 - 优化样式 */}
+      {viewMode === "card" ? (
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 overflow-y-auto custom-scrollbar p-1 pb-8"
+          style={{ maxHeight: "calc(100vh - 220px)" }}
+        >
+          {tasks.map((task) => (
+            <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
+          ))}
+          {tasks.length === 0 && (
+            <div className="col-span-full flex flex-col items-center justify-center py-14 text-gray-400">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <LayoutGrid size={32} className="text-slate-300" />
               </div>
-            )}
+              <p className="text-gray-500 font-medium">暂无任务</p>
+              <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+            </div>
+          )}
 
-            {total > limit && (
-              <div className="col-span-full mt-6">
-                <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+          {total > limit && (
+            <div className="col-span-full mt-6">
+              <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 220px)" }}>
+          <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
+          {tasks.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-14 text-gray-400">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <Table2 size={32} className="text-slate-300" />
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 260px)" }}>
-            <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
-            {tasks.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Table2 size={32} className="text-gray-300" />
-                </div>
-                <p className="text-gray-500 font-medium">暂无任务</p>
-                <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
-              </div>
-            )}
+              <p className="text-gray-500 font-medium">暂无任务</p>
+              <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+            </div>
+          )}
 
-            {total > limit && (
-              <div className="mt-6">
-                <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
-              </div>
-            )}
-          </div>
-        )}
+          {total > limit && (
+            <div className="mt-6">
+              <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+            </div>
+          )}
+        </div>
+      )}
 
         {/* Task Modal */}
         <TaskModal
@@ -836,7 +829,7 @@ export default function TasksPageWrapper() {
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-gray-500">加载中...</p>
         </div>
       </div>
