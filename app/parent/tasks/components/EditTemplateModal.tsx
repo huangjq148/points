@@ -1,5 +1,6 @@
 import { TaskTemplate } from "../page";
 import { Button, Modal, Input } from "@/components/ui";
+import { Hash, Sparkles, Tag, Type } from "lucide-react";
 
 interface EditTemplateModalProps {
   isOpen: boolean;
@@ -23,26 +24,26 @@ export default function EditTemplateModal({
       isOpen={isOpen}
       onClose={onClose}
       title={editingTemplate?._id ? "编辑模板" : "新建模板"}
-      width="max-w-md"
+      width={560}
       footer={
         <div className="flex gap-3 w-full">
           <Button
             onClick={onClose}
             variant="error"
-            className="flex-1 py-3 font-semibold rounded-xl"
+            className="flex-1 h-10 font-semibold rounded-xl"
           >
             取消
           </Button>
           <Button
             onClick={onUpdate}
-            className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors"
+            className="flex-1 h-10 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors"
           >
             确认更新
           </Button>
         </div>
       }
     >
-      <form onSubmit={onUpdate} className="space-y-4 py-2">
+      <form onSubmit={onUpdate} className="space-y-4">
         <Input
           label="模板名称"
           value={editingTemplate.name}
@@ -56,40 +57,28 @@ export default function EditTemplateModal({
           onChange={(e) => setEditingTemplate({ ...editingTemplate, description: e.target.value })}
           placeholder="模板描述信息"
         />
+
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-slate-600 mb-1">积分</label>
+            <label className="mb-1 block text-sm text-slate-600">积分</label>
             <Input
               type="number"
               value={editingTemplate.points}
-              onChange={(e) => setEditingTemplate({ ...editingTemplate, points: parseInt(e.target.value) })}
+              onChange={(e) => setEditingTemplate({ ...editingTemplate, points: parseInt(e.target.value) || 0 })}
             />
           </div>
           <div>
-            <label className="block text-sm text-slate-600 mb-1">图标</label>
-            <div className="flex gap-2">
-              <Input
-                value={editingTemplate.icon}
-                onChange={(e) => setEditingTemplate({ ...editingTemplate, icon: e.target.value })}
-                className="text-center text-xl"
-              />
-              <div className="flex flex-wrap gap-1 w-24">
-                {["⭐", "📚", "🧹", "🏃", "🎨"].map((i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setEditingTemplate({ ...editingTemplate, icon: i })}
-                    className="w-6 h-6 flex items-center justify-center bg-slate-100 rounded hover:bg-slate-200"
-                  >
-                    {i}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <label className="mb-1 block text-sm text-slate-600">图标</label>
+            <Input
+              value={editingTemplate.icon}
+              onChange={(e) => setEditingTemplate({ ...editingTemplate, icon: e.target.value })}
+              className="text-center text-xl"
+            />
           </div>
         </div>
+
         <div>
-          <label className="block text-sm text-slate-600 mb-2">任务类型</label>
+          <label className="mb-2 block text-sm text-slate-600">任务类型</label>
           <div className="flex gap-2">
             {["daily", "advanced", "challenge"].map((type) => (
               <Button
@@ -97,9 +86,9 @@ export default function EditTemplateModal({
                 type="button"
                 onClick={() => setEditingTemplate({ ...editingTemplate, type })}
                 variant={editingTemplate.type === type ? "primary" : "default"}
-                className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all shadow-none ${
+                className={`flex-1 h-10 rounded-xl text-sm font-medium border transition-all shadow-none ${
                   editingTemplate.type === type
-                    ? "border-slate-400 bg-slate-50 text-slate-800 shadow-sm"
+                    ? "border-slate-400 bg-slate-50 text-slate-800"
                     : "hover:bg-slate-50"
                 }`}
               >
@@ -108,7 +97,6 @@ export default function EditTemplateModal({
             ))}
           </div>
         </div>
-        
       </form>
     </Modal>
   );

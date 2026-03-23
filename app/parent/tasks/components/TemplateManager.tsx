@@ -1,5 +1,5 @@
 import { Button, Modal } from "@/components/ui";
-import { Edit2, Plus, Trash2 } from "lucide-react";
+import { Edit2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { TaskTemplate } from "../page";
 
 interface TemplateManagerProps {
@@ -26,96 +26,97 @@ export default function TemplateManager({
       isOpen={isOpen}
       onClose={onClose}
       title="任务模板管理"
-      width={800}
+      width={920}
       footer={
         <Button
           onClick={onClose}
-          className="w-full py-3 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all"
+          className="w-full h-10 font-semibold rounded-xl shadow-sm hover:shadow-md transition-all"
           variant="secondary"
         >
           关闭
         </Button>
       }
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <p className="text-slate-500 text-sm">选择一个模板快速创建任务，或管理您的自定义模板</p>
-        <Button
-          onClick={onNew}
-          className="bg-slate-900 text-white hover:bg-slate-800 px-4 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition-colors whitespace-nowrap"
-        >
-          <Plus size={18} />
-          <span className="font-semibold">新建模板</span>
-        </Button>
-      </div>
-      <div className="py-2 -mx-2 px-2 overflow-x-auto">
+      <div className="space-y-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-slate-500">选择模板快速创建任务，或维护自己的常用模板。</p>
+          <Button
+            onClick={onNew}
+            className="h-10 rounded-xl bg-slate-900 px-4 text-white shadow-sm hover:bg-slate-800"
+          >
+            <Plus size={16} />
+            <span className="font-semibold">新建模板</span>
+          </Button>
+        </div>
+
         {templates.length === 0 ? (
-          <div className="text-center py-16 bg-slate-50 rounded-[1.75rem] border-2 border-dashed border-slate-200">
-            <div className="text-4xl mb-4">📋</div>
-            <p className="text-slate-400 font-medium">暂无自定义模板</p>
-            <p className="text-slate-300 text-xs mt-1">点击&quot;新建模板&quot;开始创建</p>
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-14 text-center">
+            <div className="text-3xl">📋</div>
+            <p className="mt-3 text-sm font-medium text-slate-500">暂无自定义模板</p>
+            <Button onClick={onNew} className="mt-5 h-10 rounded-xl bg-slate-900 px-4 text-white">
+              <Plus size={16} />
+                <span className="font-semibold">新建模板</span>
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 min-w-0">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 min-w-0">
             {templates.map((template) => (
               <div
                 key={template._id}
-                className="flex flex-col p-4 sm:p-5 rounded-3xl bg-white border border-slate-100 hover:border-slate-300 hover:shadow-lg transition-all duration-300 group relative overflow-hidden min-w-0"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md min-w-0"
               >
-                <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4 relative">
-                  <div className="text-2xl sm:text-3xl bg-slate-50 w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-2xl shadow-sm border border-slate-100 group-hover:bg-slate-100 transition-colors duration-300 flex-shrink-0">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-2xl">
                     {template.icon}
                   </div>
-                  <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
-                    <h4 className="font-bold text-slate-800 truncate text-base sm:text-lg group-hover:text-slate-900 transition-colors">{template.name}</h4>
-                    <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-2">
-                      <span className="text-[10px] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border border-slate-200 whitespace-nowrap">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <h4 className="truncate font-semibold text-slate-900">{template.name}</h4>
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                        template.type === "daily"
+                          ? "border-blue-100 bg-blue-50 text-blue-700"
+                          : template.type === "advanced"
+                            ? "border-stone-200 bg-stone-50 text-stone-700"
+                            : "border-rose-100 bg-rose-50 text-rose-700"
+                      }`}>
+                        {template.type === "daily" ? "日常" : template.type === "advanced" ? "进阶" : "挑战"}
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                      {template.description || "点击应用此模板快速布置任务"}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
                         {template.points} 积分
                       </span>
-                      <Button
-                        variant="secondary"
-                        className={`text-[10px] px-2 py-0.5 h-auto rounded-xl font-bold uppercase tracking-wider border pointer-events-none shadow-none whitespace-nowrap ${
-                          template.type === "daily" 
-                            ? "bg-slate-50 text-slate-600 border-slate-200" 
-                            : template.type === "advanced" 
-                              ? "bg-stone-50 text-stone-600 border-stone-200" 
-                              : "bg-neutral-50 text-neutral-600 border-neutral-200"
-                        }`}
-                      >
-                        {template.type === "daily" ? "日常" : template.type === "advanced" ? "进阶" : "挑战"}
-                      </Button>
                     </div>
                   </div>
                 </div>
-                
-                <p className="text-sm text-slate-500 line-clamp-2 mb-4 sm:mb-6 leading-relaxed relative">
-                  {template.description || "点击应用此模板快速布置任务"}
-                </p>
-                
-                <div className="flex gap-2 sm:gap-3 mt-auto relative">
+
+                <div className="mt-4 flex items-center gap-2">
                   <Button
                     onClick={() => onApply(template)}
-                    className="flex-1 bg-slate-900 text-white hover:bg-slate-800 py-2 sm:py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-colors"
+                    className="flex-1 h-10 rounded-xl bg-slate-900 text-white shadow-sm hover:bg-slate-800"
                   >
-                    应用此模板
+                    <Sparkles size={15} />
+                    <span className="font-semibold">应用模板</span>
                   </Button>
-                  <div className="flex gap-1.5 sm:gap-2">
                   <Button
                     onClick={() => onEdit(template)}
                     variant="secondary"
-                    className="w-9 h-9 sm:w-10 sm:h-10 p-0 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-xl border border-slate-100 bg-white transition-all shadow-sm flex-shrink-0"
+                    className="h-10 w-10 rounded-xl border border-slate-200 bg-white p-0 text-slate-500 shadow-sm hover:text-slate-700 hover:bg-slate-50"
                     title="编辑"
                   >
-                      <Edit2 size={18} />
-                    </Button>
-                    <Button
-                      onClick={() => template._id && onDelete(template._id)}
-                      variant="error"
-                      className="w-9 h-9 sm:w-10 sm:h-10 p-0 rounded-xl transition-all shadow-sm flex-shrink-0"
-                      title="删除"
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                  </div>
+                    <Edit2 size={16} />
+                  </Button>
+                  <Button
+                    onClick={() => template._id && onDelete(template._id)}
+                    variant="error"
+                    className="h-10 w-10 rounded-xl p-0 shadow-sm"
+                    title="删除"
+                  >
+                    <Trash2 size={16} />
+                  </Button>
                 </div>
               </div>
             ))}
