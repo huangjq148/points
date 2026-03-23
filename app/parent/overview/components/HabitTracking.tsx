@@ -43,10 +43,10 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
     return (
       <div className="card">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-6 bg-slate-200 rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-16 bg-gray-200 rounded-xl"></div>
+              <div key={i} className="h-16 bg-slate-200 rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -57,10 +57,10 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
   if (!habits || habits.length === 0) {
     return (
       <div className="card flex flex-col items-center justify-center min-h-[200px]">
-        <div className="text-center text-gray-500">
-          <Target size={40} className="mx-auto mb-2 text-gray-300" />
+        <div className="text-center text-slate-500">
+          <Target size={40} className="mx-auto mb-2 text-slate-300" />
           <p className="text-sm">暂无习惯数据</p>
-          <p className="text-xs text-gray-400 mt-1">坚持21天养成一个好习惯</p>
+          <p className="text-xs text-slate-400 mt-1">坚持21天养成一个好习惯</p>
         </div>
       </div>
     );
@@ -69,8 +69,8 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-800">习惯养成</h3>
-        <span className="text-xs text-gray-500">{stats?.totalHabits}个习惯</span>
+        <h3 className="text-lg font-bold text-slate-800">习惯养成</h3>
+        <span className="text-xs text-slate-500">{stats?.totalHabits}个习惯</span>
       </div>
 
       {/* 统计概览 */}
@@ -97,16 +97,16 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
 
       {/* 习惯列表 */}
       <div className="space-y-3">
-        <h4 className="text-sm font-semibold text-gray-700">习惯排行</h4>
+        <h4 className="text-sm font-semibold text-slate-700">习惯排行</h4>
         {sortedHabits.slice(0, 5).map((habit) => (
           <div
             key={habit.id}
-            className="p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
+            className="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{habit.icon || "📝"}</span>
-                <span className="font-medium text-gray-800">{habit.name}</span>
+                <span className="font-medium text-slate-800">{habit.name}</span>
               </div>
               <div className="flex items-center gap-1 text-orange-600">
                 <Flame size={14} />
@@ -114,7 +114,7 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
                 <span className="text-xs">天</span>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-4 text-xs text-slate-500">
               <div className="flex items-center gap-1">
                 <Target size={12} />
                 <span>完成率 {habit.completionRate}%</span>
@@ -125,7 +125,7 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
               </div>
             </div>
             {/* 进度条 */}
-            <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-orange-400 to-red-400 rounded-full transition-all"
                 style={{ width: `${Math.min(habit.completionRate, 100)}%` }}

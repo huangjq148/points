@@ -32,7 +32,7 @@ const Pagination: React.FC<PaginationProps> = ({
         <ChevronLeft size={16} />
         上一页
       </Button>
-      <span className="text-sm text-gray-500 bg-white/70 px-3 py-1.5 rounded-full border border-slate-200">
+      <span className="text-sm text-slate-500 bg-white/75 px-3 py-1.5 rounded-full border border-slate-200">
         第 {currentPage} 页 / 共 {totalPages} 页
       </span>
       <Button

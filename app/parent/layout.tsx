@@ -83,7 +83,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
   };
 
   return (
-    <div className="dashboard-layout">
+    <div className="dashboard-layout parent-theme">
       <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="logo-section">
           <div className="logo-brand">
@@ -150,7 +150,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
         </header>
 
         <main className="main-area overflow-auto">
-          <div className="main-inner ">{children}</div>
+          <div className="main-inner parent-content-shell">{children}</div>
         </main>
       </div>
     </div>

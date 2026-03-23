@@ -142,7 +142,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all"
+      className="bg-white rounded-[1.75rem] shadow-xl w-full max-w-sm p-6 transform transition-all"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="text-center">
@@ -163,7 +163,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className={`bg-white rounded-[2.5rem] p-8 shadow-2xl ${className}`}
+      className={`bg-white rounded-[2rem] p-8 shadow-2xl ${className}`}
       style={{
         maxWidth: typeof width === "number" ? width : undefined,
         width: "100%",
@@ -172,11 +172,11 @@ export default function Modal({
     >
       {(title || showCloseButton) && (
         <div className="flex justify-between items-start mb-6">
-          {title && <h3 className="text-2xl font-black text-gray-800 pr-4">{title}</h3>}
+          {title && <h3 className="text-2xl font-black text-slate-800 pr-4">{title}</h3>}
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors flex-shrink-0"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors flex-shrink-0"
             >
               <X size={20} />
             </button>
@@ -192,7 +192,7 @@ export default function Modal({
         {children}
       </div>
 
-      {footer && <div className="pt-4 mt-4 border-t border-gray-100 flex justify-end gap-3">{footer}</div>}
+      {footer && <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end gap-3">{footer}</div>}
     </motion.div>
   );
 
@@ -203,7 +203,7 @@ export default function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/55 backdrop-blur-md flex items-center justify-center p-4"
           style={{ zIndex: overlayZIndex }}
           onPointerDownCapture={() => modalStackManager.add(modalIdRef.current)}
           onClick={onClose}

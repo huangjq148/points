@@ -142,15 +142,15 @@ export default function OverviewPage() {
   // 空状态
   if (!loading && !data && !error) {
     return (
-      <div className="card text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <ListChecks size={32} className="text-gray-400" />
+      <div className="card-parent text-center py-12">
+        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <ListChecks size={32} className="text-slate-400" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">暂无数据</h3>
-        <p className="text-gray-500 mb-4">创建任务后即可查看概览数据</p>
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">暂无数据</h3>
+        <p className="text-slate-500 mb-4">创建任务后即可查看概览数据</p>
         <button
           onClick={() => router.push("/parent/tasks")}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
         >
           创建任务
         </button>
@@ -160,8 +160,12 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
+      <div className="card-parent">
+        <h2 className="text-xl font-black text-slate-800">家庭概览</h2>
+        <p className="mt-1 text-sm text-slate-500">查看当前任务节奏、积分流动和孩子表现，优先处理最关键的事情。</p>
+      </div>
       {/* 筛选器和刷新 */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="card-parent flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <TimeRangeFilter
             value={timeRange}
@@ -180,15 +184,11 @@ export default function OverviewPage() {
           />
         </div>
         <div className="flex items-center gap-3">
-          {lastUpdated && (
-            <span className="text-xs text-gray-400">
-              更新于 {lastUpdated.toLocaleTimeString()}
-            </span>
-          )}
+          {lastUpdated && <span className="text-xs text-slate-400">更新于 {lastUpdated.toLocaleTimeString()}</span>}
           <button
             onClick={refresh}
             disabled={loading}
-            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-50"
             title="刷新数据"
           >
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
@@ -197,19 +197,15 @@ export default function OverviewPage() {
       </div>
 
       {/* 错误提示 */}
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-700 text-sm">
-          {error}
-        </div>
-      )}
+      {error && <div className="p-4 bg-red-50/80 border border-red-100 rounded-2xl text-red-700 text-sm">{error}</div>}
 
       {/* 行动建议 */}
-      <div className="card">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">行动建议</h3>
+      <div className="card-parent">
+        <h3 className="text-lg font-bold text-slate-800 mb-4">行动建议</h3>
         {loading ? (
           <div className="animate-pulse space-y-3">
             {[1, 2].map((i) => (
-              <div key={i} className="h-14 bg-gray-200 rounded-xl"></div>
+              <div key={i} className="h-14 bg-slate-200 rounded-xl"></div>
             ))}
           </div>
         ) : actions.length > 0 ? (
@@ -217,20 +213,20 @@ export default function OverviewPage() {
             {actions.slice(0, 3).map((tip, index) => (
               <div
                 key={index}
-                className={`p-3 rounded-xl border border-gray-100 bg-white flex items-start gap-3 ${
-                  tip.href ? "cursor-pointer hover:bg-gray-50 transition-colors" : ""
+                className={`p-3 rounded-2xl border border-slate-100 bg-white/90 flex items-start gap-3 ${
+                  tip.href ? "cursor-pointer hover:bg-slate-50 transition-colors" : ""
                 }`}
                 onClick={() => tip.href && router.push(tip.href)}
               >
                 <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0">
                   {index + 1}
                 </div>
-                <p className="text-sm text-gray-700 leading-6">{tip.text}</p>
+                <p className="text-sm text-slate-700 leading-6">{tip.text}</p>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-sm">暂无建议</p>
+          <p className="text-slate-500 text-sm">暂无建议</p>
         )}
       </div>
 
@@ -239,9 +235,9 @@ export default function OverviewPage() {
         {loading
           ? [1, 2, 3, 4].map((i) => (
               <div key={i} className="card p-4 animate-pulse">
-                <div className="h-10 w-10 bg-gray-200 rounded-xl mb-3"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2 mb-1"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-10 w-10 bg-slate-200 rounded-xl mb-3"></div>
+                <div className="h-8 bg-slate-200 rounded w-1/2 mb-1"></div>
+                <div className="h-4 bg-slate-200 rounded w-1/3"></div>
               </div>
             ))
           : coreCards.map((item) => (
@@ -257,8 +253,8 @@ export default function OverviewPage() {
                 >
                   <item.icon size={20} />
                 </div>
-                <p className="text-2xl font-bold text-gray-800">{item.value}</p>
-                <p className="text-xs text-gray-500">{item.label}</p>
+                <p className="text-2xl font-bold text-slate-800">{item.value}</p>
+                <p className="text-xs text-slate-500">{item.label}</p>
               </div>
             ))}
       </div>
@@ -268,40 +264,40 @@ export default function OverviewPage() {
         {loading
           ? [1, 2, 3].map((i) => (
               <div key={i} className="card p-5 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
-                <div className="h-10 bg-gray-200 rounded w-1/3 mb-1"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-slate-200 rounded w-1/4 mb-3"></div>
+                <div className="h-10 bg-slate-200 rounded w-1/3 mb-1"></div>
+                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
               </div>
             ))
           : data && (
               <>
                 <div className="card p-5">
-                  <div className="flex items-center gap-2 text-gray-700 mb-3">
+                  <div className="flex items-center gap-2 text-slate-700 mb-3">
                     <Target size={18} className="text-blue-500" />
                     <span className="font-semibold">完成质量</span>
                   </div>
-                  <p className="text-3xl font-bold text-gray-800">{completionRate}%</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-3xl font-bold text-slate-800">{completionRate}%</p>
+                  <p className="text-xs text-slate-500 mt-1">
                     已完成 {data.pulse.approved} / 总任务 {data.pulse.totalTasks}
                   </p>
                 </div>
                 <div className="card p-5">
-                  <div className="flex items-center gap-2 text-gray-700 mb-3">
+                  <div className="flex items-center gap-2 text-slate-700 mb-3">
                     <TrendingUp size={18} className="text-emerald-500" />
                     <span className="font-semibold">按时率</span>
                   </div>
-                  <p className="text-3xl font-bold text-gray-800">{onTimeRate}%</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-3xl font-bold text-slate-800">{onTimeRate}%</p>
+                  <p className="text-xs text-slate-500 mt-1">
                     按时 {data.pulse.onTimeCount}，逾期 {data.pulse.overdueCount}
                   </p>
                 </div>
                 <div className="card p-5">
-                  <div className="flex items-center gap-2 text-gray-700 mb-3">
+                  <div className="flex items-center gap-2 text-slate-700 mb-3">
                     <AlertTriangle size={18} className="text-orange-500" />
                     <span className="font-semibold">处理压力</span>
                   </div>
-                  <p className="text-3xl font-bold text-gray-800">{urgentLevel}</p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-3xl font-bold text-slate-800">{urgentLevel}</p>
+                  <p className="text-xs text-slate-500 mt-1">
                     待处理 {approvalPressure} 项（审核+核销）
                   </p>
                 </div>
@@ -320,18 +316,18 @@ export default function OverviewPage() {
         {loading ? (
           <>
             <div className="card p-5 animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+              <div className="h-6 bg-slate-200 rounded w-1/3 mb-6"></div>
               <div className="space-y-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                  <div key={i} className="h-4 bg-slate-200 rounded"></div>
                 ))}
               </div>
             </div>
             <div className="card p-5 animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+              <div className="h-6 bg-slate-200 rounded w-1/3 mb-6"></div>
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-4 bg-gray-200 rounded"></div>
+                  <div key={i} className="h-4 bg-slate-200 rounded"></div>
                 ))}
               </div>
             </div>
@@ -341,7 +337,7 @@ export default function OverviewPage() {
             <>
               {/* 任务状态分布 */}
               <div className="card">
-                <h3 className="text-lg font-bold text-gray-800 mb-6">任务状态分布</h3>
+                <h3 className="text-lg font-bold text-slate-800 mb-6">任务状态分布</h3>
                 <div className="space-y-4">
                   {[
                     { label: "进行中", value: data.pulse.pending, color: "bg-blue-500", text: "text-blue-600" },
@@ -351,15 +347,15 @@ export default function OverviewPage() {
                   ].map((item) => (
                     <div key={item.label} className="flex items-center gap-4">
                       <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                      <span className="text-sm text-gray-600 w-16">{item.label}</span>
-                      <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                      <span className="text-sm text-slate-600 w-16">{item.label}</span>
+                      <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full ${item.color} rounded-full transition-all duration-500`}
                           style={{ width: `${pct(item.value, data.pulse.totalTasks)}%` }}
                         />
                       </div>
                       <span className={`font-bold w-12 text-right ${item.text}`}>{item.value}</span>
-                      <span className="text-xs text-gray-400 w-10 text-right">
+                      <span className="text-xs text-slate-400 w-10 text-right">
                         {pct(item.value, data.pulse.totalTasks)}%
                       </span>
                     </div>
@@ -369,7 +365,7 @@ export default function OverviewPage() {
 
               {/* 任务类型分布 */}
               <div className="card">
-                <h3 className="text-lg font-bold text-gray-800 mb-6">任务类型分布</h3>
+                <h3 className="text-lg font-bold text-slate-800 mb-6">任务类型分布</h3>
                 <div className="space-y-4">
                   {[
                     { label: "日常任务", value: data.pulse.dailyCount, color: "bg-green-500", text: "text-green-600" },
@@ -378,15 +374,15 @@ export default function OverviewPage() {
                   ].map((item) => (
                     <div key={item.label} className="flex items-center gap-4">
                       <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                      <span className="text-sm text-gray-600 w-16">{item.label}</span>
-                      <div className="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+                      <span className="text-sm text-slate-600 w-16">{item.label}</span>
+                      <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full ${item.color} rounded-full transition-all duration-500`}
                           style={{ width: `${pct(item.value, data.pulse.totalTasks)}%` }}
                         />
                       </div>
                       <span className={`font-bold w-12 text-right ${item.text}`}>{item.value}</span>
-                      <span className="text-xs text-gray-400 w-10 text-right">
+                      <span className="text-xs text-slate-400 w-10 text-right">
                         {pct(item.value, data.pulse.totalTasks)}%
                       </span>
                     </div>
@@ -401,11 +397,11 @@ export default function OverviewPage() {
       {/* 趋势图表 */}
       <div className="card">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-bold text-gray-800">完成趋势</h3>
-          <span className="text-xs text-gray-500">按已完成任务计数</span>
+          <h3 className="text-lg font-bold text-slate-800">完成趋势</h3>
+          <span className="text-xs text-slate-500">按已完成任务计数</span>
         </div>
         {loading ? (
-          <div className="h-40 bg-gray-200 rounded-xl animate-pulse"></div>
+          <div className="h-40 bg-slate-200 rounded-xl animate-pulse"></div>
         ) : data && data.trend7d.length > 0 ? (
           <div className="flex items-end gap-2 h-40 overflow-x-auto pb-2">
             {data.trend7d.map((d) => {
@@ -414,20 +410,20 @@ export default function OverviewPage() {
               const minWidth = data.trend7d.length > 14 ? "w-8" : data.trend7d.length > 7 ? "w-10" : "flex-1 min-w-[40px]";
               return (
                 <div key={d.dateKey} className={`${minWidth} flex flex-col items-center gap-2 shrink-0`}>
-                  <span className="text-xs text-gray-400">{d.approved}</span>
-                  <div className="w-full bg-blue-100 rounded-lg overflow-hidden h-24 flex items-end">
+                  <span className="text-xs text-slate-400">{d.approved}</span>
+                  <div className="w-full bg-blue-100 rounded-xl overflow-hidden h-24 flex items-end">
                     <div
-                      className="w-full bg-linear-to-t from-blue-500 to-indigo-400 rounded-lg transition-all duration-500"
+                      className="w-full bg-linear-to-t from-blue-500 to-indigo-400 rounded-xl transition-all duration-500"
                       style={{ height: `${heightPct}%` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{d.label}</span>
+                  <span className="text-xs text-slate-500 whitespace-nowrap">{d.label}</span>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-slate-500">
             <p className="text-sm">暂无趋势数据</p>
           </div>
         )}
@@ -441,11 +437,11 @@ export default function OverviewPage() {
       {/* 孩子表现面板 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">孩子表现面板</h3>
+          <h3 className="text-lg font-bold text-slate-800 mb-4">孩子表现面板</h3>
           {loading ? (
             <div className="animate-pulse space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded-xl"></div>
+                <div key={i} className="h-24 bg-slate-200 rounded-xl"></div>
               ))}
             </div>
           ) : data && data.childPanels.length > 0 ? (
@@ -453,22 +449,22 @@ export default function OverviewPage() {
               {data.childPanels.map((child) => (
                 <div
                   key={child.id}
-                  className="p-3 rounded-2xl bg-gray-50 border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors"
+                  className="p-3 rounded-2xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors"
                   onClick={() => router.push(`/parent/tasks?childId=${child.id}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{child.avatar}</span>
                       <div>
-                        <p className="font-semibold text-gray-800">{child.name}</p>
-                        <p className="text-xs text-gray-500">已完成 {child.approvedCount} 项</p>
+                        <p className="font-semibold text-slate-800">{child.name}</p>
+                        <p className="text-xs text-slate-500">已完成 {child.approvedCount} 项</p>
                       </div>
                     </div>
-                    <ChevronRight size={16} className="text-gray-300" />
+                    <ChevronRight size={16} className="text-slate-300" />
                   </div>
                   <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                     <div
-                      className="bg-orange-100 text-orange-700 rounded-lg px-2 py-1 text-center cursor-pointer hover:bg-orange-200 transition-colors"
+                      className="bg-orange-100 text-orange-700 rounded-xl px-2 py-1 text-center cursor-pointer hover:bg-orange-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/parent/tasks?status=uncompleted&childId=${child.id}`);
@@ -477,7 +473,7 @@ export default function OverviewPage() {
                       待完成 {child.pendingCount}
                     </div>
                     <div
-                      className="bg-blue-100 text-blue-700 rounded-lg px-2 py-1 text-center cursor-pointer hover:bg-blue-200 transition-colors"
+                      className="bg-blue-100 text-blue-700 rounded-xl px-2 py-1 text-center cursor-pointer hover:bg-blue-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/parent/audit?childId=${child.id}`);
@@ -486,7 +482,7 @@ export default function OverviewPage() {
                       待审核 {child.submittedCount}
                     </div>
                     <div
-                      className="bg-indigo-100 text-indigo-700 rounded-lg px-2 py-1 text-center cursor-pointer hover:bg-indigo-200 transition-colors"
+                      className="bg-indigo-100 text-indigo-700 rounded-xl px-2 py-1 text-center cursor-pointer hover:bg-indigo-200 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/parent/orders?status=pending&childId=${child.id}`);
@@ -499,7 +495,7 @@ export default function OverviewPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-gray-500">
+            <div className="text-center py-6 text-slate-500">
               <p className="text-sm">暂无孩子数据</p>
             </div>
           )}
@@ -507,11 +503,11 @@ export default function OverviewPage() {
 
         {/* 关键结果看板 */}
         <div className="card">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">关键结果看板</h3>
+          <h3 className="text-lg font-bold text-slate-800 mb-4">关键结果看板</h3>
           {loading ? (
             <div className="animate-pulse grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-20 bg-gray-200 rounded-xl"></div>
+                <div key={i} className="h-20 bg-slate-200 rounded-xl"></div>
               ))}
             </div>
           ) : data ? (

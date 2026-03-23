@@ -106,7 +106,7 @@ export default function TaskModal({
       <div className='space-y-5 pt-2 pb-6 max-h-[calc(80vh-200px)] overflow-y-auto custom-scrollbar pr-2 pl-2'>
         {mode === 'add' && childList && toggleChild && (
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label className='block text-sm font-medium text-slate-700 mb-2'>
               选择孩子
             </label>
             <div className='flex flex-wrap gap-2'>
@@ -117,7 +117,7 @@ export default function TaskModal({
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all border-2 ${
                     taskData.selectedChildren.includes(child.id)
                       ? 'bg-slate-50 border-slate-300 text-slate-800'
-                      : 'bg-gray-50 border-transparent text-gray-600 hover:bg-gray-100'
+                      : 'bg-slate-50 border-transparent text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   <span className='text-lg'>{child.avatar || '👤'}</span>
@@ -130,7 +130,7 @@ export default function TaskModal({
 
         {mode === 'add' && (
           <div className='space-y-3'>
-            <label className='text-sm font-medium text-gray-700'>排期方式</label>
+            <label className='text-sm font-medium text-slate-700'>排期方式</label>
             <div className='flex gap-2'>
               {SCHEDULE_MODES.map((option) => {
                 const isActive = scheduleMode === option.value;
@@ -150,7 +150,7 @@ export default function TaskModal({
                     className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition ${
                       isActive
                         ? 'bg-slate-900 border-slate-900 text-white'
-                        : 'bg-white border-gray-200 text-gray-600 hover:bg-slate-50'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     {option.label}
@@ -158,7 +158,7 @@ export default function TaskModal({
                 );
               })}
             </div>
-            <p className='text-xs text-gray-500'>
+            <p className='text-xs text-slate-500'>
               {scheduleMode === 'single'
                 ? '可自定义起始和截止时间'
                 : scheduleMode === 'range'
@@ -171,7 +171,7 @@ export default function TaskModal({
         {showSinglePickers && (
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <label className='block text-sm font-medium text-slate-700 mb-2'>
                 起始时间（必填）
               </label>
               <DatePicker
@@ -190,7 +190,7 @@ export default function TaskModal({
             </div>
 
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <label className='block text-sm font-medium text-slate-700 mb-2'>
                 截止时间（必填）
               </label>
               <DatePicker
@@ -213,7 +213,7 @@ export default function TaskModal({
         {rangeModeActive && (
           <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <label className='block text-sm font-medium text-slate-700 mb-2'>
                 起始日期
               </label>
               <DatePicker
@@ -228,7 +228,7 @@ export default function TaskModal({
               />
             </div>
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <label className='block text-sm font-medium text-slate-700 mb-2'>
                 结束日期
               </label>
               <DatePicker
@@ -247,7 +247,7 @@ export default function TaskModal({
 
         {weekModeActive && (
           <div className='space-y-2'>
-            <label className='block text-sm font-medium text-gray-700'>
+            <label className='block text-sm font-medium text-slate-700'>
               参考日期（按所在周排期）
             </label>
             <DatePicker
@@ -259,7 +259,7 @@ export default function TaskModal({
               dateFormat='yyyy-MM-dd'
             />
             {weekBounds && (
-              <p className='text-xs text-gray-500'>
+              <p className='text-xs text-slate-500'>
                 本周范围：{formatLocalDate(weekBounds.start)} - {formatLocalDate(weekBounds.end)}
               </p>
             )}
@@ -272,11 +272,11 @@ export default function TaskModal({
             value={taskData.name}
             onChange={(e) => setTaskData({ ...taskData, name: e.target.value })}
             placeholder='如：整理书包'
-            className='rounded-xl border-gray-200'
+            className='rounded-xl border-slate-200'
           />
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label className='block text-sm font-medium text-slate-700 mb-2'>
               任务描述（可选）
             </label>
             <textarea
@@ -285,16 +285,16 @@ export default function TaskModal({
                 setTaskData({ ...taskData, description: e.target.value })
               }
               placeholder='详细描述任务要求，帮助孩子更好地理解'
-              className='w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-100 outline-none transition-all resize-none'
+              className='w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-100 outline-none transition-all resize-none'
               rows={3}
             />
           </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label className='block text-sm font-medium text-slate-700 mb-2'>
               任务配图（可选）
             </label>
-            <label className='relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-200 rounded-2xl hover:border-slate-400 hover:bg-slate-50/60 transition-all cursor-pointer group'>
+            <label className='relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-slate-200 rounded-2xl hover:border-slate-400 hover:bg-slate-50/60 transition-all cursor-pointer group'>
               <input
                 type='file'
                 accept='image/*'
@@ -305,13 +305,13 @@ export default function TaskModal({
                 <div className='w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center group-hover:scale-110 transition-transform'>
                   <Camera className='text-slate-600' size={20} />
                 </div>
-                <span className='text-xs font-medium text-gray-500'>
+                <span className='text-xs font-medium text-slate-500'>
                   {mode === 'add' ? '点击上传或拖拽图片' : '点击上传或更换图片'}
                 </span>
               </div>
             </label>
             {photoPreview && (
-              <div className='mt-3 relative rounded-xl overflow-hidden border border-gray-100 shadow-sm'>
+              <div className='mt-3 relative rounded-xl overflow-hidden border border-slate-100 shadow-sm'>
                 <Image
                   src={photoPreview}
                   alt='预览'
@@ -325,7 +325,7 @@ export default function TaskModal({
 
           <div className='grid grid-cols-2 gap-4'>
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <label className='block text-sm font-medium text-slate-700 mb-2'>
                 积分奖励
               </label>
               <Input
@@ -337,11 +337,11 @@ export default function TaskModal({
                     points: parseInt(e.target.value) || 0,
                   })
                 }
-                className='rounded-xl border-gray-200'
+                className='rounded-xl border-slate-200'
               />
             </div>
             <div className='flex-1'>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
+              <label className='block text-sm font-medium text-slate-700 mb-2'>
                 任务类型
               </label>
               <div className='flex gap-2'>
@@ -371,38 +371,38 @@ export default function TaskModal({
 
         {mode === 'add' && (
           <div className='space-y-3 pt-2'>
-              <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors cursor-pointer'>
+              <label className='flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer'>
               <input
                 type='checkbox'
                 checked={taskData.requirePhoto}
                 onChange={(e) =>
                   setTaskData({ ...taskData, requirePhoto: e.target.checked })
                 }
-                className='w-5 h-5 rounded-lg border-gray-300 text-slate-900 focus:ring-slate-200'
+                className='w-5 h-5 rounded-xl border-slate-300 text-slate-900 focus:ring-slate-200'
               />
               <div className='flex flex-col'>
-                <span className='text-sm font-semibold text-gray-700'>
+                <span className='text-sm font-semibold text-slate-700'>
                   要求拍照提交
                 </span>
-                <span className='text-xs text-gray-500'>
+                <span className='text-xs text-slate-500'>
                   完成后需上传照片证明
                 </span>
               </div>
             </label>
-              <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors cursor-pointer'>
+              <label className='flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer'>
               <input
                 type='checkbox'
                 checked={taskData.saveAsTemplate}
                 onChange={(e) =>
                   setTaskData({ ...taskData, saveAsTemplate: e.target.checked })
                 }
-                className='w-5 h-5 rounded-lg border-gray-300 text-slate-900 focus:ring-slate-200'
+                className='w-5 h-5 rounded-xl border-slate-300 text-slate-900 focus:ring-slate-200'
               />
               <div className='flex flex-col'>
-                <span className='text-sm font-semibold text-gray-700'>
+                <span className='text-sm font-semibold text-slate-700'>
                   同时保存为模板
                 </span>
-                <span className='text-xs text-gray-500'>方便下次直接使用</span>
+                <span className='text-xs text-slate-500'>方便下次直接使用</span>
               </div>
             </label>
           </div>
@@ -410,20 +410,20 @@ export default function TaskModal({
 
         {mode === 'edit' && (
           <div className='pt-2'>
-            <label className='flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-slate-50 transition-colors cursor-pointer'>
+            <label className='flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer'>
               <input
                 type='checkbox'
                 checked={taskData.requirePhoto}
                 onChange={(e) =>
                   setTaskData({ ...taskData, requirePhoto: e.target.checked })
                 }
-                className='w-5 h-5 rounded-lg border-gray-300 text-slate-900 focus:ring-slate-200'
+                className='w-5 h-5 rounded-xl border-slate-300 text-slate-900 focus:ring-slate-200'
               />
               <div className='flex flex-col'>
-                <span className='text-sm font-semibold text-gray-700'>
+                <span className='text-sm font-semibold text-slate-700'>
                   要求拍照提交
                 </span>
-                <span className='text-xs text-gray-500'>
+                <span className='text-xs text-slate-500'>
                   完成后需上传照片证明
                 </span>
               </div>
@@ -432,7 +432,7 @@ export default function TaskModal({
         )}
 
         <div>
-          <label className='block text-sm font-medium text-gray-700 mb-2'>
+          <label className='block text-sm font-medium text-slate-700 mb-2'>
             选择图标
           </label>
           <div className='flex flex-wrap gap-2'>
@@ -445,7 +445,7 @@ export default function TaskModal({
                   className={`w-10 h-10 rounded-xl text-xl leading-none flex items-center justify-center transition-all ${
                     taskData.icon === icon
                       ? 'bg-slate-200 ring-2 ring-slate-400 ring-offset-1 scale-110'
-                      : 'bg-gray-50 hover:bg-slate-100 text-gray-400 hover:text-slate-600'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   <span className='leading-none'>{icon}</span>

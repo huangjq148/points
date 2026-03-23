@@ -100,7 +100,7 @@ function AuditPage() {
   const renderAuditHistory = (task: IDisplayedTask) => {
     if (!task.auditHistory || task.auditHistory.length === 0) {
       return (
-        <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-xl">
+        <div className="text-center py-6 text-slate-400 bg-slate-50 rounded-xl">
           <History size={24} className="mx-auto mb-2 opacity-50" />
           <p className="text-sm">暂无历史记录</p>
         </div>
@@ -115,7 +115,7 @@ function AuditPage() {
         {allAudits.map((record: AuditRecord, index: number) => (
           <div
             key={record._id || index}
-            className="bg-white border border-gray-200 rounded-xl p-4 text-sm"
+            className="bg-white border border-slate-200 rounded-xl p-4 text-sm"
           >
             {/* 提交信息 */}
             <div className="mb-3">
@@ -123,14 +123,14 @@ function AuditPage() {
                 <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
                   第 {index + 1} 次操作 · 提交
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-slate-400">
                   {formatDate(record.submittedAt)}
                 </span>
               </div>
               {record.photoUrl && (
                 <div className="mt-2">
-                  <p className="text-xs text-gray-500 mb-1">提交的照片：</p>
-                  <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                  <p className="text-xs text-slate-500 mb-1">提交的照片：</p>
+                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200">
                     <ZoomImage
                       src={record.photoUrl}
                       alt={`第 ${index + 1} 次提交的照片`}
@@ -145,7 +145,7 @@ function AuditPage() {
 
             {/* 审核信息 */}
             {record.status ? (
-              <div className="border-t border-gray-100 pt-3">
+              <div className="border-t border-slate-100 pt-3">
                 <div className="flex items-center gap-2 mb-2">
                   {record.status === 'approved' ? (
                     <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
@@ -156,19 +156,19 @@ function AuditPage() {
                       ✗ 审核驳回
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-slate-400">
                     {record.auditedAt && formatDate(record.auditedAt)}
                   </span>
                 </div>
                 {record.auditNote && (
-                  <div className="bg-gray-50 rounded-lg p-2 mt-2">
-                    <p className="text-xs text-gray-500 mb-1">审核意见：</p>
-                    <p className="text-xs text-gray-700">{record.auditNote}</p>
+                  <div className="bg-slate-50 rounded-xl p-2 mt-2">
+                    <p className="text-xs text-slate-500 mb-1">审核意见：</p>
+                    <p className="text-xs text-slate-700">{record.auditNote}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="border-t border-gray-100 pt-3">
+              <div className="border-t border-slate-100 pt-3">
                 <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
                   ⏳ 待审核
                 </span>
@@ -181,8 +181,12 @@ function AuditPage() {
   };
 
   return (
-    <>
-      <div className="flex justify-end mb-4">
+    <div className="space-y-6">
+      <div className="card-parent flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-black text-slate-800">任务审核</h2>
+          <p className="mt-1 text-sm text-slate-500">优先处理待提交任务，保持反馈闭环及时。</p>
+        </div>
         <div className="w-40">
           <Select
             value={selectedChildFilter}
@@ -197,7 +201,7 @@ function AuditPage() {
         </div>
       </div>
       {pendingTasks.length === 0 ? (
-        <div className="card text-center py-12 text-gray-500">
+        <div className="card-parent text-center py-12 text-slate-500">
           <Check size={48} className="mx-auto mb-2 opacity-50" />
           <p>暂无待审核任务</p>
         </div>
@@ -256,10 +260,10 @@ function AuditPage() {
             <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
               <div className="text-5xl">{selectedTask.icon}</div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-gray-800 truncate">{selectedTask.name}</h3>
+                <h3 className="text-xl font-bold text-slate-800 truncate">{selectedTask.name}</h3>
                 <p className="text-blue-600 font-bold">+{selectedTask.points} 积分</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-gray-500">申请人:</span>
+                  <span className="text-sm text-slate-500">申请人:</span>
                   <span className="flex items-center gap-1 text-sm bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
                     {selectedTask.childAvatar} {selectedTask.childName}
                   </span>
@@ -270,21 +274,21 @@ function AuditPage() {
             {/* 滚动内容区域 */}
             <div className="max-h-[35vh] overflow-y-auto hide-scrollbar pr-1 space-y-4">
               <div>
-                <h4 className="font-bold text-gray-700 mb-2">提交时间</h4>
-                <p className="text-gray-600">{formatDate(selectedTask.submittedAt)}</p>
+                <h4 className="font-bold text-slate-700 mb-2">提交时间</h4>
+                <p className="text-slate-600">{formatDate(selectedTask.submittedAt)}</p>
               </div>
 
               {selectedTask.description && (
                 <div>
-                  <h4 className="font-bold text-gray-700 mb-2">任务描述</h4>
-                  <p className="text-gray-600">{selectedTask.description}</p>
+                  <h4 className="font-bold text-slate-700 mb-2">任务描述</h4>
+                  <p className="text-slate-600">{selectedTask.description}</p>
                 </div>
               )}
 
               {selectedTask.photoUrl ? (
                 <div>
-                  <h4 className="font-bold text-gray-700 mb-2">照片凭证</h4>
-                  <div className="relative w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                  <h4 className="font-bold text-slate-700 mb-2">照片凭证</h4>
+                  <div className="relative w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                     <ZoomImage
                       src={selectedTask.photoUrl}
                       alt="任务照片"
@@ -296,7 +300,7 @@ function AuditPage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-4 bg-gray-50 rounded-xl text-center text-gray-500 text-sm">无照片凭证</div>
+                <div className="p-4 bg-slate-50 rounded-xl text-center text-slate-500 text-sm">无照片凭证</div>
               )}
 
               {/* 历史操作记录 */}
@@ -304,7 +308,7 @@ function AuditPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <History size={16} className="text-blue-500" />
-                    <h4 className="font-bold text-gray-700">历史操作记录</h4>
+                    <h4 className="font-bold text-slate-700">历史操作记录</h4>
                   </div>
                   {renderAuditHistory(selectedTask)}
                 </div>
@@ -312,8 +316,8 @@ function AuditPage() {
             </div>
 
             {/* 底部固定区域 - 审核意见 */}
-            <div className="pt-4 border-t border-gray-100">
-              <h4 className="font-bold text-gray-700 mb-2">本次审核意见</h4>
+            <div className="pt-4 border-t border-slate-100">
+              <h4 className="font-bold text-slate-700 mb-2">本次审核意见</h4>
               <Input
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
@@ -324,7 +328,7 @@ function AuditPage() {
           </div>
         )}
       </Modal>
-    </>
+    </div>
   );
 }
 
@@ -413,14 +417,14 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
           x: dragX,
           backgroundColor: getBackgroundColor()
         }}
-        className="relative bg-white border border-gray-100 shadow-sm cursor-grab active:cursor-grabbing p-4 flex items-center gap-4"
+        className="relative bg-white border border-slate-100 shadow-sm cursor-grab active:cursor-grabbing p-4 flex items-center gap-4"
         onClick={handleClick}
         style={{ touchAction: 'pan-y' }}
       >
         <div className="text-4xl">{task.icon}</div>
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="font-semibold text-gray-800">{task.name}</span>
+            <span className="font-semibold text-slate-800">{task.name}</span>
             <span className="flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
               {task.childAvatar} {task.childName}
             </span>
@@ -433,8 +437,8 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <p className="text-xs text-gray-400">{formatDate(task.submittedAt)}</p>
-          <div className="flex items-center gap-1 text-xs text-gray-400">
+          <p className="text-xs text-slate-400">{formatDate(task.submittedAt)}</p>
+          <div className="flex items-center gap-1 text-xs text-slate-400">
             <Zap size={12} />
             <span>滑动审核</span>
           </div>
@@ -451,7 +455,7 @@ export default function AuditPageWrapper() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-gray-500">加载中...</p>
+          <p className="text-slate-500">加载中...</p>
         </div>
       </div>
     }>

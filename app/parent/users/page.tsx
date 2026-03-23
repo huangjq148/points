@@ -329,7 +329,7 @@ function UsersPageContent() {
         return (
           <div className="flex items-center gap-2">
             <span className="text-lg">{avatar}</span>
-            <span className="font-medium">{String(value ?? "-")}</span>
+            <span className="font-medium text-slate-800">{String(value ?? "-")}</span>
             {row.isMe && (
               <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">我</span>
             )}
@@ -349,7 +349,7 @@ function UsersPageContent() {
         const val = value;
         if (val === "girl") return <span className="text-pink-500 font-bold">女</span>;
         if (val === "boy") return <span className="text-blue-500 font-bold">男</span>;
-        return <span className="text-gray-400">未设置</span>;
+        return <span className="text-slate-400">未设置</span>;
       },
     },
     {
@@ -362,7 +362,7 @@ function UsersPageContent() {
           parent: { label: "家长", color: "text-blue-700", bgColor: "bg-blue-100" },
           child: { label: "孩子", color: "text-green-700", bgColor: "bg-green-100" },
         };
-        const config = roleConfig[String(val)] || { label: String(val), color: "text-gray-700", bgColor: "bg-gray-100" };
+        const config = roleConfig[String(val)] || { label: String(val), color: "text-slate-700", bgColor: "bg-slate-100" };
         return (
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${config.color} ${config.bgColor}`}>
             {config.label}
@@ -377,7 +377,7 @@ function UsersPageContent() {
         <div className="flex flex-col">
           <span className="font-semibold text-amber-600">{row.availablePoints || 0} 分</span>
           {row.totalPoints && row.totalPoints > 0 && (
-            <span className="text-xs text-gray-400">累计: {row.totalPoints} 分</span>
+            <span className="text-xs text-slate-400">累计: {row.totalPoints} 分</span>
           )}
         </div>
       ),
@@ -411,7 +411,7 @@ function UsersPageContent() {
                 setFormErrors({});
                 setShowEditAccountModal(true);
               }}
-              className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
             >
               <Settings size={18} />
             </Button>
@@ -421,7 +421,7 @@ function UsersPageContent() {
               variant="secondary"
               size="sm"
               onClick={() => setDeleteUserId(row.id)}
-              className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
             >
               <Trash2 size={18} />
             </Button>
@@ -438,7 +438,11 @@ function UsersPageContent() {
   }), [page, total, limit]);
 
   return (
-    <>
+    <div className="space-y-6">
+      <div className="card-parent">
+        <h2 className="text-xl font-black text-slate-800">系统用户</h2>
+        <p className="mt-1 text-sm text-slate-500">搜索、筛选和批量管理家庭后台账号。</p>
+      </div>
       <Modal
         isOpen={!!deleteUserId}
         onClose={() => setDeleteUserId(null)}
@@ -458,7 +462,7 @@ function UsersPageContent() {
           </div>
         }
       >
-        <p className="text-sm text-gray-600">确定删除该账号吗？</p>
+        <p className="text-sm text-slate-600">确定删除该账号吗？</p>
       </Modal>
 
       {/* 批量删除确认 Modal */}
@@ -481,7 +485,7 @@ function UsersPageContent() {
           </div>
         }
       >
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-slate-600">
           确定要删除选中的 <span className="font-semibold text-red-600">{selectedRowKeys.length}</span> 个用户吗？此操作无法撤销。
         </p>
       </Modal>
@@ -506,7 +510,7 @@ function UsersPageContent() {
         }
       >
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             将选中的 <span className="font-semibold text-blue-600">{selectedRowKeys.length}</span> 个用户的角色修改为：
           </p>
           <Select
@@ -522,25 +526,25 @@ function UsersPageContent() {
         </div>
       </Modal>
 
-      <div className="space-y-6 min-w-0">
+      <div className="card-parent space-y-6 min-w-0">
         {/* 搜索和筛选工具栏 - 一行显示 */}
         <div className="flex flex-wrap items-center justify-between gap-3 min-w-0">
           {/* 左侧：搜索和筛选 */}
           <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
             {/* 搜索框 */}
             <div className="relative w-full max-w-[300px] min-w-0">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={16} />
               <input
                 type="text"
                 placeholder="搜索用户名或昵称..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="w-full pl-9 pr-8 py-1.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full pl-9 pr-8 py-1.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white/85"
               />
               {searchQuery && (
                 <button
                   onClick={() => handleSearch("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   <X size={14} />
                 </button>
@@ -623,36 +627,36 @@ function UsersPageContent() {
 
         {/* 结果统计 */}
         {(searchQuery || roleFilter !== "all" || genderFilter !== "all") && (
-          <div className="text-sm text-gray-500">
-            找到 <span className="font-medium text-gray-700">{total}</span> 个用户
+          <div className="text-sm text-slate-500">
+            找到 <span className="font-medium text-slate-700">{total}</span> 个用户
             {searchQuery && <span>，搜索 &quot;{searchQuery}&quot;</span>}
           </div>
         )}
 
         {/* 批量操作工具栏 */}
         {selectedRowKeys.length > 0 && (
-          <div className="flex items-center justify-between gap-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+          <div className="flex items-center justify-between gap-4 p-4 bg-blue-50/80 border border-blue-100 rounded-2xl">
             <div className="text-sm text-blue-800">
               已选择 <span className="font-semibold">{selectedRowKeys.length}</span> 个用户
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowBatchRoleModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-xl hover:bg-blue-50 transition-colors"
               >
                 <UserCog size={16} />
                 修改角色
               </button>
               <button
                 onClick={() => setShowBatchDeleteModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-300 rounded-xl hover:bg-red-50 transition-colors"
               >
                 <Trash size={16} />
                 批量删除
               </button>
               <button
                 onClick={() => setSelectedRowKeys([])}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800 transition-colors"
               >
                 取消选择
               </button>
@@ -717,7 +721,7 @@ function UsersPageContent() {
             placeholder="请输入昵称"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">性别</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">性别</label>
             <Select
               value={accountForm.gender}
               onChange={(value) =>
@@ -749,7 +753,7 @@ function UsersPageContent() {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">角色</label>
             <Select
               value={accountForm.role}
               onChange={(value) => setAccountForm({ ...accountForm, role: (value as string) || "parent" })}
@@ -801,7 +805,7 @@ function UsersPageContent() {
             placeholder="请输入昵称"
           />
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">性别</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">性别</label>
             <Select
               value={accountForm.gender}
               onChange={(value) =>
@@ -833,7 +837,7 @@ function UsersPageContent() {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">角色</label>
             <Select
               value={accountForm.role}
               onChange={(value) => setAccountForm({ ...accountForm, role: (value as string) || "parent" })}
@@ -848,7 +852,7 @@ function UsersPageContent() {
         </div>
       </Modal>
 
-    </>
+    </div>
   );
 }
 
@@ -859,7 +863,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-gray-500">加载中...</p>
+          <p className="text-slate-500">加载中...</p>
         </div>
       </div>
     }>

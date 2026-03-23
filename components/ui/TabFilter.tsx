@@ -65,7 +65,7 @@ export const TabFilter = <T extends string>({
   }
 
   return (
-    <div className={`flex p-1 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl w-fit shadow-sm ${className}`}>
+    <div className={`flex p-1 bg-white/82 backdrop-blur-sm border border-slate-200 rounded-2xl w-fit shadow-sm ${className}`}>
       {items.map((tab) => {
         const isActive = activeKey === tab.key;
         return (
@@ -77,7 +77,7 @@ export const TabFilter = <T extends string>({
               ${
                 isActive
                   ? "bg-slate-900 text-white shadow-sm"
-                  : "text-gray-500 hover:text-slate-800 hover:bg-slate-50"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
               }
             `}
           >

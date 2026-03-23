@@ -29,7 +29,7 @@ export default function EditTemplateModal({
           <Button
             onClick={onClose}
             variant="error"
-            className="flex-1 py-3 font-semibold"
+            className="flex-1 py-3 font-semibold rounded-xl"
           >
             取消
           </Button>
@@ -58,7 +58,7 @@ export default function EditTemplateModal({
         />
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">积分</label>
+            <label className="block text-sm text-slate-600 mb-1">积分</label>
             <Input
               type="number"
               value={editingTemplate.points}
@@ -66,7 +66,7 @@ export default function EditTemplateModal({
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">图标</label>
+            <label className="block text-sm text-slate-600 mb-1">图标</label>
             <div className="flex gap-2">
               <Input
                 value={editingTemplate.icon}
@@ -79,7 +79,7 @@ export default function EditTemplateModal({
                     key={i}
                     type="button"
                     onClick={() => setEditingTemplate({ ...editingTemplate, icon: i })}
-                    className="w-6 h-6 flex items-center justify-center bg-gray-100 rounded hover:bg-gray-200"
+                    className="w-6 h-6 flex items-center justify-center bg-slate-100 rounded hover:bg-slate-200"
                   >
                     {i}
                   </button>
@@ -89,7 +89,7 @@ export default function EditTemplateModal({
           </div>
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-2">任务类型</label>
+          <label className="block text-sm text-slate-600 mb-2">任务类型</label>
           <div className="flex gap-2">
             {["daily", "advanced", "challenge"].map((type) => (
               <Button
@@ -97,7 +97,7 @@ export default function EditTemplateModal({
                 type="button"
                 onClick={() => setEditingTemplate({ ...editingTemplate, type })}
                 variant={editingTemplate.type === type ? "primary" : "default"}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all shadow-none ${
+                className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all shadow-none ${
                   editingTemplate.type === type
                     ? "border-slate-400 bg-slate-50 text-slate-800 shadow-sm"
                     : "hover:bg-slate-50"

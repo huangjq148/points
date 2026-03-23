@@ -184,9 +184,9 @@ export default function FamilyPage() {
             {row.type === "child" ? "👶" : "👤"}
           </div>
           <div className="flex flex-col">
-            <span className="font-medium text-gray-900">{String(value ?? "-")}</span>
+            <span className="font-medium text-slate-900">{String(value ?? "-")}</span>
             {row.identity && (
-              <span className="text-xs text-gray-500">{String(row.identity)}</span>
+              <span className="text-xs text-slate-500">{String(row.identity)}</span>
             )}
           </div>
           {row.isMe && (
@@ -206,7 +206,7 @@ export default function FamilyPage() {
           parent: { label: "家长", className: "bg-blue-100 text-blue-700 border-blue-200" },
           child: { label: "孩子", className: "bg-green-100 text-green-700 border-green-200" },
         };
-        const config = roleConfig[String(value)] || { label: "-", className: "bg-gray-100 text-gray-600 border-gray-200" };
+        const config = roleConfig[String(value)] || { label: "-", className: "bg-slate-100 text-slate-600 border-slate-200" };
         return (
           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${config.className}`}>
             {config.label}
@@ -221,7 +221,7 @@ export default function FamilyPage() {
         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
           value === "child"
             ? "bg-orange-50 text-orange-600 border-orange-200"
-            : "bg-gray-50 text-gray-600 border-gray-200"
+            : "bg-slate-50 text-slate-600 border-slate-200"
         }`}>
           {value === "child" ? "👶 孩子" : "👤 用户"}
         </span>
@@ -232,17 +232,17 @@ export default function FamilyPage() {
       title: "积分",
       render: (_, row) => {
         if (row.type !== "child") {
-          return <span className="text-gray-400">-</span>;
+          return <span className="text-slate-400">-</span>;
         }
         return (
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-amber-600 font-semibold">{row.availablePoints || 0}</span>
-              <span className="text-xs text-gray-400">可用</span>
+              <span className="text-xs text-slate-400">可用</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 text-sm">{row.totalPoints || 0}</span>
-              <span className="text-xs text-gray-400">累计</span>
+              <span className="text-slate-500 text-sm">{row.totalPoints || 0}</span>
+              <span className="text-xs text-slate-400">累计</span>
             </div>
           </div>
         );
@@ -269,7 +269,7 @@ export default function FamilyPage() {
                 });
                 setShowEditAccountModal(true);
               }}
-              className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+            className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
             >
               <Settings size={18} />
             </Button>
@@ -288,7 +288,7 @@ export default function FamilyPage() {
                 });
                 setShowRewardPointsModal(true);
               }}
-              className="text-green-500 hover:bg-green-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              className="text-green-500 hover:bg-green-50 p-2 rounded-xl border-none bg-transparent shadow-none"
               title="奖励积分"
             >
               <PlusCircle size={18} />
@@ -308,7 +308,7 @@ export default function FamilyPage() {
                 });
                 setShowDeductPointsModal(true);
               }}
-              className="text-orange-500 hover:bg-orange-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              className="text-orange-500 hover:bg-orange-50 p-2 rounded-xl border-none bg-transparent shadow-none"
               title={`扣除积分（可扣: ${row.availablePoints}）`}
             >
               <MinusCircle size={18} />
@@ -319,7 +319,7 @@ export default function FamilyPage() {
               variant="secondary"
               size="sm"
               onClick={() => setDeleteMemberId(row.id)}
-              className="text-red-500 hover:bg-red-50 p-2 rounded-lg border-none bg-transparent shadow-none"
+              className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
             >
               <Trash2 size={18} />
             </Button>
@@ -336,7 +336,11 @@ export default function FamilyPage() {
   }), [page, total, limit]);
 
   return (
-    <>
+    <div className="space-y-6">
+      <div className="card-parent">
+        <h2 className="text-xl font-black text-slate-800">家庭成员</h2>
+        <p className="mt-1 text-sm text-slate-500">管理家庭关系、邀请成员，并为孩子加减积分。</p>
+      </div>
       <Modal
         isOpen={!!deleteMemberId}
         onClose={() => setDeleteMemberId(null)}
@@ -356,10 +360,10 @@ export default function FamilyPage() {
           </div>
         }
       >
-        <p className="text-sm text-gray-600">确定将该成员移出家庭吗？</p>
+        <p className="text-sm text-slate-600">确定将该成员移出家庭吗？</p>
       </Modal>
 
-      <div className="flex justify-end mb-6">
+      <div className="card-parent flex justify-end">
         <div className="flex gap-2">
           {!currentUser?.familyId ? (
             <Button onClick={handleCreateFamily} className="flex items-center gap-2">
@@ -429,7 +433,7 @@ export default function FamilyPage() {
 
       <Modal isOpen={showInviteModal} onClose={() => setShowInviteModal(false)} title="邀请与加入">
         <div className="space-y-6">
-          <div className="bg-blue-50 p-4 rounded-xl">
+          <div className="card-parent">
             <p className="text-sm text-blue-800 font-medium mb-1">您的家庭邀请码</p>
             <div className="flex items-center gap-2">
               <code className="text-2xl font-mono font-bold text-blue-600">
@@ -443,7 +447,7 @@ export default function FamilyPage() {
                   }
                 }}
                 variant="secondary"
-                className="p-2 hover:bg-blue-100 rounded-lg text-blue-600 border-none bg-transparent shadow-none"
+                className="p-2 hover:bg-blue-100 rounded-xl text-blue-600 border-none bg-transparent shadow-none"
               >
                 <Copy size={20} />
               </Button>
@@ -451,8 +455,8 @@ export default function FamilyPage() {
             <p className="text-xs text-blue-600 mt-2">其他用户可以使用此邀请码加入您的家庭。</p>
           </div>
 
-          <div className="border-t pt-6">
-            <h4 className="font-bold text-gray-800 mb-4">邀请用户加入</h4>
+          <div className="card-parent">
+            <h4 className="font-bold text-slate-800 mb-4">邀请用户加入</h4>
             <div className="flex gap-2 items-end">
               <div className="flex-1">
                 <Input
@@ -465,14 +469,14 @@ export default function FamilyPage() {
                 邀请
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">对方将直接加入您的家庭（前提是对方尚未加入任何家庭）。</p>
+            <p className="text-xs text-slate-500 mt-2">对方将直接加入您的家庭（前提是对方尚未加入任何家庭）。</p>
           </div>
 
-          <div className="border-t pt-6">
-            <h4 className="font-bold text-gray-800 mb-4">加入其他家庭</h4>
+          <div className="card-parent">
+            <h4 className="font-bold text-slate-800 mb-4">加入其他家庭</h4>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-gray-600 mb-1">输入邀请码</label>
+                <label className="block text-sm text-slate-600 mb-1">输入邀请码</label>
                 <Input
                   value={inviteCodeInput}
                   onChange={(e) => setInviteCodeInput(e.target.value.toUpperCase())}
@@ -483,7 +487,7 @@ export default function FamilyPage() {
               <Button onClick={handleJoinFamily} disabled={!inviteCodeInput} fullWidth>
                 加入家庭
               </Button>
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-slate-500 text-center">
                 注意：加入新家庭后，您将退出当前家庭，且需要重新登录。
               </p>
             </div>
@@ -512,6 +516,6 @@ export default function FamilyPage() {
           fetchFamilyMembers(page);
         }}
       />
-    </>
+    </div>
   );
 }

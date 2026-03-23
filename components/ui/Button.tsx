@@ -27,7 +27,7 @@ export default function Button({
     justify-center
     gap-2
     font-semibold
-    rounded-2xl
+    rounded-[1.15rem]
     cursor-pointer
     transition-all
     duration-300
@@ -50,7 +50,7 @@ export default function Button({
 
   const variantStyles = {
     primary: `
-      bg-gradient-to-r from-blue-500/95 to-blue-600/95
+      bg-gradient-to-r from-blue-500/95 via-sky-500/95 to-indigo-600/95
       backdrop-blur-md
       text-white
       border border-white/20
@@ -62,7 +62,7 @@ export default function Button({
       active:translate-y-0
     `,
     secondary: `
-      bg-white/70
+      bg-white/80
       backdrop-blur-md
       text-blue-600
       border border-white/60
@@ -75,7 +75,7 @@ export default function Button({
       active:translate-y-0
     `,
     success: `
-      bg-gradient-to-r from-green-500/95 to-green-600/95
+      bg-gradient-to-r from-emerald-500/95 via-green-500/95 to-teal-600/95
       backdrop-blur-md
       text-white
       border border-white/20
@@ -87,7 +87,7 @@ export default function Button({
       active:translate-y-0
     `,
     warning: `
-      bg-gradient-to-r from-amber-500/95 to-amber-600/95
+      bg-gradient-to-r from-amber-400/95 via-orange-500/95 to-rose-500/95
       backdrop-blur-md
       text-white
       border border-white/20
@@ -99,7 +99,7 @@ export default function Button({
       active:translate-y-0
     `,
     error: `
-      bg-gradient-to-r from-red-500/95 to-red-600/95
+      bg-gradient-to-r from-rose-500/95 via-red-500/95 to-pink-600/95
       backdrop-blur-md
       text-white
       border border-white/20
@@ -111,7 +111,7 @@ export default function Button({
       active:translate-y-0
     `,
     default: `
-      bg-white/80
+      bg-white/88
       backdrop-blur-md
       text-gray-700
       border border-white/60

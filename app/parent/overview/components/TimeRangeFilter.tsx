@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import ReactDOM from "react-dom";
 import { Calendar, ChevronDown } from "lucide-react";
 
 export type TimeRange = "today" | "week" | "month" | "year" | "custom";
@@ -31,18 +32,61 @@ export default function TimeRangeFilter({
   const [startDate, setStartDate] = useState(customStartDate || "");
   const [endDate, setEndDate] = useState(customEndDate || "");
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [isPositionReady, setIsPositionReady] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [portalReady, setPortalReady] = useState(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   const selectedLabel = options.find((o) => o.value === value)?.label || "本周";
 
-  useEffect(() => {
-    if ((isOpen || showCustomDate) && buttonRef.current) {
+  useLayoutEffect(() => {
+    if (!(isOpen || showCustomDate)) return;
+
+    const updatePosition = () => {
+      if (!buttonRef.current) return;
+
       const rect = buttonRef.current.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
+        top: rect.bottom + 8,
+        left: rect.left,
       });
-    }
+      setIsPositionReady(true);
+    };
+
+    setIsPositionReady(false);
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [isOpen, showCustomDate]);
+
+  useEffect(() => {
+    if (!(isOpen || showCustomDate)) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (buttonRef.current?.contains(target)) return;
+      if (dropdownRef.current?.contains(target)) return;
+      setIsOpen(false);
+      setShowCustomDate(false);
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
   }, [isOpen, showCustomDate]);
 
   const handleSelect = (range: TimeRange) => {
@@ -81,94 +125,94 @@ export default function TimeRangeFilter({
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
       >
-        <Calendar size={14} className="text-gray-400" />
+        <Calendar size={14} className="text-slate-400" />
         <span>{selectedLabel}</span>
         <ChevronDown
           size={14}
-          className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
       {(isOpen || showCustomDate) && (
-        <div
-          className="fixed inset-0 z-[90]"
-          onClick={() => {
-            setIsOpen(false);
-            setShowCustomDate(false);
-          }}
-        />
+        null
       )}
 
-      {isOpen && (
-        <div
-          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[100] min-w-[120px]"
-          style={{
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-          }}
-        >
-          {options.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => handleSelect(option.value)}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                value === option.value ? "bg-blue-50 text-blue-600" : "text-gray-700"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
+      {isOpen && portalReady && isPositionReady &&
+        ReactDOM.createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] min-w-[120px] cursor-default"
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+            }}
+          >
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleSelect(option.value)}
+                className={`w-full cursor-pointer text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors first:rounded-t-2xl last:rounded-b-2xl ${
+                  value === option.value ? "bg-blue-50 text-blue-600" : "text-slate-700"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>,
+          document.body,
+        )}
 
       {/* 自定义日期选择器 */}
-      {showCustomDate && (
-        <div
-          className="fixed bg-white border border-gray-200 rounded-lg shadow-xl z-[100] p-4 w-72"
-          style={{
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-          }}
-        >
-          <h4 className="text-sm font-semibold text-gray-800 mb-3">选择日期范围</h4>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">开始日期</label>
-              <input
-                type="date"
-                value={startDate || defaultRange.start}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+      {showCustomDate && portalReady && isPositionReady &&
+        ReactDOM.createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] p-4 w-72 cursor-default"
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+            }}
+          >
+            <h4 className="text-sm font-semibold text-slate-800 mb-3">选择日期范围</h4>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">开始日期</label>
+                <input
+                  type="date"
+                  value={startDate || defaultRange.start}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-slate-500 mb-1 block">结束日期</label>
+                <input
+                  type="date"
+                  value={endDate || defaultRange.end}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowCustomDate(false)}
+                  className="flex-1 cursor-pointer px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleCustomDateSubmit}
+                  className="flex-1 cursor-pointer px-3 py-2 text-sm bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                >
+                  确定
+                </button>
+              </div>
             </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">结束日期</label>
-              <input
-                type="date"
-                value={endDate || defaultRange.end}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={() => setShowCustomDate(false)}
-                className="flex-1 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleCustomDateSubmit}
-                className="flex-1 px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                确定
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -139,7 +139,7 @@ function OrdersPage() {
   ] as const;
 
   return (
-    <>
+    <div className="space-y-6">
       <ConfirmModal
         isOpen={!!cancelOrderId}
         onClose={() => setCancelOrderId(null)}
@@ -152,13 +152,17 @@ function OrdersPage() {
       />
 
       {/* 筛选条件和 Tabs 在同一行 */}
-      <div className="flex flex-row items-start sm:items-center justify-between gap-4 mb-8">
-        <TabFilter
-          items={orderTabs}
-          activeKey={activeTab}
-          onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
-        />
+      <div className="card-parent flex flex-row items-start sm:items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-black text-slate-800">礼品核销</h2>
+          <p className="mt-1 text-sm text-slate-500">先处理待核销订单，再查看历史记录。</p>
+        </div>
         <div className="flex items-center gap-2">
+          <TabFilter
+            items={orderTabs}
+            activeKey={activeTab}
+            onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
+          />
           {isLoading && (
             <div className="loading-spinner w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           )}
@@ -179,7 +183,7 @@ function OrdersPage() {
 
       {activeTab === "pending" ? (
         pendingOrders.length === 0 ? (
-          <div className="card text-center py-12 text-gray-500">
+          <div className="card-parent text-center py-12 text-slate-500">
             <Ticket size={48} className="mx-auto mb-2 opacity-50" />
             <p>暂无待核销记录</p>
           </div>
@@ -231,7 +235,7 @@ function OrdersPage() {
       ) : (
         <>
           {historyOrders.length === 0 ? (
-            <div className="card text-center py-12 text-gray-500">
+            <div className="card-parent text-center py-12 text-slate-500">
               <Ticket size={48} className="mx-auto mb-2 opacity-50" />
               <p>暂无核销记录</p>
             </div>
@@ -258,7 +262,7 @@ function OrdersPage() {
                       <span>{order.childAvatar}</span>
                       <span>{order.childName}</span>
                     </div>
-                    <div className="text-xs text-gray-400">{formatDate(order.updatedAt)}</div>
+                    <div className="text-xs text-slate-400">{formatDate(order.updatedAt)}</div>
                   </div>
                 </div>
               ))}
@@ -271,18 +275,18 @@ function OrdersPage() {
                 variant="secondary"
                 disabled={historyPage === 1}
                 onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
-                className="text-gray-500 disabled:opacity-30"
+              className="text-slate-500 disabled:opacity-30"
               >
                 上一页
               </Button>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-500">
                 第 {historyPage} 页 / 共 {historyPageCount} 页
               </span>
               <Button
                 variant="secondary"
                 disabled={historyPage >= historyPageCount}
                 onClick={() => setHistoryPage((p) => p + 1)}
-                className="text-gray-500 disabled:opacity-30"
+              className="text-slate-500 disabled:opacity-30"
               >
                 下一页
               </Button>
@@ -290,7 +294,7 @@ function OrdersPage() {
           )}
         </>
       )}
-    </>
+    </div>
   );
 }
 
@@ -301,7 +305,7 @@ export default function OrdersPageWrapper() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-gray-500">加载中...</p>
+          <p className="text-slate-500">加载中...</p>
         </div>
       </div>
     }>

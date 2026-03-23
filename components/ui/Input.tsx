@@ -190,25 +190,25 @@ const sizeClassMap: Record<
 
 function getVariantClasses(variant: InputVariant) {
   if (variant === 'filled') {
-    return 'bg-gray-50 border-gray-200';
+    return 'bg-white/85 border-slate-200';
   }
 
   if (variant === 'ghost') {
-    return 'bg-transparent border-transparent hover:border-gray-200';
+    return 'bg-transparent border-transparent hover:border-slate-200';
   }
 
-  return 'bg-white/50 border-gray-200';
+  return 'bg-white/80 border-slate-200';
 }
 
 function getStatusClasses(status: InputStatus, disabled?: boolean) {
   if (disabled) {
-    return {
-      border: 'border-gray-200',
-      focus: 'focus:ring-gray-300/20 focus:border-gray-300',
-      text: 'text-gray-500',
-      helper: 'text-gray-400',
-      icon: 'text-gray-400',
-    };
+      return {
+        border: 'border-slate-200',
+        focus: 'focus:ring-slate-300/20 focus:border-slate-300',
+        text: 'text-slate-500',
+        helper: 'text-slate-400',
+        icon: 'text-slate-400',
+      };
   }
 
   switch (status) {
@@ -238,11 +238,11 @@ function getStatusClasses(status: InputStatus, disabled?: boolean) {
       };
     default:
       return {
-        border: 'border-gray-200 hover:border-blue-300',
+        border: 'border-slate-200 hover:border-blue-300',
         focus: 'focus:ring-blue-500/20 focus:border-blue-500',
-        text: 'text-gray-900',
-        helper: 'text-gray-500',
-        icon: 'text-gray-400',
+        text: 'text-slate-900',
+        helper: 'text-slate-500',
+        icon: 'text-slate-400',
       };
   }
 }
@@ -525,7 +525,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={inputId}
             className={cx(
-              'font-medium text-gray-700 cursor-text',
+              'font-medium text-slate-700 cursor-text',
               styles.label,
               labelPosition === 'top' ? 'block mb-1' : 'shrink-0',
               labelClassName
@@ -563,8 +563,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               className={cx(
                 'relative z-0 w-full border backdrop-blur-sm transition-all duration-200',
                 'focus:outline-none',
-                'disabled:bg-gray-100 disabled:cursor-not-allowed',
-                'placeholder:text-gray-400',
+                'disabled:bg-slate-100 disabled:cursor-not-allowed',
+                'placeholder:text-slate-400',
                 variantClasses,
                 statusClasses.border,
                 statusClasses.focus,

@@ -637,14 +637,20 @@ function TasksPage() {
   };
 
   return (
-    <>
+    <div className="space-y-6">
+      <div className="card-parent">
+        <h2 className="text-xl font-black text-slate-800">任务管理</h2>
+        <p className="mt-1 text-sm text-slate-500">先筛选任务，再切换卡片或表格视图进行编辑。</p>
+      </div>
       {/* 筛选条件、Tabs 和操作按钮在同一行 */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
-        <TabFilter
-          items={TAB_ITEMS}
-          activeKey={activeTaskFilter}
-          onFilterChange={(key) => onFilterChange("status", key)}
-        />
+      <div className="card-parent flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <TabFilter
+            items={TAB_ITEMS}
+            activeKey={activeTaskFilter}
+            onFilterChange={(key) => onFilterChange("status", key)}
+          />
+        </div>
         <div className="flex justify-end gap-2 items-center flex-wrap">
           {/* 孩子选择器 - 优化样式 */}
           <div className="w-36 lg:w-40">
@@ -690,14 +696,14 @@ function TasksPage() {
       </div>
 
       {/* 视图切换 - 优化样式 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-xl flex-shrink-0 border border-slate-200">
+      <div className="card-parent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-2xl flex-shrink-0 border border-slate-200">
           <button
             onClick={() => setViewMode("card")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
               viewMode === "card"
                 ? "bg-slate-900 text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-800 hover:bg-slate-50"
+                : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
             }`}
           >
             <LayoutGrid size={15} />
@@ -705,10 +711,10 @@ function TasksPage() {
           </button>
           <button
             onClick={() => setViewMode("table")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
               viewMode === "table"
                 ? "bg-slate-900 text-white shadow-sm"
-                : "text-gray-500 hover:text-gray-800 hover:bg-slate-50"
+                : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
             }`}
           >
             <Table2 size={15} />
@@ -727,12 +733,12 @@ function TasksPage() {
             <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           ))}
           {tasks.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center py-14 text-gray-400">
+            <div className="col-span-full flex flex-col items-center justify-center py-14 text-slate-400">
               <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                 <LayoutGrid size={32} className="text-slate-300" />
               </div>
-              <p className="text-gray-500 font-medium">暂无任务</p>
-              <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+              <p className="text-slate-500 font-medium">暂无任务</p>
+              <p className="text-sm text-slate-400 mt-1">点击右上角添加任务开始管理</p>
             </div>
           )}
 
@@ -746,12 +752,12 @@ function TasksPage() {
         <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 220px)" }}>
           <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           {tasks.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-14 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-14 text-slate-400">
               <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                 <Table2 size={32} className="text-slate-300" />
               </div>
-              <p className="text-gray-500 font-medium">暂无任务</p>
-              <p className="text-sm text-gray-400 mt-1">点击右上角添加任务开始管理</p>
+              <p className="text-slate-500 font-medium">暂无任务</p>
+              <p className="text-sm text-slate-400 mt-1">点击右上角添加任务开始管理</p>
             </div>
           )}
 
@@ -786,7 +792,7 @@ function TasksPage() {
           showCloseButton={false}
           title="提示"
         >
-          <div className="py-4 text-center text-gray-600">{alertState.message}</div>
+          <div className="py-4 text-center text-slate-600">{alertState.message}</div>
         </Modal>
 
         {/* Confirm Delete Task */}
@@ -819,7 +825,7 @@ function TasksPage() {
           setEditingTemplate={setEditingTemplate}
           onUpdate={handleUpdateTemplate}
         />
-    </>
+    </div>
   );
 }
 
@@ -830,7 +836,7 @@ export default function TasksPageWrapper() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-gray-500">加载中...</p>
+          <p className="text-slate-500">加载中...</p>
         </div>
       </div>
     }>

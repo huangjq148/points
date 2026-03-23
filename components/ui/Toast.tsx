@@ -53,10 +53,10 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
           <div
             key={toast.id}
             className={`
-              pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg transform transition-all duration-300 animate-slide-in
-              ${toast.type === 'success' ? 'bg-white text-green-600 border border-green-100' : ''}
-              ${toast.type === 'error' ? 'bg-white text-red-600 border border-red-100' : ''}
-              ${toast.type === 'info' ? 'bg-white text-blue-600 border border-blue-100' : ''}
+              pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg transform transition-all duration-300 animate-slide-in backdrop-blur-md
+              ${toast.type === 'success' ? 'bg-white/95 text-green-600 border border-green-100' : ''}
+              ${toast.type === 'error' ? 'bg-white/95 text-red-600 border border-red-100' : ''}
+              ${toast.type === 'info' ? 'bg-white/95 text-blue-600 border border-blue-100' : ''}
             `}
             style={{ minWidth: '300px', maxWidth: '400px' }}
           >

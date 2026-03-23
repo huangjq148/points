@@ -136,14 +136,18 @@ export default function RewardsPage() {
   };
 
   return (
-    <>
-      <div className="flex justify-end mb-4">
+    <div className="space-y-6">
+      <div className="card-parent flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <h2 className="text-xl font-black text-slate-800">奖品商城</h2>
+          <p className="mt-1 text-sm text-slate-500">管理奖励上架、库存和兑换门槛。</p>
+        </div>
         <Button onClick={() => setShowAddReward(true)} className="flex items-center gap-2">
           <Plus size={18} /> 添加奖励
         </Button>
       </div>
       {rewards.length === 0 ? (
-        <div className="card text-center py-12 text-gray-500">
+        <div className="card-parent text-center py-12 text-slate-500">
           <Gift size={48} className="mx-auto mb-2 opacity-50" />
           <p>暂无奖励配置，请点击右上角添加</p>
         </div>
@@ -154,21 +158,21 @@ export default function RewardsPage() {
               <div className="reward-icon">{reward.icon}</div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-gray-800">{reward.name}</p>
+                  <p className="font-medium text-slate-800">{reward.name}</p>
                   {reward.isActive ? (
                     <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">已上架</span>
                   ) : (
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">已下架</span>
+                    <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">已下架</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500">{reward.points} 积分</p>
+                <p className="text-sm text-slate-500">{reward.points} 积分</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full ${reward.stock > 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
                   >
                     库存: {reward.stock}
                   </span>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                     {reward.type === "physical" ? "实物" : "特权"}
                   </span>
                 </div>
@@ -178,7 +182,7 @@ export default function RewardsPage() {
                 <Button
                   onClick={() => handleToggleRewardStatus(reward)}
                   variant="secondary"
-                  className={`p-2 rounded-lg border-none bg-transparent shadow-none ${reward.isActive ? "text-gray-400 hover:text-orange-600 hover:bg-orange-50" : "text-gray-400 hover:text-green-600 hover:bg-green-50"}`}
+                  className={`p-2 rounded-xl border-none bg-transparent shadow-none ${reward.isActive ? "text-slate-400 hover:text-orange-600 hover:bg-orange-50" : "text-slate-400 hover:text-green-600 hover:bg-green-50"}`}
                   title={reward.isActive ? "下架" : "上架"}
                 >
                   {reward.isActive ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -186,7 +190,7 @@ export default function RewardsPage() {
                 <Button
                   onClick={() => handleEditReward(reward)}
                   variant="secondary"
-                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg border-none bg-transparent shadow-none"
+                  className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl border-none bg-transparent shadow-none"
                   title="编辑"
                 >
                   <Edit2 size={18} />
@@ -194,7 +198,7 @@ export default function RewardsPage() {
                 <Button
                   onClick={() => setRewardToDelete(reward._id)}
                   variant="secondary"
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg border-none bg-transparent shadow-none"
+                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl border-none bg-transparent shadow-none"
                   title="删除"
                 >
                   <Trash2 size={18} />
@@ -220,7 +224,7 @@ export default function RewardsPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-1">所需积分</label>
+            <label className="block text-sm text-slate-600 mb-1">所需积分</label>
             <Input
               type="number"
               value={newReward.points}
@@ -229,13 +233,13 @@ export default function RewardsPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">选择图标</label>
+            <label className="block text-sm text-slate-600 mb-2">选择图标</label>
             <div className="flex flex-wrap gap-2">
               {["🎁", "🍦", "📚", "🧸", "📺", "⏰"].map((icon) => (
                 <Button
                   key={icon}
                   onClick={() => setNewReward({ ...newReward, icon })}
-                  className={`w-10 h-10 rounded-lg text-xl p-0 transition-all border-none shadow-none ${newReward.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-white border border-gray-200 hover:bg-yellow-50"}`}
+                  className={`w-10 h-10 rounded-xl text-xl p-0 transition-all border-none shadow-none ${newReward.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-white border border-slate-200 hover:bg-yellow-50"}`}
                   variant="secondary"
                 >
                   {icon}
@@ -245,13 +249,13 @@ export default function RewardsPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">奖励类型</label>
+            <label className="block text-sm text-slate-600 mb-2">奖励类型</label>
             <div className="flex gap-2">
               {["physical", "privilege"].map((type) => (
                 <Button
                   key={type}
                   onClick={() => setNewReward({ ...newReward, type: type as "physical" | "privilege" })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all border-none shadow-none ${newReward.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all border-none shadow-none ${newReward.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-slate-600 border-slate-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
                   variant="secondary"
                 >
                   {type === "physical" ? "实物" : "特权"}
@@ -271,7 +275,7 @@ export default function RewardsPage() {
           </div>
 
           <div className="flex gap-2 mt-6">
-            <Button onClick={() => setShowAddReward(false)} variant="error" className="flex-1 py-3 text-gray-600">
+            <Button onClick={() => setShowAddReward(false)} variant="error" className="flex-1 py-3 text-slate-600">
               取消
             </Button>
             <Button onClick={handleAddReward} className="flex-1 py-3">
@@ -299,13 +303,13 @@ export default function RewardsPage() {
           />
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">选择图标</label>
+            <label className="block text-sm text-slate-600 mb-2">选择图标</label>
             <div className="flex flex-wrap gap-2">
               {["🎁", "🍦", "📚", "🧸", "📺", "⏰"].map((icon) => (
                 <Button
                   key={icon}
                   onClick={() => setEditingRewardData({ ...editingRewardData, icon })}
-                  className={`w-10 h-10 rounded-lg text-xl p-0 border-none shadow-none ${editingRewardData.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-gray-100"}`}
+                  className={`w-10 h-10 rounded-xl text-xl p-0 border-none shadow-none ${editingRewardData.icon === icon ? "bg-yellow-100 ring-2 ring-yellow-400" : "bg-slate-100"}`}
                   variant="secondary"
                 >
                   {icon}
@@ -315,13 +319,13 @@ export default function RewardsPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 mb-2">奖励类型</label>
+            <label className="block text-sm text-slate-600 mb-2">奖励类型</label>
             <div className="flex gap-2">
               {["physical", "privilege"].map((type) => (
                 <Button
                   key={type}
                   onClick={() => setEditingRewardData({ ...editingRewardData, type: type as "physical" | "privilege" })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all border-none shadow-none ${editingRewardData.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-gray-600 border-gray-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all border-none shadow-none ${editingRewardData.type === type ? "bg-yellow-500 text-white border-yellow-500 shadow-md" : "bg-white text-slate-600 border-slate-200 hover:bg-yellow-50 hover:border-yellow-200"}`}
                   variant="secondary"
                 >
                   {type === "physical" ? "实物" : "特权"}
@@ -339,7 +343,7 @@ export default function RewardsPage() {
           />
 
           <div className="flex gap-2 mt-6">
-            <Button onClick={() => setShowEditRewardModal(false)} variant="error" className="flex-1 py-3 text-gray-600">
+            <Button onClick={() => setShowEditRewardModal(false)} variant="error" className="flex-1 py-3 text-slate-600">
               取消
             </Button>
             <Button onClick={handleUpdateReward} className="flex-1 py-3">
@@ -359,6 +363,6 @@ export default function RewardsPage() {
         confirmText="删除"
         type="danger"
       />
-    </>
+    </div>
   );
 }
