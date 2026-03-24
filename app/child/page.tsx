@@ -7,6 +7,7 @@ import Modal from '@/components/ui/Modal';
 import { Image } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import FeatureGrid from './components/FeatureGrid';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -41,6 +42,14 @@ interface Task {
   auditHistory?: AuditRecord[];
 }
 
+interface RewardSummary {
+  _id: string;
+  type: string;
+  isActive?: boolean;
+  stock?: number;
+  expiresAt?: string | null;
+}
+
 export default function ChildHome() {
   const { currentUser } = useApp();
   const router = useRouter();
@@ -65,6 +74,7 @@ export default function ChildHome() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [recallingTaskId, setRecallingTaskId] = useState<string | null>(null);
+  const [rewardSummary, setRewardSummary] = useState<RewardSummary[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,8 +118,27 @@ export default function ChildHome() {
     }
   }, [currentUser?.token]);
 
+  const fetchRewardSummary = useCallback(async () => {
+    if (!currentUser?.token) return;
+    try {
+      const data = await request("/api/rewards", {
+        params: {
+          isActive: true,
+          page: 1,
+          limit: 20,
+        },
+      });
+      if (data.success) {
+        setRewardSummary(data.rewards || []);
+      }
+    } catch (error) {
+      console.error('获取奖励失败:', error);
+    }
+  }, [currentUser?.token]);
+
   useEffect(() => {
     fetchTasks();
+    fetchRewardSummary();
 
     // 生成星星背景
     const starsContainer = document.getElementById('stars-bg');
@@ -125,7 +154,7 @@ export default function ChildHome() {
         starsContainer.appendChild(star);
       }
     }
-  }, [fetchTasks]);
+  }, [fetchRewardSummary, fetchTasks]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -228,12 +257,31 @@ export default function ChildHome() {
     () => tasks.filter((t) => t.status === 'approved'),
     [tasks],
   );
+  const privilegeRewards = useMemo(
+    () => rewardSummary.filter((reward) => reward.type === "privilege" && reward.isActive !== false),
+    [rewardSummary],
+  );
+  const urgentPrivilegeRewards = useMemo(
+    () =>
+      privilegeRewards.filter((reward) => {
+        if (!reward.expiresAt) return false;
+        const target = dayjs(reward.expiresAt);
+        const diffDays = target.startOf("day").diff(dayjs().startOf("day"), "day");
+        return diffDays >= 0 && diffDays <= 3;
+      }),
+    [privilegeRewards],
+  );
   const totalTasks = tasks.length;
   const completedTaskCount = completedTasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTaskCount / totalTasks) * 100) : 0;
-  const now = dayjs();
-  const todayStart = now.startOf('day');
-  const todayEnd = now.endOf('day');
+  const { nowValue, todayStartValue, todayEndValue } = useMemo(() => {
+    const now = dayjs();
+    return {
+      nowValue: now.valueOf(),
+      todayStartValue: now.startOf('day').valueOf(),
+      todayEndValue: now.endOf('day').valueOf(),
+    };
+  }, []);
 
   const visibleTasks = useMemo(() => {
     return tasks
@@ -243,15 +291,15 @@ export default function ChildHome() {
         const isCompletedToday =
           task.status === 'approved' &&
           !!deadline &&
-          deadline.valueOf() >= todayStart.valueOf() &&
-          deadline.valueOf() <= todayEnd.valueOf();
+          deadline.valueOf() >= todayStartValue &&
+          deadline.valueOf() <= todayEndValue;
         const isStartedAndUncompleted =
-          (!startDate || startDate.valueOf() <= now.valueOf()) &&
+          (!startDate || startDate.valueOf() <= nowValue) &&
           task.status !== 'approved';
         const isFutureToday =
           !!startDate &&
-          startDate.valueOf() > now.valueOf() &&
-          startDate.valueOf() <= todayEnd.valueOf();
+          startDate.valueOf() > nowValue &&
+          startDate.valueOf() <= todayEndValue;
 
         return isCompletedToday || isStartedAndUncompleted || isFutureToday;
       })
@@ -260,7 +308,7 @@ export default function ChildHome() {
         const bStart = b.startDate ? dayjs(b.startDate).valueOf() : 0;
         return aStart - bStart;
       });
-  }, [now.valueOf(), tasks, todayEnd.valueOf(), todayStart.valueOf()]);
+  }, [nowValue, tasks, todayEndValue, todayStartValue]);
 
   const pendingVisibleCount = visibleTasks.filter((t) => t.status !== 'approved').length;
   const handleNavigate = (path: string) => {
@@ -624,7 +672,7 @@ export default function ChildHome() {
         </div>
 
         {/* 进行中的任务时间轴 */}
-        <div className='relative z-10 px-6 mb-6'>
+        <div className='relative z-10 px-6 mb-4'>
           <div className='flex justify-between items-center mb-4'>
             <h2 className='text-xl font-bold text-white flex items-center gap-2'>
               <span className='text-2xl'>📜</span>
@@ -647,7 +695,10 @@ export default function ChildHome() {
               const isCompleted = task.status === 'approved';
               const startDate = task.startDate ? dayjs(task.startDate) : null;
               const deadline = task.deadline ? dayjs(task.deadline) : null;
-              const isFutureToday = !!startDate && startDate.valueOf() > now.valueOf() && startDate.valueOf() <= todayEnd.valueOf();
+              const isFutureToday =
+                !!startDate &&
+                startDate.valueOf() > nowValue &&
+                startDate.valueOf() <= todayEndValue;
               const isCompletedToday =
                 isCompleted &&
                 !!deadline &&
@@ -778,79 +829,85 @@ export default function ChildHome() {
 
         {/* 星际基地功能区 */}
         <div className='relative z-10 px-6 mb-6'>
-          <h2 className='text-xl font-bold text-white flex items-center gap-2 mb-4'>
+          {privilegeRewards.length > 0 && (
+            <div
+              onClick={() => handleNavigate('/child/store?category=privilege')}
+              className='relative mb-5 overflow-hidden rounded-[30px] border border-white/20 bg-[linear-gradient(135deg,#5b21b6_0%,#a21caf_42%,#f59e0b_100%)] p-6 text-white shadow-[0_24px_60px_rgba(91,33,182,0.38)] cursor-pointer group'
+            >
+              <div className='absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-3xl transition-transform duration-500 group-hover:scale-125' />
+              <div className='absolute left-0 top-0 h-full w-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_30%)]' />
+              <div className='relative z-10 flex items-center justify-between gap-4'>
+                <div className='min-w-0'>
+                  <div className='inline-flex items-center gap-2 rounded-full bg-white/18 px-3 py-1 text-[11px] font-black tracking-[0.22em] backdrop-blur-sm'>
+                    <Sparkles size={12} />
+                    特权专区
+                  </div>
+                  <h2 className='mt-3 text-[1.7rem] font-black tracking-tight'>
+                    {urgentPrivilegeRewards.length > 0 ? "有特权快要截止了" : "今天有特别权限可以兑换"}
+                  </h2>
+                  <p className='mt-2 max-w-xl text-sm leading-6 text-white/82'>
+                    当前有 {privilegeRewards.length} 个特权奖励正在开放，{urgentPrivilegeRewards.length > 0 ? `其中 ${urgentPrivilegeRewards.length} 个在 3 天内截止` : "点进去看看有没有你最想要的那一个。"}
+                  </p>
+                  <div className='mt-4 flex flex-wrap items-center gap-3'>
+                    <button
+                      type='button'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNavigate('/child/store?category=privilege');
+                      }}
+                      className='inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-violet-700 shadow-lg shadow-black/10 transition-transform hover:-translate-y-0.5'
+                    >
+                      去看看特权
+                      <ArrowRight size={16} />
+                    </button>
+                    {urgentPrivilegeRewards.length > 0 && (
+                      <span className='rounded-full bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur-sm'>
+                        先看即将截止的奖励
+                      </span>
+                    )}
+                    {!urgentPrivilegeRewards.length && (
+                      <span className='rounded-full bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur-sm'>
+                        现在正适合兑换
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className='flex shrink-0 items-center gap-2 rounded-2xl bg-white/15 px-4 py-3 backdrop-blur-sm'>
+                  <div className='text-right'>
+                    <div className='text-xs text-white/72'>{urgentPrivilegeRewards.length > 0 ? "快截止" : "特权奖励"}</div>
+                    <div className='text-3xl font-black leading-none'>{privilegeRewards.length}</div>
+                  </div>
+                  <ArrowRight size={18} />
+                </div>
+              </div>
+              {urgentPrivilegeRewards.length > 0 && (
+                <div className='relative z-10 mt-4 flex flex-wrap gap-2'>
+                  {urgentPrivilegeRewards.slice(0, 3).map((reward) => (
+                    <span key={reward._id} className='rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm'>
+                      {dayjs(reward.expiresAt).format("MM-DD")} 截止
+                    </span>
+                  ))}
+                  {urgentPrivilegeRewards.length > 3 && (
+                    <span className='rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm'>
+                      还有 {urgentPrivilegeRewards.length - 3} 个
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <h2 className='text-xl font-bold text-white flex items-center gap-2 mb-3'>
             <span className='text-2xl'>🌟</span>
             星际基地
           </h2>
 
-          <div className='grid grid-cols-2 gap-4'>
-            {/* 星际商城 */}
-            <div
-              onClick={() => handleNavigate('/child/store')}
-              className='relative rounded-2xl p-5 overflow-hidden cursor-pointer group'
-              style={{ background: 'linear-gradient(135deg, #ec4899 0%, #e11d48 100%)' }}
-            >
-              <div className='absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl group-hover:scale-150 transition-transform duration-500'></div>
-              <div className='relative z-10'>
-                <div className='flex items-start justify-between mb-3'>
-                  <div className='w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur-sm'>
-                    🎁
-                  </div>
-                  <span className='bg-white/20 px-2 py-1 rounded-full text-xs backdrop-blur-sm'>NEW</span>
-                </div>
-                <h3 className='font-bold text-lg mb-1 text-white'>星际商城</h3>
-                <p className='text-sm text-white/80'>兑换喜欢的奖励</p>
-              </div>
-            </div>
-
-            {/* 探索日志 */}
-            <div
-              onClick={() => handleNavigate('/child/task?filter=thisWeek')}
-              className='relative rounded-2xl p-5 overflow-hidden cursor-pointer group'
-              style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%)' }}
-            >
-              <div className='absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-10 -mb-10 blur-2xl group-hover:scale-150 transition-transform duration-500'></div>
-              <div className='relative z-10'>
-                <div className='flex items-start justify-between mb-3'>
-                  <div className='w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur-sm'>
-                    📔
-                  </div>
-                  <span className='bg-green-400/20 text-green-300 px-2 py-1 rounded-full text-xs backdrop-blur-sm'>+{completedTasks.length}</span>
-                </div>
-                <h3 className='font-bold text-lg mb-1 text-white'>探索日志</h3>
-                <p className='text-sm text-white/80'>本周完成 {completedTaskCount} 项任务</p>
-              </div>
-            </div>
-
-            {/* 我的钱包 */}
-            <div
-              onClick={() => handleNavigate('/child/wallet')}
-              className='relative rounded-2xl p-5 overflow-hidden cursor-pointer group col-span-2'
-              style={{ background: 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)' }}
-            >
-              <div className='absolute top-1/2 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:scale-150 transition-transform duration-500'></div>
-              <div className='relative z-10 flex items-center justify-between'>
-                <div>
-                  <div className='flex items-center gap-3 mb-2'>
-                    <div className='w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur-sm'>
-                      💰
-                    </div>
-                    <div>
-                      <h3 className='font-bold text-lg text-white'>我的钱包</h3>
-                      <p className='text-sm text-white/80'>查看积分明细</p>
-                    </div>
-                  </div>
-                  <div className='flex gap-4 mt-3'>
-                    <div className='bg-white/10 rounded-lg px-3 py-1.5 text-sm'>
-                      <span className='text-white/60'>可用积分:</span>
-                      <span className='text-yellow-300 font-bold ml-1'>{displayPoints.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-                <svg className='w-8 h-8 text-white/40 group-hover:translate-x-2 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 5l7 7-7 7'></path></svg>
-              </div>
-            </div>
-          </div>
+          <FeatureGrid
+            completedTasksCount={completedTaskCount}
+            privilegedCount={privilegeRewards.length}
+            urgentPrivilegeRewards={urgentPrivilegeRewards}
+            onNavigate={handleNavigate}
+          />
         </div>
 
 

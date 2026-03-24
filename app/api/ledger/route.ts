@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Task from '@/models/Task';
 import Order from '@/models/Order';
+import { TransactionModel } from '@/models/Economy';
 import mongoose from 'mongoose';
 import { getTokenPayload } from '@/lib/auth';
 
@@ -22,6 +23,12 @@ interface OrderQuery {
   status: { $in: string[] };
   createdAt?: DateFilter;
   rewardName?: { $regex: string; $options: string };
+}
+
+interface TransactionQuery {
+  userId: mongoose.Types.ObjectId;
+  createdAt?: DateFilter;
+  description?: { $regex: string; $options: string };
 }
 
 interface LedgerTask {
@@ -57,6 +64,17 @@ interface LedgerOrder {
   type?: 'reward' | 'deduction';
 }
 
+interface LedgerTransaction {
+  _id: mongoose.Types.ObjectId;
+  type: 'income' | 'expense' | 'reward';
+  amount: number;
+  description: string;
+  createdAt: Date;
+  currency: 'coins' | 'stars';
+  relatedTaskId?: mongoose.Types.ObjectId;
+  relatedRewardId?: mongoose.Types.ObjectId;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
@@ -69,11 +87,12 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const { searchParams } = new URL(request.url);
     const childId = searchParams.get('childId');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const keyword = searchParams.get('keyword');
+  const page = parseInt(searchParams.get('page') || '1');
+  const limit = parseInt(searchParams.get('limit') || '20');
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
+  const keyword = searchParams.get('keyword');
+  const typeFilter = searchParams.get('typeFilter') as 'all' | 'income' | 'expense' | null;
 
     let targetChildId: string;
 
@@ -127,10 +146,21 @@ export async function GET(request: NextRequest) {
       orderQuery.rewardName = { $regex: keyword, $options: 'i' };
     }
 
+    const transactionQuery: TransactionQuery = {
+      userId: objectId,
+    };
+    if (hasDateFilter) {
+      transactionQuery.createdAt = dateFilter;
+    }
+    if (keyword) {
+      transactionQuery.description = { $regex: keyword, $options: 'i' };
+    }
+
     // Fetch data
-    const [tasks, orders] = await Promise.all([
+    const [tasks, orders, transactions] = await Promise.all([
       Task.find(taskQuery).lean(),
-      Order.find(orderQuery).lean()
+      Order.find(orderQuery).lean(),
+      TransactionModel.find(transactionQuery).lean()
     ]);
 
     // Normalize and merge
@@ -178,15 +208,38 @@ export async function GET(request: NextRequest) {
         date: o.createdAt,
         icon: o.rewardIcon || (o.type === 'deduction' ? '⚠️' : '🎁'),
         feedback: o.rewardName,
+      })),
+      ...(transactions as unknown as LedgerTransaction[])
+        // 任务完成会同时写入任务账目和金币/荣誉分交易记录；
+        // 钱包页只展示一条任务收入，因此过滤掉关联任务的交易记录。
+        .filter((t) => !t.relatedTaskId)
+        .map((t) => ({
+        _id: t._id,
+        sourceType: 'transaction',
+        sourceId: t._id.toString(),
+        type: t.type === 'reward' ? 'reward' : t.type === 'income' ? 'income' : 'expense',
+        name: t.description,
+        points: Math.abs(t.amount),
+        date: t.createdAt,
+        icon: t.type === 'reward' ? '🎁' : t.type === 'expense' ? '⚠️' : '⭐',
+        feedback: t.description,
       }))
     ];
 
+    const filteredLedger = typeFilter && typeFilter !== 'all'
+      ? ledger.filter((item) => {
+          const isIncome = item.type === 'income' || item.type === 'reward';
+          const isExpense = item.type === 'expense' || item.type === 'deduction';
+          return typeFilter === 'income' ? isIncome : isExpense;
+        })
+      : ledger;
+
     // Sort by date desc
-    ledger.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    filteredLedger.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // Pagination
-    const total = ledger.length;
-    const paginatedData = ledger.slice((page - 1) * limit, page * limit);
+    const total = filteredLedger.length;
+    const paginatedData = filteredLedger.slice((page - 1) * limit, page * limit);
 
     return NextResponse.json({
       success: true,

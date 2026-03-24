@@ -11,6 +11,9 @@ export interface IReward extends Document {
   icon: string;
   stock: number;
   isActive: boolean;
+  expiresAt?: Date | null;
+  validDurationValue?: number | null;
+  validDurationUnit?: 'day' | 'hour' | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +28,9 @@ const RewardSchema = new Schema<IReward>(
     icon: { type: String, default: '🎁' },
     stock: { type: Number, default: -1 },
     isActive: { type: Boolean, default: true },
+    expiresAt: { type: Date, default: null },
+    validDurationValue: { type: Number, default: null },
+    validDurationUnit: { type: String, enum: ['day', 'hour'], default: null },
   },
   { timestamps: true }
 );

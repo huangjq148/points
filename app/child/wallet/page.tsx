@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { Search, CalendarDays, ArrowUpRight, ArrowDownLeft, Award, Wallet, Sparkles, ExternalLink, X, MessageSquareQuote, ClipboardList, Image as ImageIcon } from "lucide-react";
 import { Button, DatePicker } from "@/components/ui";
 import Image from "@/components/ui/Image";
+import { useRouter } from "next/navigation";
 import { formatDate } from "@/utils/date";
 import request from "@/utils/request";
 
@@ -45,6 +46,7 @@ interface LedgerItem {
 
 export default function WalletPage() {
   const { currentUser } = useApp();
+  const router = useRouter();
 
   // Ledger State
   const [ledgerData, setLedgerData] = useState<LedgerItem[]>([]);
@@ -57,8 +59,9 @@ export default function WalletPage() {
   const [ledgerKeyword, setLedgerKeyword] = useState("");
   const [selectedLedgerItem, setSelectedLedgerItem] = useState<LedgerItem | null>(null);
   const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
+  const [ledgerTypeFilter, setLedgerTypeFilter] = useState<"all" | "income" | "expense">("all");
 
-  const fetchLedger = useCallback(async (page = 1) => {
+  const fetchLedger = useCallback(async (page = 1, typeFilter: "all" | "income" | "expense" = ledgerTypeFilter) => {
     if (!currentUser?.token) return;
     setLedgerLoading(true);
     try {
@@ -68,6 +71,7 @@ export default function WalletPage() {
         ...(ledgerStartDate && { startDate: ledgerStartDate.toISOString() }),
         ...(ledgerEndDate && { endDate: ledgerEndDate.toISOString() }),
         ...(ledgerKeyword && { keyword: ledgerKeyword }),
+        typeFilter,
       };
 
       const data = await request(`/api/ledger`, { params });
@@ -81,16 +85,16 @@ export default function WalletPage() {
     } finally {
       setLedgerLoading(false);
     }
-  }, [currentUser?.token, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword]);
+  }, [currentUser?.token, ledgerLimit, ledgerStartDate, ledgerEndDate, ledgerKeyword, ledgerTypeFilter]);
 
   useEffect(() => {
     const loadData = async () => {
       if (currentUser?.token) {
-        await fetchLedger(1);
+        await fetchLedger(1, ledgerTypeFilter);
       }
     };
     void loadData();
-  }, [currentUser, fetchLedger]);
+  }, [currentUser, fetchLedger, ledgerTypeFilter]);
 
   const totalPages = useMemo(
     () => Math.ceil(ledgerTotal / ledgerLimit),
@@ -136,6 +140,13 @@ export default function WalletPage() {
   const handleKeywordSearch = (value: string) => {
     setLedgerKeyword(value);
   };
+
+  const typeFilters = [
+    { key: "all" as const, label: "全部" },
+    { key: "income" as const, label: "收入" },
+    { key: "expense" as const, label: "支出" },
+  ];
+  const hasLedgerData = ledgerData.length > 0;
 
   return (
     <div className="pb-8 space-y-4">
@@ -186,7 +197,7 @@ export default function WalletPage() {
             筛选记录
           </div>
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-            共 {ledgerTotal} 条
+            当前页 {ledgerData.length} 条
           </span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -194,7 +205,7 @@ export default function WalletPage() {
             <button
               key={item.label}
               onClick={item.onClick}
-            className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
             >
               {item.label}
             </button>
@@ -227,30 +238,57 @@ export default function WalletPage() {
       </div>
 
       <div className="space-y-3">
-        {ledgerLoading ? (
-          <div className="rounded-[1.5rem] border border-slate-200/80 bg-white py-10 text-center shadow-sm">
-            <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-            <p className="mt-3 text-sm text-slate-500">正在加载账单</p>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {typeFilters.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setLedgerTypeFilter(item.key)}
+              disabled={ledgerLoading}
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold shadow-sm transition ${
+                ledgerTypeFilter === item.key
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              } ${ledgerLoading ? "cursor-wait opacity-80" : ""}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm">
+          <div className={`flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 ${ledgerLoading ? "bg-slate-50/80 rounded-t-[1.5rem]" : ""}`}>
+            <p className="text-sm font-semibold text-slate-600">
+              {ledgerLoading ? "正在更新结果" : "结果列表"}
+            </p>
+            {ledgerLoading ? (
+              <div className="flex items-center gap-2 text-xs font-semibold text-blue-600">
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                保留当前结果，加载新数据中
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400">共 {ledgerTotal} 条记录</p>
+            )}
           </div>
-        ) : (
-          <>
-            {ledgerData.length > 0 ? (
+
+          <div className={`space-y-3 p-4 transition-opacity duration-150 ${ledgerLoading ? "opacity-90" : "opacity-100"}`}>
+            {hasLedgerData ? (
               ledgerData.map((item) => {
                 const isIncome = item.type === "income";
+                const isExpense = item.type === "expense" || item.type === "deduction";
                 const isDeduction = item.type === "deduction";
                 const isReward = item.type === "reward";
                 const tone = isIncome
                   ? "bg-sky-50 border-sky-200"
-                  : isDeduction
+                  : isExpense
                     ? "bg-rose-50 border-rose-200"
                     : "bg-emerald-50 border-emerald-200";
                 const textColor = isIncome
                   ? "text-sky-600"
-                  : isDeduction
+                  : isExpense
                     ? "text-rose-600"
                     : "text-emerald-600";
                 const sign = isIncome || isReward ? "+" : "-";
-                const badgeText = isIncome ? "收入" : isDeduction ? "扣除" : isReward ? "奖励" : "记录";
+                const badgeText = isIncome || isReward ? "收入" : "支出";
 
                 let displayName = item.name;
                 if (isDeduction) {
@@ -293,13 +331,14 @@ export default function WalletPage() {
                     </div>
                   </div>
                 );
-              })) : (
+              })
+            ) : (
               <div className="rounded-[1.5rem] border border-slate-200/80 bg-white py-12 text-center text-slate-500 shadow-sm">
                 <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-2xl">
                   🪙
                 </div>
                 <p className="font-semibold text-slate-700">暂无记录</p>
-                <p className="mt-1 text-sm text-slate-500">试试换个日期范围或清空搜索条件</p>
+                <p className="mt-1 text-sm text-slate-500">试试换个筛选条件、日期范围或清空搜索条件</p>
               </div>
             )}
 
@@ -308,7 +347,7 @@ export default function WalletPage() {
               <div className="flex items-center justify-center gap-3 pt-2">
                 <Button
                   onClick={() => fetchLedger(ledgerPage - 1)}
-                  disabled={ledgerPage === 1}
+                  disabled={ledgerPage === 1 || ledgerLoading}
                   variant="secondary"
                   size="sm"
                   className="h-9 rounded-full px-4"
@@ -320,7 +359,7 @@ export default function WalletPage() {
                 </span>
                 <Button
                   onClick={() => fetchLedger(ledgerPage + 1)}
-                  disabled={ledgerPage === totalPages}
+                  disabled={ledgerPage === totalPages || ledgerLoading}
                   variant="secondary"
                   size="sm"
                   className="h-9 rounded-full px-4"
@@ -329,8 +368,8 @@ export default function WalletPage() {
                 </Button>
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       {selectedLedgerItem && (

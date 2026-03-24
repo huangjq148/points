@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import Reward, { IReward, RewardType } from '@/models/Reward';
+import Reward, { IReward } from '@/models/Reward';
 import User from '@/models/User';
 import mongoose from 'mongoose';
 import { getTokenPayload } from '@/lib/auth';
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const authUserId = payload.userId;
 
     await connectDB();
-    const { name, description, points, type, icon, stock }: Omit<IReward, 'userId'> = await request.json();
+    const { name, description, points, type, icon, stock, expiresAt, validDurationValue, validDurationUnit }: Omit<IReward, 'userId'> = await request.json();
 
     const reward = await Reward.create({
       userId: authUserId,
@@ -80,7 +80,10 @@ export async function POST(request: NextRequest) {
       type,
       icon: icon || '🎁',
       stock: stock || -1,
-      isActive: true
+      isActive: true,
+      expiresAt: type === 'privilege' ? expiresAt || null : null,
+      validDurationValue: type === 'privilege' ? validDurationValue ?? null : null,
+      validDurationUnit: type === 'privilege' ? validDurationUnit ?? null : null,
     });
 
     return NextResponse.json({ success: true, reward });
@@ -101,7 +104,7 @@ export async function PUT(request: NextRequest) {
     const authUserId = payload.userId;
 
     await connectDB();
-    const { rewardId, name, description, points, type, icon, stock, isActive } = await request.json();
+    const { rewardId, name, description, points, type, icon, stock, isActive, expiresAt, validDurationValue, validDurationUnit } = await request.json();
 
     // Verify ownership
     const existingReward = await Reward.findById(rewardId);
@@ -120,6 +123,15 @@ export async function PUT(request: NextRequest) {
     if (icon) updateData.icon = icon;
     if (stock !== undefined) updateData.stock = stock;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (type === 'privilege' || expiresAt !== undefined) {
+      updateData.expiresAt = type === 'privilege' ? expiresAt || null : null;
+    }
+    if (type === 'privilege' || validDurationValue !== undefined) {
+      updateData.validDurationValue = type === 'privilege' ? (validDurationValue ?? null) : null;
+    }
+    if (type === 'privilege' || validDurationUnit !== undefined) {
+      updateData.validDurationUnit = type === 'privilege' ? (validDurationUnit ?? null) : null;
+    }
 
     const reward = await Reward.findByIdAndUpdate(rewardId, updateData, { new: true });
 

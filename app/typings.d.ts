@@ -8,6 +8,9 @@ export interface PlainReward {
   icon: string;
   stock: number;
   isActive: boolean;
+  expiresAt?: string | null;
+  validDurationValue?: number | null;
+  validDurationUnit?: "day" | "hour" | null;
   createdAt: string;
   updatedAt: string;
 }

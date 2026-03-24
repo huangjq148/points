@@ -2,7 +2,7 @@
 import Button from "@/components/ui/Button";
 import { TabFilter } from "@/components/ui";
 import { useApp } from "@/context/AppContext";
-import { ChevronDown, FileText, Gift, Home, LogOut, Star, Ticket, UserCog, UserRoundSwitch, Users } from "lucide-react";
+import { ChevronDown, FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, PanelsLeftRight } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -233,7 +233,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
                   variant="secondary"
                   className="p-2 hover:bg-blue-50 rounded-xl text-blue-600 border-none bg-transparent shadow-none"
                 >
-                  <UserRoundSwitch size={20} />
+                  <PanelsLeftRight size={20} />
                 </Button>
                 {childDrawer}
               </div>
@@ -271,7 +271,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
                     variant="secondary"
                     className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl border-none bg-transparent shadow-none transition-colors"
                   >
-                    <UserRoundSwitch size={20} />
+                    <PanelsLeftRight size={20} />
                   </Button>
                   {childDrawer}
                 </div>

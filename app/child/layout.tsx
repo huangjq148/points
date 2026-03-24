@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Star,
   MessageCircleQuestion,
+  Gift,
 } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useToast } from "@/components/ui/Toast";
@@ -137,6 +138,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const isStorePage = pathname === "/child/store";
   const isWalletPage = pathname === "/child/wallet";
   const isTaskPage = pathname === "/child/task";
+  const isGiftPage = pathname === "/child/gift";
 
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
   const [showChildAccountSignIn, setShowChildAccountSignIn] = useState(false);
@@ -477,8 +479,8 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         </div>
       </header>
 
-      <main className="relative z-10 px-6 pb-24 pt-44">
-        <div className="max-w-2xl mx-auto">{children}</div>
+      <main className="relative z-10 px-4 sm:px-6 pb-24 pt-44">
+        <div className={`mx-auto ${isStorePage ? "max-w-4xl" : "max-w-2xl"}`}>{children}</div>
       </main>
 
       {showScrollTop && (
@@ -523,9 +525,18 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 isCenter: true,
               },
               {
+                href: "/child/gift",
+                icon: Gift,
+                label: "奖品",
+                isActive: isGiftPage,
+                bgColor: "from-amber-500 to-orange-600",
+                textColor: "text-amber-700",
+                isCenter: false,
+              },
+              {
                 href: "/child/wallet",
                 icon: Wallet,
-                label: "我的",
+                label: "钱包",
                 isActive: isWalletPage,
                 bgColor: "from-violet-500 to-purple-600",
                 textColor: "text-violet-700",

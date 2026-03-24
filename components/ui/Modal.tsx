@@ -142,18 +142,18 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className="bg-white rounded-[1.75rem] shadow-xl w-full max-w-sm p-6 transform transition-all"
+      className="w-full max-w-sm transform overflow-hidden rounded-[1.85rem] border border-white/70 bg-white/96 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-all"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="text-center">
-        <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${alertColorClass}`}>
+        <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${alertColorClass}`}>
           {alertIcon}
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{title ?? "提示"}</h3>
-        <p className="text-sm text-gray-500 mb-6 whitespace-pre-line">{alert.message}</p>
-        {children && <div className="text-left text-sm text-gray-600">{children}</div>}
+        <h3 className="mb-2 text-lg font-black tracking-tight text-slate-900">{title ?? "提示"}</h3>
+        <p className="mb-6 whitespace-pre-line text-sm leading-6 text-slate-500">{alert.message}</p>
+        {children && <div className="text-left text-sm text-slate-600">{children}</div>}
       </div>
-      <Button onClick={onClose} variant="primary" fullWidth>
+      <Button onClick={onClose} variant="primary" fullWidth className="mt-2 rounded-full">
         {alert.confirmText ?? "确定"}
       </Button>
     </motion.div>
@@ -163,7 +163,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className={`bg-white rounded-[2rem] p-8 shadow-2xl ${className}`}
+      className={`w-full overflow-hidden rounded-[2rem] border border-white/70 bg-white/96 shadow-[0_24px_80px_rgba(15,23,42,0.18)] backdrop-blur-xl ${className}`}
       style={{
         maxWidth: typeof width === "number" ? width : undefined,
         width: "100%",
@@ -171,12 +171,14 @@ export default function Modal({
       onClick={(e) => e.stopPropagation()}
     >
       {(title || showCloseButton) && (
-        <div className="flex justify-between items-start mb-6">
-          {title && <h3 className="text-2xl font-black text-slate-800 pr-4">{title}</h3>}
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100/90 px-6 pt-6 pb-4">
+          <div className="min-w-0 flex-1">
+            {title && <h3 className="truncate pr-4 text-2xl font-black tracking-tight text-slate-900">{title}</h3>}
+          </div>
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors flex-shrink-0"
+              className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-100 bg-slate-50 text-slate-500 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-700"
             >
               <X size={20} />
             </button>
@@ -185,14 +187,14 @@ export default function Modal({
       )}
 
       <div
-        className={noInternalScroll ? "" : "max-h-[60vh] overflow-y-auto hide-scrollbar pr-2"}
+        className={noInternalScroll ? "px-6 py-5" : "max-h-[60vh] overflow-y-auto px-6 py-5 hide-scrollbar"}
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
       >
         {children}
       </div>
 
-      {footer && <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end gap-3">{footer}</div>}
+      {footer && <div className="border-t border-slate-100 px-6 py-4 flex justify-end gap-3">{footer}</div>}
     </motion.div>
   );
 
@@ -203,7 +205,7 @@ export default function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/55 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-md"
           style={{ zIndex: overlayZIndex }}
           onPointerDownCapture={() => modalStackManager.add(modalIdRef.current)}
           onClick={onClose}

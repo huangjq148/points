@@ -1,15 +1,16 @@
 "use client";
 
 import { IDisplayedOrder } from "@/app/typings";
-import { Button, TabFilter } from "@/components/ui";
-import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
-import { useApp } from "@/context/AppContext";
-import { Clock3, CircleCheckBig, CreditCard, Gift, RefreshCw, Ticket, X } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import request from "@/utils/request";
-import { formatDate } from "@/utils/date";
 import ConfirmModal from "@/components/ConfirmModal";
-import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
+import ChildFilterSelect from "@/components/parent/ChildFilterSelect";
+import { Badge, EmptyState, StatCard } from "@/components/store/RewardUI";
+import { Button, TabFilter } from "@/components/ui";
+import { useApp } from "@/context/AppContext";
+import { formatDate } from "@/utils/date";
+import request from "@/utils/request";
+import { BadgeCheck, CircleCheckBig, Clock3, CreditCard, Gift, RefreshCw, Search, Ticket, X } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 function OrdersPage() {
   const searchParams = useSearchParams();
@@ -26,7 +27,8 @@ function OrdersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const historyPageCount = useMemo(() => Math.ceil(historyTotal / 10), [historyTotal]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const historyPageCount = useMemo(() => Math.max(1, Math.ceil(historyTotal / 10)), [historyTotal]);
 
   const fetchOrders = useCallback(
     async (status: string, page: number = 1, fetchLimit: number = 100) => {
@@ -77,7 +79,7 @@ function OrdersPage() {
     const init = async () => {
       await refreshPending();
     };
-    init();
+    void init();
   }, [refreshPending]);
 
   useEffect(() => {
@@ -86,7 +88,7 @@ function OrdersPage() {
         await refreshHistory();
       }
     };
-    initHistory();
+    void initHistory();
   }, [activeTab, refreshHistory]);
 
   const handleVerifyOrder = async (orderId: string) => {
@@ -142,6 +144,30 @@ function OrdersPage() {
     [historyOrders],
   );
 
+  const filteredPendingOrders = useMemo(() => {
+    const keyword = searchQuery.trim().toLowerCase();
+    if (!keyword) return pendingOrders;
+    return pendingOrders.filter((order) => {
+      return (
+        order.rewardName.toLowerCase().includes(keyword) ||
+        order.childName.toLowerCase().includes(keyword) ||
+        order.verificationCode.toLowerCase().includes(keyword)
+      );
+    });
+  }, [pendingOrders, searchQuery]);
+
+  const filteredHistoryOrders = useMemo(() => {
+    const keyword = searchQuery.trim().toLowerCase();
+    if (!keyword) return historyOrders;
+    return historyOrders.filter((order) => {
+      return (
+        order.rewardName.toLowerCase().includes(keyword) ||
+        order.childName.toLowerCase().includes(keyword) ||
+        order.verificationCode.toLowerCase().includes(keyword)
+      );
+    });
+  }, [historyOrders, searchQuery]);
+
   return (
     <div className="space-y-6">
       <ConfirmModal
@@ -155,60 +181,27 @@ function OrdersPage() {
         type="danger"
       />
 
-      <div className="relative space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-2">
-            {isLoading && (
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2 text-xs font-medium text-slate-500 shadow-sm">
-                <RefreshCw size={14} className="animate-spin" />
-                刷新中
-              </div>
-            )}
-          </div>
-        </div>
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard title="待核销" value={pendingOrders.length} icon={<Ticket size={16} className="text-blue-500" />} hint="需要你确认的订单" />
+        <StatCard title="待扣积分" value={pendingTotalPoints} icon={<CreditCard size={16} className="text-amber-500" />} hint="待核销订单消耗总分" />
+        <StatCard title="已核销" value={verifiedCount} icon={<CircleCheckBig size={16} className="text-emerald-500" />} hint="历史列表中的成功订单" />
+        <StatCard title="已取消" value={cancelledCount} icon={<X size={16} className="text-rose-500" />} hint="需要退回积分的订单" />
+      </section>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[28px] border border-white/80 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm">
-            <div className="flex items-center justify-between text-sm text-slate-500">
-              <span>待核销</span>
-              <Ticket size={16} className="text-blue-500" />
+      <section className="rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+        <div className="flex flex-row gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <TabFilter items={orderTabs} activeKey={activeTab} onFilterChange={(key) => setActiveTab(key as "pending" | "history")} />
+          <div className="flex flex-row gap-3 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-[320px]">
+              <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="搜索孩子、商品或核销码"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-11 py-3 text-slate-800 outline-none transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+              />
             </div>
-            <div className="mt-3 text-3xl font-black text-slate-900">{pendingOrders.length}</div>
-            <div className="mt-1 text-xs text-slate-500">当前需要处理的兑换单</div>
-          </div>
-          <div className="rounded-[28px] border border-white/80 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm">
-            <div className="flex items-center justify-between text-sm text-slate-500">
-              <span>待扣积分</span>
-              <CreditCard size={16} className="text-amber-500" />
-            </div>
-            <div className="mt-3 text-3xl font-black text-slate-900">{pendingTotalPoints}</div>
-            <div className="mt-1 text-xs text-slate-500">待核销订单消耗的积分总和</div>
-          </div>
-          <div className="rounded-[28px] border border-white/80 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm">
-            <div className="flex items-center justify-between text-sm text-slate-500">
-              <span>已核销</span>
-              <CircleCheckBig size={16} className="text-emerald-500" />
-            </div>
-            <div className="mt-3 text-3xl font-black text-slate-900">{verifiedCount}</div>
-            <div className="mt-1 text-xs text-slate-500">历史列表中已完成的记录</div>
-          </div>
-          <div className="rounded-[28px] border border-white/80 bg-white/85 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-sm">
-            <div className="flex items-center justify-between text-sm text-slate-500">
-              <span>已取消</span>
-              <X size={16} className="text-rose-500" />
-            </div>
-            <div className="mt-3 text-3xl font-black text-slate-900">{cancelledCount}</div>
-            <div className="mt-1 text-xs text-slate-500">需要回退积分的核销单</div>
-          </div>
-        </div>
-
-        <div className="flex flex-row gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <TabFilter
-            items={orderTabs}
-            activeKey={activeTab}
-            onFilterChange={(key) => setActiveTab(key as "pending" | "history")}
-          />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <ChildFilterSelect
               childList={childList.map((child) => ({
                 id: child.id,
@@ -222,47 +215,21 @@ function OrdersPage() {
             />
           </div>
         </div>
-      </div>
+      </section>
 
       {activeTab === "pending" ? (
-        pendingOrders.length === 0 ? (
-          <div className="card-parent border border-dashed border-slate-200 text-center py-16 text-slate-500">
-            <Ticket size={52} className="mx-auto mb-3 opacity-40" />
-            <p className="text-base font-medium text-slate-600">暂无待核销记录</p>
-          </div>
+        filteredPendingOrders.length === 0 ? (
+          <EmptyState title="暂无待核销记录" hint="孩子兑换后会出现在这里，等你确认处理。" />
         ) : (
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
             <div className="space-y-4">
-              {pendingOrders.map((order) => (
-                <div
+              {filteredPendingOrders.map((order) => (
+                <OrderCard
                   key={order._id.toString()}
-                  className="group overflow-hidden rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(249,250,251,0.9)_100%)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.07)] transition-transform duration-300 hover:-translate-y-1"
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.85),0_10px_20px_rgba(251,191,36,0.12)]">
-                        {order.rewardIcon || "🎁"}
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-lg font-black tracking-tight text-slate-950">{order.rewardName}</h3>
-                          <span className="rounded-full bg-gradient-to-r from-amber-100 to-orange-100 px-2.5 py-1 text-xs font-bold text-amber-800 shadow-sm">
-                            待核销
-                          </span>
-                        </div>
-                        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5">
-                            <Gift size={14} />
-                            {order.pointsSpent} 积分
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5">
-                            <Clock3 size={14} />
-                            {formatDate(order.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
+                  order={order}
+                  statusLabel="待核销"
+                  statusTone="amber"
+                  actionArea={
                     <div className="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
@@ -271,6 +238,7 @@ function OrdersPage() {
                         disabled={actionLoading}
                         className="min-w-[110px]"
                       >
+                        <BadgeCheck size={16} />
                         确认核销
                       </Button>
                       <Button
@@ -283,131 +251,57 @@ function OrdersPage() {
                         取消
                       </Button>
                     </div>
-                  </div>
-
-                  <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-                    <div className="flex items-center gap-3 rounded-[22px] border border-slate-200/70 bg-slate-50/80 px-4 py-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-xl shadow-sm">
-                        {order.childAvatar}
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-slate-900">{order.childName}</div>
-                        <div className="text-xs text-slate-500">兑换人</div>
-                      </div>
-                    </div>
-                    <div className="rounded-[22px] border border-dashed border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-3">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-500">
-                        Verification Code
-                      </div>
-                      <div className="mt-1 font-mono text-lg font-black tracking-[0.2em] text-blue-900">
-                        {order.verificationCode}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  }
+                />
               ))}
             </div>
 
             <div className="space-y-4">
-              <div className="card-parent border border-slate-200/70">
-                <h3 className="text-base font-bold text-slate-900">当前筛选</h3>
-                <div className="mt-4 space-y-2 text-sm text-slate-600">
-                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
-                    <span>孩子范围</span>
-                    <span className="font-medium text-slate-900">
-                      {selectedChildFilter === "all"
-                        ? "全部孩子"
-                        : childList.find((child) => child.id === selectedChildFilter)?.username}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
-                    <span>待核销数</span>
-                    <span className="font-medium text-slate-900">{pendingOrders.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
-                    <span>待扣积分</span>
-                    <span className="font-medium text-slate-900">{pendingTotalPoints}</span>
-                  </div>
-                </div>
-              </div>
+              <SummaryPanel
+                title="当前筛选"
+                rows={[
+                  ["孩子范围", selectedChildFilter === "all" ? "全部孩子" : childList.find((child) => child.id === selectedChildFilter)?.username || "未知"],
+                  ["待核销数", String(filteredPendingOrders.length)],
+                  ["待扣积分", String(pendingTotalPoints)],
+                ]}
+              />
             </div>
           </div>
         )
       ) : (
         <>
-          {historyOrders.length === 0 ? (
-            <div className="card-parent border border-dashed border-slate-200 text-center py-16 text-slate-500">
-              <Ticket size={52} className="mx-auto mb-3 opacity-40" />
-              <p className="text-base font-medium text-slate-600">暂无核销记录</p>
-            </div>
+          {filteredHistoryOrders.length === 0 ? (
+            <EmptyState title="暂无核销记录" hint="完成或取消的订单会在这里显示。">
+              <div className="mt-2 text-xs text-slate-400">可以切换孩子筛选或输入关键字查找记录。</div>
+            </EmptyState>
           ) : (
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
               <div className="space-y-4">
-                {historyOrders.map((order) => (
-                  <div
+                {filteredHistoryOrders.map((order) => (
+                  <OrderCard
                     key={order._id.toString()}
-                    className="overflow-hidden rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(250,250,249,0.9)_100%)] p-5 shadow-[0_12px_32px_rgba(15,23,42,0.06)] opacity-95"
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 text-3xl">
-                          {order.rewardIcon || "🎁"}
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-lg font-black tracking-tight text-slate-950">{order.rewardName}</h3>
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-bold ${order.status === "verified"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-rose-100 text-rose-700"
-                                }`}
-                            >
-                              {order.status === "verified" ? "已核销" : "已取消"}
-                            </span>
-                          </div>
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5">
-                              <Gift size={14} />
-                              {order.pointsSpent} 积分
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5">
-                              <Clock3 size={14} />
-                              {formatDate(order.updatedAt)}
-                            </span>
-                          </div>
-                        </div>
+                    order={order}
+                    statusLabel={order.status === "verified" ? "已核销" : "已取消"}
+                    statusTone={order.status === "verified" ? "emerald" : "rose"}
+                    actionArea={
+                      <div className="text-right">
+                        <div className="text-xs font-semibold text-slate-500">完成时间</div>
+                        <div className="text-sm font-medium text-slate-900">{order.verifiedAt ? formatDate(order.verifiedAt) : formatDate(order.updatedAt)}</div>
                       </div>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between rounded-[22px] border border-slate-200/70 bg-slate-50/80 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-xl shadow-sm">
-                          {order.childAvatar}
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-slate-900">{order.childName}</div>
-                          <div className="text-xs text-slate-500">兑换人</div>
-                        </div>
-                      </div>
-                      {order.verifiedAt ? (
-                        <div className="text-right">
-                          <div className="text-xs font-semibold text-slate-500">完成时间</div>
-                          <div className="text-sm font-medium text-slate-900">{formatDate(order.verifiedAt)}</div>
-                        </div>
-                      ) : (
-                        <div className="text-right">
-                          <div className="text-xs font-semibold text-slate-500">更新时间</div>
-                          <div className="text-sm font-medium text-slate-900">{formatDate(order.updatedAt)}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    }
+                  />
                 ))}
               </div>
 
               <div className="space-y-4">
-                <div className="card-parent border border-slate-200/70">
-                  <h3 className="text-base font-bold text-slate-900">分页</h3>
+                <SummaryPanel
+                  title="历史分页"
+                  rows={[
+                    ["当前页", `${historyPage}`],
+                    ["总页数", `${historyPageCount}`],
+                    ["总记录", `${historyTotal}`],
+                  ]}
+                >
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <Button
                       variant="secondary"
@@ -417,9 +311,6 @@ function OrdersPage() {
                     >
                       上一页
                     </Button>
-                    <span className="text-sm text-slate-500">
-                      第 {historyPage} 页 / 共 {historyPageCount} 页
-                    </span>
                     <Button
                       variant="secondary"
                       disabled={historyPage >= historyPageCount}
@@ -429,7 +320,7 @@ function OrdersPage() {
                       下一页
                     </Button>
                   </div>
-                </div>
+                </SummaryPanel>
               </div>
             </div>
           )}
@@ -439,17 +330,92 @@ function OrdersPage() {
   );
 }
 
+function SummaryPanel({ title, rows, children }: { title: string; rows: [string, string | undefined][]; children?: ReactNode }) {
+  return (
+    <div className="rounded-[28px] border border-slate-200/70 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.05)]">
+      <h3 className="text-base font-bold text-slate-900">{title}</h3>
+      <div className="mt-4 space-y-2 text-sm text-slate-600">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+            <span>{label}</span>
+            <span className="font-medium text-slate-900">{value || "-"}</span>
+          </div>
+        ))}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function OrderCard({
+  order,
+  statusLabel,
+  statusTone,
+  actionArea,
+}: {
+  order: IDisplayedOrder;
+  statusLabel: string;
+  statusTone: "slate" | "emerald" | "amber" | "rose" | "blue";
+  actionArea: ReactNode;
+}) {
+  return (
+    <div className="group overflow-hidden rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(249,250,251,0.9)_100%)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.07)] transition-transform duration-300 hover:-translate-y-1">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.85),0_10px_20px_rgba(251,191,36,0.12)]">
+            {order.rewardIcon || "🎁"}
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-lg font-black tracking-tight text-slate-950">{order.rewardName}</h3>
+              <Badge tone={statusTone}>{statusLabel}</Badge>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5">
+                <Gift size={14} />
+                {order.pointsSpent} 积分
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5">
+                <Clock3 size={14} />
+                {formatDate(order.createdAt)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {actionArea}
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="flex items-center gap-3 rounded-[22px] border border-slate-200/70 bg-slate-50/80 px-4 py-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-xl shadow-sm">{order.childAvatar}</div>
+          <div>
+            <div className="text-sm font-semibold text-slate-900">{order.childName}</div>
+            <div className="text-xs text-slate-500">兑换人</div>
+          </div>
+        </div>
+        <div className="rounded-[22px] border border-dashed border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-3">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-500">Verification Code</div>
+          <div className="mt-1 font-mono text-lg font-black tracking-[0.2em] text-blue-900">{order.verificationCode}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 包装组件以添加 Suspense
 export default function OrdersPageWrapper() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-slate-500">加载中...</p>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[400px] items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500"></div>
+            <p className="text-slate-500">加载中...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <OrdersPage />
     </Suspense>
   );

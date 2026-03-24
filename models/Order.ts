@@ -13,6 +13,7 @@ export interface IOrder extends Document {
   status: OrderStatus;
   verificationCode: string;
   verifiedAt?: Date;
+  validUntil?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   type?: OrderType; // 订单类型：reward-兑换奖励, deduction-积分扣除
@@ -30,6 +31,7 @@ const OrderSchema = new Schema<IOrder>(
     status: { type: String, enum: ['pending', 'verified', 'cancelled'], default: 'pending' },
     verificationCode: { type: String, required: true },
     verifiedAt: { type: Date },
+    validUntil: { type: Date, default: null },
     type: { type: String, enum: ['reward', 'deduction'], default: 'reward' },
     deductedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User, { IUser } from '@/models/User';
-import Order from '@/models/Order';
+import { TransactionModel } from '@/models/Economy';
 import { getTokenPayload } from '@/lib/auth';
 import mongoose from 'mongoose';
 
@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const authUserId = payload.userId;
     const authRole = payload.role;
 
     // 只有家长才能奖励积分
@@ -69,31 +68,31 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 增加积分
-    await User.findByIdAndUpdate(childId, {
+    const childObjectId = new mongoose.Types.ObjectId(childId);
+    const currentChild = await User.findById(childObjectId);
+    if (!currentChild) {
+      return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
+    }
+
+    const updatedAvailablePoints = (currentChild.availablePoints || 0) + points;
+
+    await User.findByIdAndUpdate(childObjectId, {
       $inc: {
         totalPoints: points,
         availablePoints: points
       }
     });
 
-    // 创建奖励记录（复用Order模型，类型为reward）
-    await Order.create({
-      userId: new mongoose.Types.ObjectId(authUserId),
-      childId: new mongoose.Types.ObjectId(childId),
-      rewardId: new mongoose.Types.ObjectId(), // 使用临时ObjectId，因为rewardId是必需的
-      rewardName: reason, // 使用原因作为名称
-      rewardIcon: '🎁', // 奖励图标
-      pointsSpent: -points, // 负数表示奖励（增加积分）
-      status: 'verified', // 奖励记录直接标记为verified
-      verificationCode: 'REWARD', // 奖励记录特殊标记
-      type: 'reward', // 奖励类型（这里使用reward表示奖励/手动添加）
-      deductedBy: new mongoose.Types.ObjectId(authUserId),
-      verifiedAt: new Date()
+    await TransactionModel.create({
+      userId: childObjectId,
+      type: 'reward',
+      currency: 'coins',
+      amount: points,
+      balance: updatedAvailablePoints,
+      description: reason,
     });
 
-    // 获取更新后的孩子信息
-    const updatedChild: IUser | null = await User.findById(childId);
+    const updatedChild: IUser | null = await User.findById(childObjectId);
 
     return NextResponse.json({
       success: true,

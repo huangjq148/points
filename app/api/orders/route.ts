@@ -10,12 +10,6 @@ function generateCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-interface OrderGetQuery {
-  userId?: string;
-  childId?: string;
-  status?: string;
-}
-
 interface OrderPostRequest {
   userId: mongoose.Types.ObjectId;
   childId: mongoose.Types.ObjectId;
@@ -190,6 +184,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '该奖励已下架' }, { status: 400 });
     }
 
+    if (reward.type === 'privilege' && reward.expiresAt && new Date(reward.expiresAt).getTime() < Date.now()) {
+      return NextResponse.json({ success: false, message: '该特权奖励已过兑换截止日期' }, { status: 400 });
+    }
+
     if (reward.stock === 0) {
       return NextResponse.json({ success: false, message: '该奖励已售罄' }, { status: 400 });
     }
@@ -204,6 +202,13 @@ export async function POST(request: NextRequest) {
     }
 
     const verificationCode: string = generateCode();
+    let validUntil: Date | null = null;
+    if (reward.type === 'privilege' && reward.validDurationValue && reward.validDurationUnit) {
+      const ms = reward.validDurationUnit === 'day'
+        ? reward.validDurationValue * 24 * 60 * 60 * 1000
+        : reward.validDurationValue * 60 * 60 * 1000;
+      validUntil = new Date(Date.now() + ms);
+    }
 
     const order: IOrder = await Order.create({
       userId,
@@ -213,7 +218,8 @@ export async function POST(request: NextRequest) {
       rewardIcon: reward.icon,
       pointsSpent: reward.points,
       status: 'pending',
-      verificationCode
+      verificationCode,
+      validUntil,
     });
 
     await User.findByIdAndUpdate(childId, {
@@ -260,6 +266,9 @@ export async function PUT(request: NextRequest) {
     }
 
     if (action === 'verify') {
+      if (order.validUntil && order.validUntil.getTime() < Date.now()) {
+        return NextResponse.json({ success: false, message: '该兑换已过期' }, { status: 400 });
+      }
       order.status = 'verified';
       order.verifiedAt = new Date();
       await order.save();

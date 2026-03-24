@@ -6,14 +6,16 @@ interface FeatureCardProps {
   description: string;
   gradient: string;
   badge?: string;
+  variant?: "default" | "time";
+  span?: "single" | "double";
   onClick?: () => void;
 }
 
-function FeatureCard({ icon, title, description, gradient, badge, onClick }: FeatureCardProps) {
+function FeatureCard({ icon, title, description, gradient, badge, variant = "default", span = "single", onClick }: FeatureCardProps) {
   return (
     <div 
       onClick={onClick}
-      className="group relative overflow-hidden rounded-3xl cursor-pointer"
+      className={`group relative overflow-hidden rounded-3xl cursor-pointer ${span === "double" ? "sm:col-span-2" : ""}`}
       style={{
         transformStyle: 'preserve-3d',
         transition: 'transform 0.3s ease',
@@ -29,24 +31,27 @@ function FeatureCard({ icon, title, description, gradient, badge, onClick }: Fea
         className={`absolute inset-0 bg-gradient-to-br ${gradient}`}
         style={{ transition: 'transform 0.5s ease' }}
       />
-      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '12px 12px' }} />
-      <div className="relative p-5 h-full flex flex-col justify-between min-h-[120px]">
+      <div
+        className={`absolute inset-0 ${variant === "time" ? "opacity-45" : "opacity-22"}`}
+        style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.33) 1px, transparent 1px)', backgroundSize: '12px 12px' }}
+      />
+      <div className={`relative p-5 h-full flex flex-col justify-between min-h-[120px] ${span === "double" ? "sm:min-h-[256px]" : ""} ${variant === "time" ? "ring-1 ring-white/20" : ""}`}>
         <div className="flex justify-between items-start">
           <div 
-            className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/30"
+            className={`w-12 h-12 rounded-[1.15rem] flex items-center justify-center text-3xl backdrop-blur-sm border ${variant === "time" ? "bg-white/25 border-white/25 shadow-lg shadow-black/10" : "bg-white/22 border-white/35"}`}
             style={{ transition: 'transform 0.3s ease' }}
           >
             {icon}
           </div>
           {badge && (
-            <span className="bg-white/30 text-white text-xs font-bold px-2 py-1 rounded-full backdrop-blur-sm border border-white/20">
+            <span className={`text-white text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm border ${variant === "time" ? "bg-white/20 border-white/25" : "bg-white/25 border-white/25"}`}>
               {badge}
             </span>
           )}
         </div>
         <div>
-          <h3 className="text-white font-black text-lg">{title}</h3>
-          <p className="text-white/80 text-xs font-semibold">{description}</p>
+          <h3 className={`text-white font-black ${variant === "time" ? "text-lg tracking-tight" : "text-lg tracking-tight"}`}>{title}</h3>
+          <p className="text-white/82 text-xs font-semibold">{description}</p>
         </div>
       </div>
       {badge === 'NEW' && (
@@ -58,10 +63,17 @@ function FeatureCard({ icon, title, description, gradient, badge, onClick }: Fea
 
 interface FeatureGridProps {
   completedTasksCount: number;
+  privilegedCount: number;
+  urgentPrivilegeRewards?: { _id: string; expiresAt?: string | null }[];
   onNavigate?: (path: string) => void;
 }
 
-export default function FeatureGrid({ completedTasksCount, onNavigate }: FeatureGridProps) {
+export default function FeatureGrid({ completedTasksCount, privilegedCount, urgentPrivilegeRewards = [], onNavigate }: FeatureGridProps) {
+  const hasUrgentPrivileges = urgentPrivilegeRewards.length > 0;
+  const earliestDeadline = urgentPrivilegeRewards
+    .filter((reward) => reward.expiresAt)
+    .map((reward) => reward.expiresAt as string)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
   const features = [
     { 
       icon: '🎁', 
@@ -70,6 +82,20 @@ export default function FeatureGrid({ completedTasksCount, onNavigate }: Feature
       gradient: 'from-pink-500 via-rose-500 to-red-600',
       badge: 'NEW',
       path: '/child/store'
+    }, 
+    {
+      icon: '🎭',
+      title: '特权中心',
+      description: hasUrgentPrivileges
+        ? `马上看：${urgentPrivilegeRewards.length} 个快截止${earliestDeadline ? ` · 最早 ${new Date(earliestDeadline).toLocaleDateString("zh-CN", { month: "numeric", day: "numeric" })}` : ""}`
+        : privilegedCount > 0
+          ? `有 ${privilegedCount} 个特权奖励`
+          : '家长准备的特别权限',
+      gradient: 'from-violet-600 via-fuchsia-600 to-amber-500',
+      badge: hasUrgentPrivileges ? 'NOW' : privilegedCount > 0 ? 'HOT' : 'NEW',
+      variant: 'time',
+      span: 'double',
+      path: '/child/store?category=privilege'
     },
     { 
       icon: '📜', 
@@ -85,6 +111,14 @@ export default function FeatureGrid({ completedTasksCount, onNavigate }: Feature
       gradient: 'from-emerald-400 via-teal-500 to-cyan-600',
       path: '/child/wallet'
     },
+    {
+      icon: '🎁',
+      title: '我的奖品',
+      description: '看看已兑换的小礼物',
+      gradient: 'from-amber-200 via-orange-300 to-rose-300',
+      badge: '礼物',
+      path: '/child/gift',
+    },
   ];
 
   return (
@@ -97,6 +131,8 @@ export default function FeatureGrid({ completedTasksCount, onNavigate }: Feature
           description={feature.description}
           gradient={feature.gradient}
           badge={feature.badge}
+          variant={feature.variant}
+          span={feature.span}
           onClick={() => onNavigate?.(feature.path)}
         />
       ))}

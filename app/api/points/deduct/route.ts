@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import User, { IUser } from '@/models/User';
-import Order from '@/models/Order';
+import { TransactionModel } from '@/models/Economy';
 import { getTokenPayload } from '@/lib/auth';
 import mongoose from 'mongoose';
 
@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
 
-    const authUserId = payload.userId;
     const authRole = payload.role;
 
     // 只有家长才能扣除积分
@@ -77,31 +76,32 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 扣除积分
-    await User.findByIdAndUpdate(childId, {
+    const childObjectId = new mongoose.Types.ObjectId(childId);
+    const currentChild = await User.findById(childObjectId);
+    if (!currentChild) {
+      return NextResponse.json({ success: false, message: '孩子不存在' }, { status: 404 });
+    }
+
+    const updatedAvailablePoints = (currentChild.availablePoints || 0) - points;
+
+    await User.findByIdAndUpdate(childObjectId, {
       $inc: {
         totalPoints: -points,
         availablePoints: -points
       }
     });
 
-    // 创建扣除记录（复用Order模型，类型为deduction）
-    await Order.create({
-      userId: new mongoose.Types.ObjectId(authUserId),
-      childId: new mongoose.Types.ObjectId(childId),
-      rewardId: new mongoose.Types.ObjectId(), // 使用临时ObjectId，因为rewardId是必需的
-      rewardName: reason, // 使用原因作为名称
-      rewardIcon: '⚠️', // 扣除图标
-      pointsSpent: points,
-      status: 'verified', // 扣除记录直接标记为verified
-      verificationCode: 'DEDUCT', // 扣除记录特殊标记
-      type: 'deduction', // 扣除类型
-      deductedBy: new mongoose.Types.ObjectId(authUserId),
-      verifiedAt: new Date()
+    await TransactionModel.create({
+      userId: childObjectId,
+      type: 'expense',
+      currency: 'coins',
+      amount: -points,
+      balance: updatedAvailablePoints,
+      description: reason,
     });
 
     // 获取更新后的孩子信息
-    const updatedChild: IUser | null = await User.findById(childId);
+    const updatedChild: IUser | null = await User.findById(childObjectId);
 
     return NextResponse.json({
       success: true,
