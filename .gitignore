@@ -47,5 +47,3 @@ node_modules
 .pnpm-store
 
 public/uploads/
-
-.codex

@@ -320,7 +320,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
           </p>
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-slate-100/60">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="w-full flex flex-wrap items-center justify-between gap-2">
               {/* 任务类型标签 */}
               <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-xl ${
                 task.type === "daily" 
