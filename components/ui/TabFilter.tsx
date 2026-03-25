@@ -1,5 +1,6 @@
 import React from "react";
 import { Home, Gift, FileText, Star, Ticket, Users, UserCog, BarChart3 } from "lucide-react";
+import { CONTROL_HEIGHT_PX } from "./controlStyles";
 
 const iconMap: Record<string, React.ElementType> = {
   home: Home,
@@ -65,19 +66,23 @@ export const TabFilter = <T extends string>({
   }
 
   return (
-    <div className={`flex p-1 bg-white/82 backdrop-blur-sm border border-slate-200 rounded-2xl w-fit shadow-sm ${className}`}>
+    <div
+      className={`inline-flex items-center gap-1 rounded-[14px] border border-slate-200/90 bg-white/88 p-0.5 shadow-[0_10px_24px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm ${className}`}
+      style={{ height: CONTROL_HEIGHT_PX, minHeight: CONTROL_HEIGHT_PX }}
+    >
       {items.map((tab) => {
         const isActive = activeKey === tab.key;
         return (
           <button
             key={tab.key}
             onClick={() => onFilterChange(tab.key)}
+            style={{ height: CONTROL_HEIGHT_PX - 4 }}
             className={`
-              relative px-4 py-1.5 text-sm font-bold rounded-xl whitespace-nowrap transition-all duration-300
+              relative rounded-[12px] px-4 py-0 text-sm font-semibold whitespace-nowrap transition-all duration-200
               ${
                 isActive
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                  ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)]"
+                  : "text-slate-500 hover:-translate-y-px hover:bg-white hover:text-slate-900 hover:shadow-[0_10px_20px_rgba(15,23,42,0.10)]"
               }
             `}
           >

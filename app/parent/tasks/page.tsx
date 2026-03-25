@@ -742,10 +742,7 @@ function TasksPage() {
 
       {/* 任务列表 - 根据视图模式切换 - 优化样式 */}
       {viewMode === "card" ? (
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 overflow-y-auto custom-scrollbar p-1 pb-8"
-          style={{ maxHeight: "calc(100vh - 220px)" }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 p-1 pb-8">
           {tasks.map((task) => (
             <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           ))}
@@ -766,7 +763,7 @@ function TasksPage() {
           )}
         </div>
       ) : (
-        <div className="overflow-y-auto custom-scrollbar pb-8" style={{ maxHeight: "calc(100vh - 220px)" }}>
+        <div className="pb-8">
           <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           {tasks.length === 0 && (
             <div className="flex flex-col items-center justify-center py-14 text-slate-400">

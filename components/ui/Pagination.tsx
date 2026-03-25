@@ -27,19 +27,19 @@ const Pagination: React.FC<PaginationProps> = ({
         variant="secondary"
         disabled={currentPage === 1}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        className="text-gray-500 disabled:opacity-30 flex items-center gap-1 border border-slate-200 bg-white/80 shadow-sm hover:bg-slate-50"
+        className="text-gray-500 disabled:opacity-30"
       >
         <ChevronLeft size={16} />
         上一页
       </Button>
-      <span className="text-sm text-slate-500 bg-white/75 px-3 py-1.5 rounded-full border border-slate-200">
+      <span className="inline-flex h-11 min-h-11 items-center rounded-[14px] border border-slate-200/90 bg-white/88 px-4 text-sm font-medium text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm">
         第 {currentPage} 页 / 共 {totalPages} 页
       </span>
       <Button
         variant="secondary"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className="text-gray-500 disabled:opacity-30 flex items-center gap-1 border border-slate-200 bg-white/80 shadow-sm hover:bg-slate-50"
+        className="text-gray-500 disabled:opacity-30"
       >
         下一页
         <ChevronRight size={16} />

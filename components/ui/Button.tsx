@@ -1,6 +1,14 @@
 'use client';
 
 import React, { ButtonHTMLAttributes } from 'react';
+import {
+  CONTROL_DISABLED_CLASS,
+  CONTROL_FRAME_CLASS,
+  CONTROL_HEIGHT_CLASS,
+  CONTROL_HEIGHT_PX,
+  CONTROL_RADIUS_CLASS,
+  CONTROL_SURFACE_CLASS,
+} from './controlStyles';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'default';
@@ -26,26 +34,25 @@ export default function Button({
     items-center
     justify-center
     gap-2
+    ${CONTROL_HEIGHT_CLASS}
     font-semibold
-    rounded-[1.15rem]
+    ${CONTROL_RADIUS_CLASS}
     cursor-pointer
-    transition-all
-    duration-300
-    ease-[cubic-bezier(0.4,0,0.2,1)]
-    border-none
-    outline-none
+    ${CONTROL_FRAME_CLASS}
+    border
     relative
     overflow-hidden
-    disabled:opacity-50
-    disabled:cursor-not-allowed
-    disabled:hover:translate-y-0
-    disabled:hover:shadow-none
+    whitespace-nowrap
+    focus-visible:outline-none
+    focus-visible:ring-4
+    focus-visible:ring-blue-500/15
+    ${CONTROL_DISABLED_CLASS}
   `;
 
   const sizeStyles = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg',
+    sm: 'px-4 text-sm',
+    md: 'px-5 text-sm',
+    lg: 'px-6 text-base',
   };
 
   const variantStyles = {
@@ -54,24 +61,13 @@ export default function Button({
       backdrop-blur-md
       text-white
       border border-white/20
-      shadow-[0_4px_20px_rgba(59,130,246,0.35),0_2px_8px_rgba(59,130,246,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
-      hover:shadow-[0_8px_30px_rgba(59,130,246,0.45),0_4px_12px_rgba(59,130,246,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
-      hover:scale-[1.02]
-      hover:-translate-y-0.5
-      active:scale-[0.98]
+      hover:brightness-[1.03]
       active:translate-y-0
     `,
     secondary: `
-      bg-white/80
-      backdrop-blur-md
+      ${CONTROL_SURFACE_CLASS}
       text-blue-600
-      border border-white/60
-      shadow-[0_4px_16px_rgba(59,130,246,0.12),0_2px_6px_rgba(0,0,0,0.05),inset_0_1px_0_rgba(255,255,255,0.8)]
-      hover:bg-white/90
-      hover:shadow-[0_8px_24px_rgba(59,130,246,0.18),0_4px_10px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.9)]
-      hover:scale-[1.02]
-      hover:-translate-y-0.5
-      active:scale-[0.98]
+      hover:text-blue-700
       active:translate-y-0
     `,
     success: `
@@ -79,11 +75,7 @@ export default function Button({
       backdrop-blur-md
       text-white
       border border-white/20
-      shadow-[0_4px_20px_rgba(34,197,94,0.35),0_2px_8px_rgba(34,197,94,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
-      hover:shadow-[0_8px_30px_rgba(34,197,94,0.45),0_4px_12px_rgba(34,197,94,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
-      hover:scale-[1.02]
-      hover:-translate-y-0.5
-      active:scale-[0.98]
+      hover:brightness-[1.03]
       active:translate-y-0
     `,
     warning: `
@@ -91,11 +83,7 @@ export default function Button({
       backdrop-blur-md
       text-white
       border border-white/20
-      shadow-[0_4px_20px_rgba(245,158,11,0.35),0_2px_8px_rgba(245,158,11,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
-      hover:shadow-[0_8px_30px_rgba(245,158,11,0.45),0_4px_12px_rgba(245,158,11,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
-      hover:scale-[1.02]
-      hover:-translate-y-0.5
-      active:scale-[0.98]
+      hover:brightness-[1.03]
       active:translate-y-0
     `,
     error: `
@@ -103,24 +91,13 @@ export default function Button({
       backdrop-blur-md
       text-white
       border border-white/20
-      shadow-[0_4px_20px_rgba(239,68,68,0.35),0_2px_8px_rgba(239,68,68,0.25),inset_0_1px_0_rgba(255,255,255,0.3)]
-      hover:shadow-[0_8px_30px_rgba(239,68,68,0.45),0_4px_12px_rgba(239,68,68,0.35),inset_0_1px_0_rgba(255,255,255,0.4)]
-      hover:scale-[1.02]
-      hover:-translate-y-0.5
-      active:scale-[0.98]
+      hover:brightness-[1.03]
       active:translate-y-0
     `,
     default: `
-      bg-white/88
-      backdrop-blur-md
-      text-gray-700
-      border border-white/60
-      shadow-[0_4px_16px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.9)]
-      hover:bg-white/95
-      hover:shadow-[0_8px_24px_rgba(0,0,0,0.12),0_4px_10px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,1)]
-      hover:scale-[1.02]
-      hover:-translate-y-0.5
-      active:scale-[0.98]
+      ${CONTROL_SURFACE_CLASS}
+      text-slate-700
+      hover:text-slate-900
       active:translate-y-0
     `,
   };
@@ -136,7 +113,9 @@ export default function Button({
       `}
       disabled={disabled || loading}
       style={{
-        width: fullWidth ? '100%' : 'auto',
+        width: fullWidth ? '100%' : undefined,
+        minHeight: CONTROL_HEIGHT_PX,
+        height: CONTROL_HEIGHT_PX,
         ...style,
       }}
       {...props}

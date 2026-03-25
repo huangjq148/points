@@ -30,15 +30,10 @@ export default function ChildFilterSelect({
   dropdownClassName = "",
 }: ChildFilterSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const [isPositionReady, setIsPositionReady] = useState(false);
-  const [portalReady, setPortalReady] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setPortalReady(true);
-  }, []);
+  const portalReady = typeof document !== "undefined";
 
   const selectedChild = childList.find((child) => child.id === selectedChildId);
   const displayText = selectedChild ? selectedChild.username : allLabel;
@@ -53,10 +48,8 @@ export default function ChildFilterSelect({
         top: rect.bottom + 8,
         left: rect.left,
       });
-      setIsPositionReady(true);
     };
 
-    setIsPositionReady(false);
     updatePosition();
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
@@ -91,18 +84,21 @@ export default function ChildFilterSelect({
       <button
         ref={buttonRef}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center gap-2 px-3 py-1 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm ${buttonClassName}`}
+        className={`flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_8px_20px_rgba(15,23,42,0.08)] ${buttonClassName}`}
       >
         <Users size={14} className="text-slate-400" />
-        <span className="max-w-[80px] truncate">{displayText}</span>
-        <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <span className="max-w-[96px] truncate">{displayText}</span>
+        <ChevronDown
+          size={14}
+          className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
 
-      {isOpen && portalReady && isPositionReady
+      {isOpen && portalReady && dropdownPosition
         ? ReactDOM.createPortal(
             <div
               ref={dropdownRef}
-              className={`fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] min-w-[140px] max-h-60 overflow-auto cursor-default ${dropdownClassName}`}
+              className={`fixed z-[100] min-w-[160px] max-h-60 cursor-default overflow-auto rounded-2xl border border-slate-200 bg-white shadow-[0_20px_48px_rgba(15,23,42,0.12)] ${dropdownClassName}`}
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -113,7 +109,7 @@ export default function ChildFilterSelect({
                   onChange(null);
                   setIsOpen(false);
                 }}
-                className={`w-full cursor-pointer text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors flex items-center gap-2 first:rounded-t-2xl ${
+                className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 first:rounded-t-2xl ${
                   selectedChildId === null ? "bg-blue-50 text-blue-600" : "text-slate-700"
                 }`}
               >
@@ -127,7 +123,7 @@ export default function ChildFilterSelect({
                     onChange(child.id);
                     setIsOpen(false);
                   }}
-                  className={`w-full cursor-pointer text-left px-3 py-2 text-sm hover:bg-slate-50 transition-colors flex items-center gap-2 ${
+                  className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 ${
                     selectedChildId === child.id ? "bg-blue-50 text-blue-600" : "text-slate-700"
                   } ${index === childList.length - 1 ? "rounded-b-2xl" : ""}`}
                 >

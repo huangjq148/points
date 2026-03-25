@@ -5,6 +5,13 @@ import DatePicker, { registerLocale, DatePickerProps } from "react-datepicker";
 import { zhCN } from "date-fns/locale";
 import { Calendar } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
+import {
+  CONTROL_FOCUS_CLASS,
+  CONTROL_FRAME_CLASS,
+  CONTROL_HEIGHT_CLASS,
+  CONTROL_RADIUS_CLASS,
+  CONTROL_SURFACE_CLASS,
+} from "./controlStyles";
 
 registerLocale("zh-CN", zhCN);
 
@@ -28,7 +35,20 @@ const CustomDatePicker = memo(({
 }: CustomDatePickerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const defaultClassName = "relative z-0 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/80 backdrop-blur outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-sm text-gray-900 placeholder:text-gray-400";
+  const defaultClassName = `
+    relative
+    z-0
+    w-full
+    px-4
+    text-sm
+    text-gray-900
+    placeholder:text-gray-400
+    ${CONTROL_HEIGHT_CLASS}
+    ${CONTROL_RADIUS_CLASS}
+    ${CONTROL_SURFACE_CLASS}
+    ${CONTROL_FRAME_CLASS}
+    ${CONTROL_FOCUS_CLASS}
+  `.trim().replace(/\s+/g, " ");
   
   // 组合样式
   const combinedClassName = `
