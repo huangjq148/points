@@ -416,7 +416,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             <Button
               onClick={() => setShowDetailModal(false)}
               variant="secondary"
-              className="flex-1 py-3 font-semibold rounded-xl hover:bg-slate-100 transition-colors"
+              className="flex-1 py-3 font-semibold rounded-xl !border !border-slate-200 !bg-slate-50 !text-slate-700 hover:!bg-slate-100 transition-colors"
             >
               关闭
             </Button>
@@ -426,7 +426,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                   setShowDetailModal(false);
                   onEdit(task);
                 }}
-                className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 transition-all hover:shadow-xl"
+                className="flex-1 py-3 bg-slate-950 hover:bg-slate-900 text-white rounded-xl font-semibold shadow-lg shadow-slate-200 transition-all hover:shadow-xl"
               >
                 <Edit2 size={16} className="mr-2" />
                 编辑任务
@@ -437,7 +437,8 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
       >
         <div className="space-y-6">
           {/* 任务基本信息 - 优化头部设计 */}
-          <div className={`relative overflow-hidden rounded-3xl border ${styles.className} p-5 sm:p-6`}>
+          <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+            <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${styles.gradient}`} />
             {/* 背景装饰 */}
             <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${styles.gradient} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`} />
             
@@ -449,7 +450,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
               
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <h3 className="text-xl font-bold text-slate-800 leading-snug">{task.name}</h3>
+                  <h3 className="text-xl font-bold text-slate-950 leading-snug">{task.name}</h3>
                   <span className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full border flex-shrink-0 ${styles.statusClass}`}>
                     {styles.icon}
                     {styles.statusLabel}
@@ -458,13 +459,13 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                 
                 {/* 积分和执行人 */}
                 <div className="flex flex-wrap items-center gap-3 mt-3">
-                <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200">
-                    <Award size={14} className="text-slate-600" />
-                    <span className="text-sm font-bold text-slate-700">+{task.points} 积分</span>
+                  <div className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm">
+                    <Award size={14} className="text-slate-700" />
+                    <span className="text-sm font-bold text-slate-900">+{task.points} 积分</span>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 min-w-0">
-                    <User size={14} className="text-slate-600" />
-                    <span className="text-sm font-medium text-slate-700 truncate">{task.childAvatar} {task.childName}</span>
+                  <div className="flex items-center gap-1.5 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm min-w-0">
+                    <User size={14} className="text-slate-700" />
+                    <span className="text-sm font-medium text-slate-900 truncate">{task.childAvatar} {task.childName}</span>
                   </div>
                 </div>
               </div>
@@ -475,23 +476,23 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
           <div className="space-y-5 max-h-[45vh] overflow-y-auto custom-scrollbar pr-1.5">
             {/* 任务描述 */}
             {task.description && (
-                <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-100">
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                  <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-slate-700 rounded-full" />
                   任务描述
                 </h4>
-                  <p className="text-slate-600 text-sm leading-relaxed">{task.description}</p>
+                  <p className="text-slate-700 text-sm leading-relaxed">{task.description}</p>
               </div>
             )}
 
             {/* 任务配图 */}
             {task.imageUrl ? (
               <div>
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
+                  <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-slate-700 rounded-full" />
                   任务配图
                 </h4>
-                  <div className="relative w-full h-52 rounded-2xl overflow-hidden border border-slate-200 shadow-md group">
+                  <div className="relative w-full h-52 rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white group">
                   <ZoomImage
                     src={task.imageUrl}
                     alt="任务配图"
@@ -505,14 +506,14 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
 
             {/* 起止时间 */}
             {(task.startDate || task.deadline) && (
-                <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-100">
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
+              <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm">
+                  <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-slate-700 rounded-full" />
                   起止时间
                 </h4>
-                <div className={`flex items-center gap-3 ${isOverdue ? 'text-rose-600' : 'text-slate-600'}`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isOverdue ? 'bg-rose-100' : 'bg-slate-100'}`}>
-                    <Calendar size={18} className={isOverdue ? 'text-rose-600' : 'text-slate-600'} />
+                <div className={`flex items-center gap-3 ${isOverdue ? 'text-rose-700' : 'text-slate-700'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 border ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
+                    <Calendar size={18} className={isOverdue ? 'text-rose-700' : 'text-slate-700'} />
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium">
@@ -520,7 +521,7 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
                       {task.deadline ? formatDate(task.deadline) : "无截止"}
                     </div>
                     {isOverdue && (
-                      <div className="text-xs font-semibold text-rose-600 mt-0.5 flex items-center gap-1">
+                      <div className="text-xs font-semibold text-rose-700 mt-0.5 flex items-center gap-1">
                         <AlertCircle size={12} />
                         已逾期
                       </div>
@@ -533,10 +534,10 @@ export default function TaskCard({ task, now, onEdit, onDelete }: TaskCardProps)
             {/* 操作记录 */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <span className="w-1 h-4 bg-slate-500 rounded-full" />
-                  <h4 className="font-semibold text-slate-700">操作记录</h4>
+                <span className="w-1 h-4 bg-slate-700 rounded-full" />
+                  <h4 className="font-semibold text-slate-900">操作记录</h4>
                 {task.auditHistory && task.auditHistory.length > 0 && (
-                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
                     {task.auditHistory.length} 条记录
                   </span>
                 )}

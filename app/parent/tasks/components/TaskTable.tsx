@@ -452,7 +452,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
       {/* 任务详情弹窗 - 优化样式 */}
       {selectedTask && (
-        <Modal
+      <Modal
           isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
           width={640}
@@ -462,7 +462,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               <Button
                 onClick={() => setSelectedTask(null)}
                 variant="secondary"
-                className="flex-1 py-3 font-semibold rounded-xl hover:bg-slate-100 transition-colors"
+                className="flex-1 py-3 font-semibold rounded-xl !border !border-slate-200 !bg-slate-50 !text-slate-700 hover:!bg-slate-100 transition-colors"
               >
                 关闭
               </Button>
@@ -472,7 +472,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                     setSelectedTask(null);
                     onEdit(selectedTask);
                   }}
-                  className="flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors"
+                  className="flex-1 py-3 bg-slate-950 hover:bg-slate-900 text-white rounded-xl font-semibold shadow-sm transition-colors"
                 >
                   <Edit2 size={16} className="mr-2" />
                   编辑任务
@@ -486,7 +486,8 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
             {(() => {
               const statusInfo = getStatusInfo(selectedTask);
               return (
-                <div className={`relative overflow-hidden rounded-3xl border ${statusInfo.className} p-5`}>
+                <div className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)]`}>
+                  <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${statusInfo.gradient}`} />
                   <div className="relative flex items-center gap-4">
                     {/* 大图标 */}
                     <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${statusInfo.gradient} flex items-center justify-center text-4xl shadow-sm flex-shrink-0`}>
@@ -495,8 +496,8 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                <h3 className="text-xl font-bold text-slate-800 truncate">{selectedTask.name}</h3>
-                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full border flex-shrink-0 ${statusInfo.className}`}>
+                        <h3 className="text-xl font-bold text-slate-950 truncate">{selectedTask.name}</h3>
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full border flex-shrink-0 shadow-sm ${statusInfo.className}`}>
                           {statusInfo.icon}
                           {statusInfo.label}
                         </span>
@@ -504,13 +505,13 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                       
                       {/* 积分和执行人 */}
                       <div className="flex items-center gap-4 mt-2">
-                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                          <Award size={14} className="text-slate-600" />
-                          <span className="text-sm font-bold text-slate-700">+{selectedTask.points} 积分</span>
+                        <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+                          <Award size={14} className="text-slate-700" />
+                          <span className="text-sm font-bold text-slate-900">+{selectedTask.points} 积分</span>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-                          <User size={14} className="text-slate-600" />
-                          <span className="text-sm font-medium text-slate-700">{selectedTask.childAvatar} {selectedTask.childName}</span>
+                        <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+                          <User size={14} className="text-slate-700" />
+                          <span className="text-sm font-medium text-slate-900">{selectedTask.childAvatar} {selectedTask.childName}</span>
                         </div>
                       </div>
                     </div>
@@ -523,23 +524,23 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
             <div className="space-y-5 max-h-[45vh] overflow-y-auto custom-scrollbar pr-1">
               {/* 任务描述 */}
               {selectedTask.description && (
-                <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                  <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-slate-700 rounded-full" />
                     任务描述
                   </h4>
-                  <p className="text-slate-600 text-sm leading-relaxed">{selectedTask.description}</p>
+                  <p className="text-slate-700 text-sm leading-relaxed">{selectedTask.description}</p>
                 </div>
               )}
 
               {/* 任务配图 */}
               {selectedTask.imageUrl ? (
                 <div>
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
+                  <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-slate-700 rounded-full" />
                     任务配图
                   </h4>
-                  <div className="relative w-full h-52 rounded-2xl overflow-hidden border border-slate-200 shadow-md group">
+                  <div className="relative w-full h-52 rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-white group">
                     <ZoomImage
                       src={selectedTask.imageUrl}
                       alt="任务配图"
@@ -553,17 +554,17 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
 
               {/* 起止时间 */}
               {(selectedTask.startDate || selectedTask.deadline) && (
-                <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                  <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                    <span className="w-1 h-4 bg-slate-700 rounded-full" />
                     起止时间
                   </h4>
                   {(() => {
                     const isOverdue = selectedTask.deadline && now > 0 && new Date(selectedTask.deadline).getTime() < now && selectedTask.status === "pending";
                     return (
-                      <div className={`flex items-center gap-3 ${isOverdue ? 'text-rose-600' : 'text-slate-600'}`}>
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOverdue ? 'bg-rose-100' : 'bg-slate-100'}`}>
-                          <Calendar size={18} className={isOverdue ? 'text-rose-600' : 'text-slate-600'} />
+                      <div className={`flex items-center gap-3 ${isOverdue ? 'text-rose-700' : 'text-slate-700'}`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${isOverdue ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
+                          <Calendar size={18} className={isOverdue ? 'text-rose-700' : 'text-slate-700'} />
                         </div>
                         <div className="flex-1">
                           <div className="text-sm font-medium">
@@ -571,7 +572,7 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                             {selectedTask.deadline ? formatDate(selectedTask.deadline) : "无截止"}
                           </div>
                           {isOverdue && (
-                            <div className="text-xs font-semibold text-rose-600 mt-0.5 flex items-center gap-1">
+                            <div className="text-xs font-semibold text-rose-700 mt-0.5 flex items-center gap-1">
                               <AlertCircle size={12} />
                               已逾期
                             </div>
@@ -586,10 +587,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               {/* 操作记录 */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-1 h-4 bg-slate-500 rounded-full" />
-                  <h4 className="font-semibold text-slate-700">操作记录</h4>
+                  <span className="w-1 h-4 bg-slate-700 rounded-full" />
+                  <h4 className="font-semibold text-slate-900">操作记录</h4>
                   {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
-                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
                       {selectedTask.auditHistory.length} 条记录
                     </span>
                   )}

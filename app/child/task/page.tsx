@@ -868,15 +868,15 @@ function TaskPage() {
           <>
             {/* 任务基本信息 - 固定在顶部 */}
             <div className='flex items-center gap-5 mb-6'>
-              <div className='w-24 h-24 bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-inner'>
+              <div className='w-24 h-24 bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_12px_30px_rgba(251,146,60,0.15)] border border-amber-200/70'>
                 {selectedTask.icon}
               </div>
               <div className='flex-1'>
-                <h3 className='text-2xl font-black text-gray-800 leading-tight'>
+                <h3 className='text-2xl font-black text-slate-950 leading-tight'>
                   {selectedTask.name}
                 </h3>
                 <div className='flex items-center gap-2 mt-2 flex-wrap'>
-                  <span className='text-amber-500 font-black text-lg'>
+                  <span className='text-amber-600 font-black text-lg'>
                     +{selectedTask.points}
                   </span>
                   <span
@@ -906,10 +906,10 @@ function TaskPage() {
               {selectedTask.imageUrl ||
                 selectedTask.description ||
                 selectedTask.requirePhoto ? (
-                <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
+                <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm'>
                   {selectedTask.imageUrl ? (
                     <>
-                      <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-2'>
+                      <h4 className='text-xs font-black text-slate-500 uppercase tracking-wider mb-2'>
                         任务图片
                       </h4>
                       <div className='relative aspect-video rounded-xl overflow-hidden mb-6'>
@@ -927,19 +927,19 @@ function TaskPage() {
 
                   {selectedTask.description ? (
                     <>
-                      <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-2'>
+                      <h4 className='text-xs font-black text-slate-500 uppercase tracking-wider mb-2'>
                         任务描述
                       </h4>
-                      <p className='text-gray-700 font-medium leading-relaxed'>
+                      <p className='text-slate-700 font-medium leading-relaxed'>
                         {selectedTask.description || '快去完成这个任务吧！'}
                       </p>
                     </>
                   ) : null}
 
                   {selectedTask.requirePhoto && (
-                    <div className='mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl'>
+                    <div className='mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl border border-amber-200'>
                       <span className='text-amber-500'>📸</span>
-                      <span className='text-sm font-bold text-amber-600'>
+                      <span className='text-sm font-bold text-amber-700'>
                         需要上传照片才能完成
                       </span>
                     </div>
@@ -973,8 +973,8 @@ function TaskPage() {
                           </div>
                         )}
 
-                      <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-2xl'>
-                        <h4 className='text-xs font-black text-green-400 uppercase tracking-wider mb-2'>
+                      <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm'>
+                        <h4 className='text-xs font-black text-green-600 uppercase tracking-wider mb-2'>
                           {selectedTask.status === 'approved'
                             ? '✅ 审核通过'
                             : selectedTask.status === 'rejected'
@@ -984,26 +984,26 @@ function TaskPage() {
                         <div className='space-y-2'>
                           {selectedTask.startDate && (
                             <div className='flex justify-between items-center'>
-                              <span className='text-sm text-gray-500'>开始时间</span>
-                              <span className='text-sm font-bold text-gray-700'>
+                              <span className='text-sm text-slate-600'>开始时间</span>
+                              <span className='text-sm font-bold text-slate-800'>
                                 {dayjs(selectedTask.startDate).format('M月D日 HH:mm')}
                               </span>
                             </div>
                           )}
                           {selectedTask.deadline && (
                             <div className='flex justify-between items-center'>
-                              <span className='text-sm text-gray-500'>截止时间</span>
-                              <span className='text-sm font-bold text-gray-700'>
+                              <span className='text-sm text-slate-600'>截止时间</span>
+                              <span className='text-sm font-bold text-slate-800'>
                                 {dayjs(selectedTask.deadline).format('M月D日 HH:mm')}
                               </span>
                             </div>
                           )}
                           {selectedTask.submittedAt && (
                             <div className='flex justify-between items-center'>
-                              <span className='text-sm text-gray-500'>
+                              <span className='text-sm text-slate-600'>
                                 提交时间
                               </span>
-                              <span className='text-sm font-bold text-gray-700'>
+                              <span className='text-sm font-bold text-slate-800'>
                                 {dayjs(selectedTask.submittedAt).format(
                                   'M月D日 HH:mm',
                                 )}
@@ -1013,10 +1013,10 @@ function TaskPage() {
                           {selectedTask.status === 'approved' &&
                             selectedTask.approvedAt && (
                               <div className='flex justify-between items-center'>
-                                <span className='text-sm text-gray-500'>
+                                <span className='text-sm text-slate-600'>
                                   审核时间
                                 </span>
-                                <span className='text-sm font-bold text-green-600'>
+                                <span className='text-sm font-bold text-green-700'>
                                   {dayjs(selectedTask.approvedAt).format(
                                     'M月D日 HH:mm',
                                   )}
@@ -1025,10 +1025,10 @@ function TaskPage() {
                             )}
                           {selectedTask.rejectionReason && (
                             <div className='flex justify-between items-center'>
-                              <span className='text-sm text-gray-500'>
+                              <span className='text-sm text-slate-600'>
                                 审核意见
                               </span>
-                              <span className='text-sm font-bold'>
+                              <span className='text-sm font-bold text-slate-800'>
                                 {selectedTask.rejectionReason}
                               </span>
                             </div>
@@ -1043,15 +1043,15 @@ function TaskPage() {
               {selectedTask.auditHistory &&
                 selectedTask.auditHistory.length > 0 && (
                   <div>
-                    <div className='bg-gradient-to-br from-slate-50 to-gray-100 p-5 rounded-2xl'>
-                      <h4 className='text-xs font-black text-gray-400 uppercase tracking-wider mb-4'>
+                    <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm'>
+                      <h4 className='text-xs font-black text-slate-500 uppercase tracking-wider mb-4'>
                         📋 操作记录 ({selectedTask.auditHistory.length})
                       </h4>
                       <div className='space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar'>
                         {selectedTask.auditHistory.map((record, index) => (
                           <div
                             key={record._id || index}
-                            className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
+                            className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-slate-200' : ''}`}
                           >
                             {/* 时间线节点 */}
                             <div
@@ -1066,32 +1066,32 @@ function TaskPage() {
 
                             <div className='ml-2'>
                               <div className='flex items-center gap-2 mb-1'>
-                                <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                <span className='text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100'>
                                   第 {index + 1}{' '}
                                   次操作
                                 </span>
                                 {record.status === 'approved' ? (
-                                  <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
+                                  <span className='text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-100'>
                                     通过
                                   </span>
                                 ) : record.status === 'rejected' ? (
-                                  <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
+                                  <span className='text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-100'>
                                     驳回
                                   </span>
                                 ) : (
-                                  <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                  <span className='text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100'>
                                     审核中
                                   </span>
                                 )}
                               </div>
-                              <p className='text-xs text-gray-400 mb-1'>
+                              <p className='text-xs text-slate-500 mb-1'>
                                 提交:{' '}
                                 {dayjs(record.submittedAt).format(
                                   'M月D日 HH:mm',
                                 )}
                               </p>
                               {record.auditedAt && (
-                                <p className='text-xs text-gray-400 mb-1'>
+                                <p className='text-xs text-slate-500 mb-1'>
                                   审核:{' '}
                                   {dayjs(record.auditedAt).format(
                                     'M月D日 HH:mm',
@@ -1101,10 +1101,10 @@ function TaskPage() {
                               {/* 提交的照片 */}
                               {record.photoUrl && (
                                 <div className='mt-2'>
-                                  <p className='text-xs text-gray-400 mb-1'>
+                                  <p className='text-xs text-slate-500 mb-1'>
                                     提交的照片：
                                   </p>
-                                  <div className='w-20 h-20 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
+                                  <div className='w-20 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-sm bg-white'>
                                     <Image
                                       src={record.photoUrl}
                                       alt={`第 ${index + 1} 次提交的照片`}
@@ -1118,11 +1118,11 @@ function TaskPage() {
 
                               {/* 审核意见 */}
                               {record.auditNote && (
-                                <div className='mt-2 bg-white rounded-lg p-2 border border-gray-100'>
-                                  <p className='text-xs text-gray-400 mb-1'>
+                                <div className='mt-2 bg-white rounded-lg p-2 border border-slate-200'>
+                                  <p className='text-xs text-slate-500 mb-1'>
                                     家长意见：
                                   </p>
-                                  <p className='text-xs text-gray-700'>
+                                  <p className='text-xs text-slate-700'>
                                     {record.auditNote}
                                   </p>
                                 </div>
