@@ -1,9 +1,10 @@
 "use client";
 
-import React, { ReactNode, useEffect, useRef, useSyncExternalStore } from "react";
+import React, { ReactNode } from "react";
 import ReactDOM from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBodyScrollLock, useOverlayLayer } from "./overlayLayer";
 import {
   CONTROL_HEIGHT_CLASS,
   CONTROL_INNER_RADIUS_CLASS,
@@ -11,34 +12,6 @@ import {
   CONTROL_PANEL_CLASS,
   CONTROL_PANEL_RADIUS_CLASS,
 } from "./controlStyles";
-
-type DrawerId = symbol;
-type DrawerListener = () => void;
-
-const defaultBaseZIndex = 9998;
-const drawerOrders = new Map<DrawerId, number>();
-let drawerOrderSeed = 0;
-const drawerListeners = new Set<DrawerListener>();
-const emitStackChange = () => drawerListeners.forEach((listener) => listener());
-
-const drawerStackManager = {
-  add(id: DrawerId) {
-    drawerOrders.set(id, ++drawerOrderSeed);
-    emitStackChange();
-  },
-  remove(id: DrawerId) {
-    if (drawerOrders.delete(id)) {
-      emitStackChange();
-    }
-  },
-  subscribe(listener: DrawerListener) {
-    drawerListeners.add(listener);
-    return () => drawerListeners.delete(listener);
-  },
-  getOrder(id: DrawerId) {
-    return drawerOrders.get(id) ?? -1;
-  },
-};
 
 interface DrawerProps {
   isOpen: boolean;
@@ -62,54 +35,16 @@ export default function Drawer({
   footer,
   width = 480,
   showCloseButton = true,
-  zIndex = "var(--z-modal)",
+  zIndex,
   className = "",
   placement = "right",
   noInternalScroll = false,
 }: DrawerProps) {
-  const drawerIdRef = useRef<DrawerId>(Symbol("drawer"));
-  const stackPosition = useSyncExternalStore(
-    drawerStackManager.subscribe,
-    () => drawerStackManager.getOrder(drawerIdRef.current),
-    () => -1,
-  );
-  const baseZIndex =
-    typeof zIndex === "number"
-      ? zIndex
-      : typeof document !== "undefined"
-        ? (() => {
-            const value = getComputedStyle(document.documentElement).getPropertyValue("--z-modal");
-            const parsed = parseInt(value, 10);
-            return Number.isFinite(parsed) ? parsed : defaultBaseZIndex;
-          })()
-        : defaultBaseZIndex;
-
-  useEffect(() => {
-    const id = drawerIdRef.current;
-    if (!isOpen) {
-      drawerStackManager.remove(id);
-      return;
-    }
-    drawerStackManager.add(id);
-    return () => {
-      drawerStackManager.remove(id);
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  const { layerZIndex, bringToFront } = useOverlayLayer(isOpen);
+  const overlayZIndex = typeof zIndex === "number" ? zIndex : layerZIndex;
+  useBodyScrollLock(isOpen);
 
   if (typeof document === "undefined") return null;
-
-  const overlayZIndex = baseZIndex + Math.max(stackPosition, 0);
   const panelWidth = typeof width === "number" ? `${width}px` : width;
   const slideX = placement === "right" ? "100%" : "-100%";
   const roundedClass = placement === "right" ? "rounded-l-3xl" : "rounded-r-3xl";
@@ -164,7 +99,7 @@ export default function Drawer({
           exit={{ opacity: 0 }}
           className={`fixed inset-0 ${CONTROL_OVERLAY_CLASS}`}
           style={{ zIndex: overlayZIndex }}
-          onPointerDownCapture={() => drawerStackManager.add(drawerIdRef.current)}
+          onPointerDownCapture={bringToFront}
           onClick={onClose}
         >
           <div className={`flex h-full w-full ${wrapperClass}`}>

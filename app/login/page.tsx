@@ -45,7 +45,7 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      <div className="card-child w-full max-w-md" style={{ position: 'relative', zIndex: 10 }}>
+      <div className="card-child w-full max-w-md" style={{ position: 'relative', zIndex: 'var(--z-login-card)' }}>
         <div className="text-center mb-6">
           <div style={{ fontSize: '56px', marginBottom: '16px' }}>🌟</div>
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>小小奋斗者</h1>

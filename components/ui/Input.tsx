@@ -529,7 +529,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className={cx(
               'relative',
               CONTROL_WRAPPER_RADIUS_CLASS,
-              'overflow-hidden',
               inputWrapperClassName,
             )}
           >

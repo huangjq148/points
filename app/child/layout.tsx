@@ -100,7 +100,7 @@ function ChildAccountSignIn({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/55 backdrop-blur-sm z-[70] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: "var(--z-child-overlay)" }} onClick={onClose}>
       <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
         <div className="text-center mb-5">
           <div className="text-4xl mb-2">👶</div>
@@ -289,7 +289,8 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
       {showChildSwitcher && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+          style={{ zIndex: "var(--z-child-overlay)" }}
           onClick={() => setShowChildSwitcher(false)}
         >
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
@@ -595,7 +596,8 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
       {showSettingsModal && (
         <div
-          className="fixed inset-0 bg-black/55 backdrop-blur-md z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4"
+          className="fixed inset-0 bg-black/55 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
+          style={{ zIndex: "var(--z-child-overlay-strong)" }}
           onClick={() => setShowSettingsModal(false)}
         >
           <div

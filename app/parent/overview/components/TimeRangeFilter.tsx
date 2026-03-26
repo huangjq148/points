@@ -136,10 +136,11 @@ export default function TimeRangeFilter({
         ReactDOM.createPortal(
           <div
             ref={setDropdownEl}
-            className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] min-w-[120px] cursor-default"
+            className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl min-w-[120px] cursor-default"
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,
+              zIndex: "var(--z-dropdown)",
             }}
           >
             {options.map((option) => (
@@ -162,10 +163,11 @@ export default function TimeRangeFilter({
         ReactDOM.createPortal(
           <div
             ref={setDropdownEl}
-            className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] p-4 w-72 cursor-default"
+            className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl p-4 w-72 cursor-default"
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,
+              zIndex: "var(--z-dropdown)",
             }}
           >
             <h4 className="text-sm font-semibold text-slate-800 mb-3">选择日期范围</h4>

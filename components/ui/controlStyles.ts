@@ -11,7 +11,7 @@ export const CONTROL_MUTED_TEXT_CLASS = 'text-slate-500';
 export const CONTROL_SURFACE_CLASS =
   'border border-slate-200/80 bg-white/95 backdrop-blur-sm hover:border-slate-300/90 hover:bg-white';
 export const CONTROL_FRAME_CLASS =
-  'shadow-[0_8px_20px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.82)] transition-all duration-200 ease-out hover:-translate-y-px hover:shadow-[0_14px_28px_rgba(15,23,42,0.09),inset_0_1px_0_rgba(255,255,255,0.92)]';
+  'shadow-[0_8px_20px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.82)] transition-all duration-200 ease-out hover:shadow-[0_14px_28px_rgba(15,23,42,0.09),inset_0_1px_0_rgba(255,255,255,0.92)]';
 export const CONTROL_FOCUS_CLASS =
   'focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:shadow-[0_14px_28px_rgba(59,130,246,0.12),inset_0_1px_0_rgba(255,255,255,0.92)]';
 export const CONTROL_DISABLED_CLASS =

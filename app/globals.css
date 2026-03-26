@@ -25,8 +25,19 @@
   --warning: #f59e0b;
   --error: #ef4444;
   --info: #3b82f6;
+  --z-drawer: 40;
   --z-modal: 50;
   --z-alert: 200;
+  --z-child-overlay: 1060;
+  --z-child-overlay-strong: 1070;
+  --z-dropdown: 1100;
+  --z-select-menu: 1120;
+  --z-datepicker: 1200;
+  --z-toast: 1300;
+  --z-image-viewer: 1400;
+  --z-confetti: 1500;
+  --z-login-card: 10;
+  --z-point-float: 100;
 }
 
 @theme inline {
@@ -765,7 +776,7 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 99999;
+  z-index: var(--z-datepicker);
   pointer-events: none;
 }
 
@@ -774,7 +785,7 @@ body {
 }
 
 .react-datepicker-popper {
-  z-index: 99999 !important;
+  z-index: var(--z-datepicker) !important;
 }
 
 /* DatePicker 样式优化 */
@@ -848,7 +859,7 @@ body {
 }
 
 .react-datepicker__portal {
-  z-index: 99999 !important;
+  z-index: var(--z-datepicker) !important;
 }
 
 /* 修复清除按钮与自定义图标重叠 */
@@ -1002,7 +1013,7 @@ body {
   right: 0;
   bottom: 0;
   pointer-events: none;
-  z-index: 9999;
+  z-index: var(--z-confetti);
 }
 
 .login-container {

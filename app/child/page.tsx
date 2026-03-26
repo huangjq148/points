@@ -457,7 +457,7 @@ export default function ChildHome() {
           font-size: 1.5rem;
           pointer-events: none;
           animation: floatUp 1.5s ease-out forwards;
-          z-index: 100;
+          z-index: var(--z-point-float);
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 

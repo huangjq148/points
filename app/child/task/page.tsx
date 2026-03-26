@@ -504,10 +504,10 @@ function TaskPage() {
           scrollbar-width: none;
         }
         .react-datepicker__popper {
-          z-index: 9999 !important;
+          z-index: var(--z-datepicker) !important;
         }
         .react-datepicker-popper {
-          z-index: 9999 !important;
+          z-index: var(--z-datepicker) !important;
         }
       `}</style>
 
@@ -816,7 +816,6 @@ function TaskPage() {
         isOpen={!!showTaskDetail}
         onClose={() => setShowTaskDetail(null)}
         showCloseButton={false}
-        zIndex={100}
         footer={
           selectedTask?.status === 'pending' ? (
             <button
@@ -1149,7 +1148,6 @@ function TaskPage() {
           setPhotoPreview('');
         }}
         showCloseButton={false}
-        zIndex={100}
         footer={
           <>
             <button

@@ -62,7 +62,7 @@ const CustomDatePicker = memo(({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full group ${CONTROL_WRAPPER_RADIUS_CLASS} overflow-hidden ${icon && iconPosition === 'right' ? 'has-right-icon' : ''}`}
+      className={`relative w-full group ${CONTROL_WRAPPER_RADIUS_CLASS} ${icon && iconPosition === 'right' ? 'has-right-icon' : ''}`}
     >
       {icon && (
         <div className={`
@@ -77,14 +77,8 @@ const CustomDatePicker = memo(({
         dateFormat={dateFormat}
         isClearable={isClearable}
         placeholderText={placeholderText}
-        popperProps={{ 
-          strategy: "fixed",
-          modifiers: [
-            { name: 'zIndex', options: { zIndex: 10000 } }
-          ]
-        }}
+        popperProps={{ strategy: "fixed" }}
         popperPlacement="bottom-start"
-        popperClassName="!z-[10000]"
         withPortal={false}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}

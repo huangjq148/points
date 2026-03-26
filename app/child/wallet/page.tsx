@@ -374,7 +374,8 @@ export default function WalletPage() {
 
       {selectedLedgerItem && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 px-0 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 flex items-end justify-center bg-black/50 px-0 backdrop-blur-sm sm:items-center sm:p-4"
+          style={{ zIndex: "var(--z-child-overlay)" }}
           onClick={() => setSelectedLedgerItem(null)}
         >
           <div
@@ -497,7 +498,8 @@ export default function WalletPage() {
 
       {showTaskDetailModal && selectedLedgerItem?.sourceType === "task" && selectedLedgerItem.taskDetail && (
         <div
-          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 flex items-end justify-center bg-black/55 backdrop-blur-sm sm:items-center sm:p-4"
+          style={{ zIndex: "var(--z-child-overlay-strong)" }}
           onClick={() => setShowTaskDetailModal(false)}
         >
           <div

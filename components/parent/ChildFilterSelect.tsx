@@ -98,10 +98,11 @@ export default function ChildFilterSelect({
         ? ReactDOM.createPortal(
             <div
               ref={dropdownRef}
-              className={`fixed z-[100] min-w-[160px] max-h-60 cursor-default overflow-auto rounded-2xl border border-slate-200 bg-white shadow-[0_20px_48px_rgba(15,23,42,0.12)] ${dropdownClassName}`}
+              className={`fixed min-w-[160px] max-h-60 cursor-default overflow-auto rounded-2xl border border-slate-200 bg-white shadow-[0_20px_48px_rgba(15,23,42,0.12)] ${dropdownClassName}`}
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
+                zIndex: "var(--z-dropdown)",
               }}
             >
               <button

@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import Button from '@/components/ui/Button';
+import { useBodyScrollLock, useOverlayLayer } from '@/components/ui/overlayLayer';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -16,10 +19,13 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   isOpen, onClose, onConfirm, title, message, 
   confirmText = '确认', cancelText = '取消', type = 'info' 
 }) => {
+  const { layerZIndex, bringToFront } = useOverlayLayer(isOpen);
+  useBodyScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ zIndex: 'var(--z-alert)' }} onClick={onClose}>
+    <div className="fixed inset-0 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" style={{ zIndex: layerZIndex }} onPointerDownCapture={bringToFront} onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all" onClick={e => e.stopPropagation()}>
         <div className="text-center">
            <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${

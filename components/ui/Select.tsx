@@ -92,13 +92,13 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
     border: `1px solid ${CONTROL_BORDER_COLOR}`,
     boxShadow: "0 18px 36px rgba(15, 23, 42, 0.1)",
     overflow: "hidden",
-    zIndex: 100,
+    zIndex: "var(--z-dropdown)",
     marginTop: 8,
     padding: 6,
   }),
   menuPortal: (provided) => ({
     ...provided,
-    zIndex: 120,
+    zIndex: "var(--z-select-menu)",
   }),
   option: (provided, state) => ({
     ...provided,

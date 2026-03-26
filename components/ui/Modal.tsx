@@ -1,10 +1,11 @@
 "use client";
 
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactNode } from "react";
 import ReactDOM from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
+import { useBodyScrollLock, useOverlayLayer } from "./overlayLayer";
 import {
   CONTROL_HEIGHT_CLASS,
   CONTROL_INNER_RADIUS_CLASS,
@@ -12,35 +13,6 @@ import {
   CONTROL_PANEL_CLASS,
   CONTROL_PANEL_RADIUS_CLASS,
 } from "./controlStyles";
-
-type ModalId = symbol;
-type ModalListener = () => void;
-
-const defaultBaseZIndex = 9998;
-// Track the z-order of active modals so the most recently opened modal stays on top.
-const modalOrders = new Map<ModalId, number>();
-let modalOrderSeed = 0;
-const modalListeners = new Set<ModalListener>();
-const emitStackChange = () => modalListeners.forEach((listener) => listener());
-
-const modalStackManager = {
-  add(id: ModalId) {
-    modalOrders.set(id, ++modalOrderSeed);
-    emitStackChange();
-  },
-  remove(id: ModalId) {
-    if (modalOrders.delete(id)) {
-      emitStackChange();
-    }
-  },
-  subscribe(listener: ModalListener) {
-    modalListeners.add(listener);
-    return () => modalListeners.delete(listener);
-  },
-  getOrder(id: ModalId) {
-    return modalOrders.get(id) ?? -1;
-  },
-};
 
 type AlertType = "success" | "error" | "info";
 
@@ -74,64 +46,16 @@ export default function Modal({
   footer,
   width = 600,
   showCloseButton = true,
-  zIndex = "var(--z-modal)",
+  zIndex,
   className = "",
   noInternalScroll = false,
   alert,
 }: ModalProps) {
-  const modalIdRef = useRef<ModalId>(Symbol("modal"));
-  const [stackPosition, setStackPosition] = useState(-1);
-  const [baseZIndex, setBaseZIndex] = useState(() =>
-    typeof zIndex === "number" ? zIndex : defaultBaseZIndex,
-  );
-
-  useEffect(() => {
-    const updatePosition = () => {
-      setStackPosition(modalStackManager.getOrder(modalIdRef.current));
-    };
-    updatePosition();
-    const unsubscribe = modalStackManager.subscribe(updatePosition);
-    return () => { unsubscribe(); };
-  }, []);
-
-  useEffect(() => {
-    if (typeof zIndex === "number") {
-      setBaseZIndex(zIndex);
-      return;
-    }
-    if (typeof document !== "undefined") {
-      const value = getComputedStyle(document.documentElement).getPropertyValue("--z-modal");
-      const parsed = parseInt(value, 10);
-      setBaseZIndex(Number.isFinite(parsed) ? parsed : defaultBaseZIndex);
-    }
-  }, [zIndex]);
-
-  useEffect(() => {
-    const id = modalIdRef.current;
-    if (!isOpen) {
-      modalStackManager.remove(id);
-      return;
-    }
-    modalStackManager.add(id);
-    return () => {
-      modalStackManager.remove(id);
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  const { layerZIndex, bringToFront } = useOverlayLayer(isOpen);
+  const overlayZIndex = typeof zIndex === "number" ? zIndex : layerZIndex;
+  useBodyScrollLock(isOpen);
 
   if (typeof document === "undefined") return null;
-
-  const overlayZIndex = baseZIndex + Math.max(stackPosition, 0);
 
   const alertType = alert?.type ?? "info";
   const alertIcon =
@@ -214,7 +138,7 @@ export default function Modal({
           exit={{ opacity: 0 }}
           className={`fixed inset-0 flex items-center justify-center p-4 ${CONTROL_OVERLAY_CLASS}`}
           style={{ zIndex: overlayZIndex }}
-          onPointerDownCapture={() => modalStackManager.add(modalIdRef.current)}
+          onPointerDownCapture={bringToFront}
           onClick={onClose}
         >
           {modalBody}
