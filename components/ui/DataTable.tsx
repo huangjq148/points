@@ -10,6 +10,10 @@ import {
 } from "@tanstack/react-table";
 import { CSSProperties, ReactNode, useCallback, useMemo } from "react";
 import Pagination from "./Pagination";
+import {
+  CONTROL_PANEL_CLASS,
+  CONTROL_PANEL_RADIUS_CLASS,
+} from "./controlStyles";
 
 interface PageOptions {
   currentPage: number;
@@ -147,7 +151,7 @@ export function DataTable<TData>({
               }
             }}
             onChange={handleSelectAll}
-            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+            className="h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
@@ -162,7 +166,7 @@ export function DataTable<TData>({
               type="checkbox"
               checked={isSelected}
               onChange={(e) => handleSelectRow(row, e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              className="h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -284,7 +288,7 @@ export function DataTable<TData>({
   return (
     <div className="space-y-4">
       <div
-        className="bg-white/92 backdrop-blur-sm rounded-[1.5rem] shadow-sm border border-slate-200 max-w-full min-w-0 overflow-x-auto"
+        className={`max-w-full min-w-0 overflow-x-auto ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS}`}
         style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}
       >
         <table

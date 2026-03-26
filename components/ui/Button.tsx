@@ -6,8 +6,12 @@ import {
   CONTROL_FRAME_CLASS,
   CONTROL_HEIGHT_CLASS,
   CONTROL_HEIGHT_PX,
+  CONTROL_PRIMARY_BORDER_CLASS,
+  CONTROL_PRIMARY_GRADIENT_CLASS,
+  CONTROL_PRIMARY_SHADOW_CLASS,
   CONTROL_RADIUS_CLASS,
   CONTROL_SURFACE_CLASS,
+  CONTROL_TEXT_CLASS,
 } from './controlStyles';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -38,14 +42,13 @@ export default function Button({
     font-semibold
     ${CONTROL_RADIUS_CLASS}
     cursor-pointer
-    ${CONTROL_FRAME_CLASS}
     border
     relative
     overflow-hidden
     whitespace-nowrap
     focus-visible:outline-none
     focus-visible:ring-4
-    focus-visible:ring-blue-500/15
+    focus-visible:ring-blue-500/10
     ${CONTROL_DISABLED_CLASS}
   `;
 
@@ -57,47 +60,55 @@ export default function Button({
 
   const variantStyles = {
     primary: `
-      bg-gradient-to-r from-blue-500/95 via-sky-500/95 to-indigo-600/95
-      backdrop-blur-md
+      ${CONTROL_PRIMARY_GRADIENT_CLASS}
       text-white
-      border border-white/20
+      ${CONTROL_PRIMARY_BORDER_CLASS}
+      ${CONTROL_PRIMARY_SHADOW_CLASS}
+      transition-all duration-200 ease-out
+      hover:-translate-y-px
       hover:brightness-[1.03]
+      hover:shadow-[0_12px_28px_rgba(59,130,246,0.38),0_6px_16px_rgba(59,130,246,0.22)]
       active:translate-y-0
     `,
     secondary: `
+      ${CONTROL_FRAME_CLASS}
       ${CONTROL_SURFACE_CLASS}
-      text-blue-600
-      hover:text-blue-700
+      ${CONTROL_TEXT_CLASS}
+      hover:text-slate-950
       active:translate-y-0
     `,
     success: `
-      bg-gradient-to-r from-emerald-500/95 via-green-500/95 to-teal-600/95
-      backdrop-blur-md
-      text-white
-      border border-white/20
-      hover:brightness-[1.03]
+      ${CONTROL_FRAME_CLASS}
+      bg-emerald-50
+      text-emerald-700
+      border border-emerald-200
+      hover:bg-emerald-100
+      hover:border-emerald-300
       active:translate-y-0
     `,
     warning: `
-      bg-gradient-to-r from-amber-400/95 via-orange-500/95 to-rose-500/95
-      backdrop-blur-md
-      text-white
-      border border-white/20
-      hover:brightness-[1.03]
+      ${CONTROL_FRAME_CLASS}
+      bg-amber-50
+      text-amber-700
+      border border-amber-200
+      hover:bg-amber-100
+      hover:border-amber-300
       active:translate-y-0
     `,
     error: `
-      bg-gradient-to-r from-rose-500/95 via-red-500/95 to-pink-600/95
-      backdrop-blur-md
-      text-white
-      border border-white/20
-      hover:brightness-[1.03]
+      ${CONTROL_FRAME_CLASS}
+      bg-rose-50
+      text-rose-700
+      border border-rose-200
+      hover:bg-rose-100
+      hover:border-rose-300
       active:translate-y-0
     `,
     default: `
+      ${CONTROL_FRAME_CLASS}
       ${CONTROL_SURFACE_CLASS}
-      text-slate-700
-      hover:text-slate-900
+      ${CONTROL_TEXT_CLASS}
+      hover:text-slate-950
       active:translate-y-0
     `,
   };

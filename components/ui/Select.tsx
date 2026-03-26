@@ -6,9 +6,15 @@ import {
   CONTROL_BOX_SHADOW,
   CONTROL_BOX_SHADOW_FOCUS,
   CONTROL_BOX_SHADOW_HOVER,
+  CONTROL_BORDER_COLOR,
+  CONTROL_BORDER_COLOR_FOCUS,
+  CONTROL_BORDER_COLOR_HOVER,
   CONTROL_HEIGHT_PX,
+  CONTROL_PANEL_BG,
   CONTROL_RADIUS_PX,
   CONTROL_RING,
+  CONTROL_SURFACE_BG,
+  CONTROL_SURFACE_BG_HOVER,
 } from "./controlStyles";
 
 export type SelectOption = {
@@ -19,8 +25,8 @@ export type SelectOption = {
 const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOption>> = {
   control: (provided, state) => ({
     ...provided,
-    backgroundColor: state.isFocused ? "rgba(255, 255, 255, 0.98)" : "rgba(255, 255, 255, 0.88)",
-    borderColor: state.isFocused ? "rgba(59, 130, 246, 1)" : "rgba(226, 232, 240, 0.9)",
+    backgroundColor: state.isFocused ? CONTROL_SURFACE_BG_HOVER : CONTROL_SURFACE_BG,
+    borderColor: state.isFocused ? CONTROL_BORDER_COLOR_FOCUS : CONTROL_BORDER_COLOR,
     borderRadius: `${CONTROL_RADIUS_PX}px`,
     minHeight: `${CONTROL_HEIGHT_PX}px`,
     height: `${CONTROL_HEIGHT_PX}px`,
@@ -33,8 +39,8 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
     backdropFilter: "blur(10px)",
     transform: state.isFocused ? "translateY(-1px)" : undefined,
     "&:hover": {
-      borderColor: state.isFocused ? "rgba(59, 130, 246, 1)" : "rgba(148, 163, 184, 0.9)",
-      backgroundColor: "rgba(255, 255, 255, 0.98)",
+      borderColor: state.isFocused ? CONTROL_BORDER_COLOR_FOCUS : CONTROL_BORDER_COLOR_HOVER,
+      backgroundColor: CONTROL_SURFACE_BG_HOVER,
       boxShadow: state.isFocused
         ? `${CONTROL_RING}, ${CONTROL_BOX_SHADOW_FOCUS}`
         : CONTROL_BOX_SHADOW_HOVER,
@@ -81,10 +87,10 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
   }),
   menu: (provided) => ({
     ...provided,
-    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    backgroundColor: CONTROL_PANEL_BG,
     borderRadius: `${CONTROL_RADIUS_PX + 4}px`,
-    border: "1px solid rgba(226, 232, 240, 1)",
-    boxShadow: "0 20px 45px rgba(15, 23, 42, 0.1)",
+    border: `1px solid ${CONTROL_BORDER_COLOR}`,
+    boxShadow: "0 18px 36px rgba(15, 23, 42, 0.1)",
     overflow: "hidden",
     zIndex: 100,
     marginTop: 8,
@@ -144,7 +150,7 @@ export default function CustomSelect({
   const selectedOption = options.find((opt) => opt.value === value) || null;
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="rounded-[14px]">
       <Select<SelectOption, false, GroupBase<SelectOption>>
         options={options}
         value={selectedOption}

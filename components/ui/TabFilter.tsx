@@ -1,6 +1,13 @@
 import React from "react";
 import { Home, Gift, FileText, Star, Ticket, Users, UserCog, BarChart3 } from "lucide-react";
-import { CONTROL_HEIGHT_PX, CONTROL_PANEL_RADIUS_CLASS } from "./controlStyles";
+import {
+  CONTROL_HEIGHT_PX,
+  CONTROL_INNER_RADIUS_CLASS,
+  CONTROL_PANEL_RADIUS_CLASS,
+  CONTROL_PANEL_SUBTLE_CLASS,
+  CONTROL_PRIMARY_GRADIENT_CLASS,
+  CONTROL_PRIMARY_SHADOW_CLASS,
+} from "./controlStyles";
 
 const iconMap: Record<string, React.ElementType> = {
   home: Home,
@@ -47,8 +54,8 @@ export const TabFilter = <T extends string>({
                 flex-1 flex flex-col items-center justify-center py-3 px-1 text-xs font-bold rounded-2xl whitespace-nowrap transition-all duration-200 min-h-[64px]
                 ${
                   isActive
-                    ? "text-blue-600 bg-gradient-to-b from-blue-50 to-blue-100 shadow-inner"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    ? `${CONTROL_PRIMARY_GRADIENT_CLASS} text-white ${CONTROL_PRIMARY_SHADOW_CLASS}`
+                    : "text-slate-500 hover:text-slate-800 hover:bg-white/70"
                 }
               `}
             >
@@ -67,7 +74,7 @@ export const TabFilter = <T extends string>({
 
   return (
     <div
-      className={`inline-flex items-center gap-1 ${CONTROL_PANEL_RADIUS_CLASS} border border-slate-200/90 bg-white/88 p-0.5 shadow-[0_10px_24px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm ${className}`}
+      className={`inline-flex items-center gap-1 p-0.5 ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS} ${className}`}
       style={{ height: CONTROL_HEIGHT_PX, minHeight: CONTROL_HEIGHT_PX }}
     >
       {items.map((tab) => {
@@ -78,11 +85,11 @@ export const TabFilter = <T extends string>({
             onClick={() => onFilterChange(tab.key)}
             style={{ height: CONTROL_HEIGHT_PX - 4 }}
             className={`
-              relative rounded-[12px] px-4 py-0 text-sm font-semibold whitespace-nowrap transition-all duration-200
+              relative px-4 py-0 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${CONTROL_INNER_RADIUS_CLASS}
               ${
                 isActive
-                  ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)]"
-                  : "text-slate-500 hover:-translate-y-px hover:bg-white hover:text-slate-900 hover:shadow-[0_10px_20px_rgba(15,23,42,0.10)]"
+                  ? `${CONTROL_PRIMARY_GRADIENT_CLASS} text-white ${CONTROL_PRIMARY_SHADOW_CLASS}`
+                  : "text-slate-500 hover:-translate-y-px hover:bg-white hover:text-slate-900 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
               }
             `}
           >

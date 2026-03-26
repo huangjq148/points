@@ -340,36 +340,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const mergedEndAdornment: React.ReactNode[] = [];
 
 
-    const handleClear = () => {
-      if (disabled) return;
-
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      if (!isControlled) {
-        setUncontrolledValue('');
-      }
-
-      const node = inputRef.current;
-
-      if (node) {
-        const nativeSetter = Object.getOwnPropertyDescriptor(
-          HTMLInputElement.prototype,
-          'value',
-        )?.set;
-
-        nativeSetter?.call(node, '');
-
-        const inputEvent = new Event('input', { bubbles: true });
-        node.dispatchEvent(inputEvent);
-        node.focus();
-      }
-
-      emitValueChange('', true);
-      onClear?.();
-    };
-
     if (loading) {
       mergedEndAdornment.push(
         <span
@@ -476,6 +446,36 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       debounceTimerRef.current = setTimeout(() => {
         onValueChange(nextValue);
       }, debounceDelay);
+    };
+
+    const handleClear = () => {
+      if (disabled) return;
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      if (!isControlled) {
+        setUncontrolledValue('');
+      }
+
+      const node = inputRef.current;
+
+      if (node) {
+        const nativeSetter = Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          'value',
+        )?.set;
+
+        nativeSetter?.call(node, '');
+
+        const inputEvent = new Event('input', { bubbles: true });
+        node.dispatchEvent(inputEvent);
+        node.focus();
+      }
+
+      emitValueChange('', true);
+      onClear?.();
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

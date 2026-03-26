@@ -1,7 +1,11 @@
 import React from 'react';
 import Button from './Button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { CONTROL_PANEL_RADIUS_CLASS } from './controlStyles';
+import {
+  CONTROL_HEIGHT_CLASS,
+  CONTROL_PANEL_RADIUS_CLASS,
+  CONTROL_PANEL_SUBTLE_CLASS,
+} from './controlStyles';
 
 interface PaginationProps {
   currentPage: number;
@@ -33,7 +37,9 @@ const Pagination: React.FC<PaginationProps> = ({
         <ChevronLeft size={16} />
         上一页
       </Button>
-      <span className={`inline-flex h-11 min-h-11 items-center ${CONTROL_PANEL_RADIUS_CLASS} border border-slate-200/90 bg-white/88 px-4 text-sm font-medium text-slate-600 shadow-[0_10px_24px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm`}>
+      <span
+        className={`inline-flex items-center px-4 text-sm font-medium text-slate-600 ${CONTROL_HEIGHT_CLASS} ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS}`}
+      >
         第 {currentPage} 页 / 共 {totalPages} 页
       </span>
       <Button

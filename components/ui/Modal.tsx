@@ -5,6 +5,13 @@ import ReactDOM from "react-dom";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "./Button";
+import {
+  CONTROL_HEIGHT_CLASS,
+  CONTROL_INNER_RADIUS_CLASS,
+  CONTROL_OVERLAY_CLASS,
+  CONTROL_PANEL_CLASS,
+  CONTROL_PANEL_RADIUS_CLASS,
+} from "./controlStyles";
 
 type ModalId = symbol;
 type ModalListener = () => void;
@@ -131,10 +138,10 @@ export default function Modal({
     alertType === "error" ? "❌" : alertType === "success" ? "✅" : "ℹ️";
   const alertColorClass =
     alertType === "error"
-      ? "bg-red-100 text-red-600"
+      ? "bg-rose-100 text-rose-600"
       : alertType === "success"
-      ? "bg-green-100 text-green-600"
-      : "bg-blue-100 text-blue-600";
+      ? "bg-emerald-100 text-emerald-600"
+      : "bg-slate-100 text-slate-600";
 
   const modalBody = alert ? (
     <motion.div
@@ -142,7 +149,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className="w-full max-w-sm transform overflow-hidden rounded-[1.85rem] border border-white/70 bg-white/96 p-6 shadow-[0_24px_70px_rgba(15,23,42,0.18)] backdrop-blur-xl transition-all"
+      className={`w-full max-w-sm transform overflow-hidden p-6 transition-all ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS}`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="text-center">
@@ -153,7 +160,7 @@ export default function Modal({
         <p className="mb-6 whitespace-pre-line text-sm leading-6 text-slate-500">{alert.message}</p>
         {children && <div className="text-left text-sm text-slate-600">{children}</div>}
       </div>
-      <Button onClick={onClose} variant="primary" fullWidth className="mt-2 rounded-full">
+      <Button onClick={onClose} variant="primary" fullWidth className="mt-2">
         {alert.confirmText ?? "确定"}
       </Button>
     </motion.div>
@@ -163,7 +170,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className={`w-full overflow-hidden rounded-[2rem] border border-white/70 bg-white/96 shadow-[0_24px_80px_rgba(15,23,42,0.18)] backdrop-blur-xl ${className}`}
+      className={`w-full overflow-hidden ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS} ${className}`}
       style={{
         maxWidth: typeof width === "number" ? width : undefined,
         width: "100%",
@@ -178,7 +185,7 @@ export default function Modal({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-100 bg-slate-50 text-slate-500 shadow-sm transition-colors hover:bg-slate-100 hover:text-slate-700"
+              className={`flex w-11 flex-shrink-0 cursor-pointer items-center justify-center border border-slate-200/80 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700 ${CONTROL_HEIGHT_CLASS} ${CONTROL_INNER_RADIUS_CLASS}`}
             >
               <X size={20} />
             </button>
@@ -205,7 +212,7 @@ export default function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-md"
+          className={`fixed inset-0 flex items-center justify-center p-4 ${CONTROL_OVERLAY_CLASS}`}
           style={{ zIndex: overlayZIndex }}
           onPointerDownCapture={() => modalStackManager.add(modalIdRef.current)}
           onClick={onClose}
