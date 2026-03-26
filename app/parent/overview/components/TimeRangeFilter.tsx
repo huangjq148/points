@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useReducer } from "react";
 import ReactDOM from "react-dom";
 import { Calendar, ChevronDown } from "lucide-react";
 
@@ -31,34 +31,31 @@ export default function TimeRangeFilter({
   const [showCustomDate, setShowCustomDate] = useState(value === "custom");
   const [startDate, setStartDate] = useState(customStartDate || "");
   const [endDate, setEndDate] = useState(customEndDate || "");
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
-  const [isPositionReady, setIsPositionReady] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [portalReady, setPortalReady] = useState(false);
-
-  useEffect(() => {
-    setPortalReady(true);
-  }, []);
+  const [buttonEl, setButtonEl] = useState<HTMLButtonElement | null>(null);
+  const [dropdownEl, setDropdownEl] = useState<HTMLDivElement | null>(null);
+  const [, forcePositionUpdate] = useReducer((value: number) => value + 1, 0);
 
   const selectedLabel = options.find((o) => o.value === value)?.label || "本周";
+  const shouldShowDropdown = isOpen || showCustomDate;
+  const dropdownPosition = (() => {
+    if (!shouldShowDropdown || !buttonEl) {
+      return { top: 0, left: 0 };
+    }
+
+    const rect = buttonEl.getBoundingClientRect();
+    return {
+      top: rect.bottom + 8,
+      left: rect.left,
+    };
+  })();
 
   useLayoutEffect(() => {
-    if (!(isOpen || showCustomDate)) return;
+    if (!shouldShowDropdown) return;
 
     const updatePosition = () => {
-      if (!buttonRef.current) return;
-
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + 8,
-        left: rect.left,
-      });
-      setIsPositionReady(true);
+      forcePositionUpdate();
     };
 
-    setIsPositionReady(false);
-    updatePosition();
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
 
@@ -66,7 +63,7 @@ export default function TimeRangeFilter({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, showCustomDate]);
+  }, [shouldShowDropdown]);
 
   useEffect(() => {
     if (!(isOpen || showCustomDate)) return;
@@ -74,8 +71,8 @@ export default function TimeRangeFilter({
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node | null;
       if (!target) return;
-      if (buttonRef.current?.contains(target)) return;
-      if (dropdownRef.current?.contains(target)) return;
+      if (buttonEl?.contains(target)) return;
+      if (dropdownEl?.contains(target)) return;
       setIsOpen(false);
       setShowCustomDate(false);
     };
@@ -87,7 +84,7 @@ export default function TimeRangeFilter({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("touchstart", handlePointerDown);
     };
-  }, [isOpen, showCustomDate]);
+  }, [isOpen, showCustomDate, buttonEl, dropdownEl]);
 
   const handleSelect = (range: TimeRange) => {
     if (range === "custom") {
@@ -123,7 +120,7 @@ export default function TimeRangeFilter({
   return (
     <div className="relative">
       <button
-        ref={buttonRef}
+        ref={setButtonEl}
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
       >
@@ -135,14 +132,10 @@ export default function TimeRangeFilter({
         />
       </button>
 
-      {(isOpen || showCustomDate) && (
-        null
-      )}
-
-      {isOpen && portalReady && isPositionReady &&
+      {isOpen &&
         ReactDOM.createPortal(
           <div
-            ref={dropdownRef}
+            ref={setDropdownEl}
             className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] min-w-[120px] cursor-default"
             style={{
               top: dropdownPosition.top,
@@ -165,10 +158,10 @@ export default function TimeRangeFilter({
         )}
 
       {/* 自定义日期选择器 */}
-      {showCustomDate && portalReady && isPositionReady &&
+      {showCustomDate &&
         ReactDOM.createPortal(
           <div
-            ref={dropdownRef}
+            ref={setDropdownEl}
             className="fixed bg-white border border-slate-200 rounded-2xl shadow-xl z-[100] p-4 w-72 cursor-default"
             style={{
               top: dropdownPosition.top,

@@ -1,7 +1,7 @@
 "use client";
 
 import Select, { GroupBase, StylesConfig } from "react-select";
-import { useEffect, useState, useRef } from "react";
+import { useState } from "react";
 import {
   CONTROL_BOX_SHADOW,
   CONTROL_BOX_SHADOW_FOCUS,
@@ -136,21 +136,13 @@ export default function CustomSelect({
   styles?: StylesConfig<SelectOption, false, GroupBase<SelectOption>>;
   menuPortalTarget?: HTMLElement | null;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [shouldUsePortal, setShouldUsePortal] = useState(false);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      // 自动识别是否在 Modal 内部
-      const isInModal = !!containerRef.current.closest(".modal-content");
-      setShouldUsePortal(isInModal);
-    }
-  }, []);
+  const [container, setContainer] = useState<HTMLDivElement | null>(null);
+  const shouldUsePortal = !!container?.closest(".modal-content") || !!container?.closest(".drawer-content");
 
   const selectedOption = options.find((opt) => opt.value === value) || null;
 
   return (
-    <div ref={containerRef} className="rounded-[14px]">
+    <div ref={setContainer} className="rounded-[14px]">
       <Select<SelectOption, false, GroupBase<SelectOption>>
         options={options}
         value={selectedOption}

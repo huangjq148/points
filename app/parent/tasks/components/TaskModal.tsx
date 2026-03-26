@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Modal, DatePicker, Image } from '@/components/ui';
+import { Button, Drawer, DatePicker, Image } from '@/components/ui';
 import Input from '@/components/ui/Input';
 import { User } from '@/context/AppContext';
 import { Camera } from 'lucide-react';
@@ -78,32 +78,8 @@ export default function TaskModal({
   const weekModeActive = mode === "add" && scheduleMode === "week";
   const weekBounds = taskData.weekReference ? getWeekBounds(taskData.weekReference) : null;
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={mode === 'add' ? '添加新任务' : '编辑任务'}
-      width={600}
-      noInternalScroll={true}
-      footer={
-        <div className='flex gap-3 w-full'>
-          <Button
-            onClick={onClose}
-            variant='error'
-            className='flex-1 py-3 font-semibold'
-          >
-            取消
-          </Button>
-          <Button
-            onClick={onSubmit}
-            className='flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors'
-          >
-            {mode === 'add' ? '确认添加' : '保存修改'}
-          </Button>
-        </div>
-      }
-    >
-      <div className='space-y-5 pt-2 pb-6 max-h-[calc(80vh-200px)] overflow-y-auto custom-scrollbar pr-2 pl-2'>
+  const formBody = (
+    <div className='space-y-5 pt-2 pb-6 pr-2 pl-2'>
         {mode === 'add' && childList && toggleChild && (
           <div>
             <label className='block text-sm font-medium text-slate-700 mb-2'>
@@ -456,6 +432,36 @@ export default function TaskModal({
         </div>
 
       </div>
-    </Modal>
+  );
+
+  const footer = (
+    <div className='flex gap-3 w-full'>
+      <Button
+        onClick={onClose}
+        variant='error'
+        className='flex-1 py-3 font-semibold'
+      >
+        取消
+      </Button>
+      <Button
+        onClick={onSubmit}
+        className='flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors'
+      >
+        {mode === 'add' ? '确认添加' : '保存修改'}
+      </Button>
+    </div>
+  );
+
+  return (
+    <Drawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={mode === 'add' ? '添加新任务' : '编辑任务'}
+      width={mode === 'add' ? 'min(100vw, 560px)' : 'min(100vw, 640px)'}
+      noInternalScroll={false}
+      footer={footer}
+    >
+      {formBody}
+    </Drawer>
   );
 }

@@ -702,8 +702,8 @@ export default function ChildHome() {
               const isCompletedToday =
                 isCompleted &&
                 !!deadline &&
-                deadline.valueOf() >= todayStart.valueOf() &&
-                deadline.valueOf() <= todayEnd.valueOf();
+                deadline.valueOf() >= todayStartValue &&
+                deadline.valueOf() <= todayEndValue;
               const isDisabled = isFutureToday;
               const stateLabel = isCompletedToday
                 ? '今日已完成'

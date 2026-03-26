@@ -387,8 +387,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
               setSelectedTask(task);
             }}
             variant="secondary"
-            className="p-1.5 h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+            className="!h-8 !min-h-8 !w-8 !px-0 !py-0 rounded-full !border !border-slate-200 !bg-slate-50 !text-slate-600 hover:!bg-slate-100 hover:!text-slate-800 hover:!border-slate-300 shadow-none hover:shadow-sm"
+            style={{ width: 32, height: 32, minHeight: 32 }}
             title="查看详情"
+            aria-label="查看任务详情"
           >
             <Eye size={15} />
           </Button>
@@ -400,8 +402,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   onEdit(task);
                 }}
                 variant="secondary"
-                className="p-1.5 h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-50 rounded-xl transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+                className="!h-8 !min-h-8 !w-8 !px-0 !py-0 rounded-full !border !border-blue-100 !bg-blue-50 !text-blue-600 hover:!bg-blue-100 hover:!text-blue-700 hover:!border-blue-200 shadow-none hover:shadow-sm"
+                style={{ width: 32, height: 32, minHeight: 32 }}
                 title="编辑任务"
+                aria-label="编辑任务"
               >
                 <Edit2 size={15} />
               </Button>
@@ -411,8 +415,10 @@ export default function TaskTable({ tasks, now, onEdit, onDelete }: TaskTablePro
                   onDelete(task._id);
                 }}
                 variant="secondary"
-                className="p-1.5 h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border-none bg-transparent shadow-none hover:shadow-sm"
+                className="!h-8 !min-h-8 !w-8 !px-0 !py-0 rounded-full !border !border-rose-100 !bg-rose-50 !text-rose-600 hover:!bg-rose-100 hover:!text-rose-700 hover:!border-rose-200 shadow-none hover:shadow-sm"
+                style={{ width: 32, height: 32, minHeight: 32 }}
                 title="删除任务"
+                aria-label="删除任务"
               >
                 <Trash2 size={15} />
               </Button>

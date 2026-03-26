@@ -74,7 +74,16 @@ export default function FeatureGrid({ completedTasksCount, privilegedCount, urge
     .filter((reward) => reward.expiresAt)
     .map((reward) => reward.expiresAt as string)
     .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0];
-  const features = [
+  const features: Array<{
+    icon: string;
+    title: string;
+    description: string;
+    gradient: string;
+    badge?: string;
+    variant?: FeatureCardProps["variant"];
+    span?: FeatureCardProps["span"];
+    path: string;
+  }> = [
     { 
       icon: '🎁', 
       title: '星际商城', 
