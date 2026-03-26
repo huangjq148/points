@@ -11,6 +11,7 @@ import {
   CONTROL_HEIGHT_CLASS,
   CONTROL_RADIUS_CLASS,
   CONTROL_SURFACE_CLASS,
+  CONTROL_WRAPPER_RADIUS_CLASS,
 } from "./controlStyles";
 
 registerLocale("zh-CN", zhCN);
@@ -59,7 +60,10 @@ const CustomDatePicker = memo(({
   `.trim().replace(/\s+/g, ' ');
 
   return (
-    <div ref={containerRef} className={`relative w-full group ${icon && iconPosition === 'right' ? 'has-right-icon' : ''}`}>
+    <div
+      ref={containerRef}
+      className={`relative w-full group ${CONTROL_WRAPPER_RADIUS_CLASS} overflow-hidden ${icon && iconPosition === 'right' ? 'has-right-icon' : ''}`}
+    >
       {icon && (
         <div className={`
           absolute top-1/2 -translate-y-1/2 text-gray-400 z-20 transition-colors group-focus-within:text-blue-500

@@ -1,6 +1,6 @@
 import React from "react";
 import { Home, Gift, FileText, Star, Ticket, Users, UserCog, BarChart3 } from "lucide-react";
-import { CONTROL_HEIGHT_PX } from "./controlStyles";
+import { CONTROL_HEIGHT_PX, CONTROL_PANEL_RADIUS_CLASS } from "./controlStyles";
 
 const iconMap: Record<string, React.ElementType> = {
   home: Home,
@@ -67,7 +67,7 @@ export const TabFilter = <T extends string>({
 
   return (
     <div
-      className={`inline-flex items-center gap-1 rounded-[14px] border border-slate-200/90 bg-white/88 p-0.5 shadow-[0_10px_24px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm ${className}`}
+      className={`inline-flex items-center gap-1 ${CONTROL_PANEL_RADIUS_CLASS} border border-slate-200/90 bg-white/88 p-0.5 shadow-[0_10px_24px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-sm ${className}`}
       style={{ height: CONTROL_HEIGHT_PX, minHeight: CONTROL_HEIGHT_PX }}
     >
       {items.map((tab) => {

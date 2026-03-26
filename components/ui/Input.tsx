@@ -11,6 +11,7 @@ import {
   CONTROL_HEIGHT_CLASS,
   CONTROL_HEIGHT_PX,
   CONTROL_RADIUS_CLASS,
+  CONTROL_WRAPPER_RADIUS_CLASS,
 } from './controlStyles';
 
 type InputSize = 'sm' | 'md' | 'lg';
@@ -338,6 +339,37 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const mergedEndAdornment: React.ReactNode[] = [];
 
+
+    const handleClear = () => {
+      if (disabled) return;
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      if (!isControlled) {
+        setUncontrolledValue('');
+      }
+
+      const node = inputRef.current;
+
+      if (node) {
+        const nativeSetter = Object.getOwnPropertyDescriptor(
+          HTMLInputElement.prototype,
+          'value',
+        )?.set;
+
+        nativeSetter?.call(node, '');
+
+        const inputEvent = new Event('input', { bubbles: true });
+        node.dispatchEvent(inputEvent);
+        node.focus();
+      }
+
+      emitValueChange('', true);
+      onClear?.();
+    };
+
     if (loading) {
       mergedEndAdornment.push(
         <span
@@ -457,36 +489,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       emitValueChange(nextValue);
     };
 
-    const handleClear = () => {
-      if (disabled) return;
-
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      if (!isControlled) {
-        setUncontrolledValue('');
-      }
-
-      const node = inputRef.current;
-
-      if (node) {
-        const nativeSetter = Object.getOwnPropertyDescriptor(
-          HTMLInputElement.prototype,
-          'value',
-        )?.set;
-
-        nativeSetter?.call(node, '');
-
-        const inputEvent = new Event('input', { bubbles: true });
-        node.dispatchEvent(inputEvent);
-        node.focus();
-      }
-
-      emitValueChange('', true);
-      onClear?.();
-    };
-
     const finalEndNodes = mergedEndAdornment;
 
     const rightPadding = hasRightSection
@@ -523,7 +525,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div
           className={cx(labelPosition === 'left' ? 'flex-1 min-w-0' : 'w-full')}
         >
-          <div className={cx('relative', inputWrapperClassName)}>
+          <div
+            className={cx(
+              'relative',
+              CONTROL_WRAPPER_RADIUS_CLASS,
+              'overflow-hidden',
+              inputWrapperClassName,
+            )}
+          >
             {hasLeftSection && (
               <div
                 className={cx(

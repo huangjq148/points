@@ -1,5 +1,7 @@
 export const CONTROL_HEIGHT_PX = 44;
 export const CONTROL_RADIUS_PX = 14;
+export const CONTROL_WRAPPER_RADIUS_CLASS = 'rounded-[14px]';
+export const CONTROL_PANEL_RADIUS_CLASS = 'rounded-[14px]';
 
 export const CONTROL_HEIGHT_CLASS = 'h-11 min-h-11';
 export const CONTROL_RADIUS_CLASS = 'rounded-[14px]';
