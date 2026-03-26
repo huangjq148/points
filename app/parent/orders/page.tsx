@@ -11,6 +11,8 @@ import request from '@/utils/request';
 import {
   BadgeCheck,
   CircleCheckBig,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   CreditCard,
   Gift,
@@ -30,25 +32,42 @@ import {
 function OrdersPage() {
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get('status');
-  const initialActiveTab: 'pending' | 'history' =
-    initialStatus === 'history' ? 'history' : 'pending';
+  const initialActiveTab: 'pending' | 'verified' | 'cancelled' =
+    initialStatus === 'cancelled'
+      ? 'cancelled'
+      : initialStatus === 'history' || initialStatus === 'verified'
+        ? 'verified'
+        : 'pending';
   const initialChildFilter = searchParams.get('childId') || 'all';
   const { childList } = useApp();
-  const [activeTab, setActiveTab] = useState<'pending' | 'history'>(
-    initialActiveTab,
-  );
+  const [activeTab, setActiveTab] = useState<
+    'pending' | 'verified' | 'cancelled'
+  >(initialActiveTab);
   const [pendingOrders, setPendingOrders] = useState<IDisplayedOrder[]>([]);
-  const [historyOrders, setHistoryOrders] = useState<IDisplayedOrder[]>([]);
-  const [historyPage, setHistoryPage] = useState(1);
-  const [historyTotal, setHistoryTotal] = useState(0);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [pendingTotal, setPendingTotal] = useState(0);
+  const [verifiedOrders, setVerifiedOrders] = useState<IDisplayedOrder[]>([]);
+  const [cancelledOrders, setCancelledOrders] = useState<IDisplayedOrder[]>([]);
+  const [verifiedPage, setVerifiedPage] = useState(1);
+  const [verifiedTotal, setVerifiedTotal] = useState(0);
+  const [cancelledPage, setCancelledPage] = useState(1);
+  const [cancelledTotal, setCancelledTotal] = useState(0);
   const [selectedChildFilter, setSelectedChildFilter] =
     useState<string>(initialChildFilter);
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const historyPageCount = useMemo(
-    () => Math.max(1, Math.ceil(historyTotal / 10)),
-    [historyTotal],
+  const pendingPageCount = useMemo(
+    () => Math.max(1, Math.ceil(pendingTotal / 10)),
+    [pendingTotal],
+  );
+  const verifiedPageCount = useMemo(
+    () => Math.max(1, Math.ceil(verifiedTotal / 10)),
+    [verifiedTotal],
+  );
+  const cancelledPageCount = useMemo(
+    () => Math.max(1, Math.ceil(cancelledTotal / 10)),
+    [cancelledTotal],
   );
 
   const fetchOrders = useCallback(
@@ -76,31 +95,43 @@ function OrdersPage() {
   );
 
   const refreshPending = useCallback(async () => {
-    const { orders } = await fetchOrders('pending', 1, 100);
+    const { orders, total } = await fetchOrders('pending', pendingPage, 10);
     setPendingOrders(orders);
-  }, [fetchOrders]);
+    setPendingTotal(total);
+  }, [fetchOrders, pendingPage]);
 
-  const refreshHistory = useCallback(async () => {
-    const { orders, total } = await fetchOrders(
-      'verified,cancelled',
-      historyPage,
-      10,
-    );
-    setHistoryOrders(orders);
-    setHistoryTotal(total);
-  }, [fetchOrders, historyPage]);
+  const refreshVerified = useCallback(async () => {
+    const { orders, total } = await fetchOrders('verified', verifiedPage, 10);
+    setVerifiedOrders(orders);
+    setVerifiedTotal(total);
+  }, [fetchOrders, verifiedPage]);
 
-  useEffect(() => {
-    void Promise.all([refreshPending(), refreshHistory()]);
-  }, [refreshHistory, refreshPending]);
-
-  useEffect(() => {
-    if (activeTab !== 'history') return;
-    void refreshHistory();
-  }, [activeTab, refreshHistory]);
+  const refreshCancelled = useCallback(async () => {
+    const { orders, total } = await fetchOrders('cancelled', cancelledPage, 10);
+    setCancelledOrders(orders);
+    setCancelledTotal(total);
+  }, [fetchOrders, cancelledPage]);
 
   useEffect(() => {
-    setHistoryPage(1);
+    void Promise.all([refreshPending(), refreshVerified(), refreshCancelled()]);
+  }, [refreshCancelled, refreshPending, refreshVerified]);
+
+  useEffect(() => {
+    if (activeTab === 'pending') {
+      void refreshPending();
+    }
+    if (activeTab === 'verified') {
+      void refreshVerified();
+    }
+    if (activeTab === 'cancelled') {
+      void refreshCancelled();
+    }
+  }, [activeTab, refreshCancelled, refreshPending, refreshVerified]);
+
+  useEffect(() => {
+    setPendingPage(1);
+    setVerifiedPage(1);
+    setCancelledPage(1);
   }, [selectedChildFilter]);
 
   const handleVerifyOrder = async (orderId: string) => {
@@ -111,8 +142,9 @@ function OrdersPage() {
         body: { orderId, action: 'verify' },
       });
       await refreshPending();
-      if (activeTab === 'history') {
-        await refreshHistory();
+      await refreshVerified();
+      if (activeTab === 'cancelled') {
+        await refreshCancelled();
       }
     } finally {
       setActionLoading(false);
@@ -127,9 +159,8 @@ function OrdersPage() {
         body: { orderId, action: 'cancel' },
       });
       await refreshPending();
-      if (activeTab === 'history') {
-        await refreshHistory();
-      }
+      await refreshCancelled();
+      if (activeTab === 'verified') await refreshVerified();
       setCancelOrderId(null);
     } finally {
       setActionLoading(false);
@@ -137,8 +168,9 @@ function OrdersPage() {
   };
 
   const orderTabs = [
-    { key: 'pending', label: `待核销 (${pendingOrders.length})` },
-    { key: 'history', label: '核销记录' },
+    { key: 'pending', label: `待核销 (${pendingTotal})` },
+    { key: 'verified', label: `已核销 (${verifiedTotal})` },
+    { key: 'cancelled', label: `已取消 (${cancelledTotal})` },
   ] as const;
 
   const pendingTotalPoints = useMemo(
@@ -148,13 +180,13 @@ function OrdersPage() {
   );
 
   const verifiedCount = useMemo(
-    () => historyOrders.filter((order) => order.status === 'verified').length,
-    [historyOrders],
+    () => verifiedTotal,
+    [verifiedTotal],
   );
 
   const cancelledCount = useMemo(
-    () => historyOrders.filter((order) => order.status === 'cancelled').length,
-    [historyOrders],
+    () => cancelledTotal,
+    [cancelledTotal],
   );
 
   const filteredPendingOrders = useMemo(() => {
@@ -169,17 +201,29 @@ function OrdersPage() {
     });
   }, [pendingOrders, searchQuery]);
 
-  const filteredHistoryOrders = useMemo(() => {
+  const filteredVerifiedOrders = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
-    if (!keyword) return historyOrders;
-    return historyOrders.filter((order) => {
+    if (!keyword) return verifiedOrders;
+    return verifiedOrders.filter((order) => {
       return (
         order.rewardName.toLowerCase().includes(keyword) ||
         order.childName.toLowerCase().includes(keyword) ||
         order.verificationCode.toLowerCase().includes(keyword)
       );
     });
-  }, [historyOrders, searchQuery]);
+  }, [verifiedOrders, searchQuery]);
+
+  const filteredCancelledOrders = useMemo(() => {
+    const keyword = searchQuery.trim().toLowerCase();
+    if (!keyword) return cancelledOrders;
+    return cancelledOrders.filter((order) => {
+      return (
+        order.rewardName.toLowerCase().includes(keyword) ||
+        order.childName.toLowerCase().includes(keyword) ||
+        order.verificationCode.toLowerCase().includes(keyword)
+      );
+    });
+  }, [cancelledOrders, searchQuery]);
 
   return (
     <div className='space-y-6'>
@@ -197,7 +241,7 @@ function OrdersPage() {
       <section className='grid gap-3 sm:grid-cols-2 xl:grid-cols-4'>
         <StatCard
           title='待核销'
-          value={pendingOrders.length}
+          value={pendingTotal}
           icon={<Ticket size={16} className='text-blue-500' />}
           hint='需要你确认的订单'
         />
@@ -211,7 +255,7 @@ function OrdersPage() {
           title='已核销'
           value={verifiedCount}
           icon={<CircleCheckBig size={16} className='text-emerald-500' />}
-          hint='历史列表中的成功订单'
+          hint='已完成核销的订单总数'
         />
         <StatCard
           title='已取消'
@@ -228,7 +272,7 @@ function OrdersPage() {
               items={orderTabs}
               activeKey={activeTab}
               onFilterChange={(key) =>
-                setActiveTab(key as 'pending' | 'history')
+                setActiveTab(key as 'pending' | 'verified' | 'cancelled')
               }
               className='shrink-0 [&_button]:h-11 [&_button]:px-5 [&_button]:py-0 [&_button]:tracking-wide'
             />
@@ -280,13 +324,13 @@ function OrdersPage() {
                   statusLabel='待核销'
                   statusTone='amber'
                   actionArea={
-                    <div className='flex flex-wrap items-center gap-2'>
+                    <div className='flex w-full items-center gap-2 whitespace-nowrap'>
                       <Button
                         size='sm'
                         variant='success'
                         onClick={() => handleVerifyOrder(order._id)}
                         disabled={actionLoading}
-                        className='min-w-[110px]'
+                        className='min-w-0 flex-1'
                       >
                         <BadgeCheck size={16} />
                         确认核销
@@ -296,7 +340,7 @@ function OrdersPage() {
                         variant='error'
                         onClick={() => setCancelOrderId(order._id)}
                         disabled={actionLoading}
-                        className='min-w-[90px]'
+                        className='min-w-0 px-4'
                       >
                         取消
                       </Button>
@@ -307,6 +351,26 @@ function OrdersPage() {
             </div>
 
             <div className='space-y-4'>
+              <SummaryPanel
+                title='待核销分页'
+                rows={[
+                  ['当前页', `${pendingPage}`],
+                  ['总页数', `${pendingPageCount}`],
+                  ['总记录', `${pendingTotal}`],
+                ]}
+                compact
+              >
+                <InlinePagination
+                  currentPage={pendingPage}
+                  totalPages={pendingPageCount}
+                  onPageChange={setPendingPage}
+                  onPrev={() => setPendingPage((p) => Math.max(1, p - 1))}
+                  onNext={() =>
+                    setPendingPage((p) => Math.min(pendingPageCount, p + 1))
+                  }
+                />
+              </SummaryPanel>
+
               <SummaryPanel
                 title='当前筛选'
                 rows={[
@@ -325,12 +389,12 @@ function OrdersPage() {
             </div>
           </div>
         )
-      ) : (
+      ) : activeTab === 'verified' ? (
         <>
-          {filteredHistoryOrders.length === 0 ? (
+          {filteredVerifiedOrders.length === 0 ? (
             <EmptyState
-              title='暂无核销记录'
-              hint='完成或取消的订单会在这里显示。'
+              title='暂无已核销记录'
+              hint='完成核销后的订单会在这里显示。'
             >
               <div className='mt-2 text-xs text-slate-400'>
                 可以切换孩子筛选或输入关键字查找记录。
@@ -339,18 +403,14 @@ function OrdersPage() {
           ) : (
             <div className='grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]'>
               <div className='space-y-4'>
-                {filteredHistoryOrders.map((order) => (
+                {filteredVerifiedOrders.map((order) => (
                   <OrderCard
                     key={order._id.toString()}
                     order={order}
-                    statusLabel={
-                      order.status === 'verified' ? '已核销' : '已取消'
-                    }
-                    statusTone={
-                      order.status === 'verified' ? 'emerald' : 'rose'
-                    }
+                    statusLabel='已核销'
+                    statusTone='emerald'
                     actionArea={
-                      <div className='text-right'>
+                      <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
                         <div className='text-xs font-semibold text-slate-500'>
                           完成时间
                         </div>
@@ -367,31 +427,85 @@ function OrdersPage() {
 
               <div className='space-y-4'>
                 <SummaryPanel
-                  title='历史分页'
+                  title='已核销分页'
                   rows={[
-                    ['当前页', `${historyPage}`],
-                    ['总页数', `${historyPageCount}`],
-                    ['总记录', `${historyTotal}`],
+                    ['当前页', `${verifiedPage}`],
+                    ['总页数', `${verifiedPageCount}`],
+                    ['总记录', `${verifiedTotal}`],
                   ]}
+                  compact
                 >
-                  <div className='mt-4 flex items-center justify-between gap-3'>
-                    <Button
-                      variant='secondary'
-                      disabled={historyPage === 1}
-                      onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
-                      className='text-slate-600 disabled:opacity-30'
-                    >
-                      上一页
-                    </Button>
-                    <Button
-                      variant='secondary'
-                      disabled={historyPage >= historyPageCount}
-                      onClick={() => setHistoryPage((p) => p + 1)}
-                      className='text-slate-600 disabled:opacity-30'
-                    >
-                      下一页
-                    </Button>
-                  </div>
+                  <InlinePagination
+                    currentPage={verifiedPage}
+                    totalPages={verifiedPageCount}
+                    onPageChange={setVerifiedPage}
+                    onPrev={() => setVerifiedPage((p) => Math.max(1, p - 1))}
+                    onNext={() =>
+                      setVerifiedPage((p) => Math.min(verifiedPageCount, p + 1))
+                    }
+                  />
+                </SummaryPanel>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          {filteredCancelledOrders.length === 0 ? (
+            <EmptyState
+              title='暂无已取消记录'
+              hint='取消兑换后的订单会在这里显示。'
+            >
+              <div className='mt-2 text-xs text-slate-400'>
+                可以切换孩子筛选或输入关键字查找记录。
+              </div>
+            </EmptyState>
+          ) : (
+            <div className='grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]'>
+              <div className='space-y-4'>
+                {filteredCancelledOrders.map((order) => (
+                  <OrderCard
+                    key={order._id.toString()}
+                    order={order}
+                    statusLabel='已取消'
+                    statusTone='rose'
+                    actionArea={
+                      <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
+                        <div className='text-xs font-semibold text-slate-500'>
+                          取消时间
+                        </div>
+                        <div className='text-sm font-medium text-slate-900'>
+                          {formatDate(order.updatedAt)}
+                        </div>
+                      </div>
+                    }
+                  />
+                ))}
+              </div>
+
+              <div className='space-y-4'>
+                <SummaryPanel
+                  title='已取消分页'
+                  rows={[
+                    ['当前页', `${cancelledPage}`],
+                    ['总页数', `${cancelledPageCount}`],
+                    ['总记录', `${cancelledTotal}`],
+                  ]}
+                  compact
+                >
+                  <InlinePagination
+                    currentPage={cancelledPage}
+                    totalPages={cancelledPageCount}
+                    onPageChange={setCancelledPage}
+                    onPrev={() =>
+                      setCancelledPage((p) => Math.max(1, p - 1))
+                    }
+                    onNext={() =>
+                      setCancelledPage((p) =>
+                        Math.min(cancelledPageCount, p + 1),
+                      )
+                    }
+                  />
                 </SummaryPanel>
               </div>
             </div>
@@ -406,19 +520,31 @@ function SummaryPanel({
   title,
   rows,
   children,
+  compact = false,
 }: {
   title: string;
   rows: [string, string | undefined][];
   children?: ReactNode;
+  compact?: boolean;
 }) {
   return (
     <div className='rounded-[28px] border border-slate-200/70 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
       <h3 className='text-base font-bold text-slate-900'>{title}</h3>
-      <div className='mt-4 space-y-2 text-sm text-slate-600'>
+      <div
+        className={
+          compact
+            ? 'mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600'
+            : 'mt-4 space-y-2 text-sm text-slate-600'
+        }
+      >
         {rows.map(([label, value]) => (
           <div
             key={label}
-            className='flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3'
+            className={
+              compact
+                ? 'inline-flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2.5'
+                : 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3'
+            }
           >
             <span>{label}</span>
             <span className='font-medium text-slate-900'>{value || '-'}</span>
@@ -426,6 +552,144 @@ function SummaryPanel({
         ))}
       </div>
       {children}
+    </div>
+  );
+}
+
+function InlinePagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  onPrev,
+  onNext,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  const [jumpValue, setJumpValue] = useState('');
+
+  useEffect(() => {
+    setJumpValue('');
+  }, [currentPage, totalPages]);
+
+  const pageItems = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    if (currentPage <= 4) {
+      return [1, 2, 3, 4, 5, 'ellipsis', totalPages] as const;
+    }
+
+    if (currentPage >= totalPages - 3) {
+      return [
+        1,
+        'ellipsis',
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ] as const;
+    }
+
+    return [
+      1,
+      'ellipsis',
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      'ellipsis',
+      totalPages,
+    ] as const;
+  }, [currentPage, totalPages]);
+
+  const handleJump = () => {
+    const page = Number(jumpValue);
+    if (!Number.isFinite(page)) return;
+    const nextPage = Math.min(totalPages, Math.max(1, page));
+    onPageChange(nextPage);
+  };
+
+  return (
+    <div className='mt-4 flex flex-wrap items-center gap-3'>
+      <Button
+        variant='secondary'
+        disabled={currentPage === 1}
+        onClick={onPrev}
+        className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
+      >
+        <ChevronLeft size={16} />
+      </Button>
+
+      <div className='flex items-center gap-2'>
+        {pageItems.map((item, index) =>
+          item === 'ellipsis' ? (
+            <div
+              key={`ellipsis-${index}`}
+              className='inline-flex h-11 min-w-[2.75rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-slate-300'
+            >
+              ...
+            </div>
+          ) : (
+            <button
+              key={item}
+              type='button'
+              onClick={() => onPageChange(item)}
+              className={
+                item === currentPage
+                  ? 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-blue-300 bg-blue-50 text-base font-bold text-blue-600 shadow-[0_8px_18px_rgba(59,130,246,0.12)]'
+                  : 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-transparent bg-transparent text-base font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800'
+              }
+            >
+              {item}
+            </button>
+          ),
+        )}
+      </div>
+
+      <Button
+        variant='secondary'
+        disabled={currentPage >= totalPages}
+        onClick={onNext}
+        className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
+      >
+        <ChevronRight size={16} />
+      </Button>
+
+      <div className='inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 shadow-sm'>
+        10 条/页
+      </div>
+
+      <div className='flex items-center gap-2 text-sm font-medium text-slate-600'>
+        <span>跳至</span>
+        <input
+          type='number'
+          min={1}
+          max={totalPages}
+          value={jumpValue}
+          onChange={(e) => setJumpValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleJump();
+            }
+          }}
+          className='h-11 w-20 rounded-2xl border border-slate-200 bg-white px-3 text-center text-sm font-semibold text-slate-800 shadow-sm outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100'
+        />
+        <span>页</span>
+      </div>
+
+      <Button
+        variant='secondary'
+        onClick={handleJump}
+        disabled={!jumpValue.trim()}
+        className='rounded-2xl px-4 text-slate-600 disabled:opacity-30'
+      >
+        跳转
+      </Button>
     </div>
   );
 }
@@ -441,55 +705,93 @@ function OrderCard({
   statusTone: 'slate' | 'emerald' | 'amber' | 'rose' | 'blue';
   actionArea: ReactNode;
 }) {
+  const isPending = statusTone === 'amber';
+  const accentClassMap: Record<typeof statusTone, string> = {
+    slate:
+      'from-slate-100/90 via-white to-slate-50 border-slate-200/80 text-slate-700 shadow-[0_12px_28px_rgba(100,116,139,0.12)]',
+    emerald:
+      'from-emerald-100/90 via-white to-emerald-50 border-emerald-200/80 text-emerald-700 shadow-[0_12px_28px_rgba(16,185,129,0.12)]',
+    amber:
+      'from-amber-100/90 via-white to-orange-50 border-amber-200/80 text-amber-700 shadow-[0_12px_28px_rgba(245,158,11,0.14)]',
+    rose:
+      'from-rose-100/90 via-white to-rose-50 border-rose-200/80 text-rose-700 shadow-[0_12px_28px_rgba(244,63,94,0.12)]',
+    blue:
+      'from-blue-100/90 via-white to-cyan-50 border-blue-200/80 text-blue-700 shadow-[0_12px_28px_rgba(59,130,246,0.12)]',
+  };
+
+  const accentGlowMap: Record<typeof statusTone, string> = {
+    slate: 'bg-slate-200/60',
+    emerald: 'bg-emerald-200/60',
+    amber: 'bg-amber-200/60',
+    rose: 'bg-rose-200/60',
+    blue: 'bg-blue-200/60',
+  };
+
   return (
-    <div className='group overflow-hidden rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(249,250,251,0.9)_100%)] p-5 shadow-[0_14px_36px_rgba(15,23,42,0.07)] transition-transform duration-300 hover:-translate-y-1'>
-      <div className='flex flex-col gap-4 md:flex-row md:items-start md:justify-between'>
-        <div className='flex items-start gap-4'>
-          <div className='flex h-16 w-16 shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.85),0_10px_20px_rgba(251,191,36,0.12)]'>
-            {order.rewardIcon || '🎁'}
-          </div>
-          <div>
-            <div className='flex flex-wrap items-center gap-2'>
-              <h3 className='text-lg font-black tracking-tight text-slate-950'>
+    <div className='group relative overflow-hidden rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.92)_100%)] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(15,23,42,0.11)] sm:p-6'>
+      <div
+        className={`pointer-events-none absolute right-[-28px] top-[-36px] h-32 w-32 rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-100 ${accentGlowMap[statusTone]} opacity-80`}
+      />
+
+      <div className='relative flex flex-col gap-4 md:flex-row md:items-stretch md:justify-between'>
+        <div className='min-w-0 flex-1'>
+          <div className='flex items-start gap-4'>
+            <div className='flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[28px] bg-gradient-to-br from-amber-100 via-white to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_12px_26px_rgba(251,191,36,0.16)] ring-1 ring-white/80'>
+              {order.rewardIcon || '🎁'}
+            </div>
+            <div className='min-w-0 flex-1'>
+              <div className='flex flex-wrap items-center gap-2'>
+                <Badge tone={statusTone}>{statusLabel}</Badge>
+                <span className='inline-flex items-center rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em] text-white/90'>
+                  {isPending ? '等待处理' : '处理已完成'}
+                </span>
+              </div>
+              <h3 className='mt-3 text-xl font-black tracking-tight text-slate-950 sm:text-[22px]'>
                 {order.rewardName}
               </h3>
-              <Badge tone={statusTone}>{statusLabel}</Badge>
+              <div className='mt-3 flex flex-wrap items-center gap-2.5 text-sm text-slate-500'>
+                <span className='inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50/80 px-3 py-1.5 font-semibold text-amber-700'>
+                  <Gift size={14} />
+                  {order.pointsSpent} 积分
+                </span>
+                <span className='inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3 py-1.5'>
+                  <Clock3 size={14} />
+                  {formatDate(order.createdAt)}
+                </span>
+              </div>
             </div>
-            <div className='mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-500'>
-              <span className='inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5'>
-                <Gift size={14} />
-                {order.pointsSpent} 积分
-              </span>
-              <span className='inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white px-3 py-1.5'>
-                <Clock3 size={14} />
-                {formatDate(order.createdAt)}
-              </span>
+          </div>
+
+          <div className='mt-5 grid gap-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(220px,1.05fr)]'>
+            <div className='flex items-center gap-3 rounded-[24px] border border-slate-200/80 bg-white/90 px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)]'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-[18px] bg-slate-50 text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_4px_10px_rgba(15,23,42,0.05)]'>
+                {order.childAvatar}
+              </div>
+              <div className='min-w-0'>
+                <div className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
+                  兑换人
+                </div>
+                <div className='mt-1 truncate text-base font-bold text-slate-900'>
+                  {order.childName}
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`rounded-[24px] border bg-gradient-to-r px-4 py-4 ${accentClassMap[statusTone]}`}
+            >
+              <div className='text-[11px] font-semibold uppercase tracking-[0.18em] opacity-80'>
+                Verification Code
+              </div>
+              <div className='mt-2 font-mono text-lg font-black tracking-[0.22em] text-slate-950 sm:text-[20px]'>
+                {order.verificationCode}
+              </div>
             </div>
           </div>
         </div>
 
-        {actionArea}
-      </div>
-
-      <div className='mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center'>
-        <div className='flex items-center gap-3 rounded-[22px] border border-slate-200/70 bg-slate-50/80 px-4 py-3'>
-          <div className='flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-xl shadow-sm'>
-            {order.childAvatar}
-          </div>
-          <div>
-            <div className='text-sm font-semibold text-slate-900'>
-              {order.childName}
-            </div>
-            <div className='text-xs text-slate-500'>兑换人</div>
-          </div>
-        </div>
-        <div className='rounded-[22px] border border-dashed border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 px-4 py-3'>
-          <div className='text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-500'>
-            Verification Code
-          </div>
-          <div className='mt-1 font-mono text-lg font-black tracking-[0.2em] text-blue-900'>
-            {order.verificationCode}
-          </div>
+        <div className='md:w-[198px] md:shrink-0'>
+          <div className='w-full overflow-x-auto'>{actionArea}</div>
         </div>
       </div>
     </div>
