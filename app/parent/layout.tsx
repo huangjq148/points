@@ -3,7 +3,7 @@ import Button from "@/components/ui/Button";
 import { useApp } from "@/context/AppContext";
 import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { MouseEvent, ReactNode, useMemo, useState } from "react";
+import { MouseEvent, ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
@@ -78,12 +78,20 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
   }, [pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [hoveredTooltip, setHoveredTooltip] = useState<{ label: string; x: number; y: number } | null>(null);
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const navItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [navIndicatorStyle, setNavIndicatorStyle] = useState<{
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const handleNavClick = (itemId: NavItemId) => {
     router.push(`/parent/${itemId}`);
   };
 
-  const updateTooltipPosition = (event: MouseEvent<HTMLDivElement>, label: string) => {
+  const updateTooltipPosition = (event: MouseEvent<HTMLButtonElement>, label: string) => {
     if (!sidebarCollapsed) return;
     const rect = event.currentTarget.getBoundingClientRect();
     setHoveredTooltip({
@@ -92,6 +100,46 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       y: rect.top + rect.height / 2,
     });
   };
+
+  useLayoutEffect(() => {
+    const updateIndicator = () => {
+      const activeIndex = navItems.findIndex((item) => item.id === activeTab);
+      const container = navRef.current;
+      const activeButton = navItemRefs.current[activeIndex];
+
+      if (!container || !activeButton) {
+        setNavIndicatorStyle(null);
+        return;
+      }
+
+      setNavIndicatorStyle({
+        width: activeButton.offsetWidth,
+        height: activeButton.offsetHeight,
+        x: activeButton.offsetLeft,
+        y: activeButton.offsetTop,
+      });
+    };
+
+    updateIndicator();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateIndicator();
+    });
+
+    if (navRef.current) {
+      resizeObserver.observe(navRef.current);
+    }
+
+    navItemRefs.current.forEach((button) => {
+      if (button) {
+        resizeObserver.observe(button);
+      }
+    });
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [activeTab, navItems, sidebarCollapsed]);
 
   return (
     <div className="dashboard-layout parent-theme">
@@ -108,10 +156,25 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="desktop-nav">
-          {navItems.map((item) => (
+        <div ref={navRef} className="desktop-nav">
+          {navIndicatorStyle && (
             <div
+              aria-hidden
+              className="desktop-nav-indicator"
+              style={{
+                width: navIndicatorStyle.width,
+                height: navIndicatorStyle.height,
+                transform: `translate(${navIndicatorStyle.x}px, ${navIndicatorStyle.y}px)`,
+              }}
+            />
+          )}
+          {navItems.map((item, index) => (
+            <button
               key={item.id}
+              ref={(node) => {
+                navItemRefs.current[index] = node;
+              }}
+              type="button"
               onClick={() => handleNavClick(item.id)}
               onMouseEnter={(event) => updateTooltipPosition(event, item.label)}
               onMouseMove={(event) => updateTooltipPosition(event, item.label)}
@@ -128,7 +191,7 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
               {sidebarCollapsed && item.badge !== undefined && item.badge > 0 && (
                 <span className="badge-collapsed">{item.badge}</span>
               )}
-            </div>
+            </button>
           ))}
         </div>
       </aside>
