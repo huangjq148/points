@@ -3,7 +3,7 @@ import Button from "@/components/ui/Button";
 import { useApp } from "@/context/AppContext";
 import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useMemo, useState } from "react";
+import { MouseEvent, ReactNode, useMemo, useState } from "react";
 
 type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
@@ -77,9 +77,20 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
     return "home";
   }, [pathname]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [hoveredTooltip, setHoveredTooltip] = useState<{ label: string; x: number; y: number } | null>(null);
 
   const handleNavClick = (itemId: NavItemId) => {
     router.push(`/parent/${itemId}`);
+  };
+
+  const updateTooltipPosition = (event: MouseEvent<HTMLDivElement>, label: string) => {
+    if (!sidebarCollapsed) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setHoveredTooltip({
+      label,
+      x: rect.right + 12,
+      y: rect.top + rect.height / 2,
+    });
   };
 
   return (
@@ -102,8 +113,12 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
             <div
               key={item.id}
               onClick={() => handleNavClick(item.id)}
+              onMouseEnter={(event) => updateTooltipPosition(event, item.label)}
+              onMouseMove={(event) => updateTooltipPosition(event, item.label)}
+              onMouseLeave={() => setHoveredTooltip(null)}
               className={`desktop-nav-item ${activeTab === item.id ? "active" : ""} ${sidebarCollapsed ? "collapsed" : ""}`}
               title={sidebarCollapsed ? item.label : undefined}
+              aria-label={item.label}
             >
               <item.icon size={sidebarCollapsed ? 24 : 22} />
               {!sidebarCollapsed && <span>{item.label}</span>}
@@ -125,6 +140,15 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
       >
         <PanelLeft size={18} className={sidebarCollapsed ? "rotate-180" : ""} />
       </button>
+
+      {hoveredTooltip && (
+        <div
+          className="sidebar-hover-tooltip"
+          style={{ left: hoveredTooltip.x, top: hoveredTooltip.y }}
+        >
+          {hoveredTooltip.label}
+        </div>
+      )}
 
       <div className="main-wrapper flex flex-col min-h-screen">
         <header className="desktop-header">

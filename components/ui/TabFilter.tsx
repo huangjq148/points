@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Home, Gift, FileText, Star, Ticket, Users, UserCog, BarChart3 } from "lucide-react";
 import {
@@ -38,7 +40,50 @@ export const TabFilter = <T extends string>({
   onFilterChange,
   className = "",
 }: TabFilterProps<T>) => {
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const buttonRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  const [indicatorStyle, setIndicatorStyle] = React.useState<{ width: number; x: number } | null>(null);
   const isMobileNav = className.includes("fixed") || className.includes("bg-transparent");
+
+  React.useLayoutEffect(() => {
+    if (isMobileNav) return;
+
+    const updateIndicator = () => {
+      const activeIndex = items.findIndex((tab) => tab.key === activeKey);
+      const container = containerRef.current;
+      const activeButton = buttonRefs.current[activeIndex];
+
+      if (!container || !activeButton) {
+        setIndicatorStyle(null);
+        return;
+      }
+
+      setIndicatorStyle({
+        width: activeButton.offsetWidth,
+        x: activeButton.offsetLeft,
+      });
+    };
+
+    updateIndicator();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateIndicator();
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    buttonRefs.current.forEach((button) => {
+      if (button) {
+        resizeObserver.observe(button);
+      }
+    });
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [activeKey, isMobileNav, items]);
 
   if (isMobileNav) {
     return (
@@ -74,21 +119,37 @@ export const TabFilter = <T extends string>({
 
   return (
     <div
-      className={`inline-flex items-center gap-1 p-0.5 ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS} ${className}`}
+      ref={containerRef}
+      className={`relative inline-flex items-center gap-1.5 p-1 ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS} ${className}`}
       style={{ height: CONTROL_HEIGHT_PX, minHeight: CONTROL_HEIGHT_PX }}
     >
+      {indicatorStyle && (
+        <div
+          aria-hidden
+          className={`${CONTROL_PRIMARY_GRADIENT_CLASS} ${CONTROL_PRIMARY_SHADOW_CLASS} absolute top-1 left-0 ${CONTROL_INNER_RADIUS_CLASS} transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+          style={{
+            width: indicatorStyle.width,
+            height: CONTROL_HEIGHT_PX - 8,
+            transform: `translateX(${indicatorStyle.x}px)`,
+          }}
+        />
+      )}
       {items.map((tab) => {
         const isActive = activeKey === tab.key;
         return (
           <button
             key={tab.key}
+            ref={(node) => {
+              const index = items.findIndex((item) => item.key === tab.key);
+              buttonRefs.current[index] = node;
+            }}
             onClick={() => onFilterChange(tab.key)}
-            style={{ height: CONTROL_HEIGHT_PX - 4 }}
+            style={{ height: CONTROL_HEIGHT_PX - 8 }}
             className={`
-              relative px-4 py-0 text-sm font-semibold whitespace-nowrap transition-all duration-200 ${CONTROL_INNER_RADIUS_CLASS}
+              relative z-10 px-4 py-0 text-sm font-semibold whitespace-nowrap transition-[color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${CONTROL_INNER_RADIUS_CLASS}
               ${
                 isActive
-                  ? `${CONTROL_PRIMARY_GRADIENT_CLASS} text-white ${CONTROL_PRIMARY_SHADOW_CLASS}`
+                  ? "text-white scale-[0.97]"
                   : "text-slate-500 hover:-translate-y-px hover:bg-white hover:text-slate-900 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
               }
             `}

@@ -117,6 +117,11 @@ const TAB_ITEMS = [
   { key: "rejected", label: "已驳回" },
 ] as const;
 
+const VIEW_MODE_ITEMS = [
+  { key: "card", label: "卡片" },
+  { key: "table", label: "表格" },
+] as const;
+
 type TaskFilterKey = typeof TAB_ITEMS[number]["key"];
 
 function TasksPage() {
@@ -711,30 +716,12 @@ function TasksPage() {
                 <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
                 <span className="font-semibold text-sm sm:hidden">添加</span>
               </Button>
-              <div className="inline-flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
-                <button
-                  onClick={() => setViewMode("card")}
-                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-all ${
-                    viewMode === "card"
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                  }`}
-                >
-                  <LayoutGrid size={15} />
-                  卡片
-                </button>
-                <button
-                  onClick={() => setViewMode("table")}
-                  className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-all ${
-                    viewMode === "table"
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                  }`}
-                >
-                  <Table2 size={15} />
-                  表格
-                </button>
-              </div>
+              <TabFilter
+                items={VIEW_MODE_ITEMS}
+                activeKey={viewMode}
+                onFilterChange={(key) => setViewMode(key as "card" | "table")}
+                className="shrink-0"
+              />
             </div>
           </div>
         </div>
