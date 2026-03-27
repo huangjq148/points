@@ -4,15 +4,13 @@ import { IDisplayedOrder } from '@/app/typings';
 import ConfirmModal from '@/components/ConfirmModal';
 import ChildFilterSelect from '@/components/parent/ChildFilterSelect';
 import { Badge, EmptyState, StatCard } from '@/components/store/RewardUI';
-import { Button, Input, TabFilter } from '@/components/ui';
+import { Button, Input, Pagination, TabFilter } from '@/components/ui';
 import { useApp } from '@/context/AppContext';
 import { formatDate } from '@/utils/date';
 import request from '@/utils/request';
 import {
   BadgeCheck,
   CircleCheckBig,
-  ChevronLeft,
-  ChevronRight,
   Clock3,
   CreditCard,
   Gift,
@@ -43,6 +41,7 @@ function OrdersPage() {
   const [activeTab, setActiveTab] = useState<
     'pending' | 'verified' | 'cancelled'
   >(initialActiveTab);
+  const [pageSize, setPageSize] = useState(10);
   const [pendingOrders, setPendingOrders] = useState<IDisplayedOrder[]>([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingTotal, setPendingTotal] = useState(0);
@@ -58,16 +57,16 @@ function OrdersPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const pendingPageCount = useMemo(
-    () => Math.max(1, Math.ceil(pendingTotal / 10)),
-    [pendingTotal],
+    () => Math.max(1, Math.ceil(pendingTotal / pageSize)),
+    [pageSize, pendingTotal],
   );
   const verifiedPageCount = useMemo(
-    () => Math.max(1, Math.ceil(verifiedTotal / 10)),
-    [verifiedTotal],
+    () => Math.max(1, Math.ceil(verifiedTotal / pageSize)),
+    [pageSize, verifiedTotal],
   );
   const cancelledPageCount = useMemo(
-    () => Math.max(1, Math.ceil(cancelledTotal / 10)),
-    [cancelledTotal],
+    () => Math.max(1, Math.ceil(cancelledTotal / pageSize)),
+    [cancelledTotal, pageSize],
   );
 
   const fetchOrders = useCallback(
@@ -95,22 +94,26 @@ function OrdersPage() {
   );
 
   const refreshPending = useCallback(async () => {
-    const { orders, total } = await fetchOrders('pending', pendingPage, 10);
+    const { orders, total } = await fetchOrders('pending', pendingPage, pageSize);
     setPendingOrders(orders);
     setPendingTotal(total);
-  }, [fetchOrders, pendingPage]);
+  }, [fetchOrders, pageSize, pendingPage]);
 
   const refreshVerified = useCallback(async () => {
-    const { orders, total } = await fetchOrders('verified', verifiedPage, 10);
+    const { orders, total } = await fetchOrders('verified', verifiedPage, pageSize);
     setVerifiedOrders(orders);
     setVerifiedTotal(total);
-  }, [fetchOrders, verifiedPage]);
+  }, [fetchOrders, pageSize, verifiedPage]);
 
   const refreshCancelled = useCallback(async () => {
-    const { orders, total } = await fetchOrders('cancelled', cancelledPage, 10);
+    const { orders, total } = await fetchOrders(
+      'cancelled',
+      cancelledPage,
+      pageSize,
+    );
     setCancelledOrders(orders);
     setCancelledTotal(total);
-  }, [fetchOrders, cancelledPage]);
+  }, [cancelledPage, fetchOrders, pageSize]);
 
   useEffect(() => {
     void Promise.all([refreshPending(), refreshVerified(), refreshCancelled()]);
@@ -132,7 +135,7 @@ function OrdersPage() {
     setPendingPage(1);
     setVerifiedPage(1);
     setCancelledPage(1);
-  }, [selectedChildFilter]);
+  }, [pageSize, selectedChildFilter]);
 
   const handleVerifyOrder = async (orderId: string) => {
     try {
@@ -179,15 +182,9 @@ function OrdersPage() {
     [pendingOrders],
   );
 
-  const verifiedCount = useMemo(
-    () => verifiedTotal,
-    [verifiedTotal],
-  );
+  const verifiedCount = useMemo(() => verifiedTotal, [verifiedTotal]);
 
-  const cancelledCount = useMemo(
-    () => cancelledTotal,
-    [cancelledTotal],
-  );
+  const cancelledCount = useMemo(() => cancelledTotal, [cancelledTotal]);
 
   const filteredPendingOrders = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase();
@@ -315,76 +312,47 @@ function OrdersPage() {
             hint='孩子兑换后会出现在这里，等你确认处理。'
           />
         ) : (
-          <div className='grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]'>
-            <div className='space-y-4'>
-              {filteredPendingOrders.map((order) => (
-                <OrderCard
-                  key={order._id.toString()}
-                  order={order}
-                  statusLabel='待核销'
-                  statusTone='amber'
-                  actionArea={
-                    <div className='flex w-full items-center gap-2 whitespace-nowrap'>
-                      <Button
-                        size='sm'
-                        variant='success'
-                        onClick={() => handleVerifyOrder(order._id)}
-                        disabled={actionLoading}
-                        className='min-w-0 flex-1'
-                      >
-                        <BadgeCheck size={16} />
-                        确认核销
-                      </Button>
-                      <Button
-                        size='sm'
-                        variant='error'
-                        onClick={() => setCancelOrderId(order._id)}
-                        disabled={actionLoading}
-                        className='min-w-0 px-4'
-                      >
-                        取消
-                      </Button>
-                    </div>
-                  }
-                />
-              ))}
-            </div>
-
-            <div className='space-y-4'>
-              <SummaryPanel
-                title='待核销分页'
-                rows={[
-                  ['当前页', `${pendingPage}`],
-                  ['总页数', `${pendingPageCount}`],
-                  ['总记录', `${pendingTotal}`],
-                ]}
-                compact
-              >
-                <InlinePagination
-                  currentPage={pendingPage}
-                  totalPages={pendingPageCount}
-                  onPageChange={setPendingPage}
-                  onPrev={() => setPendingPage((p) => Math.max(1, p - 1))}
-                  onNext={() =>
-                    setPendingPage((p) => Math.min(pendingPageCount, p + 1))
-                  }
-                />
-              </SummaryPanel>
-
-              <SummaryPanel
-                title='当前筛选'
-                rows={[
-                  [
-                    '孩子范围',
-                    selectedChildFilter === 'all'
-                      ? '全部孩子'
-                      : childList.find(
-                          (child) => child.id === selectedChildFilter,
-                        )?.username || '未知',
-                  ],
-                  ['待核销数', String(filteredPendingOrders.length)],
-                  ['待扣积分', String(pendingTotalPoints)],
-                ]}
+          <div className='space-y-4'>
+            {filteredPendingOrders.map((order) => (
+              <OrderCard
+                key={order._id.toString()}
+                order={order}
+                statusLabel='待核销'
+                statusTone='amber'
+                actionArea={
+                  <div className='flex w-full items-center gap-2 whitespace-nowrap'>
+                    <Button
+                      size='sm'
+                      variant='success'
+                      onClick={() => handleVerifyOrder(order._id)}
+                      disabled={actionLoading}
+                      className='min-w-0 flex-1'
+                    >
+                      <BadgeCheck size={16} />
+                      确认核销
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='error'
+                      onClick={() => setCancelOrderId(order._id)}
+                      disabled={actionLoading}
+                      className='min-w-0 px-4'
+                    >
+                      取消
+                    </Button>
+                  </div>
+                }
+              />
+            ))}
+            <div className='rounded-[28px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
+              <Pagination
+                currentPage={pendingPage}
+                totalItems={pendingTotal}
+                pageSize={pageSize}
+                onPageChange={setPendingPage}
+                onPageSizeChange={setPageSize}
+                variant='rich'
+                alwaysShow
               />
             </div>
           </div>
@@ -401,50 +369,37 @@ function OrdersPage() {
               </div>
             </EmptyState>
           ) : (
-            <div className='grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]'>
-              <div className='space-y-4'>
-                {filteredVerifiedOrders.map((order) => (
-                  <OrderCard
-                    key={order._id.toString()}
-                    order={order}
-                    statusLabel='已核销'
-                    statusTone='emerald'
-                    actionArea={
-                      <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
-                        <div className='text-xs font-semibold text-slate-500'>
-                          完成时间
-                        </div>
-                        <div className='text-sm font-medium text-slate-900'>
-                          {order.verifiedAt
-                            ? formatDate(order.verifiedAt)
-                            : formatDate(order.updatedAt)}
-                        </div>
+            <div className='space-y-4'>
+              {filteredVerifiedOrders.map((order) => (
+                <OrderCard
+                  key={order._id.toString()}
+                  order={order}
+                  statusLabel='已核销'
+                  statusTone='emerald'
+                  actionArea={
+                    <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
+                      <div className='text-xs font-semibold text-slate-500'>
+                        完成时间
                       </div>
-                    }
-                  />
-                ))}
-              </div>
-
-              <div className='space-y-4'>
-                <SummaryPanel
-                  title='已核销分页'
-                  rows={[
-                    ['当前页', `${verifiedPage}`],
-                    ['总页数', `${verifiedPageCount}`],
-                    ['总记录', `${verifiedTotal}`],
-                  ]}
-                  compact
-                >
-                  <InlinePagination
-                    currentPage={verifiedPage}
-                    totalPages={verifiedPageCount}
-                    onPageChange={setVerifiedPage}
-                    onPrev={() => setVerifiedPage((p) => Math.max(1, p - 1))}
-                    onNext={() =>
-                      setVerifiedPage((p) => Math.min(verifiedPageCount, p + 1))
-                    }
-                  />
-                </SummaryPanel>
+                      <div className='text-sm font-medium text-slate-900'>
+                        {order.verifiedAt
+                          ? formatDate(order.verifiedAt)
+                          : formatDate(order.updatedAt)}
+                      </div>
+                    </div>
+                  }
+                />
+              ))}
+              <div className='rounded-[28px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
+                <Pagination
+                  currentPage={verifiedPage}
+                  totalItems={verifiedTotal}
+                  pageSize={pageSize}
+                  onPageChange={setVerifiedPage}
+                  onPageSizeChange={setPageSize}
+                  variant='rich'
+                  alwaysShow
+                />
               </div>
             </div>
           )}
@@ -461,235 +416,40 @@ function OrdersPage() {
               </div>
             </EmptyState>
           ) : (
-            <div className='grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]'>
-              <div className='space-y-4'>
-                {filteredCancelledOrders.map((order) => (
-                  <OrderCard
-                    key={order._id.toString()}
-                    order={order}
-                    statusLabel='已取消'
-                    statusTone='rose'
-                    actionArea={
-                      <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
-                        <div className='text-xs font-semibold text-slate-500'>
-                          取消时间
-                        </div>
-                        <div className='text-sm font-medium text-slate-900'>
-                          {formatDate(order.updatedAt)}
-                        </div>
+            <div className='space-y-4'>
+              {filteredCancelledOrders.map((order) => (
+                <OrderCard
+                  key={order._id.toString()}
+                  order={order}
+                  statusLabel='已取消'
+                  statusTone='rose'
+                  actionArea={
+                    <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
+                      <div className='text-xs font-semibold text-slate-500'>
+                        取消时间
                       </div>
-                    }
-                  />
-                ))}
-              </div>
-
-              <div className='space-y-4'>
-                <SummaryPanel
-                  title='已取消分页'
-                  rows={[
-                    ['当前页', `${cancelledPage}`],
-                    ['总页数', `${cancelledPageCount}`],
-                    ['总记录', `${cancelledTotal}`],
-                  ]}
-                  compact
-                >
-                  <InlinePagination
-                    currentPage={cancelledPage}
-                    totalPages={cancelledPageCount}
-                    onPageChange={setCancelledPage}
-                    onPrev={() =>
-                      setCancelledPage((p) => Math.max(1, p - 1))
-                    }
-                    onNext={() =>
-                      setCancelledPage((p) =>
-                        Math.min(cancelledPageCount, p + 1),
-                      )
-                    }
-                  />
-                </SummaryPanel>
+                      <div className='text-sm font-medium text-slate-900'>
+                        {formatDate(order.updatedAt)}
+                      </div>
+                    </div>
+                  }
+                />
+              ))}
+              <div className='rounded-[28px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
+                <Pagination
+                  currentPage={cancelledPage}
+                  totalItems={cancelledTotal}
+                  pageSize={pageSize}
+                  onPageChange={setCancelledPage}
+                  onPageSizeChange={setPageSize}
+                  variant='rich'
+                  alwaysShow
+                />
               </div>
             </div>
           )}
         </>
       )}
-    </div>
-  );
-}
-
-function SummaryPanel({
-  title,
-  rows,
-  children,
-  compact = false,
-}: {
-  title: string;
-  rows: [string, string | undefined][];
-  children?: ReactNode;
-  compact?: boolean;
-}) {
-  return (
-    <div className='rounded-[28px] border border-slate-200/70 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
-      <h3 className='text-base font-bold text-slate-900'>{title}</h3>
-      <div
-        className={
-          compact
-            ? 'mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-600'
-            : 'mt-4 space-y-2 text-sm text-slate-600'
-        }
-      >
-        {rows.map(([label, value]) => (
-          <div
-            key={label}
-            className={
-              compact
-                ? 'inline-flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2.5'
-                : 'flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3'
-            }
-          >
-            <span>{label}</span>
-            <span className='font-medium text-slate-900'>{value || '-'}</span>
-          </div>
-        ))}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function InlinePagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  onPrev,
-  onNext,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  onPrev: () => void;
-  onNext: () => void;
-}) {
-  const [jumpValue, setJumpValue] = useState('');
-
-  useEffect(() => {
-    setJumpValue('');
-  }, [currentPage, totalPages]);
-
-  const pageItems = useMemo(() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    if (currentPage <= 4) {
-      return [1, 2, 3, 4, 5, 'ellipsis', totalPages] as const;
-    }
-
-    if (currentPage >= totalPages - 3) {
-      return [
-        1,
-        'ellipsis',
-        totalPages - 4,
-        totalPages - 3,
-        totalPages - 2,
-        totalPages - 1,
-        totalPages,
-      ] as const;
-    }
-
-    return [
-      1,
-      'ellipsis',
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      'ellipsis',
-      totalPages,
-    ] as const;
-  }, [currentPage, totalPages]);
-
-  const handleJump = () => {
-    const page = Number(jumpValue);
-    if (!Number.isFinite(page)) return;
-    const nextPage = Math.min(totalPages, Math.max(1, page));
-    onPageChange(nextPage);
-  };
-
-  return (
-    <div className='mt-4 flex flex-wrap items-center gap-3'>
-      <Button
-        variant='secondary'
-        disabled={currentPage === 1}
-        onClick={onPrev}
-        className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
-      >
-        <ChevronLeft size={16} />
-      </Button>
-
-      <div className='flex items-center gap-2'>
-        {pageItems.map((item, index) =>
-          item === 'ellipsis' ? (
-            <div
-              key={`ellipsis-${index}`}
-              className='inline-flex h-11 min-w-[2.75rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-slate-300'
-            >
-              ...
-            </div>
-          ) : (
-            <button
-              key={item}
-              type='button'
-              onClick={() => onPageChange(item)}
-              className={
-                item === currentPage
-                  ? 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-blue-300 bg-blue-50 text-base font-bold text-blue-600 shadow-[0_8px_18px_rgba(59,130,246,0.12)]'
-                  : 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-transparent bg-transparent text-base font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800'
-              }
-            >
-              {item}
-            </button>
-          ),
-        )}
-      </div>
-
-      <Button
-        variant='secondary'
-        disabled={currentPage >= totalPages}
-        onClick={onNext}
-        className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
-      >
-        <ChevronRight size={16} />
-      </Button>
-
-      <div className='inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 shadow-sm'>
-        10 条/页
-      </div>
-
-      <div className='flex items-center gap-2 text-sm font-medium text-slate-600'>
-        <span>跳至</span>
-        <input
-          type='number'
-          min={1}
-          max={totalPages}
-          value={jumpValue}
-          onChange={(e) => setJumpValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleJump();
-            }
-          }}
-          className='h-11 w-20 rounded-2xl border border-slate-200 bg-white px-3 text-center text-sm font-semibold text-slate-800 shadow-sm outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100'
-        />
-        <span>页</span>
-      </div>
-
-      <Button
-        variant='secondary'
-        onClick={handleJump}
-        disabled={!jumpValue.trim()}
-        className='rounded-2xl px-4 text-slate-600 disabled:opacity-30'
-      >
-        跳转
-      </Button>
     </div>
   );
 }
@@ -713,10 +473,8 @@ function OrderCard({
       'from-emerald-100/90 via-white to-emerald-50 border-emerald-200/80 text-emerald-700 shadow-[0_12px_28px_rgba(16,185,129,0.12)]',
     amber:
       'from-amber-100/90 via-white to-orange-50 border-amber-200/80 text-amber-700 shadow-[0_12px_28px_rgba(245,158,11,0.14)]',
-    rose:
-      'from-rose-100/90 via-white to-rose-50 border-rose-200/80 text-rose-700 shadow-[0_12px_28px_rgba(244,63,94,0.12)]',
-    blue:
-      'from-blue-100/90 via-white to-cyan-50 border-blue-200/80 text-blue-700 shadow-[0_12px_28px_rgba(59,130,246,0.12)]',
+    rose: 'from-rose-100/90 via-white to-rose-50 border-rose-200/80 text-rose-700 shadow-[0_12px_28px_rgba(244,63,94,0.12)]',
+    blue: 'from-blue-100/90 via-white to-cyan-50 border-blue-200/80 text-blue-700 shadow-[0_12px_28px_rgba(59,130,246,0.12)]',
   };
 
   const accentGlowMap: Record<typeof statusTone, string> = {

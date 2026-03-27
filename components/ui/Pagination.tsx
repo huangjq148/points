@@ -1,18 +1,58 @@
-import React from 'react';
-import Button from './Button';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Button from './Button';
 import {
   CONTROL_HEIGHT_CLASS,
   CONTROL_PANEL_RADIUS_CLASS,
   CONTROL_PANEL_SUBTLE_CLASS,
 } from './controlStyles';
 
+type PaginationVariant = 'default' | 'rich';
+
 interface PaginationProps {
   currentPage: number;
   totalItems: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   className?: string;
+  variant?: PaginationVariant;
+  showPageSizeLabel?: boolean;
+  showQuickJumper?: boolean;
+  alwaysShow?: boolean;
+  pageSizeOptions?: number[];
+}
+
+function getPageItems(currentPage: number, totalPages: number) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis', totalPages] as const;
+  }
+
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      'ellipsis',
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ] as const;
+  }
+
+  return [
+    1,
+    'ellipsis',
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    'ellipsis',
+    totalPages,
+  ] as const;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
@@ -20,19 +60,147 @@ const Pagination: React.FC<PaginationProps> = ({
   totalItems,
   pageSize,
   onPageChange,
+  onPageSizeChange,
   className = '',
+  variant = 'default',
+  showPageSizeLabel = true,
+  showQuickJumper = true,
+  alwaysShow = false,
+  pageSizeOptions = [10, 20, 50],
 }) => {
-  const totalPages = Math.ceil(totalItems / pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const [jumpValue, setJumpValue] = useState('');
 
-  if (totalPages <= 1) return null;
+  useEffect(() => {
+    setJumpValue('');
+  }, [currentPage, totalPages]);
+
+  const pageItems = useMemo(
+    () => getPageItems(currentPage, totalPages),
+    [currentPage, totalPages],
+  );
+
+  if (!alwaysShow && totalPages <= 1) return null;
+
+  const handlePrev = () => onPageChange(Math.max(1, currentPage - 1));
+  const handleNext = () => onPageChange(Math.min(totalPages, currentPage + 1));
+  const handleJump = () => {
+    const page = Number(jumpValue);
+    if (!Number.isFinite(page)) return;
+    onPageChange(Math.min(totalPages, Math.max(1, page)));
+  };
+
+  if (variant === 'rich') {
+    return (
+      <div className={`mt-4 flex flex-wrap items-center gap-3 ${className}`}>
+        <Button
+          variant='secondary'
+          disabled={currentPage === 1}
+          onClick={handlePrev}
+          className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
+        >
+          <ChevronLeft size={16} />
+        </Button>
+
+        <div className='flex items-center gap-2'>
+          {pageItems.map((item, index) =>
+            item === 'ellipsis' ? (
+              <div
+                key={`ellipsis-${index}`}
+                className='inline-flex h-11 min-w-[2.75rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-slate-300'
+              >
+                ...
+              </div>
+            ) : (
+              <button
+                key={item}
+                type='button'
+                onClick={() => onPageChange(item)}
+                className={
+                  item === currentPage
+                    ? 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-blue-300 bg-blue-50 text-base font-bold text-blue-600 shadow-[0_8px_18px_rgba(59,130,246,0.12)]'
+                    : 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-transparent bg-transparent text-base font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800'
+                }
+              >
+                {item}
+              </button>
+            ),
+          )}
+        </div>
+
+        <Button
+          variant='secondary'
+          disabled={currentPage >= totalPages}
+          onClick={handleNext}
+          className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
+        >
+          <ChevronRight size={16} />
+        </Button>
+
+        {showPageSizeLabel ? (
+          onPageSizeChange ? (
+            <label className='relative inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white pr-10 shadow-sm'>
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                className='h-full appearance-none rounded-2xl bg-transparent px-4 text-sm font-semibold text-slate-600 outline-none'
+              >
+                {pageSizeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option} 条/页
+                  </option>
+                ))}
+              </select>
+              <span className='pointer-events-none absolute right-4 text-xs text-slate-400'>
+                ▼
+              </span>
+            </label>
+          ) : (
+            <div className='inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 shadow-sm'>
+              {pageSize} 条/页
+            </div>
+          )
+        ) : null}
+
+        {showQuickJumper ? (
+          <>
+            <div className='flex items-center gap-2 text-sm font-medium text-slate-600'>
+              <span>跳至</span>
+              <input
+                type='number'
+                min={1}
+                max={totalPages}
+                value={jumpValue}
+                onChange={(e) => setJumpValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleJump();
+                }}
+                className='h-11 w-20 rounded-2xl border border-slate-200 bg-white px-3 text-center text-sm font-semibold text-slate-800 shadow-sm outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100'
+              />
+              <span>页</span>
+            </div>
+
+            <Button
+              variant='secondary'
+              onClick={handleJump}
+              disabled={!jumpValue.trim()}
+              className='rounded-2xl px-4 text-slate-600 disabled:opacity-30'
+            >
+              跳转
+            </Button>
+          </>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
-    <div className={`flex justify-center items-center gap-4 mt-6 ${className}`}>
+    <div className={`mt-6 flex items-center justify-center gap-4 ${className}`}>
       <Button
-        variant="secondary"
+        variant='secondary'
         disabled={currentPage === 1}
-        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        className="text-gray-500 disabled:opacity-30"
+        onClick={handlePrev}
+        className='text-gray-500 disabled:opacity-30'
       >
         <ChevronLeft size={16} />
         上一页
@@ -43,10 +211,10 @@ const Pagination: React.FC<PaginationProps> = ({
         第 {currentPage} 页 / 共 {totalPages} 页
       </span>
       <Button
-        variant="secondary"
+        variant='secondary'
         disabled={currentPage >= totalPages}
-        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className="text-gray-500 disabled:opacity-30"
+        onClick={handleNext}
+        className='text-gray-500 disabled:opacity-30'
       >
         下一页
         <ChevronRight size={16} />

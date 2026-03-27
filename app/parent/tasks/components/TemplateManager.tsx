@@ -104,18 +104,20 @@ export default function TemplateManager({
                   <Button
                     onClick={() => onEdit(template)}
                     variant="secondary"
-                    className="h-10 w-10 rounded-xl border border-slate-200 bg-white p-0 text-slate-500 shadow-sm hover:text-slate-700 hover:bg-slate-50"
+                    className="h-10 rounded-xl border border-blue-200 bg-blue-50 px-3 text-blue-700 shadow-sm hover:border-blue-300 hover:bg-blue-100 hover:text-blue-800"
                     title="编辑"
                   >
                     <Edit2 size={16} />
+                    <span className="font-semibold">编辑</span>
                   </Button>
                   <Button
                     onClick={() => template._id && onDelete(template._id)}
                     variant="error"
-                    className="h-10 w-10 rounded-xl p-0 shadow-sm"
+                    className="h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 text-rose-700 shadow-sm hover:border-rose-300 hover:bg-rose-100 hover:text-rose-800"
                     title="删除"
                   >
                     <Trash2 size={16} />
+                    <span className="font-semibold">删除</span>
                   </Button>
                 </div>
               </div>
