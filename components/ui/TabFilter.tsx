@@ -126,10 +126,9 @@ export const TabFilter = <T extends string>({
       {indicatorStyle && (
         <div
           aria-hidden
-          className={`${CONTROL_PRIMARY_GRADIENT_CLASS} ${CONTROL_PRIMARY_SHADOW_CLASS} absolute top-1 left-0 ${CONTROL_INNER_RADIUS_CLASS} transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+          className={`${CONTROL_PRIMARY_GRADIENT_CLASS} ${CONTROL_PRIMARY_SHADOW_CLASS} absolute inset-y-1 left-0 ${CONTROL_INNER_RADIUS_CLASS} transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
           style={{
             width: indicatorStyle.width,
-            height: CONTROL_HEIGHT_PX - 8,
             transform: `translateX(${indicatorStyle.x}px)`,
           }}
         />
@@ -146,15 +145,15 @@ export const TabFilter = <T extends string>({
             onClick={() => onFilterChange(tab.key)}
             style={{ height: CONTROL_HEIGHT_PX - 8 }}
             className={`
-              relative z-10 px-4 py-0 text-sm font-semibold whitespace-nowrap transition-[color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${CONTROL_INNER_RADIUS_CLASS}
+              relative z-10 inline-flex items-center justify-center px-4 py-0 align-middle text-sm font-semibold leading-none whitespace-nowrap transition-[color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${CONTROL_INNER_RADIUS_CLASS}
               ${
                 isActive
-                  ? "text-white scale-[0.97]"
+                  ? "text-white"
                   : "text-slate-500 hover:-translate-y-px hover:bg-white hover:text-slate-900 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
               }
             `}
           >
-            {tab.label}
+            <span className="block leading-none translate-y-[-0.5px]">{tab.label}</span>
           </button>
         );
       })}
