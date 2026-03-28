@@ -1,7 +1,7 @@
 "use client";
 
 import { FamilyMember } from "@/app/typings";
-import { Button, DataTable } from "@/components/ui";
+import { Button, DataTable, TableActionButton, TableActionGroup } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
@@ -251,79 +251,76 @@ export default function FamilyPage() {
   const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
     key: "actions",
     title: "操作",
-    render: (_, row) => (
-      <div className="flex justify-center gap-2">
-        {row.type === "parent" && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setEditingMember(row);
-              setAccountForm({
-                username: row.username,
-                password: "",
-                role: row.role,
-                identity: row.identity || "",
-              });
-              setShowEditAccountModal(true);
-            }}
-            className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-          >
-            <Settings size={18} />
-          </Button>
-        )}
-        {/* 孩子角色显示奖励积分按钮 */}
-        {row.type === "child" && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setRewardPointsTarget({
-                id: row.id,
-                nickname: row.nickname || row.username,
-                avatar: row.avatar || "👶",
-                availablePoints: row.availablePoints || 0,
-              });
-              setShowRewardPointsModal(true);
-            }}
-            className="text-green-500 hover:bg-green-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-            title="奖励积分"
-          >
-            <PlusCircle size={18} />
-          </Button>
-        )}
-        {/* 孩子角色显示扣除积分按钮 - 只在有可扣除积分时显示 */}
-        {row.type === "child" && (row.availablePoints || 0) > 0 && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setDeductPointsTarget({
-                id: row.id,
-                nickname: row.nickname || row.username,
-                avatar: row.avatar || "👶",
-                availablePoints: row.availablePoints || 0,
-              });
-              setShowDeductPointsModal(true);
-            }}
-            className="text-orange-500 hover:bg-orange-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-            title={`扣除积分（可扣: ${row.availablePoints}）`}
-          >
-            <MinusCircle size={18} />
-          </Button>
-        )}
-        {!row.isMe && row.type === "parent" && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setDeleteMemberId(row.id)}
-            className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-          >
-            <Trash2 size={18} />
-          </Button>
-        )}
-      </div>
-    ),
+    width: 172,
+    render: (_, row) => {
+      const hasActions = row.type === "child" || row.type === "parent";
+
+      if (!hasActions) {
+        return <span className="text-sm text-slate-300">-</span>;
+      }
+
+      return (
+        <TableActionGroup>
+            {row.type === "parent" && (
+              <TableActionButton
+                onClick={() => {
+                  setEditingMember(row);
+                  setAccountForm({
+                    username: row.username,
+                    password: "",
+                    role: row.role,
+                    identity: row.identity || "",
+                  });
+                  setShowEditAccountModal(true);
+                }}
+                tone="blue"
+                label="编辑成员"
+                icon={<Settings className="h-4 w-4 shrink-0" strokeWidth={2.2} />}
+              />
+            )}
+            {row.type === "child" && (
+              <TableActionButton
+                onClick={() => {
+                  setRewardPointsTarget({
+                    id: row.id,
+                    nickname: row.nickname || row.username,
+                    avatar: row.avatar || "👶",
+                    availablePoints: row.availablePoints || 0,
+                  });
+                  setShowRewardPointsModal(true);
+                }}
+                tone="emerald"
+                label="奖励积分"
+                icon={<PlusCircle className="h-4 w-4 shrink-0" strokeWidth={2.2} />}
+              />
+            )}
+            {row.type === "child" && (row.availablePoints || 0) > 0 && (
+              <TableActionButton
+                onClick={() => {
+                  setDeductPointsTarget({
+                    id: row.id,
+                    nickname: row.nickname || row.username,
+                    avatar: row.avatar || "👶",
+                    availablePoints: row.availablePoints || 0,
+                  });
+                  setShowDeductPointsModal(true);
+                }}
+                tone="amber"
+                label={`扣除积分（可扣: ${row.availablePoints}）`}
+                icon={<MinusCircle className="h-4 w-4 shrink-0" strokeWidth={2.2} />}
+              />
+            )}
+            {!row.isMe && row.type === "parent" && (
+              <TableActionButton
+                onClick={() => setDeleteMemberId(row.id)}
+                tone="rose"
+                label="移出成员"
+                icon={<Trash2 className="h-4 w-4 shrink-0" strokeWidth={2.2} />}
+              />
+            )}
+        </TableActionGroup>
+      );
+    },
   }), []);
 
   const pageOptions = useMemo(() => ({
@@ -374,6 +371,7 @@ export default function FamilyPage() {
           columns={columns}
           dataSource={familyMembers}
           actionColumn={actionColumn}
+          actionColumnWidth={172}
           fixedColumns={{ left: ["username"], right: ["actions"] }}
           pageOptions={pageOptions}
           minWidth={600}

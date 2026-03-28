@@ -10,3 +10,4 @@ export { default as TabFilter } from './TabFilter';
 export { default as DataTable } from './DataTable';
 export type { DataTableColumn } from './DataTable';
 export { default as Image } from './Image';
+export { TableActionButton, TableActionGroup } from './TableActionGroup';

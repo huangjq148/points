@@ -1,7 +1,7 @@
 "use client";
 
 import { FamilyMember } from "@/app/typings";
-import { Button, DataTable } from "@/components/ui";
+import { Button, DataTable, TableActionButton, TableActionGroup } from "@/components/ui";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
 import Select from "@/components/ui/Select";
@@ -392,12 +392,11 @@ function UsersPageContent() {
   const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
     key: "actions",
     title: "操作",
+    width: 120,
     render: (_, row) => (
-      <div className="flex justify-center gap-2">
+      <TableActionGroup>
         {row.role !== "child" && (
-          <Button
-            variant="secondary"
-            size="sm"
+          <TableActionButton
             onClick={() => {
               setEditingMember(row);
               setAccountForm({
@@ -411,22 +410,20 @@ function UsersPageContent() {
               setFormErrors({});
               setShowEditAccountModal(true);
             }}
-            className="text-blue-600 hover:bg-blue-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-          >
-            <Settings size={18} />
-          </Button>
+            tone="blue"
+            label="编辑账号"
+            icon={<Settings className="h-4 w-4 shrink-0" strokeWidth={2.2} />}
+          />
         )}
         {!row.isMe && row.role !== "child" && (
-          <Button
-            variant="secondary"
-            size="sm"
+          <TableActionButton
             onClick={() => setDeleteUserId(row.id)}
-            className="text-red-500 hover:bg-red-50 p-2 rounded-xl border-none bg-transparent shadow-none"
-          >
-            <Trash2 size={18} />
-          </Button>
+            tone="rose"
+            label="删除账号"
+            icon={<Trash2 className="h-4 w-4 shrink-0" strokeWidth={2.2} />}
+          />
         )}
-      </div>
+      </TableActionGroup>
     ),
   }), []);
 
@@ -649,6 +646,7 @@ function UsersPageContent() {
           columns={columns}
           dataSource={familyMembers}
           actionColumn={actionColumn}
+          actionColumnWidth={120}
           fixedColumns={{ left: ["username"], right: ["actions"] }}
           pageOptions={pageOptions}
           minWidth={800}
