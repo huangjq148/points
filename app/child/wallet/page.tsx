@@ -379,118 +379,122 @@ export default function WalletPage() {
           onClick={() => setSelectedLedgerItem(null)}
         >
           <div
-            className="w-full max-w-md rounded-t-[2rem] bg-white p-5 text-slate-800 shadow-2xl sm:rounded-[2rem]"
+            className="flex max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col overflow-hidden rounded-t-[2rem] bg-white text-slate-800 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">账单详情</p>
-                <h3 className="mt-1 text-xl font-black text-slate-900">{selectedLedgerItem.name}</h3>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="mb-4 flex items-start justify-between gap-4 px-5 pt-5">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">账单详情</p>
+                  <h3 className="mt-1 text-xl font-black text-slate-900">{selectedLedgerItem.name}</h3>
+                </div>
+                <button
+                  onClick={() => setSelectedLedgerItem(null)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedLedgerItem(null)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <div className="rounded-[1.5rem] bg-slate-50 p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
-                    {selectedLedgerItem.icon || "🪙"}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-700">
-                      {selectedLedgerItem.type === "income" ? "任务奖励" : selectedLedgerItem.type === "expense" ? "兑换礼物" : "家长反馈"}
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-5 hide-scrollbar">
+                <div className="rounded-[1.5rem] bg-slate-50 p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
+                        {selectedLedgerItem.icon || "🪙"}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-700">
+                          {selectedLedgerItem.type === "income" ? "任务奖励" : selectedLedgerItem.type === "expense" ? "兑换礼物" : "家长反馈"}
+                        </p>
+                        <p className="text-xs text-slate-500">{formatDate(selectedLedgerItem.date)}</p>
+                      </div>
+                    </div>
+                    <p className={`text-2xl font-black ${selectedLedgerItem.type === "income" ? "text-sky-600" : "text-rose-600"}`}>
+                      {selectedLedgerItem.type === "income" ? "+" : "-"}
+                      {selectedLedgerItem.points}
                     </p>
-                    <p className="text-xs text-slate-500">{formatDate(selectedLedgerItem.date)}</p>
-                  </div>
-                </div>
-                <p className={`text-2xl font-black ${selectedLedgerItem.type === "income" ? "text-sky-600" : "text-rose-600"}`}>
-                  {selectedLedgerItem.type === "income" ? "+" : "-"}
-                  {selectedLedgerItem.points}
-                </p>
-              </div>
-
-              {selectedLedgerItem.sourceType === "task" && selectedLedgerItem.taskDetail ? (
-                <div className="space-y-4">
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <ClipboardList size={16} className="text-blue-600" />
-                      任务内容
-                    </div>
-                    <p className="text-sm leading-6 text-slate-600">{selectedLedgerItem.taskDetail.description || "暂无任务描述"}</p>
-                    {selectedLedgerItem.taskDetail.imageUrl && (
-                      <div className="mt-3 flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                        <ImageIcon size={15} className="text-slate-400" />
-                        任务包含图片说明
-                      </div>
-                    )}
                   </div>
 
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <MessageSquareQuote size={16} className="text-violet-600" />
-                      审核过程
-                    </div>
-                    {selectedLedgerItem.taskDetail.auditHistory.length > 0 ? (
-                      <div className="space-y-3">
-                        {selectedLedgerItem.taskDetail.auditHistory.map((record, index) => (
-                          <div key={`${record.submittedAt}-${index}`} className="rounded-2xl bg-slate-50 p-3">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-bold text-slate-500">第 {index + 1} 次提交</span>
-                              <span className="rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600">
-                                {record.status === "approved" ? "通过" : record.status === "rejected" ? "驳回" : "审核中"}
-                              </span>
-                            </div>
-                            <p className="mt-2 text-xs text-slate-500">提交时间: {formatDate(record.submittedAt)}</p>
-                            {record.photoUrl && (
-                              <div className="mt-2">
-                                <p className="mb-1 text-xs text-slate-500">提交的照片：</p>
-                                <div className="h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-                                  <Image
-                                    src={record.photoUrl}
-                                    alt={`第 ${index + 1} 次提交的照片`}
-                                    className="h-full w-full object-cover"
-                                    enableZoom={true}
-                                    containerClassName="h-full w-full"
-                                  />
-                                </div>
-                              </div>
-                            )}
-                            {record.auditNote && <p className="mt-2 text-sm text-slate-700">{record.auditNote}</p>}
+                  {selectedLedgerItem.sourceType === "task" && selectedLedgerItem.taskDetail ? (
+                    <div className="space-y-4">
+                      <div className="rounded-2xl bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                          <ClipboardList size={16} className="text-blue-600" />
+                          任务内容
+                        </div>
+                        <p className="text-sm leading-6 text-slate-600">{selectedLedgerItem.taskDetail.description || "暂无任务描述"}</p>
+                        {selectedLedgerItem.taskDetail.imageUrl && (
+                          <div className="mt-3 flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                            <ImageIcon size={15} className="text-slate-400" />
+                            任务包含图片说明
                           </div>
-                        ))}
+                        )}
                       </div>
-                    ) : (
-                      <p className="text-sm text-slate-500">暂无审核记录</p>
-                    )}
-                  </div>
 
-                  <Button className="w-full" onClick={() => setShowTaskDetailModal(true)}>
-                    打开任务详情
-                    <ExternalLink size={16} />
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="rounded-2xl bg-white p-4 shadow-sm">
-                    <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <MessageSquareQuote size={16} className="text-rose-600" />
-                      家长反馈
+                      <div className="rounded-2xl bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                          <MessageSquareQuote size={16} className="text-violet-600" />
+                          审核过程
+                        </div>
+                        {selectedLedgerItem.taskDetail.auditHistory.length > 0 ? (
+                          <div className="space-y-3">
+                            {selectedLedgerItem.taskDetail.auditHistory.map((record, index) => (
+                              <div key={`${record.submittedAt}-${index}`} className="rounded-2xl bg-slate-50 p-3">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs font-bold text-slate-500">第 {index + 1} 次提交</span>
+                                  <span className="rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600">
+                                    {record.status === "approved" ? "通过" : record.status === "rejected" ? "驳回" : "审核中"}
+                                  </span>
+                                </div>
+                                <p className="mt-2 text-xs text-slate-500">提交时间: {formatDate(record.submittedAt)}</p>
+                                {record.photoUrl && (
+                                  <div className="mt-2">
+                                    <p className="mb-1 text-xs text-slate-500">提交的照片：</p>
+                                    <div className="h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                                      <Image
+                                        src={record.photoUrl}
+                                        alt={`第 ${index + 1} 次提交的照片`}
+                                        className="h-full w-full object-cover"
+                                        enableZoom={true}
+                                        containerClassName="h-full w-full"
+                                      />
+                                    </div>
+                                  </div>
+                                )}
+                                {record.auditNote && <p className="mt-2 text-sm text-slate-700">{record.auditNote}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-500">暂无审核记录</p>
+                        )}
+                      </div>
+
+                      <Button className="w-full" onClick={() => setShowTaskDetailModal(true)}>
+                        打开任务详情
+                        <ExternalLink size={16} />
+                      </Button>
                     </div>
-                    <p className="text-sm leading-6 text-slate-600">{selectedLedgerItem.feedback || "暂无反馈内容"}</p>
-                  </div>
-                  {selectedLedgerItem.type === "expense" && (
-                    <Button className="w-full" onClick={() => router.push("/child/gift")}>
-                      查看兑换的礼物
-                      <ExternalLink size={16} />
-                    </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="rounded-2xl bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                          <MessageSquareQuote size={16} className="text-rose-600" />
+                          家长反馈
+                        </div>
+                        <p className="text-sm leading-6 text-slate-600">{selectedLedgerItem.feedback || "暂无反馈内容"}</p>
+                      </div>
+                      {selectedLedgerItem.type === "expense" && (
+                        <Button className="w-full" onClick={() => router.push("/child/gift")}>
+                          查看兑换的礼物
+                          <ExternalLink size={16} />
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

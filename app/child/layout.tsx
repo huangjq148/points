@@ -600,7 +600,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           onClick={() => setShowSettingsModal(false)}
         >
           <div
-            className="w-full max-w-lg overflow-hidden rounded-t-[2rem] sm:rounded-[2rem] bg-white text-slate-800 shadow-[0_28px_90px_rgba(15,23,42,0.28)]"
+            className="flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-[2rem] bg-white text-slate-800 shadow-[0_28px_90px_rgba(15,23,42,0.28)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative overflow-hidden bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-6 py-5 text-white">
@@ -626,7 +626,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
               </div>
             </div>
 
-            <div className="space-y-4 px-5 py-5 sm:px-6">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-6 hide-scrollbar">
               <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => {
