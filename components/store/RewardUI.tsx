@@ -41,7 +41,7 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="rounded-[28px] border border-white/75 bg-white/80 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
+    <div className="reward-stat-card rounded-[28px] border border-white/75 bg-white/80 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
       <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
         <span>{title}</span>
         {icon}
@@ -62,7 +62,7 @@ export function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className="rounded-[30px] border border-dashed border-slate-200 bg-white/80 py-16 text-center text-slate-500">
+    <div className="reward-empty-state rounded-[30px] border border-dashed border-slate-200 bg-white/80 py-16 text-center text-slate-500">
       <Gift size={52} className="mx-auto mb-3 opacity-40" />
       <p className="text-base font-medium text-slate-600">{title}</p>
       <p className="mt-1 text-sm text-slate-500">{hint}</p>
@@ -123,7 +123,7 @@ export function RewardCard({
   const descriptionText = description?.trim() || "暂无说明";
   return (
     <div
-      className={`group relative overflow-hidden rounded-[16px] border ${tone === "time" ? "border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,249,231,0.98)_0%,rgba(255,255,255,0.96)_100%)]" : "border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.99)_0%,rgba(248,252,255,0.96)_100%)]"} ${rowMode ? "p-4" : "p-5"} shadow-[0_10px_26px_rgba(59,130,246,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(59,130,246,0.14)] ${muted ? "opacity-65" : ""}`}
+      className={`reward-card group relative overflow-hidden rounded-[16px] border ${tone === "time" ? "border-amber-200/80 bg-[linear-gradient(180deg,rgba(255,249,231,0.98)_0%,rgba(255,255,255,0.96)_100%)]" : "border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.99)_0%,rgba(248,252,255,0.96)_100%)]"} ${rowMode ? "p-4" : "p-5"} shadow-[0_10px_26px_rgba(59,130,246,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(59,130,246,0.14)] ${muted ? "opacity-65" : ""}`}
     >
       <div className={`pointer-events-none absolute right-4 top-4 h-24 w-24 rounded-full blur-2xl ${tone === "time" ? "bg-amber-100/80" : "bg-sky-100/90"}`} />
       <div className={`relative flex ${rowMode ? "items-start gap-4" : "items-start gap-4"} ${rowMode ? "mb-1" : ""}`}>

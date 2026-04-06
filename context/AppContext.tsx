@@ -8,6 +8,7 @@ export interface User {
   id: string;
   username: string;
   nickname?: string;
+  identity?: string;
   gender?: 'boy' | 'girl' | 'none';
   password?: string;
   role: "parent" | "child" | "admin";
@@ -62,6 +63,7 @@ export interface AppContextType {
   resetChildOrder: () => void;
   switchToParent: () => Promise<boolean>;
   refreshChildren: () => Promise<void>;
+  refreshCurrentUser: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -280,6 +282,50 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.location.href = "/";
   };
 
+  const refreshCurrentUser = async () => {
+    if (!currentUser?.token) return;
+
+    try {
+      const res = await fetch("/api/auth/current", {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.success || !data.user) return;
+
+      const activeSession = readSessions().find((session) => session.user.id === currentUser.id);
+      const mergedUser = {
+        ...currentUser,
+        ...data.user,
+        token: currentUser.token,
+      };
+
+      setCurrentUser(mergedUser);
+      setChildList(data.user.children || []);
+
+      if (typeof window !== "undefined" && activeSession?.token) {
+        upsertSession({
+          user: mergedUser,
+          token: activeSession.token,
+          lastUsedAt: activeSession.lastUsedAt,
+        });
+      }
+
+      syncSavedChildSessions();
+      syncFavoriteChildIds();
+      syncChildOrderIds();
+    } catch (error) {
+      console.error("Refresh current user failed:", error);
+    }
+  };
+
   useEffect(() => {
     if (!isHydrated) return;
 
@@ -296,42 +342,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      try {
-        const res = await fetch("/api/auth/current", {
-          headers: {
-            Authorization: `Bearer ${currentUser.token}`,
-          },
-        });
-
-        if (res.status === 401) {
-          logout();
-          return;
-        }
-
-        const data = await res.json();
-        if (data.success && data.user) {
-          const activeSession = readSessions().find((session) => session.user.id === currentUser.id);
-          const mergedUser = {
-            ...currentUser,
-            ...data.user,
-            token: currentUser.token,
-          };
-          setCurrentUser(mergedUser);
-          setChildList(data.user.children || []);
-          if (typeof window !== "undefined" && activeSession?.token) {
-            upsertSession({
-              user: mergedUser,
-              token: activeSession.token,
-              lastUsedAt: activeSession.lastUsedAt,
-            });
-          }
-          syncSavedChildSessions();
-          syncFavoriteChildIds();
-          syncChildOrderIds();
-        }
-      } catch (error) {
-        console.error("Token verification failed:", error);
-      }
+      await refreshCurrentUser();
     };
 
     verifyToken();
@@ -514,6 +525,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         resetChildOrder,
         switchToParent,
         refreshChildren,
+        refreshCurrentUser,
       }}
     >
       {children}

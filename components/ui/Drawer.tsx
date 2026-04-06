@@ -62,14 +62,14 @@ export default function Drawer({
       onClick={(e) => e.stopPropagation()}
     >
       {(title || showCloseButton) && (
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 pt-4 pb-3">
+        <div className="flex items-start justify-between gap-3 border-b border-[color:var(--ui-border)] px-5 pt-4 pb-3">
           <div className="min-w-0 flex-1">
-            {title && <h3 className="truncate pr-4 text-xl font-black tracking-tight text-slate-950">{title}</h3>}
+            {title && <h3 className="truncate pr-4 text-xl font-black tracking-tight text-[var(--ui-text-primary)]">{title}</h3>}
           </div>
           {showCloseButton && (
             <button
               onClick={onClose}
-              className={`flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center border border-slate-200 bg-slate-50 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 ${CONTROL_INNER_RADIUS_CLASS}`}
+              className={`flex h-9 w-9 flex-shrink-0 cursor-pointer items-center justify-center border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] text-[var(--ui-text-secondary)] transition-colors hover:bg-[var(--ui-surface-3)] hover:text-[var(--ui-text-primary)] ${CONTROL_INNER_RADIUS_CLASS}`}
             >
               <X size={18} />
             </button>
@@ -85,7 +85,7 @@ export default function Drawer({
         {children}
       </div>
 
-      {footer && <div className="shrink-0 flex justify-end gap-3 border-t border-slate-200 px-5 py-3">{footer}</div>}
+      {footer && <div className="shrink-0 flex justify-end gap-3 border-t border-[color:var(--ui-border)] px-5 py-3">{footer}</div>}
     </motion.div>
   );
 

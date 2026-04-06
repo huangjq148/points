@@ -218,8 +218,8 @@ export default function RewardsPage() {
   const iconChoices = ["🎁", "🍦", "📚", "🧸", "📺", "⏰", "🚲", "⭐"];
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+    <div className="rewards-page space-y-6">
+      <section className="rewards-hero rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
@@ -244,7 +244,7 @@ export default function RewardsPage() {
         <StatCard title="特权奖励" value={stats.privilegeCount} hint="看电视、免任务等非实物奖励" />
       </section>
 
-      <section className="rounded-[32px] border border-white/70 bg-white/80 p-3.5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+      <section className="rewards-toolbar rounded-[32px] border border-white/70 bg-white/80 p-3.5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
             <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />

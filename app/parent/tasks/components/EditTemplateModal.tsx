@@ -1,6 +1,5 @@
 import { TaskTemplate } from "../page";
 import { Button, Modal, Input } from "@/components/ui";
-import { Hash, Sparkles, Tag, Type } from "lucide-react";
 
 interface EditTemplateModalProps {
   isOpen: boolean;
@@ -36,7 +35,7 @@ export default function EditTemplateModal({
           </Button>
           <Button
             onClick={onUpdate}
-            className="flex-1 h-10 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition-colors"
+            className="flex-1 h-10 rounded-xl font-semibold"
           >
             确认更新
           </Button>
@@ -60,7 +59,7 @@ export default function EditTemplateModal({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="mb-1 block text-sm text-slate-600">积分</label>
+            <label className="mb-1 block text-sm text-[var(--ui-text-muted)]">积分</label>
             <Input
               type="number"
               value={editingTemplate.points}
@@ -68,7 +67,7 @@ export default function EditTemplateModal({
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-slate-600">图标</label>
+            <label className="mb-1 block text-sm text-[var(--ui-text-muted)]">图标</label>
             <Input
               value={editingTemplate.icon}
               onChange={(e) => setEditingTemplate({ ...editingTemplate, icon: e.target.value })}
@@ -78,7 +77,7 @@ export default function EditTemplateModal({
         </div>
 
         <div>
-          <label className="mb-2 block text-sm text-slate-600">任务类型</label>
+          <label className="mb-2 block text-sm text-[var(--ui-text-muted)]">任务类型</label>
           <div className="flex gap-2">
             {["daily", "advanced", "challenge"].map((type) => (
               <Button
@@ -88,8 +87,8 @@ export default function EditTemplateModal({
                 variant={editingTemplate.type === type ? "primary" : "default"}
                 className={`flex-1 h-10 rounded-xl text-sm font-medium border transition-all shadow-none ${
                   editingTemplate.type === type
-                    ? "border-slate-400 bg-slate-50 text-slate-800"
-                    : "hover:bg-slate-50"
+                    ? "border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-soft-bg)] text-[var(--ui-focus)]"
+                    : "border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-surface-3)] hover:border-[color:var(--ui-border-strong)]"
                 }`}
               >
                 {type === "daily" ? "日常" : type === "advanced" ? "进阶" : "挑战"}

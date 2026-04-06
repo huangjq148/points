@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Select from "@/components/ui/Select";
+import { Button, Input, Select } from "@/components/ui";
 
 export type TimeRange = "today" | "week" | "month" | "year" | "custom";
 
@@ -94,41 +94,45 @@ export default function TimeRangeFilter({
       {showCustomDate && (
         <div
           ref={panelRef}
-          className="absolute left-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] w-72 cursor-default rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+          className="absolute left-0 top-[calc(100%+8px)] z-[var(--z-dropdown)] w-72 cursor-default rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-panel-bg)] p-4 shadow-[var(--ui-shadow-md)] backdrop-blur-md"
         >
-          <h4 className="mb-3 text-sm font-semibold text-slate-800">选择日期范围</h4>
+          <h4 className="mb-3 text-sm font-semibold text-[var(--ui-text-primary)]">选择日期范围</h4>
           <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs text-slate-500">开始日期</label>
-              <input
+              <label className="mb-1 block text-xs text-[var(--ui-text-muted)]">开始日期</label>
+              <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-slate-500">结束日期</label>
-              <input
+              <label className="mb-1 block text-xs text-[var(--ui-text-muted)]">结束日期</label>
+              <Input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full"
               />
             </div>
             <div className="flex gap-2 pt-2">
-              <button
+              <Button
+                type="button"
                 onClick={() => setShowCustomDate(false)}
-                className="flex-1 cursor-pointer rounded-xl px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100"
+                variant="secondary"
+                className="flex-1"
               >
                 取消
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
                 onClick={handleCustomDateSubmit}
-                className="flex-1 cursor-pointer rounded-xl bg-blue-500 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-600"
+                variant="primary"
+                className="flex-1"
               >
                 确定
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -1,9 +1,17 @@
 "use client";
 import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import Modal from "@/components/ui/Modal";
+import PasswordInput from "@/components/ui/PasswordInput";
+import Select from "@/components/ui/Select";
+import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
-import { FileText, Gift, Home, LogOut, Star, Ticket, UserCog, Users, PanelLeft } from "lucide-react";
+import request from "@/utils/request";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import { applyDocumentTheme, resolvePreferredTheme, setThemeStorage } from "@/lib/theme";
+import { ChevronDown, FileText, Gift, Home, KeyRound, LogOut, Settings, Star, Ticket, UserCog, Users, PanelLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { MouseEvent, ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { MouseEvent, ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type NavItemId = "home" | "overview" | "audit" | "tasks" | "orders" | "rewards" | "family" | "users";
 
@@ -44,8 +52,9 @@ const TAB_TITLE: Record<NavItemId, { title: string; desc: string }> = {
 
 export default function ParentLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { currentUser, logout, childList } = useApp();
+  const { currentUser, logout, childList, refreshCurrentUser } = useApp();
   const router = useRouter();
+  const toast = useToast();
   const totalPendingOrders = useMemo(
     () => childList.reduce((acc, child) => acc + (child.orderCount || 0), 0),
     [childList],
@@ -80,12 +89,26 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
   const [hoveredTooltip, setHoveredTooltip] = useState<{ label: string; x: number; y: number } | null>(null);
   const navRef = useRef<HTMLDivElement | null>(null);
   const navItemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [navIndicatorStyle, setNavIndicatorStyle] = useState<{
     width: number;
     height: number;
     x: number;
     y: number;
   } | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [parentTheme, setParentTheme] = useState<"light" | "dark">(() => resolvePreferredTheme("parent"));
+  const [profileForm, setProfileForm] = useState({
+    username: "",
+    nickname: "",
+    gender: "none" as "boy" | "girl" | "none",
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    password: "",
+    confirmPassword: "",
+  });
 
   const handleNavClick = (itemId: NavItemId) => {
     router.push(`/parent/${itemId}`);
@@ -141,8 +164,123 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
     };
   }, [activeTab, navItems, sidebarCollapsed]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setThemeStorage("parent", parentTheme);
+    applyDocumentTheme(parentTheme);
+  }, [parentTheme]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const body = document.body;
+    body.classList.add("parent-theme");
+    body.classList.remove("parent-theme-light", "parent-theme-dark");
+    body.classList.add(parentTheme === "dark" ? "parent-theme-dark" : "parent-theme-light");
+
+    return () => {
+      body.classList.remove("parent-theme", "parent-theme-light", "parent-theme-dark");
+    };
+  }, [parentTheme]);
+
+  useEffect(() => {
+    if (!showUserMenu) return;
+
+    const handleClickOutside = (event: MouseEvent | globalThis.MouseEvent) => {
+      if (!userMenuRef.current?.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showUserMenu]);
+
+  const toggleTheme = () => {
+    const next = parentTheme === "dark" ? "light" : "dark";
+    setParentTheme(next);
+    toast.success(next === "dark" ? "已切换到深色主题" : "已切换到浅色主题");
+    setShowUserMenu(false);
+  };
+
+  const handleOpenProfileModal = () => {
+    setProfileForm({
+      username: currentUser?.username || "",
+      nickname: currentUser?.nickname || currentUser?.identity || "",
+      gender: currentUser?.gender || "none",
+    });
+    setShowUserMenu(false);
+    setShowProfileModal(true);
+  };
+
+  const handleOpenPasswordModal = () => {
+    setPasswordForm({ password: "", confirmPassword: "" });
+    setShowUserMenu(false);
+    setShowPasswordModal(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!currentUser?.id) return;
+    if (!profileForm.username.trim()) {
+      toast.error("请输入用户名");
+      return;
+    }
+
+    const data = await request("/api/user", {
+      method: "PUT",
+      body: {
+        id: currentUser.id,
+        username: profileForm.username.trim(),
+        nickname: profileForm.nickname.trim(),
+        gender: profileForm.gender,
+      },
+    });
+
+    if (data.success) {
+      await refreshCurrentUser();
+      toast.success("用户信息已更新");
+      setShowProfileModal(false);
+      return;
+    }
+
+    toast.error(data.message || "更新失败");
+  };
+
+  const handleSavePassword = async () => {
+    if (!currentUser?.id) return;
+    if (!passwordForm.password) {
+      toast.error("请输入新密码");
+      return;
+    }
+    if (passwordForm.password.length < 6) {
+      toast.error("密码至少需要 6 个字符");
+      return;
+    }
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      toast.error("两次输入的密码不一致");
+      return;
+    }
+
+    const data = await request("/api/user", {
+      method: "PUT",
+      body: {
+        id: currentUser.id,
+        password: passwordForm.password,
+      },
+    });
+
+    if (data.success) {
+      toast.success("密码已更新");
+      setShowPasswordModal(false);
+      setPasswordForm({ password: "", confirmPassword: "" });
+      return;
+    }
+
+    toast.error(data.message || "密码更新失败");
+  };
+
   return (
-    <div className="dashboard-layout parent-theme">
+    <div className={`dashboard-layout parent-theme ${parentTheme === "dark" ? "parent-theme-dark" : "parent-theme-light"}`}>
       <aside className={`sidebar ${sidebarCollapsed ? "collapsed" : ""}`}>
         <div className="logo-section">
           <div className="logo-brand">
@@ -220,18 +358,68 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
               <h1 className="desktop-header-title">{TAB_TITLE[activeTab].title}</h1>
               <p className="desktop-header-subtitle">{TAB_TITLE[activeTab].desc}</p>
             </div>
-            <div className="desktop-header-user">
-              <div className="desktop-header-avatar">
-                {currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
-              </div>
-              <div className="desktop-header-userinfo">
-                <span className="desktop-header-username">{currentUser?.username || "家长"}</span>
-                <span className="desktop-header-role">管理员</span>
-              </div>
-              <div className="desktop-header-divider" />
-              <Button onClick={logout} variant="secondary" className="desktop-header-logout">
-                <LogOut size={20} />
-              </Button>
+            <div ref={userMenuRef} className="relative">
+              <button
+                type="button"
+                className="desktop-header-user desktop-header-user-trigger"
+                onClick={() => setShowUserMenu((prev) => !prev)}
+                aria-label="打开用户菜单"
+                aria-haspopup="menu"
+                aria-expanded={showUserMenu}
+              >
+                <div className="desktop-header-avatar">
+                  {currentUser?.username ? currentUser.username[0].toUpperCase() : "P"}
+                </div>
+                <div className="desktop-header-userinfo">
+                  <span className="desktop-header-username">{currentUser?.nickname || currentUser?.username || "家长"}</span>
+                  <span className="desktop-header-role">{parentTheme === "dark" ? "深色主题" : "浅色主题"}</span>
+                </div>
+                <span className="desktop-header-menu-trigger" aria-hidden="true">
+                  <ChevronDown size={18} className={`transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`} />
+                </span>
+              </button>
+
+                  {showUserMenu && (
+                    <div className="desktop-user-menu">
+                      <button type="button" className="desktop-user-menu-item" onClick={handleOpenProfileModal}>
+                        <div className="desktop-user-menu-icon desktop-user-menu-icon-blue">
+                          <Settings size={16} />
+                        </div>
+                        <div className="desktop-user-menu-copy">
+                          <div className="desktop-user-menu-title">用户信息设置</div>
+                          <div className="desktop-user-menu-subtitle">修改昵称、用户名和性别</div>
+                        </div>
+                      </button>
+
+                      <button type="button" className="desktop-user-menu-item" onClick={handleOpenPasswordModal}>
+                        <div className="desktop-user-menu-icon desktop-user-menu-icon-amber">
+                          <KeyRound size={16} />
+                        </div>
+                        <div className="desktop-user-menu-copy">
+                          <div className="desktop-user-menu-title">密码管理</div>
+                          <div className="desktop-user-menu-subtitle">更新登录密码</div>
+                        </div>
+                      </button>
+
+                      <ThemeToggle theme={parentTheme} onToggle={toggleTheme} variant="menu" />
+
+                  <div className="desktop-user-menu-divider" />
+
+                  <button
+                    type="button"
+                    className="desktop-user-menu-item desktop-user-menu-item-danger"
+                    onClick={logout}
+                  >
+                    <div className="desktop-user-menu-icon desktop-user-menu-icon-rose">
+                      <LogOut size={16} />
+                    </div>
+                    <div className="desktop-user-menu-copy">
+                      <div className="desktop-user-menu-title">登出</div>
+                      <div className="desktop-user-menu-subtitle">退出当前账号并返回登录页</div>
+                    </div>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -240,6 +428,83 @@ export default function ParentLayout({ children }: { children: ReactNode }) {
           <div className="main-inner parent-content-shell">{children}</div>
         </main>
       </div>
+
+      <Modal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        title="用户信息设置"
+        footer={
+          <Button onClick={handleSaveProfile} fullWidth>
+            保存资料
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <Input
+            label="用户名"
+            value={profileForm.username}
+            onChange={(e) => setProfileForm((prev) => ({ ...prev, username: e.target.value }))}
+          />
+          <Input
+            label="昵称"
+            value={profileForm.nickname}
+            onChange={(e) => setProfileForm((prev) => ({ ...prev, nickname: e.target.value }))}
+            placeholder="请输入昵称"
+          />
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">性别</label>
+            <Select
+              value={profileForm.gender}
+              onChange={(value) =>
+                setProfileForm((prev) => ({
+                  ...prev,
+                  gender: (value as "boy" | "girl" | "none") || "none",
+                }))
+              }
+              options={[
+                { value: "none", label: "未设置" },
+                { value: "boy", label: "男" },
+                { value: "girl", label: "女" },
+              ]}
+              placeholder="选择性别"
+            />
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        title="密码管理"
+        footer={
+          <Button onClick={handleSavePassword} fullWidth>
+            更新密码
+          </Button>
+        }
+      >
+        <div className="space-y-4">
+          <Input
+            label="当前账号"
+            value={currentUser?.username || ""}
+            readOnly
+            autoComplete="username"
+          />
+          <PasswordInput
+            label="新密码"
+            value={passwordForm.password}
+            onChange={(e) => setPasswordForm((prev) => ({ ...prev, password: e.target.value }))}
+            placeholder="请输入至少 6 位的新密码"
+            autoComplete="new-password"
+          />
+          <PasswordInput
+            label="确认密码"
+            value={passwordForm.confirmPassword}
+            onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+            placeholder="请再次输入新密码"
+            autoComplete="new-password"
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -67,48 +67,48 @@ export default function Button({
       transition-all duration-200 ease-out
       hover:-translate-y-px
       hover:brightness-[1.03]
-      hover:shadow-[0_12px_28px_rgba(59,130,246,0.38),0_6px_16px_rgba(59,130,246,0.22)]
+      hover:shadow-[var(--ui-primary-shadow-hover)]
       active:translate-y-0
     `,
     secondary: `
       ${CONTROL_FRAME_CLASS}
       ${CONTROL_SURFACE_CLASS}
       ${CONTROL_TEXT_CLASS}
-      hover:text-slate-950
+      hover:text-[var(--ui-text-primary)]
       active:translate-y-0
     `,
     success: `
       ${CONTROL_FRAME_CLASS}
-      bg-emerald-50
-      text-emerald-700
-      border border-emerald-200
-      hover:bg-emerald-100
-      hover:border-emerald-300
+      bg-[var(--ui-success-bg)]
+      text-[var(--ui-success-text)]
+      border border-[color:var(--ui-success-border)]
+      hover:bg-[var(--ui-success-bg-hover)]
+      hover:border-[color:var(--ui-success-border-hover)]
       active:translate-y-0
     `,
     warning: `
       ${CONTROL_FRAME_CLASS}
-      bg-amber-50
-      text-amber-700
-      border border-amber-200
-      hover:bg-amber-100
-      hover:border-amber-300
+      bg-[var(--ui-warning-bg)]
+      text-[var(--ui-warning-text)]
+      border border-[color:var(--ui-warning-border)]
+      hover:bg-[var(--ui-warning-bg-hover)]
+      hover:border-[color:var(--ui-warning-border-hover)]
       active:translate-y-0
     `,
     error: `
       ${CONTROL_FRAME_CLASS}
-      bg-rose-50
-      text-rose-700
-      border border-rose-200
-      hover:bg-rose-100
-      hover:border-rose-300
+      bg-[var(--ui-danger-bg)]
+      text-[var(--ui-danger-text)]
+      border border-[color:var(--ui-danger-border)]
+      hover:bg-[var(--ui-danger-bg-hover)]
+      hover:border-[color:var(--ui-danger-border-hover)]
       active:translate-y-0
     `,
     default: `
       ${CONTROL_FRAME_CLASS}
       ${CONTROL_SURFACE_CLASS}
       ${CONTROL_TEXT_CLASS}
-      hover:text-slate-950
+      hover:text-[var(--ui-text-primary)]
       active:translate-y-0
     `,
   };

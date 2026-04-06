@@ -199,24 +199,24 @@ const sizeClassMap: Record<
 
 function getVariantClasses(variant: InputVariant) {
   if (variant === 'filled') {
-    return 'bg-white/92';
+    return 'bg-[var(--ui-surface-2)]';
   }
 
   if (variant === 'ghost') {
-    return 'bg-transparent backdrop-blur-sm hover:bg-white/78';
+    return 'bg-transparent backdrop-blur-sm hover:bg-[var(--ui-surface-1)]';
   }
 
-  return 'bg-white/88 backdrop-blur-sm';
+  return 'bg-[var(--ui-surface-1)] backdrop-blur-sm';
 }
 
 function getStatusClasses(status: InputStatus, disabled?: boolean) {
   if (disabled) {
     return {
-      border: 'border-slate-200',
-      focus: 'focus:ring-slate-300/20 focus:border-slate-300',
-      text: 'text-slate-500',
-      helper: 'text-slate-400',
-      icon: 'text-slate-400',
+      border: 'border-[color:var(--ui-border)]',
+      focus: 'focus:ring-[var(--ui-focus-ring)] focus:border-[color:var(--ui-border)]',
+      text: 'text-[var(--ui-text-muted)]',
+      helper: 'text-[var(--ui-text-soft)]',
+      icon: 'text-[var(--ui-text-soft)]',
     };
   }
 
@@ -225,8 +225,8 @@ function getStatusClasses(status: InputStatus, disabled?: boolean) {
       return {
         border: 'border-red-400 hover:border-red-500',
         focus:
-          'focus:outline-none focus:ring-4 focus:ring-red-500/12 focus:border-red-500 focus:shadow-[0_16px_32px_rgba(239,68,68,0.16),inset_0_1px_0_rgba(255,255,255,0.88)]',
-        text: 'text-gray-900',
+          'focus:outline-none focus:ring-4 focus:ring-red-500/12 focus:border-red-500 focus:shadow-[var(--ui-status-error-shadow)]',
+        text: 'text-[var(--ui-text-primary)]',
         helper: 'text-red-500',
         icon: 'text-red-500',
       };
@@ -234,8 +234,8 @@ function getStatusClasses(status: InputStatus, disabled?: boolean) {
       return {
         border: 'border-green-400 hover:border-green-500',
         focus:
-          'focus:outline-none focus:ring-4 focus:ring-green-500/12 focus:border-green-500 focus:shadow-[0_16px_32px_rgba(34,197,94,0.16),inset_0_1px_0_rgba(255,255,255,0.88)]',
-        text: 'text-gray-900',
+          'focus:outline-none focus:ring-4 focus:ring-green-500/12 focus:border-green-500 focus:shadow-[var(--ui-status-success-shadow)]',
+        text: 'text-[var(--ui-text-primary)]',
         helper: 'text-green-600',
         icon: 'text-green-600',
       };
@@ -243,18 +243,18 @@ function getStatusClasses(status: InputStatus, disabled?: boolean) {
       return {
         border: 'border-amber-400 hover:border-amber-500',
         focus:
-          'focus:outline-none focus:ring-4 focus:ring-amber-500/12 focus:border-amber-500 focus:shadow-[0_16px_32px_rgba(245,158,11,0.16),inset_0_1px_0_rgba(255,255,255,0.88)]',
-        text: 'text-gray-900',
+          'focus:outline-none focus:ring-4 focus:ring-amber-500/12 focus:border-amber-500 focus:shadow-[var(--ui-status-warning-shadow)]',
+        text: 'text-[var(--ui-text-primary)]',
         helper: 'text-amber-600',
         icon: 'text-amber-600',
       };
     default:
       return {
-        border: 'border-slate-200/90 hover:border-slate-300/90',
+        border: 'border-[color:var(--ui-border)] hover:border-[color:var(--ui-border-strong)]',
         focus: CONTROL_FOCUS_CLASS,
-        text: 'text-slate-900',
-        helper: 'text-slate-500',
-        icon: 'text-slate-400',
+        text: 'text-[var(--ui-text-primary)]',
+        helper: 'text-[var(--ui-text-muted)]',
+        icon: 'text-[var(--ui-text-soft)]',
       };
   }
 }
@@ -321,6 +321,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const currentValue = isControlled ? String(value ?? '') : uncontrolledValue;
     const hasValue = currentValue.length > 0;
+    const resolvedAutoComplete = props.autoComplete ?? (isSearch ? 'off' : undefined);
 
     const variantClasses = getVariantClasses(variant);
     const statusClasses = getStatusClasses(mergedStatus, disabled);
@@ -336,82 +337,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       !disabled &&
       hasValue &&
       (!loading || !hideClearWhenLoading);
-
-    const mergedEndAdornment: React.ReactNode[] = [];
-
-
-    if (loading) {
-      mergedEndAdornment.push(
-        <span
-          key='loading'
-          className='flex items-center justify-center text-gray-400'
-          aria-label='加载中'
-        >
-          <LoadingIcon className={styles.icon} />
-        </span>,
-      );
-    }
-
-    if (showClear) {
-      mergedEndAdornment.push(
-        <button
-          key='clear'
-          type='button'
-          tabIndex={-1}
-          aria-label='清空输入内容'
-          onClick={handleClear}
-          className={cx(
-            'flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors',
-            styles.clearBtn,
-          )}
-        >
-          <ClearIcon className={styles.icon} />
-        </button>,
-      );
-    }
-
-    if (endAdornment) {
-      mergedEndAdornment.push(
-        <span key='endAdornment' className='flex items-center'>
-          {endAdornment}
-        </span>,
-      );
-    }
-
-    if (suffix) {
-      mergedEndAdornment.push(
-        <span key='suffix' className='flex items-center'>
-          {suffix}
-        </span>,
-      );
-    }
-
-    if (rightElement) {
-      mergedEndAdornment.push(
-        <span key='rightElement' className='flex items-center'>
-          {rightElement}
-        </span>,
-      );
-    }
-
-    if (!loading && mergedStatus === 'success') {
-      mergedEndAdornment.push(
-        <span key='success' className='flex items-center text-green-600'>
-          <CheckIcon className={styles.icon} />
-        </span>,
-      );
-    }
-
-    if (!loading && mergedStatus === 'warning') {
-      mergedEndAdornment.push(
-        <span key='warning' className='flex items-center text-amber-600'>
-          <WarningIcon className={styles.icon} />
-        </span>,
-      );
-    }
-
-    const hasLeftSection = !!mergedStartAdornment;
-    const hasRightSection = mergedEndAdornment.length > 0;
 
     useEffect(() => {
       return () => {
@@ -478,6 +403,81 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onClear?.();
     };
 
+    const mergedEndAdornment: React.ReactNode[] = [];
+
+    if (loading) {
+      mergedEndAdornment.push(
+        <span
+          key='loading'
+          className='flex items-center justify-center text-[var(--ui-text-soft)]'
+          aria-label='加载中'
+        >
+          <LoadingIcon className={styles.icon} />
+        </span>,
+      );
+    }
+
+    if (showClear) {
+      mergedEndAdornment.push(
+        <button
+          key='clear'
+          type='button'
+          tabIndex={-1}
+          aria-label='清空输入内容'
+          onClick={handleClear}
+          className={cx(
+            'flex items-center justify-center text-[var(--ui-text-soft)] hover:text-[var(--ui-text-secondary)] transition-colors',
+            styles.clearBtn,
+          )}
+        >
+          <ClearIcon className={styles.icon} />
+        </button>,
+      );
+    }
+
+    if (endAdornment) {
+      mergedEndAdornment.push(
+        <span key='endAdornment' className='flex items-center'>
+          {endAdornment}
+        </span>,
+      );
+    }
+
+    if (suffix) {
+      mergedEndAdornment.push(
+        <span key='suffix' className='flex items-center'>
+          {suffix}
+        </span>,
+      );
+    }
+
+    if (rightElement) {
+      mergedEndAdornment.push(
+        <span key='rightElement' className='flex items-center'>
+          {rightElement}
+        </span>,
+      );
+    }
+
+    if (!loading && mergedStatus === 'success') {
+      mergedEndAdornment.push(
+        <span key='success' className='flex items-center text-green-600'>
+          <CheckIcon className={styles.icon} />
+        </span>,
+      );
+    }
+
+    if (!loading && mergedStatus === 'warning') {
+      mergedEndAdornment.push(
+        <span key='warning' className='flex items-center text-amber-600'>
+          <WarningIcon className={styles.icon} />
+        </span>,
+      );
+    }
+
+    const hasLeftSection = !!mergedStartAdornment;
+    const hasRightSection = mergedEndAdornment.length > 0;
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const nextValue = e.target.value;
 
@@ -512,7 +512,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <label
             htmlFor={inputId}
             className={cx(
-              'font-medium text-slate-700 cursor-text',
+              'ui-input-label font-medium text-[var(--ui-text-secondary)] cursor-text',
               styles.label,
               labelPosition === 'top' ? 'block mb-1' : 'shrink-0',
               labelClassName,
@@ -535,7 +535,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {hasLeftSection && (
               <div
                 className={cx(
-                  'absolute left-3 top-1/2 -translate-y-1/2 z-10 flex items-center pointer-events-none',
+                  'ui-input-icon absolute left-3 top-1/2 -translate-y-1/2 z-10 flex items-center pointer-events-none',
                   statusClasses.icon,
                 )}
               >
@@ -548,6 +548,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               id={inputId}
               ref={setMergedRef}
               type={type}
+              autoComplete={resolvedAutoComplete}
               value={currentValue}
               onChange={handleChange}
               onBlur={onBlur}
@@ -556,12 +557,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               aria-invalid={mergedStatus === 'error'}
               aria-describedby={describedBy}
               className={cx(
-                'relative z-0 w-full border transition-all duration-200',
+                'ui-input relative z-0 w-full border transition-all duration-200',
+                type === 'date' && 'ui-input-date',
                 CONTROL_HEIGHT_CLASS,
                 CONTROL_RADIUS_CLASS,
                 CONTROL_FRAME_CLASS,
-                'disabled:bg-slate-100 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:shadow-none',
-                'placeholder:text-slate-400',
+                'disabled:bg-[var(--ui-surface-3)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none disabled:hover:translate-y-0 disabled:hover:shadow-none',
+                'placeholder:text-[var(--ui-text-soft)]',
                 variantClasses,
                 statusClasses.border,
                 statusClasses.focus,
@@ -589,7 +591,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <p
               id={errorId}
               className={cx(
-                'mt-1',
+                'ui-input-helper mt-1',
                 styles.helper,
                 'text-red-500',
                 helperTextClassName,
@@ -601,7 +603,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <p
               id={helperId}
               className={cx(
-                'mt-1',
+                'ui-input-helper mt-1',
                 styles.helper,
                 statusClasses.helper,
                 helperTextClassName,

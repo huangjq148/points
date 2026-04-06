@@ -437,7 +437,7 @@ function UsersPageContent() {
   const activeFilterCount = [searchQuery.trim(), roleFilter !== "all", genderFilter !== "all"].filter(Boolean).length;
   const hasActiveFilters = activeFilterCount > 0;
   return (
-    <div className="space-y-6">
+    <div className="users-page space-y-6">
       <Modal
         isOpen={!!deleteUserId}
         onClose={() => setDeleteUserId(null)}
@@ -530,12 +530,12 @@ function UsersPageContent() {
               placeholder="搜索用户名或昵称..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-10 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+              className="users-search-input w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-10 text-sm text-slate-800 shadow-sm outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
             />
             {searchQuery && (
               <button
                 onClick={() => handleSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                className="users-search-clear absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
                 aria-label="清空搜索"
               >
                 <X size={14} />
@@ -547,6 +547,41 @@ function UsersPageContent() {
             <Select
               value={roleFilter}
               onChange={handleRoleFilter}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: "var(--users-filter-bg, var(--control-surface-bg))",
+                  borderColor: "var(--users-filter-border, var(--control-border-color))",
+                  boxShadow: "var(--users-filter-shadow, 0 8px 20px rgba(15,23,42,0.06))",
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: "var(--users-filter-text, inherit)",
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: "var(--users-filter-placeholder, inherit)",
+                }),
+                dropdownIndicator: (base) => ({
+                  ...base,
+                  color: "var(--users-filter-indicator, inherit)",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: "var(--users-filter-menu-bg, var(--control-panel-bg))",
+                  borderColor: "var(--users-filter-border, var(--control-border-color))",
+                  boxShadow: "0 18px 36px rgba(2, 6, 23, 0.28)",
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected
+                    ? "rgba(59, 130, 246, 0.16)"
+                    : state.isFocused
+                      ? "rgba(51, 65, 85, 0.72)"
+                      : "transparent",
+                  color: state.isSelected ? "#bfdbfe" : "var(--users-filter-text, inherit)",
+                }),
+              }}
               options={[
                 { value: "all", label: "全部角色" },
                 { value: "admin", label: "管理员" },
@@ -561,6 +596,41 @@ function UsersPageContent() {
             <Select
               value={genderFilter}
               onChange={handleGenderFilter}
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: "var(--users-filter-bg, var(--control-surface-bg))",
+                  borderColor: "var(--users-filter-border, var(--control-border-color))",
+                  boxShadow: "var(--users-filter-shadow, 0 8px 20px rgba(15,23,42,0.06))",
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: "var(--users-filter-text, inherit)",
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: "var(--users-filter-placeholder, inherit)",
+                }),
+                dropdownIndicator: (base) => ({
+                  ...base,
+                  color: "var(--users-filter-indicator, inherit)",
+                }),
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: "var(--users-filter-menu-bg, var(--control-panel-bg))",
+                  borderColor: "var(--users-filter-border, var(--control-border-color))",
+                  boxShadow: "0 18px 36px rgba(2, 6, 23, 0.28)",
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected
+                    ? "rgba(59, 130, 246, 0.16)"
+                    : state.isFocused
+                      ? "rgba(51, 65, 85, 0.72)"
+                      : "transparent",
+                  color: state.isSelected ? "#bfdbfe" : "var(--users-filter-text, inherit)",
+                }),
+              }}
               options={[
                 { value: "all", label: "全部性别" },
                 { value: "boy", label: "男" },

@@ -9,7 +9,6 @@ import {
   LogOut,
   User as UserIcon,
   Bell,
-  Moon,
   Home,
   ArrowUp,
   ShoppingBag,
@@ -25,6 +24,8 @@ import {
 } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useToast } from "@/components/ui/Toast";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import { applyDocumentTheme, resolvePreferredTheme, setThemeStorage } from "@/lib/theme";
 
 interface ChildLayoutProps {
   children: React.ReactNode;
@@ -154,10 +155,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("little_achievers_reduced_motion") === "true";
   });
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("little_achievers_theme") === "dark";
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => resolvePreferredTheme("child") === "dark");
   const [focusReminderEnabled, setFocusReminderEnabled] = useState(() => {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("little_achievers_focus_reminder") !== "false";
@@ -175,7 +173,8 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    localStorage.setItem("little_achievers_theme", isDarkMode ? "dark" : "light");
+    setThemeStorage("child", isDarkMode ? "dark" : "light");
+    applyDocumentTheme(isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
   useEffect(() => {
@@ -642,11 +641,9 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 </button>
                 <button
                   onClick={() => {
-                    setNotificationsEnabled((v) => {
-                      const next = !v;
-                      toast.info(next ? "通知已开启" : "通知已关闭");
-                      return next;
-                    });
+                    const next = !notificationsEnabled;
+                    setNotificationsEnabled(next);
+                    toast.info(next ? "通知已开启" : "通知已关闭");
                   }}
                   className="rounded-3xl border border-violet-100 bg-violet-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-violet-50"
                 >
@@ -654,20 +651,16 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   <p className="mt-3 text-sm font-bold">通知</p>
                   <p className="mt-1 text-[11px] text-slate-500">{notificationsEnabled ? "已开启" : "已关闭"}</p>
                 </button>
-                <button
-                  onClick={() => {
-                    setIsDarkMode((v) => {
-                      const next = !v;
-                      toast.success(next ? "已切换到深色主题" : "已切换到浅色主题");
-                      return next;
-                    });
+                <ThemeToggle
+                  theme={isDarkMode ? "dark" : "light"}
+                  onToggle={() => {
+                    const next = !isDarkMode;
+                    setIsDarkMode(next);
+                    toast.success(next ? "已切换到深色主题" : "已切换到浅色主题");
                   }}
-                  className="rounded-3xl border border-amber-100 bg-amber-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-amber-50"
-                >
-                  <Moon size={20} className="text-amber-600" />
-                  <p className="mt-3 text-sm font-bold">主题</p>
-                  <p className="mt-1 text-[11px] text-slate-500">{isDarkMode ? "深色" : "浅色"}</p>
-                </button>
+                  variant="tile"
+                  className="border-amber-100 bg-amber-50/80 hover:bg-amber-50"
+                />
               </div>
 
               <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/80 p-4">

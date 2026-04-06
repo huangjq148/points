@@ -42,8 +42,8 @@ const CustomDatePicker = memo(({
     w-full
     px-4
     text-sm
-    text-slate-900
-    placeholder:text-slate-400
+    text-[var(--ui-text-primary)]
+    placeholder:text-[var(--ui-text-soft)]
     ${CONTROL_HEIGHT_CLASS}
     ${CONTROL_RADIUS_CLASS}
     ${CONTROL_SURFACE_CLASS}
@@ -66,7 +66,7 @@ const CustomDatePicker = memo(({
     >
       {icon && (
         <div className={`
-          absolute top-1/2 -translate-y-1/2 text-slate-400 z-20 transition-colors group-focus-within:text-blue-500
+          absolute top-1/2 -translate-y-1/2 text-[var(--ui-text-soft)] z-20 transition-colors group-focus-within:text-[var(--ui-focus)]
           ${iconPosition === 'left' ? "left-3" : "right-3"}
         `}>
           {icon}

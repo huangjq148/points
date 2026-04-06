@@ -159,7 +159,7 @@ export default function OverviewPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="overview-page space-y-6">
       {/* 筛选器和刷新 */}
       <div className="card-parent flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">

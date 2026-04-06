@@ -16,19 +16,19 @@ interface TableActionGroupProps {
 }
 
 const actionButtonBaseClass =
-  "flex h-10 w-10 items-center justify-center rounded-2xl border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  "flex h-10 w-10 items-center justify-center rounded-2xl border shadow-[var(--ui-shadow-sm)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--ui-shadow-md)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--ui-panel-bg)]";
 
 const actionToneClassMap: Record<TableActionTone, string> = {
-  blue: "border-blue-200 bg-gradient-to-br from-blue-50 to-white text-blue-600 hover:border-blue-300 hover:from-blue-100 hover:to-blue-50 focus-visible:ring-blue-200",
-  emerald: "border-emerald-200 bg-gradient-to-br from-emerald-50 to-white text-emerald-600 hover:border-emerald-300 hover:from-emerald-100 hover:to-emerald-50 focus-visible:ring-emerald-200",
-  amber: "border-amber-200 bg-gradient-to-br from-amber-50 to-white text-amber-600 hover:border-amber-300 hover:from-amber-100 hover:to-amber-50 focus-visible:ring-amber-200",
-  rose: "border-rose-200 bg-gradient-to-br from-rose-50 to-white text-rose-500 hover:border-rose-300 hover:from-rose-100 hover:to-rose-50 focus-visible:ring-rose-200",
+  blue: "border-[color:var(--ui-action-blue-border)] bg-[var(--ui-action-blue-bg)] text-[var(--ui-action-blue-text)] hover:border-[color:var(--ui-action-blue-border)] hover:bg-[var(--ui-action-blue-bg-hover)] focus-visible:ring-[var(--ui-focus-ring)]",
+  emerald: "border-[color:var(--ui-action-emerald-border)] bg-[var(--ui-action-emerald-bg)] text-[var(--ui-action-emerald-text)] hover:border-[color:var(--ui-action-emerald-border)] hover:bg-[var(--ui-action-emerald-bg-hover)] focus-visible:ring-[var(--ui-focus-ring)]",
+  amber: "border-[color:var(--ui-action-amber-border)] bg-[var(--ui-action-amber-bg)] text-[var(--ui-action-amber-text)] hover:border-[color:var(--ui-action-amber-border)] hover:bg-[var(--ui-action-amber-bg-hover)] focus-visible:ring-[var(--ui-focus-ring)]",
+  rose: "border-[color:var(--ui-action-rose-border)] bg-[var(--ui-action-rose-bg)] text-[var(--ui-action-rose-text)] hover:border-[color:var(--ui-action-rose-border)] hover:bg-[var(--ui-action-rose-bg-hover)] focus-visible:ring-[var(--ui-focus-ring)]",
 };
 
 export function TableActionGroup({ children }: TableActionGroupProps) {
   return (
     <div className="flex justify-center">
-      <div className="inline-flex items-center gap-1.5 rounded-[18px] border border-slate-200/80 bg-white/90 p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur-sm">
+      <div className="inline-flex items-center gap-1.5 rounded-[18px] border border-[color:var(--ui-border)] bg-[var(--ui-panel-bg-subtle)] p-1.5 shadow-[var(--ui-shadow-sm)] backdrop-blur-sm">
         {children}
       </div>
     </div>

@@ -84,13 +84,13 @@ export default function ChildFilterSelect({
       <button
         ref={buttonRef}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_8px_20px_rgba(15,23,42,0.08)] ${buttonClassName}`}
+        className={`flex h-10 items-center gap-2 rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-3 text-sm font-medium text-[var(--ui-text-secondary)] shadow-[var(--ui-shadow-sm)] transition-all duration-200 hover:border-[color:var(--ui-border-strong)] hover:bg-[var(--ui-surface-3)] hover:shadow-[var(--ui-shadow-md)] ${buttonClassName}`}
       >
-        <Users size={14} className="text-slate-400" />
+        <Users size={14} className="text-[var(--ui-text-soft)]" />
         <span className="max-w-[96px] truncate">{displayText}</span>
         <ChevronDown
           size={14}
-          className={`text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-[var(--ui-text-soft)] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -98,7 +98,7 @@ export default function ChildFilterSelect({
         ? ReactDOM.createPortal(
             <div
               ref={dropdownRef}
-              className={`fixed min-w-[160px] max-h-60 cursor-default overflow-auto rounded-2xl border border-slate-200 bg-white shadow-[0_20px_48px_rgba(15,23,42,0.12)] ${dropdownClassName}`}
+              className={`fixed min-w-[160px] max-h-60 cursor-default overflow-auto rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-panel-bg)] shadow-[var(--ui-shadow-md)] ${dropdownClassName}`}
               style={{
                 top: dropdownPosition.top,
                 left: dropdownPosition.left,
@@ -110,8 +110,8 @@ export default function ChildFilterSelect({
                   onChange(null);
                   setIsOpen(false);
                 }}
-                className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 first:rounded-t-2xl ${
-                  selectedChildId === null ? "bg-blue-50 text-blue-600" : "text-slate-700"
+                className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--ui-surface-3)] first:rounded-t-2xl ${
+                  selectedChildId === null ? "bg-[var(--ui-option-selected-bg)] text-[var(--ui-focus)]" : "text-[var(--ui-text-secondary)]"
                 }`}
               >
                 <Users size={14} />
@@ -124,8 +124,8 @@ export default function ChildFilterSelect({
                     onChange(child.id);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 ${
-                    selectedChildId === child.id ? "bg-blue-50 text-blue-600" : "text-slate-700"
+                  className={`flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-[var(--ui-surface-3)] ${
+                    selectedChildId === child.id ? "bg-[var(--ui-option-selected-bg)] text-[var(--ui-focus)]" : "text-[var(--ui-text-secondary)]"
                   } ${index === childList.length - 1 ? "rounded-b-2xl" : ""}`}
                 >
                   <span className="text-sm">{child.avatar || "👶"}</span>

@@ -644,9 +644,9 @@ function TasksPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="tasks-page space-y-6">
       {/* 筛选条件、Tabs 和操作按钮在同一行 */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white/90 shadow-sm">
+      <div className="rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-panel-bg-subtle)] shadow-[var(--ui-shadow-sm)]">
         <div className="flex flex-col gap-2 px-3 py-2.5">
 
           <div className="grid gap-2 lg:grid-cols-2 lg:items-center">
@@ -666,7 +666,7 @@ function TasksPage() {
                 }))}
                 selectedChildId={selectedChildTaskFilter === "all" ? null : selectedChildTaskFilter}
                 onChange={(value) => onFilterChange("child", value ?? "all")}
-                buttonClassName="whitespace-nowrap bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+                buttonClassName="whitespace-nowrap"
               />
             </div>
           </div>
@@ -682,13 +682,12 @@ function TasksPage() {
                 size="sm"
                 className="w-full max-w-[200px]"
                 containerClassName="w-full max-w-[200px]"
-                inputWrapperClassName="bg-white border-slate-200 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
               />
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">
               <Button
                 onClick={() => setShowTemplateManager(true)}
-                className="h-8 rounded-lg border border-slate-200 bg-white px-3 text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
+                className="h-8 rounded-lg px-3"
                 variant="secondary"
               >
                 <Edit2 size={15} className="mr-1.5" />
@@ -710,7 +709,7 @@ function TasksPage() {
                   setTaskModalMode("add");
                   setShowTaskModal(true);
                 }}
-                className="h-8 rounded-lg bg-slate-900 px-3 text-white shadow-sm transition-colors hover:bg-slate-800"
+                className="h-8 rounded-lg px-3"
               >
                 <Plus size={17} className="mr-1.5" />
                 <span className="font-semibold text-sm hidden sm:inline">添加任务</span>
@@ -734,12 +733,12 @@ function TasksPage() {
             <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           ))}
           {tasks.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center py-14 text-slate-400">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <LayoutGrid size={32} className="text-slate-300" />
+            <div className="col-span-full flex flex-col items-center justify-center py-14 text-[var(--ui-text-soft)]">
+              <div className="w-20 h-20 bg-[var(--ui-surface-3)] rounded-full flex items-center justify-center mb-4">
+                <LayoutGrid size={32} className="text-[var(--ui-text-soft)]" />
               </div>
-              <p className="text-slate-500 font-medium">暂无任务</p>
-              <p className="text-sm text-slate-400 mt-1">点击右上角添加任务开始管理</p>
+              <p className="text-[var(--ui-text-muted)] font-medium">暂无任务</p>
+              <p className="text-sm text-[var(--ui-text-soft)] mt-1">点击右上角添加任务开始管理</p>
             </div>
           )}
 
@@ -753,12 +752,12 @@ function TasksPage() {
         <div className="pb-8">
           <TaskTable tasks={tasks} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           {tasks.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-14 text-slate-400">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <Table2 size={32} className="text-slate-300" />
+            <div className="flex flex-col items-center justify-center py-14 text-[var(--ui-text-soft)]">
+              <div className="w-20 h-20 bg-[var(--ui-surface-3)] rounded-full flex items-center justify-center mb-4">
+                <Table2 size={32} className="text-[var(--ui-text-soft)]" />
               </div>
-              <p className="text-slate-500 font-medium">暂无任务</p>
-              <p className="text-sm text-slate-400 mt-1">点击右上角添加任务开始管理</p>
+              <p className="text-[var(--ui-text-muted)] font-medium">暂无任务</p>
+              <p className="text-sm text-[var(--ui-text-soft)] mt-1">点击右上角添加任务开始管理</p>
             </div>
           )}
 
@@ -793,7 +792,7 @@ function TasksPage() {
         showCloseButton={false}
         title="提示"
       >
-        <div className="py-4 text-center text-slate-600">{alertState.message}</div>
+        <div className="py-4 text-center text-[var(--ui-text-secondary)]">{alertState.message}</div>
       </Modal>
 
       {/* Confirm Delete Task */}
@@ -836,8 +835,8 @@ export default function TasksPageWrapper() {
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-slate-500">加载中...</p>
+          <div className="w-12 h-12 border-4 border-[color:var(--ui-border)] border-t-[color:var(--ui-text-primary)] rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-[var(--ui-text-muted)]">加载中...</p>
         </div>
       </div>
     }>

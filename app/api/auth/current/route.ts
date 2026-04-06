@@ -134,6 +134,10 @@ export async function GET(request: NextRequest) {
       user: {
         id: user._id,
         username: user.username,
+        nickname: user.nickname,
+        identity: user.identity,
+        gender: user.gender,
+        avatar: user.avatar,
         role: user.role,
         familyId: user.familyId,
         inviteCode: user.inviteCode,

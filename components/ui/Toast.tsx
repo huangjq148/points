@@ -65,18 +65,18 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
           >
             <div className={`
               flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full
-              ${toast.type === 'success' ? 'bg-emerald-100 text-emerald-600' : ''}
-              ${toast.type === 'error' ? 'bg-rose-100 text-rose-600' : ''}
-              ${toast.type === 'info' ? 'bg-slate-100 text-slate-600' : ''}
+              ${toast.type === 'success' ? 'bg-[var(--ui-success-bg)] text-[var(--ui-success-text)]' : ''}
+              ${toast.type === 'error' ? 'bg-[var(--ui-danger-bg)] text-[var(--ui-danger-text)]' : ''}
+              ${toast.type === 'info' ? 'bg-[var(--ui-surface-3)] text-[var(--ui-text-secondary)]' : ''}
             `}>
               {toast.type === 'success' && <CheckCircle size={18} />}
               {toast.type === 'error' && <AlertCircle size={18} />}
               {toast.type === 'info' && <Info size={18} />}
             </div>
-            <p className="flex-1 text-sm font-medium text-slate-800">{toast.message}</p>
+            <p className="flex-1 text-sm font-medium text-[var(--ui-text-primary)]">{toast.message}</p>
             <button
               onClick={() => removeToast(toast.id)}
-              className={`p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 ${CONTROL_INNER_RADIUS_CLASS}`}
+              className={`p-1 text-[var(--ui-text-soft)] transition-colors hover:bg-[var(--ui-surface-3)] hover:text-[var(--ui-text-secondary)] ${CONTROL_INNER_RADIUS_CLASS}`}
             >
               <X size={16} />
             </button>

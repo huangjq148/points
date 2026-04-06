@@ -96,11 +96,11 @@ export const TabFilter = <T extends string>({
               key={tab.key}
               onClick={() => onFilterChange(tab.key)}
               className={`
-                flex-1 flex flex-col items-center justify-center py-3 px-1 text-xs font-bold rounded-2xl whitespace-nowrap transition-all duration-200 min-h-[64px]
+                ui-tab-filter-button flex-1 flex flex-col items-center justify-center py-3 px-1 text-xs font-bold rounded-2xl whitespace-nowrap transition-all duration-200 min-h-[64px]
                 ${
                   isActive
-                    ? `${CONTROL_PRIMARY_GRADIENT_CLASS} text-white ${CONTROL_PRIMARY_SHADOW_CLASS}`
-                    : "text-slate-500 hover:text-slate-800 hover:bg-white/70"
+                    ? `ui-tab-filter-button-active ${CONTROL_PRIMARY_GRADIENT_CLASS} text-white ${CONTROL_PRIMARY_SHADOW_CLASS}`
+                    : "text-[var(--ui-text-muted)] hover:text-[var(--ui-text-primary)] hover:bg-[var(--ui-surface-1)]"
                 }
               `}
             >
@@ -120,13 +120,13 @@ export const TabFilter = <T extends string>({
   return (
     <div
       ref={containerRef}
-      className={`relative inline-flex items-center gap-1.5 p-1 ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS} ${className}`}
+      className={`ui-tab-filter relative inline-flex items-center gap-1.5 p-1 ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS} ${className}`}
       style={{ height: CONTROL_HEIGHT_PX, minHeight: CONTROL_HEIGHT_PX }}
     >
       {indicatorStyle && (
         <div
           aria-hidden
-          className={`${CONTROL_PRIMARY_GRADIENT_CLASS} ${CONTROL_PRIMARY_SHADOW_CLASS} absolute inset-y-1 left-0 ${CONTROL_INNER_RADIUS_CLASS} transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
+          className={`ui-tab-filter-indicator ${CONTROL_PRIMARY_GRADIENT_CLASS} ${CONTROL_PRIMARY_SHADOW_CLASS} absolute inset-y-1 left-0 ${CONTROL_INNER_RADIUS_CLASS} transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]`}
           style={{
             width: indicatorStyle.width,
             transform: `translateX(${indicatorStyle.x}px)`,
@@ -145,11 +145,11 @@ export const TabFilter = <T extends string>({
             onClick={() => onFilterChange(tab.key)}
             style={{ height: CONTROL_HEIGHT_PX - 8 }}
             className={`
-              relative z-10 inline-flex items-center justify-center px-4 py-0 align-middle text-sm font-semibold leading-none whitespace-nowrap transition-[color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${CONTROL_INNER_RADIUS_CLASS}
+              ui-tab-filter-button relative z-10 inline-flex items-center justify-center px-4 py-0 align-middle text-sm font-semibold leading-none whitespace-nowrap transition-[color,transform,box-shadow] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${CONTROL_INNER_RADIUS_CLASS}
               ${
                 isActive
-                  ? "text-white"
-                  : "text-slate-500 hover:-translate-y-px hover:bg-white hover:text-slate-900 hover:shadow-[0_8px_18px_rgba(15,23,42,0.08)]"
+                  ? "ui-tab-filter-button-active text-white"
+                  : "text-[var(--ui-text-muted)] hover:-translate-y-px hover:bg-[var(--ui-surface-1)] hover:text-[var(--ui-text-primary)] hover:shadow-[var(--ui-shadow-sm)]"
               }
             `}
           >

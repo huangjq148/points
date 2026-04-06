@@ -2,6 +2,15 @@ import { Button, Modal } from "@/components/ui";
 import { Edit2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { TaskTemplate } from "../page";
 
+const typeBadgeClassMap = {
+  daily: "border-[color:var(--ui-success-border)] bg-[var(--ui-success-bg)] text-[var(--ui-success-text)]",
+  advanced: "border-[color:var(--ui-action-blue-border)] bg-[var(--ui-action-blue-bg)] text-[var(--ui-action-blue-text)]",
+  challenge: "border-[color:var(--ui-warning-border)] bg-[var(--ui-warning-bg)] text-[var(--ui-warning-text)]",
+} as const;
+
+const getTypeBadgeClass = (type: string) =>
+  typeBadgeClassMap[type as keyof typeof typeBadgeClassMap] ?? typeBadgeClassMap.daily;
+
 interface TemplateManagerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -39,10 +48,10 @@ export default function TemplateManager({
     >
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-slate-500">选择模板快速创建任务，或维护自己的常用模板。</p>
+          <p className="text-sm text-[var(--ui-text-muted)]">选择模板快速创建任务，或维护自己的常用模板。</p>
           <Button
             onClick={onNew}
-            className="h-10 rounded-xl bg-slate-900 px-4 text-white shadow-sm hover:bg-slate-800"
+            className="h-10 rounded-xl px-4"
           >
             <Plus size={16} />
             <span className="font-semibold">新建模板</span>
@@ -50,10 +59,10 @@ export default function TemplateManager({
         </div>
 
         {templates.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-14 text-center">
+          <div className="rounded-2xl border border-dashed border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] py-14 text-center">
             <div className="text-3xl">📋</div>
-            <p className="mt-3 text-sm font-medium text-slate-500">暂无自定义模板</p>
-            <Button onClick={onNew} className="mt-5 h-10 rounded-xl bg-slate-900 px-4 text-white">
+            <p className="mt-3 text-sm font-medium text-[var(--ui-text-muted)]">暂无自定义模板</p>
+            <Button onClick={onNew} className="mt-5 h-10 rounded-xl px-4">
               <Plus size={16} />
                 <span className="font-semibold">新建模板</span>
             </Button>
@@ -63,30 +72,24 @@ export default function TemplateManager({
             {templates.map((template) => (
               <div
                 key={template._id}
-                className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md min-w-0"
+                className="group rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] p-4 shadow-[var(--ui-shadow-sm)] transition-all hover:border-[color:var(--ui-border-strong)] hover:shadow-[var(--ui-shadow-md)] min-w-0"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-2xl">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] text-2xl">
                     {template.icon}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <h4 className="truncate font-semibold text-slate-900">{template.name}</h4>
-                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
-                        template.type === "daily"
-                          ? "border-blue-100 bg-blue-50 text-blue-700"
-                          : template.type === "advanced"
-                            ? "border-stone-200 bg-stone-50 text-stone-700"
-                            : "border-rose-100 bg-rose-50 text-rose-700"
-                      }`}>
+                      <h4 className="truncate font-semibold text-[var(--ui-text-primary)]">{template.name}</h4>
+                      <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${getTypeBadgeClass(template.type)}`}>
                         {template.type === "daily" ? "日常" : template.type === "advanced" ? "进阶" : "挑战"}
                       </span>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">
+                    <p className="mt-1 line-clamp-2 text-sm text-[var(--ui-text-muted)]">
                       {template.description || "点击应用此模板快速布置任务"}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+                      <span className="rounded-full border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--ui-text-secondary)]">
                         {template.points} 积分
                       </span>
                     </div>
@@ -96,7 +99,7 @@ export default function TemplateManager({
                 <div className="mt-4 flex items-center gap-2">
                   <Button
                     onClick={() => onApply(template)}
-                    className="flex-1 h-10 rounded-xl bg-slate-900 text-white shadow-sm hover:bg-slate-800"
+                    className="flex-1 h-10 rounded-xl"
                   >
                     <Sparkles size={15} />
                     <span className="font-semibold">应用模板</span>
@@ -104,7 +107,7 @@ export default function TemplateManager({
                   <Button
                     onClick={() => onEdit(template)}
                     variant="secondary"
-                    className="h-10 rounded-xl border border-blue-200 bg-blue-50 px-3 text-blue-700 shadow-sm hover:border-blue-300 hover:bg-blue-100 hover:text-blue-800"
+                    className="h-10 rounded-xl px-3"
                     title="编辑"
                   >
                     <Edit2 size={16} />
@@ -113,7 +116,7 @@ export default function TemplateManager({
                   <Button
                     onClick={() => template._id && onDelete(template._id)}
                     variant="error"
-                    className="h-10 rounded-xl border border-rose-200 bg-rose-50 px-3 text-rose-700 shadow-sm hover:border-rose-300 hover:bg-rose-100 hover:text-rose-800"
+                    className="h-10 rounded-xl px-3"
                     title="删除"
                   >
                     <Trash2 size={16} />

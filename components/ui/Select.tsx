@@ -57,19 +57,19 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
   }),
   placeholder: (provided) => ({
     ...provided,
-    color: "var(--color-slate-700)",
+    color: "var(--ui-text-muted)",
     fontWeight: 500,
     fontSize: "14px",
   }),
   singleValue: (provided) => ({
     ...provided,
-    color: "var(--color-slate-700)",
+    color: "var(--ui-text-primary)",
     fontWeight: 500,
     fontSize: "14px",
   }),
   input: (provided) => ({
     ...provided,
-    color: "#0f172a",
+    color: "var(--ui-text-primary)",
     fontSize: "14px",
   }),
   indicatorSeparator: () => ({
@@ -77,7 +77,7 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
   }),
   dropdownIndicator: (provided, state) => ({
     ...provided,
-    color: state.isFocused ? "#3b82f6" : "#94a3b8",
+    color: state.isFocused ? "var(--ui-focus)" : "var(--ui-text-soft)",
     paddingLeft: 8,
     paddingRight: 8,
     transition: "all 180ms ease",
@@ -90,7 +90,7 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
     backgroundColor: CONTROL_PANEL_BG,
     borderRadius: `${CONTROL_RADIUS_PX + 4}px`,
     border: `1px solid ${CONTROL_BORDER_COLOR}`,
-    boxShadow: "0 18px 36px rgba(15, 23, 42, 0.1)",
+    boxShadow: "var(--ui-shadow-md)",
     overflow: "hidden",
     zIndex: "var(--z-dropdown)",
     marginTop: 8,
@@ -103,11 +103,11 @@ const customSelectStyles: StylesConfig<SelectOption, false, GroupBase<SelectOpti
   option: (provided, state) => ({
     ...provided,
     backgroundColor: state.isSelected
-      ? "rgba(59, 130, 246, 0.09)"
+      ? "var(--ui-option-selected-bg, rgba(59, 130, 246, 0.09))"
       : state.isFocused
-        ? "rgba(59, 130, 246, 0.06)"
+        ? "var(--ui-option-hover-bg, rgba(59, 130, 246, 0.06))"
         : "transparent",
-    color: state.isSelected ? "#2563eb" : "var(--color-slate-700)",
+    color: state.isSelected ? "var(--ui-focus)" : "var(--ui-text-secondary)",
     cursor: "pointer",
     borderRadius: "14px",
     marginBottom: 2,

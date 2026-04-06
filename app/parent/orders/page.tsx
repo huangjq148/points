@@ -223,7 +223,7 @@ function OrdersPage() {
   }, [cancelledOrders, searchQuery]);
 
   return (
-    <div className='space-y-6'>
+    <div className='orders-page space-y-6'>
       <ConfirmModal
         isOpen={!!cancelOrderId}
         onClose={() => setCancelOrderId(null)}
@@ -300,7 +300,7 @@ function OrdersPage() {
               setSelectedChildFilter(value ?? 'all');
             }}
             className='shrink-0 justify-self-start xl:justify-self-end'
-            buttonClassName='h-11 min-w-[140px] justify-between rounded-2xl border-slate-200 bg-white px-4 text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50'
+            buttonClassName='h-11 min-w-[140px] justify-between rounded-2xl border-slate-200 bg-white px-4 text-[var(--ui-text-primary)] shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50'
           />
         </div>
       </section>
@@ -326,7 +326,7 @@ function OrdersPage() {
                       variant='success'
                       onClick={() => handleVerifyOrder(order._id)}
                       disabled={actionLoading}
-                      className='min-w-0 flex-1'
+                      className='order-action-confirm min-w-0 flex-1'
                     >
                       <BadgeCheck size={16} />
                       确认核销
@@ -336,7 +336,7 @@ function OrdersPage() {
                       variant='error'
                       onClick={() => setCancelOrderId(order._id)}
                       disabled={actionLoading}
-                      className='min-w-0 px-4'
+                      className='order-action-cancel min-w-0 px-4'
                     >
                       取消
                     </Button>
@@ -364,7 +364,7 @@ function OrdersPage() {
               title='暂无已核销记录'
               hint='完成核销后的订单会在这里显示。'
             >
-              <div className='mt-2 text-xs text-slate-400'>
+              <div className='mt-2 text-xs text-[var(--ui-text-soft)]'>
                 可以切换孩子筛选或输入关键字查找记录。
               </div>
             </EmptyState>
@@ -378,10 +378,10 @@ function OrdersPage() {
                   statusTone='emerald'
                   actionArea={
                     <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
-                      <div className='text-xs font-semibold text-slate-500'>
+                      <div className='text-xs font-semibold text-[var(--ui-text-muted)]'>
                         完成时间
                       </div>
-                      <div className='text-sm font-medium text-slate-900'>
+                      <div className='text-sm font-medium text-[var(--ui-text-primary)]'>
                         {order.verifiedAt
                           ? formatDate(order.verifiedAt)
                           : formatDate(order.updatedAt)}
@@ -411,7 +411,7 @@ function OrdersPage() {
               title='暂无已取消记录'
               hint='取消兑换后的订单会在这里显示。'
             >
-              <div className='mt-2 text-xs text-slate-400'>
+              <div className='mt-2 text-xs text-[var(--ui-text-soft)]'>
                 可以切换孩子筛选或输入关键字查找记录。
               </div>
             </EmptyState>
@@ -425,10 +425,10 @@ function OrdersPage() {
                   statusTone='rose'
                   actionArea={
                     <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
-                      <div className='text-xs font-semibold text-slate-500'>
+                      <div className='text-xs font-semibold text-[var(--ui-text-muted)]'>
                         取消时间
                       </div>
-                      <div className='text-sm font-medium text-slate-900'>
+                      <div className='text-sm font-medium text-[var(--ui-text-primary)]'>
                         {formatDate(order.updatedAt)}
                       </div>
                     </div>
@@ -473,8 +473,10 @@ function OrderCard({
       'from-emerald-100/90 via-white to-emerald-50 border-emerald-200/80 text-emerald-700 shadow-[0_12px_28px_rgba(16,185,129,0.12)]',
     amber:
       'from-amber-100/90 via-white to-orange-50 border-amber-200/80 text-amber-700 shadow-[0_12px_28px_rgba(245,158,11,0.14)]',
-    rose: 'from-rose-100/90 via-white to-rose-50 border-rose-200/80 text-rose-700 shadow-[0_12px_28px_rgba(244,63,94,0.12)]',
-    blue: 'from-blue-100/90 via-white to-cyan-50 border-blue-200/80 text-blue-700 shadow-[0_12px_28px_rgba(59,130,246,0.12)]',
+    rose:
+      'from-rose-100/90 via-white to-rose-50 border-rose-200/80 text-rose-700 shadow-[0_12px_28px_rgba(244,63,94,0.12)]',
+    blue:
+      'from-blue-100/90 via-white to-cyan-50 border-blue-200/80 text-blue-700 shadow-[0_12px_28px_rgba(59,130,246,0.12)]',
   };
 
   const accentGlowMap: Record<typeof statusTone, string> = {
@@ -504,15 +506,15 @@ function OrderCard({
                   {isPending ? '等待处理' : '处理已完成'}
                 </span>
               </div>
-              <h3 className='mt-3 text-xl font-black tracking-tight text-slate-950 sm:text-[22px]'>
+              <h3 className='mt-3 text-xl font-black tracking-tight text-[var(--ui-text-primary)] sm:text-[22px]'>
                 {order.rewardName}
               </h3>
-              <div className='mt-3 flex flex-wrap items-center gap-2.5 text-sm text-slate-500'>
+              <div className='mt-3 flex flex-wrap items-center gap-2.5 text-sm text-[var(--ui-text-muted)]'>
                 <span className='inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50/80 px-3 py-1.5 font-semibold text-amber-700'>
                   <Gift size={14} />
                   {order.pointsSpent} 积分
                 </span>
-                <span className='inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3 py-1.5'>
+                <span className='inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3 py-1.5 text-[var(--ui-text-secondary)]'>
                   <Clock3 size={14} />
                   {formatDate(order.createdAt)}
                 </span>
@@ -526,10 +528,10 @@ function OrderCard({
                 {order.childAvatar}
               </div>
               <div className='min-w-0'>
-                <div className='text-xs font-semibold uppercase tracking-[0.16em] text-slate-400'>
+                <div className='text-xs font-semibold uppercase tracking-[0.16em] text-[var(--ui-text-soft)]'>
                   兑换人
                 </div>
-                <div className='mt-1 truncate text-base font-bold text-slate-900'>
+                <div className='mt-1 truncate text-base font-bold text-[var(--ui-text-primary)]'>
                   {order.childName}
                 </div>
               </div>
@@ -538,7 +540,7 @@ function OrderCard({
             <div
               className={`rounded-[24px] border bg-gradient-to-r px-4 py-4 ${accentClassMap[statusTone]}`}
             >
-              <div className='text-[11px] font-semibold uppercase tracking-[0.18em] opacity-80'>
+              <div className='text-[11px] font-semibold uppercase tracking-[0.18em] opacity-75'>
                 Verification Code
               </div>
               <div className='mt-2 font-mono text-lg font-black tracking-[0.22em] text-slate-950 sm:text-[20px]'>

@@ -97,7 +97,7 @@ const Pagination: React.FC<PaginationProps> = ({
           variant='secondary'
           disabled={currentPage === 1}
           onClick={handlePrev}
-          className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
+          className='min-w-0 rounded-2xl px-3 text-[var(--ui-text-muted)] disabled:opacity-30'
         >
           <ChevronLeft size={16} />
         </Button>
@@ -107,7 +107,7 @@ const Pagination: React.FC<PaginationProps> = ({
             item === 'ellipsis' ? (
               <div
                 key={`ellipsis-${index}`}
-                className='inline-flex h-11 min-w-[2.75rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-slate-300'
+                className='inline-flex h-11 min-w-[2.75rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-[var(--ui-text-soft)]'
               >
                 ...
               </div>
@@ -118,8 +118,8 @@ const Pagination: React.FC<PaginationProps> = ({
                 onClick={() => onPageChange(item)}
                 className={
                   item === currentPage
-                    ? 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-blue-300 bg-blue-50 text-base font-bold text-blue-600 shadow-[0_8px_18px_rgba(59,130,246,0.12)]'
-                    : 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-transparent bg-transparent text-base font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800'
+                    ? 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-soft-bg)] text-base font-bold text-[var(--ui-focus)] shadow-[var(--ui-primary-soft-shadow)]'
+                    : 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-transparent bg-transparent text-base font-semibold text-[var(--ui-text-muted)] transition-colors hover:bg-[var(--ui-surface-3)] hover:text-[var(--ui-text-primary)]'
                 }
               >
                 {item}
@@ -132,18 +132,18 @@ const Pagination: React.FC<PaginationProps> = ({
           variant='secondary'
           disabled={currentPage >= totalPages}
           onClick={handleNext}
-          className='min-w-0 rounded-2xl px-3 text-slate-600 disabled:opacity-30'
+          className='min-w-0 rounded-2xl px-3 text-[var(--ui-text-muted)] disabled:opacity-30'
         >
           <ChevronRight size={16} />
         </Button>
 
         {showPageSizeLabel ? (
           onPageSizeChange ? (
-            <label className='relative inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white pr-10 shadow-sm'>
+            <label className='relative inline-flex h-11 items-center rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] pr-10 shadow-[var(--ui-shadow-sm)]'>
               <select
                 value={pageSize}
                 onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                className='h-full appearance-none rounded-2xl bg-transparent px-4 text-sm font-semibold text-slate-600 outline-none'
+                className='h-full appearance-none rounded-2xl bg-transparent px-4 text-sm font-semibold text-[var(--ui-text-muted)] outline-none'
               >
                 {pageSizeOptions.map((option) => (
                   <option key={option} value={option}>
@@ -151,12 +151,12 @@ const Pagination: React.FC<PaginationProps> = ({
                   </option>
                 ))}
               </select>
-              <span className='pointer-events-none absolute right-4 text-xs text-slate-400'>
+              <span className='pointer-events-none absolute right-4 text-xs text-[var(--ui-text-soft)]'>
                 ▼
               </span>
             </label>
           ) : (
-            <div className='inline-flex h-11 items-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 shadow-sm'>
+            <div className='inline-flex h-11 items-center rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 text-sm font-semibold text-[var(--ui-text-muted)] shadow-[var(--ui-shadow-sm)]'>
               {pageSize} 条/页
             </div>
           )
@@ -164,7 +164,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
         {showQuickJumper ? (
           <>
-            <div className='flex items-center gap-2 text-sm font-medium text-slate-600'>
+            <div className='flex items-center gap-2 text-sm font-medium text-[var(--ui-text-muted)]'>
               <span>跳至</span>
               <input
                 type='number'
@@ -175,7 +175,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleJump();
                 }}
-                className='h-11 w-20 rounded-2xl border border-slate-200 bg-white px-3 text-center text-sm font-semibold text-slate-800 shadow-sm outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100'
+                className='h-11 w-20 rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-3 text-center text-sm font-semibold text-[var(--ui-text-primary)] shadow-[var(--ui-shadow-sm)] outline-none transition focus:border-[color:var(--ui-primary-border)] focus:ring-4 focus:ring-[var(--ui-focus-ring)]'
               />
               <span>页</span>
             </div>
@@ -184,7 +184,7 @@ const Pagination: React.FC<PaginationProps> = ({
               variant='secondary'
               onClick={handleJump}
               disabled={!jumpValue.trim()}
-              className='rounded-2xl px-4 text-slate-600 disabled:opacity-30'
+              className='rounded-2xl px-4 text-[var(--ui-text-muted)] disabled:opacity-30'
             >
               跳转
             </Button>
@@ -196,25 +196,25 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className={`mt-6 flex items-center justify-center gap-4 ${className}`}>
-      <Button
-        variant='secondary'
-        disabled={currentPage === 1}
-        onClick={handlePrev}
-        className='text-gray-500 disabled:opacity-30'
+        <Button
+          variant='secondary'
+          disabled={currentPage === 1}
+          onClick={handlePrev}
+          className='text-[var(--ui-text-muted)] disabled:opacity-30'
       >
         <ChevronLeft size={16} />
         上一页
       </Button>
       <span
-        className={`inline-flex items-center px-4 text-sm font-medium text-slate-600 ${CONTROL_HEIGHT_CLASS} ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS}`}
+        className={`inline-flex items-center px-4 text-sm font-medium text-[var(--ui-text-muted)] ${CONTROL_HEIGHT_CLASS} ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_SUBTLE_CLASS}`}
       >
         第 {currentPage} 页 / 共 {totalPages} 页
       </span>
-      <Button
-        variant='secondary'
-        disabled={currentPage >= totalPages}
-        onClick={handleNext}
-        className='text-gray-500 disabled:opacity-30'
+        <Button
+          variant='secondary'
+          disabled={currentPage >= totalPages}
+          onClick={handleNext}
+          className='text-[var(--ui-text-muted)] disabled:opacity-30'
       >
         下一页
         <ChevronRight size={16} />
