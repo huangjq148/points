@@ -52,7 +52,7 @@ function StarsBackground() {
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+    <div className="fixed inset-0 pointer-events-none z-0">
       {stars.map((star) => (
         <div
           key={star.id}
@@ -102,7 +102,7 @@ function ChildAccountSignIn({
 
   return (
     <div className="fixed inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: "var(--z-child-overlay)" }} onClick={onClose}>
-      <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-[28px] border border-white/70 bg-white/95 p-6 text-slate-800 shadow-[0_24px_70px_rgba(15,23,42,0.22)]" onClick={(e) => e.stopPropagation()}>
         <div className="text-center mb-5">
           <div className="text-4xl mb-2">👶</div>
           <h3 className="text-xl font-bold text-gray-800">添加/切换孩子账号</h3>
@@ -292,13 +292,13 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           style={{ zIndex: "var(--z-child-overlay)" }}
           onClick={() => setShowChildSwitcher(false)}
         >
-          <div className="bg-white rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-[32px] border border-slate-200/70 bg-white/95 p-6 text-slate-800 shadow-[0_24px_70px_rgba(15,23,42,0.2)] backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-4">
               <div className="text-4xl mb-2">🔄</div>
               <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
               <p className="text-gray-600">选择要切换的孩子</p>
             </div>
-            <div className="mb-4 rounded-2xl bg-slate-50 p-4 text-slate-800">
+            <div className="mb-4 rounded-[22px] border border-slate-200/70 bg-slate-50/90 p-4 text-slate-800">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-slate-500">已登录孩子</p>
@@ -309,17 +309,17 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 <Button
                   onClick={resetChildOrder}
                   variant="secondary"
-                  className="h-9 rounded-xl border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none"
-                >
-                  恢复顺序
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+                className="h-9 rounded-full border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none ring-1 ring-slate-200/70"
+              >
+                恢复顺序
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
                 <Button
                   onClick={() => previousSession && switchToChild(previousSession)}
                   variant="secondary"
                   disabled={!previousSession}
-                  className="h-10 rounded-xl border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none disabled:opacity-40"
+                  className="h-10 rounded-full border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none ring-1 ring-slate-200/70 disabled:opacity-40"
                 >
                   上一个
                 </Button>
@@ -327,7 +327,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   onClick={() => nextSession && switchToChild(nextSession)}
                   variant="secondary"
                   disabled={!nextSession}
-                  className="h-10 rounded-xl border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none disabled:opacity-40"
+                  className="h-10 rounded-full border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none ring-1 ring-slate-200/70 disabled:opacity-40"
                 >
                   下一个
                 </Button>
@@ -348,22 +348,22 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                     onDragEnd={() => setDraggingChildId(null)}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDropChild(child.id)}
-                    className={`w-full flex items-center gap-4 rounded-2xl border p-4 text-left transition ${
-                      isActive ? "border-blue-300 bg-blue-50" : "border-slate-100 bg-gray-50 hover:bg-gray-100"
+                    className={`w-full flex items-center gap-4 rounded-[22px] border p-4 text-left transition ${
+                      isActive ? "border-sky-200 bg-sky-50/90" : "border-slate-200/70 bg-white hover:bg-slate-50"
                     } ${draggingChildId === child.id ? "scale-[0.99] opacity-70" : ""}`}
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 text-2xl shadow-sm">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-gradient-to-br from-amber-100 to-orange-100 text-2xl shadow-[0_10px_18px_rgba(15,23,42,0.08)]">
                       {child.avatar || "👶"}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate font-bold text-gray-800">{child.username}</p>
-                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">#{index + 1}</span>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200/70">#{index + 1}</span>
                       </div>
                       <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
                       <div className="mt-1 flex items-center gap-2">
-                        {isActive && <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">当前</span>}
-                        {isFavorite && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">常用</span>}
+                        {isActive && <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 ring-1 ring-sky-100">当前</span>}
+                        {isFavorite && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-100">常用</span>}
                         <span className="text-[10px] font-medium text-slate-400">拖动可排序</span>
                       </div>
                     </div>
@@ -382,7 +382,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 );
               })}
             </div>
-            <div className="mb-4 rounded-2xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            <div className="mb-4 rounded-[22px] border border-sky-100 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
               只要该孩子账号在本设备上登录过，就可以直接切换。
             </div>
             <Button onClick={() => setShowChildAccountSignIn(true)} variant="secondary" fullWidth className="mb-3">
@@ -417,17 +417,17 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
       />
 
       <header
-        className="fixed top-0 left-0 right-0 z-50 px-6 pt-4"
+        className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6"
         style={{
           background: shellBackground,
         }}
       >
-        <div className="flex justify-between items-start mb-6">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 rounded-[28px] border border-white/15 bg-white/10 px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.18)] backdrop-blur-xl sm:px-5">
           <div className="flex items-center gap-3">
             {!isHomePage && (
               <button
                 onClick={() => router.push("/child")}
-                className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white transition-all hover:bg-white/25 active:scale-95"
               >
                 <Home size={20} />
               </button>
@@ -435,23 +435,22 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
             <div className="flex items-center gap-4" onClick={() => setShowChildSwitcher(true)}>
               <div className="relative">
                 <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-xl border-4 relative overflow-hidden"
+                  className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[22px] border border-white/30 bg-white text-3xl shadow-[0_14px_30px_rgba(15,23,42,0.18)]"
                   style={{
-                    background: isHomePage ? "white" : "white",
                     borderColor: "#fbbf24",
                   }}
                 >
                   <span className="character-eye">{currentUser?.avatar || "👦"}</span>
-                  <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-blue-100 to-transparent opacity-50"></div>
+                  <div className="absolute bottom-0 h-1/3 w-full bg-gradient-to-t from-blue-100 to-transparent opacity-40"></div>
                 </div>
               </div>
               <div>
                 <h1 className="text-2xl font-black text-white drop-shadow-lg">{currentUser?.username || "小探险家"}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold border border-white/30">
-                    ⭐ 小探险家
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
+                    小探险家
                   </span>
-                  <span className="bg-green-400/80 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
+                  <span className="rounded-full bg-emerald-400/90 px-2 py-1 text-xs font-bold text-white shadow-sm animate-pulse">
                     在线
                   </span>
                 </div>
@@ -462,24 +461,24 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white transition-all hover:bg-white/25 active:scale-95"
             >
               <Settings size={20} />
             </button>
             <button
               onClick={handleLogout}
-              className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white hover:bg-white/30 transition-all active:scale-95 border border-white/30"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white transition-all hover:bg-white/25 active:scale-95"
             >
               <LogOut size={20} />
             </button>
-            <div className="h-10 px-3 rounded-xl flex items-center justify-center shadow-sm font-bold bg-white/20 text-white border border-white/30">
+            <div className="flex h-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-3 font-bold text-white backdrop-blur-md">
               🪙 {currentUser?.availablePoints || 0}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 px-4 sm:px-6 pb-24 pt-44">
+      <main className="relative px-4 sm:px-6 pb-24 pt-44">
         <div className={`mx-auto ${isStorePage ? "max-w-4xl" : "max-w-2xl"}`}>{children}</div>
       </main>
 
@@ -492,10 +491,9 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         </button>
       )}
 
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50 pb-safe">
-        <div className="relative overflow-visible rounded-3xl shadow-[0_22px_44px_rgba(30,27,75,0.28)]">
-          <div className="absolute inset-0 bg-white/92 backdrop-blur-xl border-2 border-white/60 rounded-3xl"></div>
-          <div className="relative px-2 py-2.5 flex justify-between items-end">
+      <nav className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-1rem)] max-w-md -translate-x-1/2 pb-safe sm:w-[calc(100%-2rem)]">
+        <div className="relative overflow-visible rounded-[30px] border border-white/20 bg-white/92 shadow-[0_22px_44px_rgba(30,27,75,0.24)] backdrop-blur-xl">
+          <div className="relative flex items-end justify-between px-2 py-2.5">
             {[
               {
                 href: "/child",
@@ -546,7 +544,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className={`group relative flex flex-col items-center justify-center min-w-[70px] px-2 rounded-2xl cursor-pointer transition-all duration-200 ${
+                className={`group relative flex min-w-[70px] flex-col items-center justify-center rounded-2xl px-2 transition-all duration-200 ${
                   item.isCenter ? "-mt-5 pt-0 pb-1" : "py-1.5"
                 } ${item.isActive ? "text-white" : `${item.textColor} hover:text-gray-800`}`}
               >
@@ -554,7 +552,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   className={`absolute inset-0 rounded-2xl transition-all duration-200 ${
                     item.isActive
                       ? `bg-gradient-to-br ${item.bgColor} shadow-[0_10px_20px_rgba(79,70,229,0.35)]`
-                      : "bg-slate-100 group-hover:bg-slate-200"
+                      : "bg-slate-100/80 group-hover:bg-slate-200"
                   }`}
                 ></div>
                 {item.isActive && (
@@ -584,9 +582,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 >
                   {item.label}
                 </span>
-                {item.isActive && (
-                  <div className="absolute -top-1 w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                )}
+                {item.isActive && <div className="absolute -top-1 h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
               </button>
             ))}
           </div>

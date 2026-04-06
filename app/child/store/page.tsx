@@ -10,7 +10,7 @@ import confetti from "canvas-confetti";
 import { useToast } from "@/components/ui/Toast";
 import request from "@/utils/request";
 import dayjs from "dayjs";
-import { RewardCard, SectionTitle } from "@/components/store/RewardUI";
+import { EmptyState, RewardCard, SectionTitle } from "@/components/store/RewardUI";
 
 export interface Reward {
   _id: string;
@@ -219,21 +219,21 @@ export default function StorePage() {
         type="info"
       />
 
-      <section className="rounded-[32px] border border-white/70 bg-white/78 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+      <section className="rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-md">
+          <div className="relative w-full lg:max-w-lg">
             <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="搜索奖品名字..."
               value={rewardSearchQuery}
               onChange={(e) => setRewardSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-11 py-3 text-slate-800 outline-none transition focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
+              className="w-full rounded-[18px] border border-slate-200/80 bg-white/95 px-11 py-3 text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm text-slate-500">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-2 text-sm text-slate-500">
               <Filter size={16} />
               分类
             </div>
@@ -245,7 +245,7 @@ export default function StorePage() {
               <button
                 key={item.key}
                 onClick={() => setActiveCategory(item.key as typeof activeCategory)}
-                className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${activeCategory === item.key ? "bg-slate-900 text-white shadow-sm" : "bg-white text-slate-500 hover:bg-slate-50"
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeCategory === item.key ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]" : "bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50"
                   }`}
               >
                 <span className="inline-flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function StorePage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-slate-500">排序：</span>
+          <span className="text-sm font-medium text-slate-500">排序：</span>
           {[
             { key: "points-asc", label: "积分从低到高" },
             { key: "points-desc", label: "积分从高到低" },
@@ -271,23 +271,30 @@ export default function StorePage() {
             <button
               key={item.key}
               onClick={() => setSortKey(item.key as typeof sortKey)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${sortKey === item.key ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${sortKey === item.key ? "bg-sky-50 text-sky-700 ring-1 ring-sky-200" : "bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50"
                 }`}
             >
               {item.label}
             </button>
           ))}
         </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span className="rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200/70">共 {filteredRewards.length} 件商品</span>
+          <span className="rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200/70">当前可用积分 {displayedPoints}</span>
+        </div>
       </section>
 
-
       <section className="space-y-4">
-        <div className="text-left">
+        <div className="flex items-end justify-between gap-3">
           <SectionTitle
             icon={<Gift size={16} className="text-blue-500" />}
             title="商品列表"
             description="按库存状态筛选，再按积分或库存排序。"
           />
+          <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-slate-500 ring-1 ring-white/80 shadow-sm sm:inline-flex">
+            结果 {filteredRewards.length}
+          </div>
         </div>
 
         {filteredRewards.length > 0 ? (
@@ -308,16 +315,31 @@ export default function StorePage() {
                   typeLabel={reward.type === "physical" ? "实物" : "特权"}
                   description={reward.description}
                   tone={reward.type === "privilege" ? (urgent ? "time" : "default") : "default"}
+                  meta={
+                    <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200/70">
+                      {reward.type === "physical" ? "实物奖励" : "特权奖励"}
+                    </span>
+                  }
                   badges={
                     reward.type === "privilege" ? (
                       <>
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${urgencyTone === "rose" ? "bg-rose-100 text-rose-700" : urgencyTone === "amber" ? "bg-amber-100 text-amber-700" : urgencyTone === "blue" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}`}>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${
+                            urgencyTone === "rose"
+                              ? "bg-rose-50 text-rose-700 ring-rose-100"
+                              : urgencyTone === "amber"
+                                ? "bg-amber-50 text-amber-700 ring-amber-100"
+                                : urgencyTone === "blue"
+                                  ? "bg-sky-50 text-sky-700 ring-sky-100"
+                                  : "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                          }`}
+                        >
                           {remainingLabel || "无截止日期"}
                         </span>
-                        <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-700">
+                        <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
                           {formatDuration(reward.validDurationValue, reward.validDurationUnit) || "未设置有效期"}
                         </span>
-                        {expired && <span className="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">已过截止日期</span>}
+                        {expired && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100">已过截止日期</span>}
                       </>
                     ) : undefined
                   }
@@ -337,15 +359,11 @@ export default function StorePage() {
             })}
           </div>
         ) : (
-          <div className="rounded-[30px] border border-dashed border-slate-200 bg-white/75 px-6 py-16 text-center text-slate-500">
-            <Gift size={52} className="mx-auto mb-3 opacity-40" />
-            <p className="text-base font-medium text-slate-600">没有找到符合条件的商品</p>
-            <p className="mt-1 text-sm text-slate-500">换个分类、关键词或者排序试试</p>
-          </div>
+          <EmptyState title="没有找到符合条件的商品" hint="换个分类、关键词或者排序试试" />
         )}
       </section>
 
-      <section className="rounded-[32px] border border-white/75 bg-white/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+      <section className="rounded-[28px] border border-white/65 bg-white/72 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
         <div className="flex items-center justify-between gap-3">
           <SectionTitle
             icon={<History size={16} className="text-violet-500" />}
@@ -364,30 +382,29 @@ export default function StorePage() {
             orders.map((order) => (
               <div
                 key={order._id}
-                className="group relative overflow-hidden rounded-[16px] border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.99)_0%,rgba(247,252,255,0.98)_100%)] px-4 py-4 shadow-[0_10px_24px_rgba(59,130,246,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_36px_rgba(59,130,246,0.14)] sm:px-5 sm:py-3.5"
+                className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.95)_100%)] px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(15,23,42,0.1)] sm:px-5 sm:py-3.5"
               >
-                <div className="absolute right-4 top-3 h-18 w-18 rounded-full bg-sky-100/70 blur-2xl" />
                 <div className="grid gap-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[22px] bg-white text-[22px] shadow-[0_10px_20px_rgba(15,23,42,0.08)] ring-1 ring-white">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[20px] bg-white text-[22px] shadow-[0_10px_20px_rgba(15,23,42,0.08)] ring-1 ring-white">
                       {order.rewardIcon || "🎁"}
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-[15px] font-bold leading-5 text-slate-900">{order.rewardName}</div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        <span className={`rounded-full px-2.5 py-1 font-semibold ${order.status === "verified" ? "bg-emerald-100 text-emerald-700" : order.status === "cancelled" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700"}`}>
+                        <span className={`rounded-full px-2.5 py-1 font-semibold ring-1 ${order.status === "verified" ? "bg-emerald-50 text-emerald-700 ring-emerald-100" : order.status === "cancelled" ? "bg-slate-100 text-slate-500 ring-slate-200/70" : "bg-amber-50 text-amber-700 ring-amber-100"}`}>
                           {formatStatusLabel(order.status)}
                         </span>
-                        <span className="rounded-full bg-white px-2.5 py-1 font-medium text-slate-600 ring-1 ring-slate-200/70">积分 {order.pointsSpent}</span>
+                        <span className="rounded-full bg-white/90 px-2.5 py-1 font-medium text-slate-600 ring-1 ring-slate-200/70">积分 {order.pointsSpent}</span>
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2.5 sm:min-w-[240px]">
-                    <div className="rounded-[18px] bg-rose-50 px-3 py-2 text-right ring-1 ring-rose-100">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-rose-400">时间</div>
-                      <div className="mt-0.5 text-[13px] font-bold leading-4 text-rose-700">{dayjs(order.createdAt).format("MM-DD HH:mm")}</div>
+                    <div className="rounded-[18px] bg-slate-50 px-3 py-2 text-right ring-1 ring-slate-200/70">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">时间</div>
+                      <div className="mt-0.5 text-[13px] font-bold leading-4 text-slate-700">{dayjs(order.createdAt).format("MM-DD HH:mm")}</div>
                     </div>
-                    <div className="rounded-[18px] bg-sky-900 px-3 py-2 text-right text-white shadow-sm">
+                    <div className="rounded-[18px] bg-sky-950 px-3 py-2 text-right text-white shadow-sm">
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">核销码</div>
                       <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">{order.verificationCode}</div>
                     </div>
@@ -396,7 +413,7 @@ export default function StorePage() {
               </div>
             ))
           ) : (
-            <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center text-slate-500">
+            <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/75 py-12 text-center text-slate-500">
               <History size={44} className="mx-auto mb-2 opacity-40" />
               <p>还没有兑换记录</p>
             </div>

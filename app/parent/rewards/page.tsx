@@ -219,10 +219,10 @@ export default function RewardsPage() {
 
   return (
     <div className="rewards-page space-y-6">
-      <section className="rewards-hero rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <section className="rewards-hero rounded-[28px] border border-white/65 bg-white/72 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700 ring-1 ring-sky-100">
               <Gift size={14} />
               商城管理
             </div>
@@ -244,7 +244,7 @@ export default function RewardsPage() {
         <StatCard title="特权奖励" value={stats.privilegeCount} hint="看电视、免任务等非实物奖励" />
       </section>
 
-      <section className="rewards-toolbar rounded-[32px] border border-white/70 bg-white/80 p-3.5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+      <section className="rewards-toolbar rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
             <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -256,7 +256,7 @@ export default function RewardsPage() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm text-slate-500">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-2 text-sm text-slate-500">
               <SlidersHorizontal size={16} />
               筛选
             </div>
@@ -271,8 +271,8 @@ export default function RewardsPage() {
               <button
                 key={item.key}
                 onClick={() => setFilter(item.key as RewardFilter)}
-                className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${
-                  filter === item.key ? "bg-slate-900 text-white shadow-sm" : "bg-white text-slate-500 hover:bg-slate-50"
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  filter === item.key ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]" : "bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50"
                 }`}
               >
                 {item.label}
@@ -284,7 +284,7 @@ export default function RewardsPage() {
 
       <section className="space-y-2">
         {loading && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-500 shadow-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/85 px-3 py-2 text-xs font-medium text-slate-500 shadow-sm backdrop-blur">
             <RefreshCw size={14} className="animate-spin" />
             刷新中
           </div>
@@ -308,15 +308,15 @@ export default function RewardsPage() {
                 tableRow
                 meta={
                   <>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200/70">
                       {reward.points} 积分
                     </span>
                     {reward.type === "privilege" && (
                       <>
-                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-100">
                           {reward.expiresAt ? `截止 ${dayjs(reward.expiresAt).format("MM-DD")}` : "需设置截止日期"}
                         </span>
-                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
                           {formatDuration(reward.validDurationValue, reward.validDurationUnit)}
                         </span>
                       </>
@@ -328,7 +328,7 @@ export default function RewardsPage() {
                     <Button
                       onClick={() => handleEditReward(reward)}
                       variant="secondary"
-                      className="border-none bg-white/50 px-3 text-slate-500 shadow-none hover:bg-blue-50 hover:text-blue-700"
+                      className="border-none bg-white/80 px-3 text-slate-500 shadow-none ring-1 ring-slate-200/70 hover:bg-sky-50 hover:text-sky-700"
                       title="编辑"
                     >
                       <Edit2 size={18} />
@@ -336,8 +336,8 @@ export default function RewardsPage() {
                     <Button
                       onClick={() => void handleToggleRewardStatus(reward)}
                       variant="secondary"
-                      className={`border-none bg-white/50 px-3 shadow-none ${
-                        reward.isActive ? "text-slate-500 hover:bg-orange-50 hover:text-orange-700" : "text-slate-500 hover:bg-green-50 hover:text-green-700"
+                      className={`border-none bg-white/80 px-3 shadow-none ring-1 ring-slate-200/70 ${
+                        reward.isActive ? "text-slate-500 hover:bg-amber-50 hover:text-amber-700" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700"
                       }`}
                       title={reward.isActive ? "下架" : "上架"}
                     >
@@ -346,7 +346,7 @@ export default function RewardsPage() {
                     <Button
                       onClick={() => setRewardToDelete(reward._id)}
                       variant="secondary"
-                      className="border-none bg-red-50 px-3 text-red-600 shadow-none hover:bg-red-600 hover:text-white"
+                      className="border-none bg-white/80 px-3 text-red-600 shadow-none ring-1 ring-red-100 hover:bg-red-50 hover:text-red-700"
                       title="删除"
                     >
                       <Trash2 size={18} />
@@ -366,7 +366,7 @@ export default function RewardsPage() {
         onClose={() => setShowAddReward(false)}
         title="添加新奖励"
         width={760}
-        className="border border-slate-100 bg-gradient-to-br from-white via-white to-amber-50/40 p-0 shadow-[0_40px_120px_rgba(15,23,42,0.18)]"
+        className="border border-slate-100 bg-gradient-to-br from-white via-white to-amber-50/30 p-0 shadow-[0_40px_120px_rgba(15,23,42,0.18)]"
         footer={
           <>
             <Button onClick={() => setShowAddReward(false)} variant="secondary" className="min-w-[108px] border-slate-200 bg-white/90">
@@ -480,7 +480,7 @@ export default function RewardsPage() {
         onClose={() => setShowEditRewardModal(false)}
         title="编辑奖励"
         width={760}
-        className="border border-slate-100 bg-gradient-to-br from-white via-white to-sky-50/40 p-0 shadow-[0_40px_120px_rgba(15,23,42,0.18)]"
+        className="border border-slate-100 bg-gradient-to-br from-white via-white to-sky-50/30 p-0 shadow-[0_40px_120px_rgba(15,23,42,0.18)]"
         footer={
           <>
             <Button onClick={() => setShowEditRewardModal(false)} variant="secondary" className="min-w-[108px] border-slate-200 bg-white/90">

@@ -363,32 +363,32 @@ function TaskPage() {
       case 'in_progress':
         return {
           label: '进行中',
-          bg: 'bg-blue-100',
-          text: 'text-blue-700',
+          bg: 'bg-sky-50',
+          text: 'text-sky-700',
           dot: 'bg-blue-500',
-          iconWrap: 'bg-blue-100 text-blue-700',
-          card: 'border-blue-200/80 bg-blue-50/70',
-          action: 'bg-blue-500 hover:bg-blue-600 text-white',
+          iconWrap: 'bg-sky-50 text-sky-700',
+          card: 'border-sky-200/70 bg-sky-50/60',
+          action: 'bg-sky-600 hover:bg-sky-700 text-white',
         };
       case 'approved':
         return {
           label: '已完成',
-          bg: 'bg-emerald-100',
+          bg: 'bg-emerald-50',
           text: 'text-emerald-700',
           dot: 'bg-emerald-500',
-          iconWrap: 'bg-emerald-100 text-emerald-700',
-          card: 'border-emerald-200/80 bg-emerald-50/70',
+          iconWrap: 'bg-emerald-50 text-emerald-700',
+          card: 'border-emerald-200/70 bg-emerald-50/60',
           action:
             'bg-slate-200 text-slate-500 cursor-not-allowed pointer-events-none',
         };
       case 'submitted':
         return {
           label: '审核中',
-          bg: 'bg-sky-100',
+          bg: 'bg-blue-50',
           text: 'text-sky-700',
           dot: 'bg-sky-500',
-          iconWrap: 'bg-sky-100 text-sky-700',
-          card: 'border-sky-200/80 bg-sky-50/70',
+          iconWrap: 'bg-blue-50 text-sky-700',
+          card: 'border-sky-200/70 bg-white',
           action: 'bg-amber-500 hover:bg-amber-600 text-white',
         };
       case 'pending':
@@ -398,17 +398,17 @@ function TaskPage() {
           text: 'text-slate-700',
           dot: 'bg-slate-500',
           iconWrap: 'bg-slate-100 text-slate-700',
-          card: 'border-slate-200 bg-white',
-          action: 'bg-blue-500 hover:bg-blue-600 text-white',
+          card: 'border-slate-200/70 bg-white',
+          action: 'bg-slate-900 hover:bg-slate-800 text-white',
         };
       case 'rejected':
         return {
           label: '需修改',
-          bg: 'bg-rose-100',
+          bg: 'bg-rose-50',
           text: 'text-rose-700',
           dot: 'bg-rose-500',
-          iconWrap: 'bg-rose-100 text-rose-700',
-          card: 'border-rose-200/80 bg-rose-50/70',
+          iconWrap: 'bg-rose-50 text-rose-700',
+          card: 'border-rose-200/70 bg-rose-50/60',
           action: 'bg-rose-500 hover:bg-rose-600 text-white',
         };
       default:
@@ -511,9 +511,9 @@ function TaskPage() {
         }
       `}</style>
 
-      <div className='min-h-screen px-4 py-4 relative'>
+      <div className='relative min-h-screen px-4 py-4'>
         {/* 搜索区域 */}
-        <div className='glass-strong rounded-3xl p-4 mb-4 shadow-xl relative z-10'>
+        <div className='glass-strong relative z-10 mb-4 rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
           <div className='flex flex-col gap-4'>
             {/* 筛选条件 */}
             <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
@@ -526,12 +526,12 @@ function TaskPage() {
                 onChange={(e) => setSearchName(e.target.value)}
                 placeholder="搜索任务名称..."
               />
-              <div className='flex items-center gap-2 rounded-2xl bg-slate-50/90 border border-slate-100 px-3 py-2.5'>
-                <Filter size={16} className='text-slate-400 shrink-0' />
+              <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
+                <Filter size={16} className='shrink-0 text-slate-400' />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className='w-full bg-transparent text-sm focus:outline-none text-gray-800'
+                  className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
                 >
                   {STATUS_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -541,12 +541,12 @@ function TaskPage() {
                 </select>
               </div>
 
-              <div className='flex items-center gap-2 rounded-2xl bg-slate-50/90 border border-slate-100 px-3 py-2.5'>
-                <span className='text-slate-400 text-sm font-bold shrink-0'>类型</span>
+              <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
+                <span className='shrink-0 text-sm font-bold text-slate-400'>类型</span>
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className='w-full bg-transparent text-sm focus:outline-none text-gray-800'
+                  className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
                 >
                   {TYPE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -556,8 +556,8 @@ function TaskPage() {
                 </select>
               </div>
             </div>
-            <div className='flex items-center gap-2 rounded-2xl bg-slate-50/90 border border-slate-100 px-3 py-2.5 md:col-span-2 xl:col-span-1'>
-              <Calendar size={16} className='text-slate-400 shrink-0' />
+            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm md:col-span-2 xl:col-span-1'>
+              <Calendar size={16} className='shrink-0 text-slate-400' />
               <div className='grid grid-cols-2 gap-2 flex-1'>
                 <DatePicker
                   selected={startDate}
@@ -576,10 +576,10 @@ function TaskPage() {
 
             {/* 按钮 */}
             <div className='flex gap-2'>
-              <Button onClick={handleSearch} className='flex-1'>
+              <Button onClick={handleSearch} className='flex-1 rounded-full'>
                 搜索
               </Button>
-              <Button onClick={handleReset} variant='secondary'>
+              <Button onClick={handleReset} variant='secondary' className='rounded-full'>
                 重置
               </Button>
             </div>
@@ -587,19 +587,19 @@ function TaskPage() {
         </div>
 
         {/* 任务列表 */}
-        <div className='glass-strong rounded-3xl p-4 shadow-xl min-h-[400px]'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-black text-gray-800'>任务列表</h2>
-            <span className='text-sm text-gray-500'>共 {total} 个任务</span>
+        <div className='glass-strong min-h-[400px] rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
+          <div className='mb-4 flex items-center justify-between'>
+            <h2 className='text-xl font-black text-slate-900'>任务列表</h2>
+            <span className='text-sm text-slate-500'>共 {total} 个任务</span>
           </div>
 
           {loading ? (
             <div className='flex items-center justify-center py-12'>
-              <div className='w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+              <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent'></div>
             </div>
           ) : tasks.length === 0 ? (
-            <div className='text-center py-12 text-gray-500'>
-              <div className='text-4xl mb-4'>📭</div>
+            <div className='py-12 text-center text-slate-500'>
+              <div className='mb-4 text-4xl'>📭</div>
               <p>暂无任务</p>
             </div>
           ) : (
@@ -620,7 +620,7 @@ function TaskPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`group rounded-[1.5rem] border p-4 md:p-5 cursor-pointer transition-all shadow-sm hover:shadow-lg hover:-translate-y-0.5 ${statusInfo.card}`}
+                      className={`group cursor-pointer rounded-[24px] border p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(15,23,42,0.1)] md:p-5 ${statusInfo.card}`}
                       onClick={() => {
                         if (task.status === 'pending' || task.status === 'rejected') {
                           openSubmitModal(task);
@@ -631,7 +631,7 @@ function TaskPage() {
                     >
                       <div className='flex items-start gap-4'>
                         <div
-                          className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-sm ${statusInfo.iconWrap}`}
+                          className={`flex h-12 w-12 items-center justify-center rounded-[18px] text-2xl font-bold shadow-sm md:h-14 md:w-14 ${statusInfo.iconWrap}`}
                         >
                           {task.status === 'approved' ? '✓' : task.icon}
                         </div>
@@ -639,21 +639,21 @@ function TaskPage() {
                         <div className='flex-1 min-w-0'>
                           <div className='flex items-start justify-between gap-3'>
                             <div className='min-w-0'>
-                              <h3 className='font-extrabold text-gray-800 truncate text-[15px] md:text-base'>
+                              <h3 className='truncate text-[15px] font-extrabold text-slate-900 md:text-base'>
                                 {task.name}
                               </h3>
-                              <p className='text-xs text-gray-500 mt-1 line-clamp-2'>
+                              <p className='mt-1 line-clamp-2 text-xs text-slate-500'>
                                 {task.description || '暂无描述'}
                               </p>
                             </div>
-                            <span className='shrink-0 rounded-full bg-amber-100 text-amber-700 px-2.5 py-1 text-xs font-bold'>
+                            <span className='shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100'>
                               +{task.points} 分
                             </span>
                           </div>
 
                           <div className='flex flex-wrap items-center gap-2 mt-3'>
                             <span
-                              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-bold ${statusInfo.bg} ${statusInfo.text}`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-bold ${statusInfo.bg} ${statusInfo.text}`}
                             >
                               <span
                                 className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`}
@@ -663,7 +663,7 @@ function TaskPage() {
 
                             {deadlineInfo && (
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${deadlineInfo.className}`}
+                                className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ring-1 ${deadlineInfo.className}`}
                               >
                                 <Calendar size={12} />
                                 {deadlineInfo.label}
@@ -671,33 +671,33 @@ function TaskPage() {
                             )}
 
                             {task.startDate && (
-                              <span className='inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700'>
-                                <span className='w-1.5 h-1.5 rounded-full bg-indigo-500' />
+                              <span className='inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100'>
+                                <span className='h-1.5 w-1.5 rounded-full bg-indigo-500' />
                                 开始 {dayjs(task.startDate).format('MM/DD')}
                               </span>
                             )}
 
                             {task.deadline && (
-                              <span className='inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700'>
-                                <span className='w-1.5 h-1.5 rounded-full bg-rose-500' />
+                              <span className='inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100'>
+                                <span className='h-1.5 w-1.5 rounded-full bg-rose-500' />
                                 截止 {dayjs(task.deadline).format('MM/DD')}
                               </span>
                             )}
 
                             {task.updatedAt && (
-                              <span className='text-xs text-gray-400'>
+                              <span className='text-xs text-slate-400'>
                                 更新于 {dayjs(task.updatedAt).format('YYYY/MM/DD')}
                               </span>
                             )}
                           </div>
 
                           {parentFeedback ? (
-                            <div className={`mt-2 rounded-lg border px-2 py-1.5 text-xs ${parentFeedback.className}`}>
+                            <div className={`mt-2 rounded-xl border px-2 py-1.5 text-xs ${parentFeedback.className}`}>
                               <span className='font-bold'>{parentFeedback.label}：</span>
                               <span className='ml-1 font-medium'>{parentFeedback.text}</span>
                             </div>
                           ) : task.rejectionReason ? (
-                            <p className='mt-2 text-xs text-rose-600 bg-rose-100/70 rounded-lg px-2 py-1.5'>
+                            <p className='mt-2 rounded-xl bg-rose-50/80 px-2 py-1.5 text-xs text-rose-600 ring-1 ring-rose-100'>
                               ✏️ {task.rejectionReason}
                             </p>
                           ) : null}
@@ -711,7 +711,7 @@ function TaskPage() {
                               e.stopPropagation();
                               handleStartTask(task);
                             }}
-                            className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${statusInfo.action}`}
+                            className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${statusInfo.action}`}
                           >
                             开始任务
                           </button>
@@ -722,7 +722,7 @@ function TaskPage() {
                               e.stopPropagation();
                               openSubmitModal(task);
                             }}
-                            className={`px-4 py-2 text-sm font-bold rounded-full transition-colors ${statusInfo.action}`}
+                            className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${statusInfo.action}`}
                           >
                             重新提交
                           </button>
@@ -733,7 +733,7 @@ function TaskPage() {
                               e.stopPropagation();
                               openSubmitModal(task);
                             }}
-                            className="px-4 py-2 text-sm font-bold rounded-full transition-colors bg-emerald-500 hover:bg-emerald-600 text-white"
+                            className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-600"
                           >
                             提交审核
                           </button>
@@ -745,7 +745,7 @@ function TaskPage() {
                               handleRecallTask(task);
                             }}
                             disabled={recallingTaskId === task._id}
-                            className={`px-4 py-2 text-sm font-bold rounded-full transition-colors disabled:opacity-50 ${statusInfo.action}`}
+                            className={`rounded-full px-4 py-2 text-sm font-bold transition-colors disabled:opacity-50 ${statusInfo.action}`}
                           >
                             {recallingTaskId === task._id
                               ? '撤回中...'
@@ -765,7 +765,7 @@ function TaskPage() {
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page === 1}
                     variant='secondary'
-                    className='w-10 h-10 p-0 rounded-full'
+                    className='h-10 w-10 rounded-full p-0'
                   >
                     <ChevronLeft size={20} />
                   </Button>
@@ -786,9 +786,9 @@ function TaskPage() {
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`w-10 h-10 rounded-full text-sm font-bold ${page === pageNum
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          className={`h-10 w-10 rounded-full text-sm font-bold ${page === pageNum
+                            ? 'bg-slate-900 text-white'
+                            : 'bg-white/80 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -800,7 +800,7 @@ function TaskPage() {
                     onClick={() => handlePageChange(page + 1)}
                     disabled={page === totalPages}
                     variant='secondary'
-                    className='w-10 h-10 p-0 rounded-full'
+                    className='h-10 w-10 rounded-full p-0'
                   >
                     <ChevronRight size={20} />
                   </Button>
@@ -819,7 +819,7 @@ function TaskPage() {
         footer={
           selectedTask?.status === 'pending' ? (
             <button
-              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+              className='w-full rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 py-4 !font-bold text-lg text-white shadow-xl'
               onClick={() => {
                 setShowTaskDetail(null);
                 handleStartTask(selectedTask);
@@ -829,14 +829,14 @@ function TaskPage() {
             </button>
           ) : selectedTask?.status === 'rejected' ? (
             <button
-              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+              className='w-full rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 py-4 !font-bold text-lg text-white shadow-xl'
               onClick={() => openSubmitModal(selectedTask)}
             >
               💪 重新提交
             </button>
           ) : selectedTask?.status === 'in_progress' ? (
             <button
-              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-sky-500 to-cyan-500 shadow-xl'
+              className='w-full rounded-2xl bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 py-4 !font-bold text-lg text-white shadow-xl'
               onClick={() => {
                 setShowTaskDetail(null);
                 openSubmitModal(selectedTask);
@@ -846,7 +846,7 @@ function TaskPage() {
             </button>
           ) : selectedTask?.status === 'submitted' ? (
             <button
-              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xl'
+              className='w-full rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 py-4 !font-bold text-lg text-white shadow-xl'
               onClick={() => {
                 setShowTaskDetail(null);
                 handleRecallTask(selectedTask);
@@ -856,7 +856,7 @@ function TaskPage() {
             </button>
           ) : (
             <button
-              className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-slate-700 to-slate-900 shadow-xl'
+              className='w-full rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 py-4 !font-bold text-lg text-white shadow-xl'
               onClick={() => setShowTaskDetail(null)}
             >
               知道啦
@@ -1174,13 +1174,13 @@ function TaskPage() {
         {selectedTask && (
           <>
             <div className='text-center mb-8'>
-              <div className='w-28 h-28 bg-gradient-to-br from-blue-100 via-blue-200 to-cyan-100 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4'>
+              <div className='mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-gradient-to-br from-sky-50 via-blue-100 to-indigo-100 text-7xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_12px_30px_rgba(59,130,246,0.12)] border border-sky-100'>
                 {selectedTask.icon}
               </div>
-              <h3 className='text-2xl font-black text-gray-800'>
+              <h3 className='text-2xl font-black text-slate-900'>
                 {selectedTask.name}
               </h3>
-              <div className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-full mt-4 font-black shadow-lg'>
+              <div className='mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-3 font-black text-white shadow-[0_12px_24px_rgba(59,130,246,0.18)]'>
                 <span>⚡</span>
                 <span>+{selectedTask.points} 积分</span>
               </div>
@@ -1195,7 +1195,7 @@ function TaskPage() {
                 onChange={handlePhotoSelect}
               />
               <div
-                className='group relative border-4 border-dashed border-purple-200 rounded-[2rem] p-2 cursor-pointer hover:border-purple-400 hover:bg-purple-50/30 transition-all'
+                className='group relative cursor-pointer rounded-[2rem] border-4 border-dashed border-slate-200 p-2 transition-all hover:border-sky-300 hover:bg-sky-50/30'
                 onClick={() => {
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
@@ -1212,22 +1212,22 @@ function TaskPage() {
                       enableZoom={false}
                       containerClassName='w-full h-full'
                     />
-                    <div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
-                      <span className='bg-white/95 backdrop-blur-sm px-5 py-2.5 rounded-full text-sm font-bold text-gray-800'>
+                    <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity pointer-events-none group-hover:opacity-100'>
+                      <span className='rounded-full bg-white/95 px-5 py-2.5 text-sm font-bold text-slate-800 backdrop-blur-sm'>
                         📷 更换照片
                       </span>
                     </div>
                   </div>
                 ) : (
                   <div className='flex flex-col items-center gap-4 py-10'>
-                    <div className='w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center'>
+                    <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-50 to-indigo-100'>
                       <span className='text-4xl'>📸</span>
                     </div>
                     <div className='text-center'>
-                      <p className='font-black text-gray-700 text-lg'>
+                      <p className='text-lg font-black text-slate-800'>
                         上传任务照片
                       </p>
-                      <p className='text-sm mt-1 text-gray-500'>
+                      <p className='mt-1 text-sm text-slate-500'>
                         {selectedTask.requirePhoto
                           ? '⚠️ 必须上传照片'
                           : '✨ 上传更容易通过'}
@@ -1250,10 +1250,10 @@ function TaskPage() {
 export default function TaskPageWrapper() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-sky-50 to-indigo-50">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500"></div>
+          <p className="text-slate-600">加载中...</p>
         </div>
       </div>
     }>

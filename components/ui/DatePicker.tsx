@@ -21,12 +21,16 @@ export interface CustomDatePickerProps extends Omit<DatePickerProps, 'onChange' 
   className?: string;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  popperPlacement?: DatePickerProps['popperPlacement'];
+  withPortal?: boolean;
 }
 
 const CustomDatePicker = memo(({
   className = "",
   icon = <Calendar size={18} />,
   iconPosition = 'right',
+  popperPlacement = "bottom-start",
+  withPortal = false,
   locale = "zh-CN",
   dateFormat = "yyyy-MM-dd",
   isClearable = true,
@@ -78,8 +82,8 @@ const CustomDatePicker = memo(({
         isClearable={isClearable}
         placeholderText={placeholderText}
         popperProps={{ strategy: "fixed" }}
-        popperPlacement="bottom-start"
-        withPortal={false}
+        popperPlacement={popperPlacement}
+        withPortal={withPortal}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}
         className={combinedClassName}

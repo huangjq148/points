@@ -56,19 +56,6 @@ function OrdersPage() {
   const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const pendingPageCount = useMemo(
-    () => Math.max(1, Math.ceil(pendingTotal / pageSize)),
-    [pageSize, pendingTotal],
-  );
-  const verifiedPageCount = useMemo(
-    () => Math.max(1, Math.ceil(verifiedTotal / pageSize)),
-    [pageSize, verifiedTotal],
-  );
-  const cancelledPageCount = useMemo(
-    () => Math.max(1, Math.ceil(cancelledTotal / pageSize)),
-    [cancelledTotal, pageSize],
-  );
-
   const fetchOrders = useCallback(
     async (status: string, page: number = 1, fetchLimit: number = 100) => {
       const params: Record<string, string | number> = {
@@ -262,7 +249,7 @@ function OrdersPage() {
         />
       </section>
 
-      <section className='rounded-[32px] border border-white/70 bg-white/80 p-5 shadow-[0_16px_40px_rgba(15,23,42,0.08)]'>
+      <section className='rounded-[28px] border border-white/65 bg-white/72 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
         <div className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center'>
           <div className='flex min-w-0 items-center gap-3 overflow-x-auto xl:overflow-visible'>
             <TabFilter
@@ -300,7 +287,7 @@ function OrdersPage() {
               setSelectedChildFilter(value ?? 'all');
             }}
             className='shrink-0 justify-self-start xl:justify-self-end'
-            buttonClassName='h-11 min-w-[140px] justify-between rounded-2xl border-slate-200 bg-white px-4 text-[var(--ui-text-primary)] shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50'
+            buttonClassName='h-11 min-w-[140px] justify-between rounded-full border-slate-200/80 bg-white/90 px-4 text-[var(--ui-text-primary)] shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50'
           />
         </div>
       </section>
@@ -344,7 +331,7 @@ function OrdersPage() {
                 }
               />
             ))}
-            <div className='rounded-[28px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
+            <div className='rounded-[28px] border border-slate-200/70 bg-white/90 px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] backdrop-blur'>
               <Pagination
                 currentPage={pendingPage}
                 totalItems={pendingTotal}
@@ -390,8 +377,8 @@ function OrdersPage() {
                   }
                 />
               ))}
-              <div className='rounded-[28px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
-                <Pagination
+            <div className='rounded-[28px] border border-slate-200/70 bg-white/90 px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] backdrop-blur'>
+              <Pagination
                   currentPage={verifiedPage}
                   totalItems={verifiedTotal}
                   pageSize={pageSize}
@@ -435,8 +422,8 @@ function OrdersPage() {
                   }
                 />
               ))}
-              <div className='rounded-[28px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)]'>
-                <Pagination
+            <div className='rounded-[28px] border border-slate-200/70 bg-white/90 px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] backdrop-blur'>
+              <Pagination
                   currentPage={cancelledPage}
                   totalItems={cancelledTotal}
                   pageSize={pageSize}
@@ -488,7 +475,7 @@ function OrderCard({
   };
 
   return (
-    <div className='group relative overflow-hidden rounded-[30px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.92)_100%)] p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(15,23,42,0.11)] sm:p-6'>
+    <div className='group relative overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.92)_100%)] p-5 shadow-[0_16px_36px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_46px_rgba(15,23,42,0.1)] sm:p-6'>
       <div
         className={`pointer-events-none absolute right-[-28px] top-[-36px] h-32 w-32 rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-100 ${accentGlowMap[statusTone]} opacity-80`}
       />
@@ -496,7 +483,7 @@ function OrderCard({
       <div className='relative flex flex-col gap-4 md:flex-row md:items-stretch md:justify-between'>
         <div className='min-w-0 flex-1'>
           <div className='flex items-start gap-4'>
-            <div className='flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[28px] bg-gradient-to-br from-amber-100 via-white to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_12px_26px_rgba(251,191,36,0.16)] ring-1 ring-white/80'>
+            <div className='flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-amber-100 via-white to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_12px_26px_rgba(251,191,36,0.16)] ring-1 ring-white/80'>
               {order.rewardIcon || '🎁'}
             </div>
             <div className='min-w-0 flex-1'>
@@ -551,7 +538,7 @@ function OrderCard({
         </div>
 
         <div className='md:w-[198px] md:shrink-0'>
-          <div className='w-full overflow-x-auto'>{actionArea}</div>
+          <div className='w-full overflow-x-auto rounded-[22px]'>{actionArea}</div>
         </div>
       </div>
     </div>

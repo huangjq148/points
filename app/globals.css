@@ -848,10 +848,8 @@ body {
 
 /* 日期选择器 Portal 样式 */
 #datepicker-portal {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  position: fixed;
+  inset: 0;
   z-index: var(--z-datepicker);
   pointer-events: none;
 }
