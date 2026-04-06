@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Button from './Button';
 import {
@@ -70,10 +70,6 @@ const Pagination: React.FC<PaginationProps> = ({
 }) => {
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const [jumpValue, setJumpValue] = useState('');
-
-  useEffect(() => {
-    setJumpValue('');
-  }, [currentPage, totalPages]);
 
   const pageItems = useMemo(
     () => getPageItems(currentPage, totalPages),
@@ -167,6 +163,7 @@ const Pagination: React.FC<PaginationProps> = ({
             <div className='flex items-center gap-2 text-sm font-medium text-[var(--ui-text-muted)]'>
               <span>跳至</span>
               <input
+                key={`${currentPage}-${totalPages}`}
                 type='number'
                 min={1}
                 max={totalPages}

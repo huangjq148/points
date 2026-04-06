@@ -22,7 +22,7 @@ export const CONTROL_PANEL_SUBTLE_CLASS =
   'border border-[color:var(--ui-border)] bg-[var(--ui-panel-bg-subtle)] shadow-[var(--ui-shadow-sm)] backdrop-blur-sm';
 export const CONTROL_OVERLAY_CLASS = 'bg-[var(--ui-overlay-bg)] backdrop-blur-md';
 export const CONTROL_PRIMARY_GRADIENT_CLASS =
-  'bg-[var(--ui-primary-bg)]';
+  'bg-[image:var(--ui-primary-bg)]';
 export const CONTROL_PRIMARY_BORDER_CLASS = 'border border-[color:var(--ui-primary-border)]';
 export const CONTROL_PRIMARY_SHADOW_CLASS =
   'shadow-[var(--ui-primary-shadow)]';

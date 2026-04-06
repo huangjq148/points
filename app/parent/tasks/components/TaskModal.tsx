@@ -146,7 +146,7 @@ export default function TaskModal({
                   onClick={() => toggleChild(child.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-all border-2 ${
                     taskData.selectedChildren.includes(child.id)
-                      ? 'bg-[var(--ui-primary-bg)] border-[color:var(--ui-primary-border)] text-white shadow-[var(--ui-primary-shadow)]'
+                      ? 'bg-[image:var(--ui-primary-bg)] border-[color:var(--ui-primary-border)] text-white shadow-[var(--ui-primary-shadow)]'
                       : 'bg-[var(--ui-surface-1)] border-[color:var(--ui-border)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-surface-3)]'
                   }`}
                 >
@@ -179,7 +179,7 @@ export default function TaskModal({
                     }
                     className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition ${
                       isActive
-                        ? 'bg-[var(--ui-primary-bg)] border-[color:var(--ui-primary-border)] text-white'
+                        ? 'bg-[image:var(--ui-primary-bg)] border-[color:var(--ui-primary-border)] text-white'
                         : 'bg-[var(--ui-surface-1)] border-[color:var(--ui-border)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-surface-3)] hover:border-[color:var(--ui-border-strong)]'
                     }`}
                   >
@@ -388,7 +388,7 @@ export default function TaskModal({
                     variant={taskData.type === type ? 'primary' : 'default'}
                     className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all shadow-none ${
                       taskData.type === type
-                        ? 'border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-bg)] text-white shadow-[var(--ui-primary-shadow)]'
+                        ? 'border-[color:var(--ui-primary-border)] bg-[image:var(--ui-primary-bg)] text-white shadow-[var(--ui-primary-shadow)]'
                         : 'border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] text-[var(--ui-text-secondary)] hover:bg-[var(--ui-surface-3)] hover:border-[color:var(--ui-border-strong)]'
                     }`}
                   >
@@ -479,7 +479,7 @@ export default function TaskModal({
                   onClick={() => setTaskData({ ...taskData, icon })}
                   className={`w-10 h-10 rounded-xl text-xl leading-none flex items-center justify-center transition-all ${
                       taskData.icon === icon
-                      ? 'bg-[var(--ui-primary-bg)] text-white ring-2 ring-[color:var(--ui-primary-border)] ring-offset-2 ring-offset-[var(--ui-surface-1)] scale-110 shadow-[var(--ui-primary-shadow)]'
+                      ? 'bg-[image:var(--ui-primary-bg)] text-white ring-2 ring-[color:var(--ui-primary-border)] ring-offset-2 ring-offset-[var(--ui-surface-1)] scale-110 shadow-[var(--ui-primary-shadow)]'
                       : 'bg-[var(--ui-surface-1)] hover:bg-[var(--ui-surface-3)] text-[var(--ui-text-muted)] hover:text-[var(--ui-text-secondary)] border border-[color:var(--ui-border)]'
                   }`}
                 >
