@@ -133,6 +133,8 @@
   --child-nav-hover-bg: rgba(255, 255, 255, 0.82);
   --child-nav-hover-text: var(--child-primary-strong);
   --child-focus-ring: rgba(56, 189, 248, 0.32);
+  --child-nav-active-bg: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
+  --child-nav-active-text: #ffffff;
   --child-shadow-soft: 0 18px 44px rgba(14, 116, 144, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --child-shadow-card: 0 12px 30px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
@@ -545,8 +547,8 @@ body {
 }
 
 .child-nav-item-active {
-  background: linear-gradient(135deg, #38bdf8 0%, #14b8a6 100%);
-  color: white;
+  background: var(--child-nav-active-bg);
+  color: var(--child-nav-active-text);
   box-shadow: 0 14px 30px rgba(14, 165, 233, 0.26);
 }
 
@@ -660,6 +662,8 @@ body {
   --child-nav-hover-bg: rgba(30, 41, 59, 0.88);
   --child-nav-hover-text: #f8fafc;
   --child-focus-ring: rgba(56, 189, 248, 0.36);
+  --child-nav-active-bg: linear-gradient(135deg, #7dd3fc 0%, #5eead4 100%);
+  --child-nav-active-text: #0f172a;
   --child-shadow-soft: 0 18px 44px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(148, 163, 184, 0.12);
   --child-shadow-card: 0 12px 30px rgba(2, 6, 23, 0.36), inset 0 1px 0 rgba(148, 163, 184, 0.1);
 }
