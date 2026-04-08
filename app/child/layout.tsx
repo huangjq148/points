@@ -177,7 +177,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     const scrollElement = isMobileViewport ? shellScrollRef.current : mainScrollRef.current;
     if (!scrollElement) return;
     scrollElement.scrollTo({ top: 0, behavior: "auto" });
-    setShowScrollTop(false);
   }, [pathname, isMobileViewport]);
 
   const scrollToTop = () => {
