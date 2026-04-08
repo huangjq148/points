@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Calendar,
 } from 'lucide-react';
-import { Button, Modal, Image, Input } from '@/components/ui';
+import { Button, Modal, Image, Input, FilterSelect } from '@/components/ui';
 import { ChildEmptyState, ChildPanel, ChildPageTitle, ChildStatusPill } from '@/components/child/ChildUI';
 import TaskDateRangeFilter from '@/components/tasks/TaskDateRangeFilter';
 import { compressImage } from '@/utils/image';
@@ -518,34 +518,20 @@ function TaskPage() {
               onChange={(e) => setSearchName(e.target.value)}
               placeholder='搜索任务名称...'
             />
-            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
-              <Filter size={16} className='shrink-0 text-slate-400' />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
-              <span className='shrink-0 text-sm font-bold text-slate-400'>类型</span>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
-              >
-                {TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterSelect
+              options={STATUS_OPTIONS}
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(String(value ?? ''))}
+              placeholder='筛选状态'
+              wrapperClassName='rounded-[18px]'
+            />
+            <FilterSelect
+              options={TYPE_OPTIONS}
+              value={typeFilter}
+              onChange={(value) => setTypeFilter(String(value ?? ''))}
+              placeholder='类型'
+              wrapperClassName='rounded-[18px]'
+            />
             <TaskDateRangeFilter
               startDate={startDate}
               endDate={endDate}
