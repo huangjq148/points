@@ -475,24 +475,17 @@ export default function ChildHome() {
                           {task.status === 'rejected' ? '重新提交' : '去完成'}
                         </span>
                       ) : task.status === 'submitted' ? (
-                        <span
-                          role='button'
-                          tabIndex={0}
+                        <button
+                          type='button'
+                          disabled={recallingTaskId === task._id}
                           onClick={(event) => {
                             event.stopPropagation();
                             handleRecallTask(task);
                           }}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              handleRecallTask(task);
-                            }
-                          }}
-                          className='rounded-full bg-amber-50 px-4 py-2 text-sm font-black text-amber-700 ring-1 ring-amber-100'
+                          className='rounded-full bg-amber-50 px-4 py-2 text-sm font-black text-amber-700 ring-1 ring-amber-100 transition disabled:cursor-not-allowed disabled:opacity-60'
                         >
                           {recallingTaskId === task._id ? '撤回中...' : '撤回'}
-                        </span>
+                        </button>
                       ) : (
                         <span className='rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700 ring-1 ring-emerald-100'>
                           查看
