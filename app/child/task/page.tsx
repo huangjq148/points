@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { Button, Modal, Image, Input } from '@/components/ui';
 import { ChildEmptyState, ChildPanel, ChildPageTitle, ChildStatusPill } from '@/components/child/ChildUI';
-import DatePicker from '@/components/ui/DatePicker';
+import TaskDateRangeFilter from '@/components/tasks/TaskDateRangeFilter';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
 import dayjs from 'dayjs';
@@ -546,23 +546,13 @@ function TaskPage() {
                 ))}
               </select>
             </div>
-            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm xl:col-span-1'>
-              <Calendar size={16} className='shrink-0 text-slate-400' />
-              <div className='grid flex-1 grid-cols-2 gap-2'>
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => setStartDate(date)}
-                  placeholderText='开始日期'
-                  className='border-0 bg-white/80'
-                />
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  placeholderText='结束日期'
-                  className='border-0 bg-white/80'
-                />
-              </div>
-            </div>
+            <TaskDateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              className='xl:col-span-1'
+            />
           </div>
           <div className='mt-4 flex gap-2'>
             <Button onClick={handleSearch} className='min-w-[120px] rounded-full'>
