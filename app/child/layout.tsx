@@ -3,7 +3,7 @@
 import { useApp } from "@/context/AppContext";
 import { usePathname, useRouter } from "next/navigation";
 import { Button, Input, PasswordInput } from "@/components/ui";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Settings,
   LogOut,
@@ -29,46 +29,6 @@ import { applyDocumentTheme, resolvePreferredTheme, setThemeStorage } from "@/li
 
 interface ChildLayoutProps {
   children: React.ReactNode;
-}
-
-function generateStars() {
-  return Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    size: Math.random() * 3 + 1,
-    delay: `${Math.random() * 3}s`,
-  }));
-}
-
-function StarsBackground() {
-  const [stars, setStars] = useState<ReturnType<typeof generateStars>>([]);
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setStars(generateStars());
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0">
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          className="absolute bg-white rounded-full"
-          style={{
-            left: star.left,
-            top: star.top,
-            width: `${star.size}px`,
-            height: `${star.size}px`,
-            animation: `twinkle 3s infinite`,
-            animationDelay: star.delay,
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 function ChildAccountSignIn({
@@ -140,6 +100,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const isWalletPage = pathname === "/child/wallet";
   const isTaskPage = pathname === "/child/task";
   const isGiftPage = pathname === "/child/gift";
+  const mainScrollRef = useRef<HTMLDivElement | null>(null);
 
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
   const [showChildAccountSignIn, setShowChildAccountSignIn] = useState(false);
@@ -183,19 +144,30 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   }, [focusReminderEnabled]);
 
   useEffect(() => {
+    const scrollElement = mainScrollRef.current;
+    if (!scrollElement) return;
+
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
+      setShowScrollTop(scrollElement.scrollTop > 300);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    handleScroll();
+    scrollElement.addEventListener("scroll", handleScroll);
+    return () => scrollElement.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const scrollElement = mainScrollRef.current;
+    if (!scrollElement) return;
+    scrollElement.scrollTo({ top: 0, behavior: "auto" });
+    setShowScrollTop(false);
   }, [pathname]);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    mainScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
   };
 
   const handleLogout = () => {
@@ -217,10 +189,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     }
   };
 
-  const shellBackground = isDarkMode
-    ? "linear-gradient(135deg, #0f172a 0%, #1e1b4b 48%, #312e81 100%)"
-    : "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%)";
-
   const currentSessionIndex = savedChildSessions.findIndex((child) => child.id === currentUser?.id);
   const nextSession = currentSessionIndex >= 0 ? savedChildSessions[(currentSessionIndex + 1) % savedChildSessions.length] : null;
   const previousSession =
@@ -239,53 +207,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   };
 
   return (
-    <div
-      className="relative min-h-screen text-white"
-      style={{
-        background: shellBackground,
-      }}
-    >
-      <style jsx global>{`
-        @keyframes twinkle {
-          0%,
-          100% {
-            opacity: 0.3;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
-          }
-        }
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-15px) rotate(2deg);
-          }
-        }
-        @keyframes blink {
-          0%,
-          90%,
-          100% {
-            transform: scaleY(1);
-          }
-          95% {
-            transform: scaleY(0.1);
-          }
-        }
-        .character-eye {
-          animation: blink 4s infinite;
-        }
-        .pb-safe {
-          padding-bottom: env(safe-area-inset-bottom, 0px);
-        }
-      `}</style>
-
-      <StarsBackground />
-
+    <div className={`child-app ${isDarkMode ? "child-app-dark" : "child-app-light"} ${reducedMotion ? "child-reduced-motion" : ""}`}>
       {showChildSwitcher && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
@@ -416,178 +338,98 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         // type='danger'
       />
 
-      <header
-        className="fixed inset-x-0 top-0 z-50 px-4 pt-4 sm:px-6"
-        style={{
-          background: shellBackground,
-        }}
-      >
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 rounded-[28px] border border-white/15 bg-white/10 px-4 py-3 shadow-[0_20px_50px_rgba(15,23,42,0.18)] backdrop-blur-xl sm:px-5">
-          <div className="flex items-center gap-3">
-            {!isHomePage && (
+      <div className="child-shell">
+        <aside className="child-nav-rail" aria-label="孩子端导航">
+          <button
+            type="button"
+            onClick={() => setShowChildSwitcher(true)}
+            className="mb-2 flex h-16 w-full items-center justify-center rounded-[24px] bg-white/90 text-3xl shadow-sm ring-1 ring-white"
+            aria-label="切换孩子"
+          >
+            {currentUser?.avatar || "👦"}
+          </button>
+          {[
+            { href: "/child", icon: Home, label: "首页", isActive: isHomePage },
+            { href: "/child/task", icon: ClipboardList, label: "任务", isActive: isTaskPage },
+            { href: "/child/store", icon: ShoppingBag, label: "商城", isActive: isStorePage },
+            { href: "/child/gift", icon: Gift, label: "奖品", isActive: isGiftPage },
+            { href: "/child/wallet", icon: Wallet, label: "钱包", isActive: isWalletPage },
+          ].map((item) => (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => router.push(item.href)}
+              className={`child-nav-item ${item.isActive ? "child-nav-item-active" : ""}`}
+            >
+              <item.icon size={22} strokeWidth={2.5} />
+              <span className="text-[11px] font-black">{item.label}</span>
+            </button>
+          ))}
+          <div className="mt-auto flex w-full flex-col gap-2">
+            <button type="button" onClick={() => setShowSettingsModal(true)} className="child-nav-item min-h-[52px]" aria-label="设置">
+              <Settings size={21} />
+              <span className="text-[11px] font-black">设置</span>
+            </button>
+          </div>
+        </aside>
+
+        <div className="child-workspace">
+          <header className="child-topbar">
+            <button type="button" onClick={() => setShowChildSwitcher(true)} className="flex min-w-0 items-center gap-3 text-left">
+              <span className="flex h-14 w-14 items-center justify-center rounded-[22px] bg-white text-3xl shadow-sm ring-1 ring-white">
+                {currentUser?.avatar || "👦"}
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-xl font-black text-[var(--child-text)]">{currentUser?.username || "小探险家"}</span>
+                <span className="mt-1 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700 ring-1 ring-emerald-100">
+                  在线学习中
+                </span>
+              </span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-sm font-black text-yellow-800 ring-1 ring-yellow-100">
+                积分 {currentUser?.availablePoints || 0}
+              </div>
+              <ThemeToggle
+                theme={isDarkMode ? "dark" : "light"}
+                onToggle={() => {
+                  const next = !isDarkMode;
+                  setIsDarkMode(next);
+                  toast.success(next ? "已切换到深色主题" : "已切换到浅色主题");
+                }}
+                variant="pill"
+                className="border-[var(--child-border)] bg-white/80 text-[var(--child-text)]"
+              />
               <button
-                onClick={() => router.push("/child")}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white transition-all hover:bg-white/25 active:scale-95"
+                type="button"
+                onClick={handleLogout}
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 text-[var(--child-text-muted)] shadow-sm ring-1 ring-white transition hover:text-rose-600"
+                aria-label="退出登录"
               >
-                <Home size={20} />
+                <LogOut size={20} />
               </button>
-            )}
-            <div className="flex items-center gap-4" onClick={() => setShowChildSwitcher(true)}>
-              <div className="relative">
-                <div
-                  className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[22px] border border-white/30 bg-white text-3xl shadow-[0_14px_30px_rgba(15,23,42,0.18)]"
-                  style={{
-                    borderColor: "#fbbf24",
-                  }}
-                >
-                  <span className="character-eye">{currentUser?.avatar || "👦"}</span>
-                  <div className="absolute bottom-0 h-1/3 w-full bg-gradient-to-t from-blue-100 to-transparent opacity-40"></div>
-                </div>
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-white drop-shadow-lg">{currentUser?.username || "小探险家"}</h1>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="rounded-full border border-white/20 bg-white/15 px-3 py-1 text-xs font-bold text-white backdrop-blur-md">
-                    小探险家
-                  </span>
-                  <span className="rounded-full bg-emerald-400/90 px-2 py-1 text-xs font-bold text-white shadow-sm animate-pulse">
-                    在线
-                  </span>
-                </div>
-              </div>
             </div>
-          </div>
+          </header>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowSettingsModal(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white transition-all hover:bg-white/25 active:scale-95"
-            >
-              <Settings size={20} />
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-white transition-all hover:bg-white/25 active:scale-95"
-            >
-              <LogOut size={20} />
-            </button>
-            <div className="flex h-10 items-center justify-center rounded-2xl border border-white/20 bg-white/15 px-3 font-bold text-white backdrop-blur-md">
-              🪙 {currentUser?.availablePoints || 0}
+          <main className="child-main">
+            <div ref={mainScrollRef} className="child-main-scroll hide-scrollbar">
+              <div className="mx-auto max-w-6xl">{children}</div>
             </div>
-          </div>
+          </main>
         </div>
-      </header>
-
-      <main className="relative px-4 sm:px-6 pb-24 pt-44">
-        <div className={`mx-auto ${isStorePage ? "max-w-4xl" : "max-w-2xl"}`}>{children}</div>
-      </main>
+      </div>
 
       {showScrollTop && (
         <button
+          type="button"
           onClick={scrollToTop}
-          className="fixed bottom-24 right-4 z-40 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-purple-600 shadow-lg hover:bg-white transition-all active:scale-95 border-2 border-purple-300"
+          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white/90 text-sky-600 shadow-lg transition-all hover:bg-white active:scale-95"
+          aria-label="回到顶部"
         >
           <ArrowUp size={24} />
         </button>
       )}
-
-      <nav className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-1rem)] max-w-md -translate-x-1/2 pb-safe sm:w-[calc(100%-2rem)]">
-        <div className="relative overflow-visible rounded-[30px] border border-white/20 bg-white/92 shadow-[0_22px_44px_rgba(30,27,75,0.24)] backdrop-blur-xl">
-          <div className="relative flex items-end justify-between px-2 py-2.5">
-            {[
-              {
-                href: "/child",
-                icon: Home,
-                label: "首页",
-                isActive: isHomePage,
-                bgColor: "from-blue-500 to-indigo-600",
-                textColor: "text-blue-700",
-                isCenter: false,
-              },
-              {
-                href: "/child/task",
-                icon: ClipboardList,
-                label: "任务",
-                isActive: isTaskPage,
-                bgColor: "from-orange-500 to-amber-600",
-                textColor: "text-orange-700",
-                isCenter: false,
-              },
-              {
-                href: "/child/store",
-                icon: ShoppingBag,
-                label: "商城",
-                isActive: isStorePage,
-                bgColor: "from-pink-500 to-rose-600",
-                textColor: "text-pink-700",
-                isCenter: true,
-              },
-              {
-                href: "/child/gift",
-                icon: Gift,
-                label: "奖品",
-                isActive: isGiftPage,
-                bgColor: "from-amber-500 to-orange-600",
-                textColor: "text-amber-700",
-                isCenter: false,
-              },
-              {
-                href: "/child/wallet",
-                icon: Wallet,
-                label: "钱包",
-                isActive: isWalletPage,
-                bgColor: "from-violet-500 to-purple-600",
-                textColor: "text-violet-700",
-                isCenter: false,
-              },
-            ].map((item) => (
-              <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                className={`group relative flex min-w-[70px] flex-col items-center justify-center rounded-2xl px-2 transition-all duration-200 ${
-                  item.isCenter ? "-mt-5 pt-0 pb-1" : "py-1.5"
-                } ${item.isActive ? "text-white" : `${item.textColor} hover:text-gray-800`}`}
-              >
-                <div
-                  className={`absolute inset-0 rounded-2xl transition-all duration-200 ${
-                    item.isActive
-                      ? `bg-gradient-to-br ${item.bgColor} shadow-[0_10px_20px_rgba(79,70,229,0.35)]`
-                      : "bg-slate-100/80 group-hover:bg-slate-200"
-                  }`}
-                ></div>
-                {item.isActive && (
-                  <div className="absolute inset-0 rounded-2xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/35 via-white/10 to-transparent"></div>
-                  </div>
-                )}
-                <div
-                  className={`relative ${
-                    item.isCenter ? "w-14 h-14 rounded-2xl" : "w-10 h-10 rounded-xl"
-                  } flex items-center justify-center transition-transform duration-200 ${
-                    item.isActive ? "scale-105" : "group-hover:scale-105"
-                  }`}
-                >
-                  <item.icon
-                    size={item.isCenter ? 24 : 21}
-                    strokeWidth={item.isActive ? 2.6 : 2.3}
-                    className={`transition-opacity duration-200 ${
-                      item.isActive ? "opacity-100 drop-shadow-sm" : "opacity-80 group-hover:opacity-100"
-                    }`}
-                  />
-                </div>
-                <span
-                  className={`relative text-[11px] font-extrabold tracking-wide transition-all duration-200 ${
-                    item.isActive ? "opacity-100" : "opacity-75 group-hover:opacity-100"
-                  }`}
-                >
-                  {item.label}
-                </span>
-                {item.isActive && <div className="absolute -top-1 h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      </nav>
 
       {showSettingsModal && (
         <div
