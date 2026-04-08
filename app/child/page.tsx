@@ -7,7 +7,22 @@ import Modal from '@/components/ui/Modal';
 import { Image } from '@/components/ui';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  Gift,
+  ListChecks,
+  Sparkles,
+  WalletCards,
+} from 'lucide-react';
+import {
+  ChildEmptyState,
+  ChildPanel,
+  ChildPageTitle,
+  ChildStatCard,
+  ChildStatusPill,
+} from '@/components/child/ChildUI';
 import FeatureGrid from './components/FeatureGrid';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -139,21 +154,6 @@ export default function ChildHome() {
   useEffect(() => {
     fetchTasks();
     fetchRewardSummary();
-
-    // 生成星星背景
-    const starsContainer = document.getElementById('stars-bg');
-    if (starsContainer) {
-      starsContainer.innerHTML = '';
-      for (let i = 0; i < 100; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.animationDelay = Math.random() * 3 + 's';
-        star.style.opacity = Math.random().toString();
-        starsContainer.appendChild(star);
-      }
-    }
   }, [fetchRewardSummary, fetchTasks]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,603 +314,251 @@ export default function ChildHome() {
   const handleNavigate = (path: string) => {
     router.push(path);
   };
+  const rewardCtaPath =
+    privilegeRewards.length > 0 ? '/child/store?category=privilege' : '/child/store';
+
+  const getTaskTone = (task: Task, isFutureToday: boolean) => {
+    if (task.status === 'approved') return 'emerald' as const;
+    if (task.status === 'submitted') return 'amber' as const;
+    if (task.status === 'rejected') return 'rose' as const;
+    if (isFutureToday) return 'slate' as const;
+    return 'sky' as const;
+  };
+
+  const getTaskStateLabel = (task: Task, isFutureToday: boolean, isCompletedToday: boolean) => {
+    if (isCompletedToday) return '今日已完成';
+    if (isFutureToday) return '未开始';
+    if (task.status === 'submitted') return '审核中';
+    if (task.status === 'rejected') return '需修改';
+    if (task.status === 'approved') return '已完成';
+    return '进行中';
+  };
+
+  const handleHomeTaskClick = (task: Task, isFutureToday: boolean) => {
+    if (isFutureToday) return;
+    if (task.status === 'pending' || task.status === 'rejected') {
+      openSubmitModal(task);
+      return;
+    }
+    openTaskDetail(task);
+  };
 
   return (
     <>
-      <style jsx global>{`
-        * {
-          font-family: 'Nunito', sans-serif;
-        }
-
-        /* 星空背景 */
-        .stars-bg {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-          overflow: hidden;
-          z-index: 0;
-        }
-
-        .star {
-          position: absolute;
-          width: 2px;
-          height: 2px;
-          background: white;
-          border-radius: 50%;
-          animation: twinkle 3s infinite;
-        }
-
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        /* 浮动动画 */
-        .float-anim {
-          animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-
-        /* 卡片悬停效果 */
-        .task-card {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .task-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-          background: rgba(255, 255, 255, 0.15);
-        }
-
-        /* 进度环动画 */
-        .progress-ring {
-          transform: rotate(-90deg);
-          transition: stroke-dashoffset 0.5s ease;
-        }
-
-        /* 徽章发光效果 */
-        .badge-glow {
-          box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
-          animation: pulse-glow 2s infinite;
-        }
-
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
-          50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
-        }
-
-        /* 完成任务动画 */
-        .complete-btn {
-          transition: all 0.3s ease;
-        }
-
-        .complete-btn:active {
-          transform: scale(0.95);
-        }
-
-        /* 玻璃拟态效果 - 深色主题 */
-        .glass {
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .glass-strong {
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .card-3d {
-          transform-style: preserve-3d;
-          transition: transform 0.3s ease;
-        }
-
-        .card-3d:hover {
-          transform: translateY(-5px) rotateX(5deg);
-        }
-
-        @keyframes pulse-ring {
-          0% {
-            transform: scale(0.8);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1.5);
-            opacity: 0;
-          }
-        }
-
-        .pulse-ring::before {
-          content: '';
-          position: absolute;
-          inset: -10px;
-          border-radius: 50%;
-          border: 3px solid #fbbf24;
-          animation: pulse-ring 2s infinite;
-        }
-
-        @keyframes floatUp {
-          0% {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(-100px) scale(1.5);
-            opacity: 0;
-          }
-        }
-
-        .point-float {
-          position: absolute;
-          color: #fbbf24;
-          font-weight: 900;
-          font-size: 1.5rem;
-          pointer-events: none;
-          animation: floatUp 1.5s ease-out forwards;
-          z-index: var(--z-point-float);
-          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        @keyframes celebrate {
-          0% {
-            transform: scale(1) rotate(0deg);
-          }
-          25% {
-            transform: scale(1.2) rotate(-5deg);
-          }
-          50% {
-            transform: scale(1) rotate(5deg);
-          }
-          75% {
-            transform: scale(1.1) rotate(-3deg);
-          }
-          100% {
-            transform: scale(1) rotate(0deg);
-          }
-        }
-
-        .celebrate-anim {
-          animation: celebrate 0.6s ease-in-out;
-        }
-
-        .progress-glow {
-          background: linear-gradient(
-            90deg,
-            #fbbf24 0%,
-            #f59e0b 50%,
-            #fbbf24 100%
-          );
-          background-size: 200% 100%;
-          animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-
-        .timeline-line {
-          position: absolute;
-          left: 24px;
-          top: 40px;
-          bottom: 0;
-          width: 4px;
-          background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
-          border-radius: 2px;
-        }
-
-        @keyframes badge-shine {
-          0% {
-            filter: brightness(1);
-          }
-          50% {
-            filter: brightness(1.3);
-          }
-          100% {
-            filter: brightness(1);
-          }
-        }
-
-        .badge-shine {
-          animation: badge-shine 2s infinite;
-        }
-
-        @keyframes blink {
-          0%,
-          90%,
-          100% {
-            transform: scaleY(1);
-          }
-          95% {
-            transform: scaleY(0.1);
-          }
-        }
-
-        .character-eye {
-          animation: blink 4s infinite;
-        }
-
-        /* 隐藏滚动条但保持功能 */
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-
-        /* 任务完成划线动画 */
-        .strikethrough {
-          position: relative;
-          display: inline-block;
-        }
-
-        .strikethrough::after {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          width: 0;
-          height: 2px;
-          background: #10b981;
-          transition: width 0.3s ease;
-        }
-
-        .strikethrough.active::after {
-          width: 100%;
-        }
-
-        /* 积分增加动画 */
-        @keyframes points-up {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-30px) scale(1.5); opacity: 0; }
-        }
-
-        .points-animation {
-          animation: points-up 1s ease-out forwards;
-        }
-      `}</style>
-
-      <div className='relative min-h-screen text-white'>
-        {/* 星空背景 */}
-        <div className='stars-bg' id='stars-bg'></div>
-
-        {/* 主内容区 - 不包含Header和用户信息，由ChildLayout提供 */}
-        <div className='relative z-10 px-6 pt-4 pb-6'>
-          {/* 今日概览卡片 - 包含进度环和统计 */}
-          <div className='glass rounded-3xl p-4 shadow-2xl relative overflow-hidden float-anim'>
-            <div className='flex items-center justify-between mb-3'>
-              <h2 className='text-xl font-bold flex items-center gap-2'>
-                <span className='text-2xl'>🚀</span>
-                今日任务进度
-              </h2>
-              <span className='text-sm text-gray-300'>
-                {dayjs().format('M月D日 dddd')}
-              </span>
-            </div>
-
-            <div className='grid grid-cols-3 gap-3 items-center'>
-              {/* 进度环 */}
-              <div className='col-span-1 flex flex-col items-center justify-center'>
-                <div className='relative w-20 h-20'>
-                  <svg className='w-full h-full transform -rotate-90'>
-                    <circle cx='40' cy='40' r='34' stroke='rgba(255,255,255,0.1)' strokeWidth='7' fill='none'></circle>
-                    <circle
-                      cx='40'
-                      cy='40'
-                      r='34'
-                      stroke='#10b981'
-                      strokeWidth='7'
-                      fill='none'
-                      strokeDasharray='213.6'
-                      strokeDashoffset={213.6 - (completionRate / 100) * 213.6}
-                      strokeLinecap='round'
-                      className='progress-ring'
-                    ></circle>
-                  </svg>
-                  <div className='absolute inset-0 flex items-center justify-center flex-col'>
-                    <span className='text-xl font-bold leading-none'>
-                      {completionRate}%
-                    </span>
-                    <span className='text-xs text-gray-400'>完成度</span>
-                  </div>
-                </div>
+      <div className='child-page-grid pb-2'>
+        <ChildPanel className='overflow-hidden bg-[linear-gradient(135deg,rgba(255,255,255,0.92)_0%,rgba(224,242,254,0.82)_52%,rgba(220,252,231,0.78)_100%)]'>
+          <div className='grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-center'>
+            <div>
+              <div className='flex flex-wrap items-start justify-between gap-3'>
+                <ChildPageTitle
+                  icon='🌤️'
+                  title='今天的学习岛'
+                  description='完成一点点，也是在变厉害。'
+                />
+                <ChildStatusPill tone='sky'>{dayjs().format('M月D日 dddd')}</ChildStatusPill>
               </div>
-
-              {/* 统计信息 */}
-              <div className='col-span-2 flex flex-col gap-2'>
-                <div className='flex gap-2 flex-wrap'>
-                  <div
-                    className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
-                    onClick={() => router.push(buildTaskListUrl('all'))}
-                  >
-                    <div className='text-lg font-bold text-cyan-300 leading-none'>{totalTasks}</div>
-                    <div className='text-[11px] text-gray-400 mt-1'>总任务</div>
-                  </div>
-                  <div
-                    className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
-                    onClick={() => router.push(buildTaskListUrl('approved'))}
-                  >
-                    <div className='text-lg font-bold text-blue-400 leading-none'>{completedTaskCount}</div>
-                    <div className='text-[11px] text-gray-400 mt-1'>已完成</div>
-                  </div>
-                  <div
-                    className='bg-white/5 rounded-xl px-3 py-2 flex-1 min-w-[86px] text-center cursor-pointer hover:bg-white/10 transition-colors'
-                    onClick={() => router.push(buildTaskListUrl('pending'))}
-                  >
-                    <div className='text-lg font-bold text-orange-400 leading-none'>{pendingVisibleCount}</div>
-                    <div className='text-[11px] text-gray-400 mt-1'>待完成</div>
-                  </div>
-                </div>
-                <div className='bg-white/5 rounded-xl px-3 py-2 text-center'>
-                  <div className='flex items-center justify-center gap-2 text-sm'>
-                    <span className='text-yellow-400 text-lg'>💎</span>
-                    <span>星际积分</span>
-                    <strong className='text-yellow-400'>{displayPoints.toLocaleString()}</strong>
-                  </div>
-                  <div className='mt-1 text-[11px] text-gray-400'>
-                    完成进度 {completedTaskCount}/{totalTasks}
-                  </div>
-                </div>
+              <div className='mt-5 grid gap-3 sm:grid-cols-3'>
+                <ChildStatCard
+                  label='总任务'
+                  value={totalTasks}
+                  hint='今天看到的任务'
+                  tone='sky'
+                  icon={<ListChecks size={18} />}
+                  onClick={() => router.push(buildTaskListUrl('all'))}
+                />
+                <ChildStatCard
+                  label='已完成'
+                  value={completedTaskCount}
+                  hint={`${completionRate}% 完成`}
+                  tone='emerald'
+                  icon={<CheckCircle2 size={18} />}
+                  onClick={() => router.push(buildTaskListUrl('approved'))}
+                />
+                <ChildStatCard
+                  label='待完成'
+                  value={pendingVisibleCount}
+                  hint='继续加油'
+                  tone='amber'
+                  icon={<Clock3 size={18} />}
+                  onClick={() => router.push(buildTaskListUrl('pending'))}
+                />
+              </div>
+            </div>
+            <div className='rounded-[30px] bg-white/80 p-5 text-center shadow-sm ring-1 ring-white'>
+              <div className='inline-flex h-14 w-14 items-center justify-center rounded-[22px] bg-sky-50 text-sky-600 ring-1 ring-sky-100'>
+                <WalletCards size={28} />
+              </div>
+              <div className='mt-3 text-sm font-black text-[var(--child-text-muted)]'>当前积分</div>
+              <div className='mt-2 text-5xl font-black text-sky-700'>🪙 {displayPoints.toLocaleString()}</div>
+              <div className='mt-3 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-sky-100'>
+                完成任务就能兑换奖励
               </div>
             </div>
           </div>
-        </div>
+        </ChildPanel>
 
-        {/* 进行中的任务时间轴 */}
-        <div className='relative z-10 px-6 mb-4'>
-          <div className='flex justify-between items-center mb-4'>
-            <h2 className='text-xl font-bold text-white flex items-center gap-2'>
-              <span className='text-2xl'>📜</span>
-              探险任务
-            </h2>
-            <button
-              className='text-sm text-blue-400 hover:text-blue-300 transition flex items-center gap-1'
-              onClick={() => router.push('/child/task')}
-            >
-              查看全部
-              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M9 5l7 7-7 7'></path></svg>
-            </button>
-          </div>
+        <div className='child-page-grid child-two-column'>
+          <ChildPanel>
+            <div className='mb-4 flex items-center justify-between gap-3'>
+              <ChildPageTitle
+                icon={<ListChecks size={22} />}
+                title='今天要做'
+                description='点开任务，完成后提交给家长。'
+              />
+              <button
+                type='button'
+                onClick={() => router.push('/child/task')}
+                className='rounded-full bg-white/80 px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-sky-100'
+              >
+                全部任务
+              </button>
+            </div>
+            <div className='space-y-3'>
+              {visibleTasks.length > 0 ? (
+                visibleTasks.map((task) => {
+                  const startDate = task.startDate ? dayjs(task.startDate) : null;
+                  const deadline = task.deadline ? dayjs(task.deadline) : null;
+                  const isFutureToday =
+                    !!startDate &&
+                    startDate.valueOf() > nowValue &&
+                    startDate.valueOf() <= todayEndValue;
+                  const isCompletedToday =
+                    task.status === 'approved' &&
+                    !!deadline &&
+                    deadline.valueOf() >= todayStartValue &&
+                    deadline.valueOf() <= todayEndValue;
+                  const tone = getTaskTone(task, isFutureToday);
+                  const stateLabel = getTaskStateLabel(task, isFutureToday, isCompletedToday);
 
-          <div className='space-y-4'>
-            {visibleTasks.map((task, index) => {
-              const isPending = task.status === 'pending';
-              const isSubmitted = task.status === 'submitted';
-              const isRejected = task.status === 'rejected';
-              const isCompleted = task.status === 'approved';
-              const startDate = task.startDate ? dayjs(task.startDate) : null;
-              const deadline = task.deadline ? dayjs(task.deadline) : null;
-              const isFutureToday =
-                !!startDate &&
-                startDate.valueOf() > nowValue &&
-                startDate.valueOf() <= todayEndValue;
-              const isCompletedToday =
-                isCompleted &&
-                !!deadline &&
-                deadline.valueOf() >= todayStartValue &&
-                deadline.valueOf() <= todayEndValue;
-              const isDisabled = isFutureToday;
-              const stateLabel = isCompletedToday
-                ? '今日已完成'
-                : isFutureToday
-                  ? '未开始'
-                  : isSubmitted
-                    ? '审核中'
-                    : isRejected
-                      ? '需修改'
-                      : '进行中';
-
-              return (
-                <motion.div
-                  key={task._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`task-card glass rounded-2xl p-3 flex items-center gap-3 ${isDisabled ? 'opacity-60' : 'cursor-pointer'}`}
-                  id={`task-${task._id}`}
-                  onClick={() => {
-                    if (isDisabled) return;
-                    if (task.status === 'pending' || task.status === 'rejected') {
-                      openSubmitModal(task);
-                    } else {
-                      openTaskDetail(task);
-                    }
-                  }}
-                >
-                  <div className='relative'>
-                    <div className='w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center text-xl'>
-                      {task.icon}
-                    </div>
-                    {isPending && !isDisabled && (
-                      <div className='absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-gray-900 animate-pulse'></div>
-                    )}
-                  </div>
-
-                  <div className='flex-1 min-w-0'>
-                    <div className='flex items-center gap-2 mb-1'>
-                      <h3 className={`font-bold text-base ${isRejected ? 'text-red-400' : 'text-white'}`}>
-                        {task.name}
-                      </h3>
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full ${
-                        isCompletedToday
-                          ? 'bg-green-500/20 text-green-300'
-                          : isFutureToday
-                            ? 'bg-gray-500/20 text-gray-300'
-                            : isRejected
-                              ? 'bg-red-500/20 text-red-300'
-                              : isSubmitted
-                                ? 'bg-blue-500/20 text-blue-300'
-                                : 'bg-blue-500/20 text-blue-300'
-                      }`}>
-                        {stateLabel}
+                  return (
+                    <div
+                      key={task._id}
+                      role={isFutureToday ? undefined : 'button'}
+                      tabIndex={isFutureToday ? -1 : 0}
+                      onClick={() => handleHomeTaskClick(task, isFutureToday)}
+                      onKeyDown={(event) => {
+                        if (isFutureToday) return;
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          handleHomeTaskClick(task, isFutureToday);
+                        }
+                      }}
+                      className={`child-card flex w-full items-center gap-4 text-left ${isFutureToday ? 'cursor-not-allowed opacity-60' : 'cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'}`}
+                    >
+                      <span className='flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-sky-50 text-3xl ring-1 ring-sky-100'>
+                        {task.icon}
                       </span>
-                    </div>
-                    <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400'>
-                      <span className='flex items-center gap-1'>
-                        <span>⏰</span>
-                        <span>{task.startDate ? `${dayjs(task.startDate).format('M/D HH:mm')} 开始` : '无开始时间'}</span>
+                      <span className='min-w-0 flex-1'>
+                        <span className='block truncate text-base font-black text-[var(--child-text)]'>
+                          {task.name}
+                        </span>
+                        <span className='mt-1 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--child-text-muted)]'>
+                          <ChildStatusPill tone={tone}>{stateLabel}</ChildStatusPill>
+                          <span className='inline-flex items-center gap-1'>
+                            <Clock3 size={14} />
+                            {task.startDate
+                              ? `${dayjs(task.startDate).format('M/D HH:mm')} 开始`
+                              : '随时可以开始'}
+                          </span>
+                          {task.deadline && (
+                            <span>截止 {dayjs(task.deadline).format('M/D HH:mm')}</span>
+                          )}
+                          <span>+{task.points} 分</span>
+                        </span>
                       </span>
-                      {task.deadline && (
-                        <span className='flex items-center gap-1'>
-                          <span>🏁</span>
-                          <span>{dayjs(task.deadline).format('M/D HH:mm')}</span>
+                      {isFutureToday ? (
+                        <span className='rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-500 ring-1 ring-slate-200/70'>
+                          未开始
+                        </span>
+                      ) : task.status === 'pending' || task.status === 'rejected' ? (
+                        <span className='rounded-full bg-sky-500 px-4 py-2 text-sm font-black text-white'>
+                          {task.status === 'rejected' ? '重新提交' : '去完成'}
+                        </span>
+                      ) : task.status === 'submitted' ? (
+                        <span
+                          role='button'
+                          tabIndex={0}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleRecallTask(task);
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              handleRecallTask(task);
+                            }
+                          }}
+                          className='rounded-full bg-amber-50 px-4 py-2 text-sm font-black text-amber-700 ring-1 ring-amber-100'
+                        >
+                          {recallingTaskId === task._id ? '撤回中...' : '撤回'}
+                        </span>
+                      ) : (
+                        <span className='rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700 ring-1 ring-emerald-100'>
+                          查看
                         </span>
                       )}
-                      <span className='flex items-center gap-1 text-yellow-400'>
-                        <span>💎</span>
-                        <span>+{task.points}分</span>
-                      </span>
                     </div>
-                  </div>
-
-                  {isDisabled ? (
-                    <button
-                      disabled
-                      className='complete-btn bg-white/10 text-white/40 px-4 py-2 rounded-xl font-semibold flex items-center gap-2 cursor-not-allowed'
-                    >
-                      <span>未开始</span>
-                    </button>
-                  ) : isPending || isRejected ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openSubmitModal(task);
-                      }}
-                      className='complete-btn bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-colors'
-                    >
-                      <span>完成</span>
-                    </button>
-                  ) : isSubmitted ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRecallTask(task);
-                      }}
-                      disabled={recallingTaskId === task._id}
-                      className='complete-btn bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-colors disabled:opacity-50'
-                    >
-                      <span>{recallingTaskId === task._id ? '撤回中...' : '撤回'}</span>
-                    </button>
-                  ) : isCompletedToday ? (
-                    <button
-                      disabled
-                      className='complete-btn bg-green-500/15 text-green-300 px-4 py-2 rounded-xl font-semibold flex items-center gap-2 cursor-default'
-                    >
-                      <span>已完成</span>
-                    </button>
-                  ) : null}
-                </motion.div>
-              );
-            })}
-
-            {visibleTasks.length === 0 && (
-              <div className='text-center py-8 text-white/60 glass rounded-2xl'>
-                <div className='text-4xl mb-2'>🎉</div>
-                <p>太棒了！今天的任务都完成了</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 星际基地功能区 */}
-        <div className='relative z-10 px-6 mb-6'>
-          {privilegeRewards.length > 0 && (
-            <div
-              onClick={() => handleNavigate('/child/store?category=privilege')}
-              className='relative mb-5 overflow-hidden rounded-[30px] border border-white/20 bg-[linear-gradient(135deg,#5b21b6_0%,#a21caf_42%,#f59e0b_100%)] p-6 text-white shadow-[0_24px_60px_rgba(91,33,182,0.38)] cursor-pointer group'
-            >
-              <div className='absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-3xl transition-transform duration-500 group-hover:scale-125' />
-              <div className='absolute left-0 top-0 h-full w-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.16),transparent_30%)]' />
-              <div className='relative z-10 flex items-center justify-between gap-4'>
-                <div className='min-w-0'>
-                  <div className='inline-flex items-center gap-2 rounded-full bg-white/18 px-3 py-1 text-[11px] font-black tracking-[0.22em] backdrop-blur-sm'>
-                    <Sparkles size={12} />
-                    特权专区
-                  </div>
-                  <h2 className='mt-3 text-[1.7rem] font-black tracking-tight'>
-                    {urgentPrivilegeRewards.length > 0 ? "有特权快要截止了" : "今天有特别权限可以兑换"}
-                  </h2>
-                  <p className='mt-2 max-w-xl text-sm leading-6 text-white/82'>
-                    当前有 {privilegeRewards.length} 个特权奖励正在开放，{urgentPrivilegeRewards.length > 0 ? `其中 ${urgentPrivilegeRewards.length} 个在 3 天内截止` : "点进去看看有没有你最想要的那一个。"}
-                  </p>
-                  <div className='mt-4 flex flex-wrap items-center gap-3'>
-                    <button
-                      type='button'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNavigate('/child/store?category=privilege');
-                      }}
-                      className='inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-violet-700 shadow-lg shadow-black/10 transition-transform hover:-translate-y-0.5'
-                    >
-                      去看看特权
-                      <ArrowRight size={16} />
-                    </button>
-                    {urgentPrivilegeRewards.length > 0 && (
-                      <span className='rounded-full bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur-sm'>
-                        先看即将截止的奖励
-                      </span>
-                    )}
-                    {!urgentPrivilegeRewards.length && (
-                      <span className='rounded-full bg-white/15 px-3 py-2 text-xs font-semibold backdrop-blur-sm'>
-                        现在正适合兑换
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className='flex shrink-0 items-center gap-2 rounded-2xl bg-white/15 px-4 py-3 backdrop-blur-sm'>
-                  <div className='text-right'>
-                    <div className='text-xs text-white/72'>{urgentPrivilegeRewards.length > 0 ? "快截止" : "特权奖励"}</div>
-                    <div className='text-3xl font-black leading-none'>{privilegeRewards.length}</div>
-                  </div>
-                  <ArrowRight size={18} />
-                </div>
-              </div>
-              {urgentPrivilegeRewards.length > 0 && (
-                <div className='relative z-10 mt-4 flex flex-wrap gap-2'>
-                  {urgentPrivilegeRewards.slice(0, 3).map((reward) => (
-                    <span key={reward._id} className='rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm'>
-                      {dayjs(reward.expiresAt).format("MM-DD")} 截止
-                    </span>
-                  ))}
-                  {urgentPrivilegeRewards.length > 3 && (
-                    <span className='rounded-full bg-white/15 px-3 py-1 text-xs font-semibold backdrop-blur-sm'>
-                      还有 {urgentPrivilegeRewards.length - 3} 个
-                    </span>
-                  )}
-                </div>
+                  );
+                })
+              ) : (
+                <ChildEmptyState
+                  title='今天很轻松'
+                  hint='现在没有待做任务，可以去看看奖励。'
+                  icon='🎉'
+                />
               )}
             </div>
-          )}
+          </ChildPanel>
 
-          <h2 className='text-xl font-bold text-white flex items-center gap-2 mb-3'>
-            <span className='text-2xl'>🌟</span>
-            星际基地
-          </h2>
-
-          <FeatureGrid
-            completedTasksCount={completedTaskCount}
-            privilegedCount={privilegeRewards.length}
-            urgentPrivilegeRewards={urgentPrivilegeRewards}
-            onNavigate={handleNavigate}
-          />
+          <ChildPanel>
+            <ChildPageTitle
+              icon={<Gift size={22} />}
+              title='奖励提醒'
+              description='看看有没有想兑换的奖励。'
+            />
+            <div className='mt-4 rounded-[26px] bg-white/75 p-4 ring-1 ring-white'>
+              <div className='flex flex-wrap items-center gap-2'>
+                <ChildStatusPill tone={urgentPrivilegeRewards.length > 0 ? 'amber' : 'teal'}>
+                  <Sparkles size={14} />
+                  {privilegeRewards.length > 0 ? '特权奖励开放中' : '奖励商店等你来逛'}
+                </ChildStatusPill>
+              </div>
+              <p className='mt-3 text-sm font-semibold text-[var(--child-text-muted)]'>
+                {urgentPrivilegeRewards.length > 0
+                  ? `${urgentPrivilegeRewards.length} 个特权快截止了。`
+                  : privilegeRewards.length > 0
+                    ? `现在有 ${privilegeRewards.length} 个特权奖励。`
+                    : '完成任务获得积分后，就能兑换喜欢的奖励。'}
+              </p>
+              {urgentPrivilegeRewards.length > 0 && (
+                <div className='mt-3 flex flex-wrap gap-2'>
+                  {urgentPrivilegeRewards.slice(0, 3).map((reward) => (
+                    <ChildStatusPill key={reward._id} tone='amber'>
+                      {dayjs(reward.expiresAt).format('MM-DD')} 截止
+                    </ChildStatusPill>
+                  ))}
+                </div>
+              )}
+              <button
+                type='button'
+                onClick={() => handleNavigate(rewardCtaPath)}
+                className='mt-4 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-teal-500 px-4 py-2 text-sm font-black text-white'
+              >
+                去奖励商店
+                <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className='mt-4'>
+              <FeatureGrid
+                completedTasksCount={completedTaskCount}
+                privilegedCount={privilegeRewards.length}
+                urgentPrivilegeRewards={urgentPrivilegeRewards}
+                onNavigate={handleNavigate}
+              />
+            </div>
+          </ChildPanel>
         </div>
-
-
 
         {/* 任务详情弹窗 */}
         <Modal
