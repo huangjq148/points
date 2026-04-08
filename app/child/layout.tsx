@@ -101,6 +101,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   const isTaskPage = pathname === "/child/task";
   const isGiftPage = pathname === "/child/gift";
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
+  const shellScrollRef = useRef<HTMLDivElement | null>(null);
 
   const [showChildSwitcher, setShowChildSwitcher] = useState(false);
   const [showChildAccountSignIn, setShowChildAccountSignIn] = useState(false);
@@ -117,6 +118,10 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     return localStorage.getItem("little_achievers_reduced_motion") === "true";
   });
   const [isDarkMode, setIsDarkMode] = useState(() => resolvePreferredTheme("child") === "dark");
+  const [isMobileViewport, setIsMobileViewport] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768;
+  });
   const [focusReminderEnabled, setFocusReminderEnabled] = useState(() => {
     if (typeof window === "undefined") return true;
     return localStorage.getItem("little_achievers_focus_reminder") !== "false";
@@ -144,7 +149,19 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
   }, [focusReminderEnabled]);
 
   useEffect(() => {
-    const scrollElement = mainScrollRef.current;
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => {
+      setIsMobileViewport(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const scrollElement = isMobileViewport ? shellScrollRef.current : mainScrollRef.current;
     if (!scrollElement) return;
 
     const handleScroll = () => {
@@ -154,17 +171,18 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     handleScroll();
     scrollElement.addEventListener("scroll", handleScroll);
     return () => scrollElement.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isMobileViewport]);
 
   useEffect(() => {
-    const scrollElement = mainScrollRef.current;
+    const scrollElement = isMobileViewport ? shellScrollRef.current : mainScrollRef.current;
     if (!scrollElement) return;
     scrollElement.scrollTo({ top: 0, behavior: "auto" });
     setShowScrollTop(false);
-  }, [pathname]);
+  }, [pathname, isMobileViewport]);
 
   const scrollToTop = () => {
-    mainScrollRef.current?.scrollTo({
+    const scrollElement = isMobileViewport ? shellScrollRef.current : mainScrollRef.current;
+    scrollElement?.scrollTo({
       top: 0,
       behavior: reducedMotion ? "auto" : "smooth",
     });
@@ -338,7 +356,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         // type='danger'
       />
 
-      <div className="child-shell">
+      <div ref={shellScrollRef} className="child-shell">
         <aside className="child-nav-rail" aria-label="孩子端导航">
           <button
             type="button"
@@ -399,12 +417,12 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   toast.success(next ? "已切换到深色主题" : "已切换到浅色主题");
                 }}
                 variant="pill"
-                className="border-[var(--child-border)] bg-white/80 text-[var(--child-text)]"
+                className="border-[var(--child-border)] bg-[var(--child-surface-strong)] text-[var(--child-text)]"
               />
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/80 text-[var(--child-text-muted)] shadow-sm ring-1 ring-white transition hover:text-rose-600"
+                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--child-surface-strong)] text-[var(--child-text-muted)] shadow-sm ring-1 ring-[var(--child-border)] transition hover:text-rose-600"
                 aria-label="退出登录"
               >
                 <LogOut size={20} />
@@ -424,7 +442,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white/90 text-sky-600 shadow-lg transition-all hover:bg-white active:scale-95"
+          className="fixed bottom-28 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white/90 text-sky-600 shadow-lg transition-all hover:bg-white active:scale-95 sm:bottom-6 sm:right-6"
           aria-label="回到顶部"
         >
           <ArrowUp size={24} />
