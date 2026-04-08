@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
-import { Gift, Search, Filter, History } from "lucide-react";
+import { Gift, Search, History } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Pagination } from "@/components/ui";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -10,7 +10,8 @@ import confetti from "canvas-confetti";
 import { useToast } from "@/components/ui/Toast";
 import request from "@/utils/request";
 import dayjs from "dayjs";
-import { EmptyState, RewardCard, SectionTitle } from "@/components/store/RewardUI";
+import { ChildEmptyState, ChildPanel, ChildPageTitle } from "@/components/child/ChildUI";
+import { RewardCard, SectionTitle } from "@/components/store/RewardUI";
 
 export interface Reward {
   _id: string;
@@ -207,7 +208,7 @@ export default function StorePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="child-page-grid">
       <ConfirmModal
         isOpen={!!showConfirmRedeem}
         onClose={() => setShowConfirmRedeem(null)}
@@ -219,13 +220,27 @@ export default function StorePage() {
         type="info"
       />
 
-      <section className="rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-lg">
-            <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+      <ChildPanel className="child-filter-panel">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-start">
+          <ChildPageTitle
+            icon={<Gift size={22} />}
+            title="奖励商店"
+            description={`你现在有 ${displayedPoints} 积分，可以看看喜欢的奖励。`}
+          />
+          <div className="rounded-[24px] bg-yellow-50 px-5 py-3 text-lg font-black text-yellow-800 ring-1 ring-yellow-100">
+            🪙 {displayedPoints}
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(260px,1fr)_auto]">
+          <div className="relative min-w-0">
+            <Search
+              size={18}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <input
               type="text"
-              placeholder="搜索奖品名字..."
+              placeholder="搜索奖励名字..."
               value={rewardSearchQuery}
               onChange={(e) => setRewardSearchQuery(e.target.value)}
               className="w-full rounded-[18px] border border-slate-200/80 bg-white/95 px-11 py-3 text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
@@ -233,10 +248,6 @@ export default function StorePage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-2 text-sm text-slate-500">
-              <Filter size={16} />
-              分类
-            </div>
             {[
               { key: "all", label: "全部" },
               { key: "sold-out", label: "已售罄", count: soldOutCount },
@@ -244,14 +255,22 @@ export default function StorePage() {
             ].map((item) => (
               <button
                 key={item.key}
+                type="button"
                 onClick={() => setActiveCategory(item.key as typeof activeCategory)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeCategory === item.key ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]" : "bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50"
-                  }`}
+                className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                  activeCategory === item.key
+                    ? "bg-sky-500 text-white shadow-sm"
+                    : "bg-white/85 text-slate-600 ring-1 ring-slate-200/70"
+                }`}
               >
                 <span className="inline-flex items-center gap-2">
                   {item.label}
                   {"count" in item && typeof item.count === "number" && item.count > 0 && (
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold text-current">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                        activeCategory === item.key ? "bg-white/20 text-current" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
                       {item.count}
                     </span>
                   )}
@@ -262,7 +281,6 @@ export default function StorePage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-slate-500">排序：</span>
           {[
             { key: "points-asc", label: "积分从低到高" },
             { key: "points-desc", label: "积分从高到低" },
@@ -270,35 +288,39 @@ export default function StorePage() {
           ].map((item) => (
             <button
               key={item.key}
+              type="button"
               onClick={() => setSortKey(item.key as typeof sortKey)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${sortKey === item.key ? "bg-sky-50 text-sky-700 ring-1 ring-sky-200" : "bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50"
-                }`}
+              className={`rounded-full px-4 py-2 text-sm font-black transition ${
+                sortKey === item.key
+                  ? "bg-teal-50 text-teal-700 ring-1 ring-teal-100"
+                  : "bg-white/85 text-slate-600 ring-1 ring-slate-200/70"
+              }`}
             >
               {item.label}
             </button>
           ))}
+          <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200/70">
+            共 {filteredRewards.length} 件奖励
+          </span>
         </div>
+      </ChildPanel>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-          <span className="rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200/70">共 {filteredRewards.length} 件商品</span>
-          <span className="rounded-full bg-white/80 px-3 py-1 ring-1 ring-slate-200/70">当前可用积分 {displayedPoints}</span>
-        </div>
-      </section>
-
-      <section className="space-y-4">
+      <ChildPanel className="space-y-4">
         <div className="flex items-end justify-between gap-3">
           <SectionTitle
             icon={<Gift size={16} className="text-blue-500" />}
             title="商品列表"
             description="按库存状态筛选，再按积分或库存排序。"
+            titleClassName="text-[var(--child-text)] text-lg font-extrabold"
+            descriptionClassName="text-[var(--child-text-muted)]"
           />
-          <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-slate-500 ring-1 ring-white/80 shadow-sm sm:inline-flex">
+          <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-white/80 shadow-sm sm:inline-flex">
             结果 {filteredRewards.length}
           </div>
         </div>
 
         {filteredRewards.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredRewards.map((reward) => {
               const canRedeem = reward.stock > 0 && reward.points <= displayedPoints;
               const expired = isPrivilegeExpired(reward);
@@ -359,18 +381,22 @@ export default function StorePage() {
             })}
           </div>
         ) : (
-          <EmptyState title="没有找到符合条件的商品" hint="换个分类、关键词或者排序试试" />
+          <ChildEmptyState
+            title="没有找到奖励"
+            hint="换个分类、关键词或者排序试试。"
+            icon="🎁"
+          />
         )}
-      </section>
+      </ChildPanel>
 
-      <section className="rounded-[28px] border border-white/65 bg-white/72 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <ChildPanel>
         <div className="flex items-center justify-between gap-3">
           <SectionTitle
             icon={<History size={16} className="text-violet-500" />}
             title="我的兑换记录"
             description="最近 5 条记录，方便查看爸妈是否已经处理。"
-            titleClassName="text-slate-900 text-lg font-extrabold"
-            descriptionClassName="text-slate-500"
+            titleClassName="text-[var(--child-text)] text-lg font-extrabold"
+            descriptionClassName="text-[var(--child-text-muted)]"
           />
           <Button variant="secondary" size="sm" onClick={() => void fetchOrders()} loading={ordersLoading}>
             刷新记录
@@ -382,29 +408,45 @@ export default function StorePage() {
             orders.map((order) => (
               <div
                 key={order._id}
-                className="group relative overflow-hidden rounded-[20px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.95)_100%)] px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(15,23,42,0.1)] sm:px-5 sm:py-3.5"
+                className="child-card px-4 py-4 sm:px-5 sm:py-3.5"
               >
                 <div className="grid gap-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[20px] bg-white text-[22px] shadow-[0_10px_20px_rgba(15,23,42,0.08)] ring-1 ring-white">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[20px] bg-white text-[22px] shadow-sm ring-1 ring-white">
                       {order.rewardIcon || "🎁"}
                     </div>
                     <div className="min-w-0">
-                      <div className="truncate text-[15px] font-bold leading-5 text-slate-900">{order.rewardName}</div>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                        <span className={`rounded-full px-2.5 py-1 font-semibold ring-1 ${order.status === "verified" ? "bg-emerald-50 text-emerald-700 ring-emerald-100" : order.status === "cancelled" ? "bg-slate-100 text-slate-500 ring-slate-200/70" : "bg-amber-50 text-amber-700 ring-amber-100"}`}>
+                      <div className="truncate text-[15px] font-bold leading-5 text-[var(--child-text)]">
+                        {order.rewardName}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-[var(--child-text-muted)]">
+                        <span
+                          className={`rounded-full px-2.5 py-1 font-semibold ring-1 ${
+                            order.status === "verified"
+                              ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                              : order.status === "cancelled"
+                                ? "bg-slate-100 text-slate-500 ring-slate-200/70"
+                                : "bg-amber-50 text-amber-700 ring-amber-100"
+                          }`}
+                        >
                           {formatStatusLabel(order.status)}
                         </span>
-                        <span className="rounded-full bg-white/90 px-2.5 py-1 font-medium text-slate-600 ring-1 ring-slate-200/70">积分 {order.pointsSpent}</span>
+                        <span className="rounded-full bg-white/90 px-2.5 py-1 font-medium text-slate-600 ring-1 ring-slate-200/70">
+                          积分 {order.pointsSpent}
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2.5 sm:min-w-[240px]">
-                    <div className="rounded-[18px] bg-slate-50 px-3 py-2 text-right ring-1 ring-slate-200/70">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">时间</div>
-                      <div className="mt-0.5 text-[13px] font-bold leading-4 text-slate-700">{dayjs(order.createdAt).format("MM-DD HH:mm")}</div>
+                    <div className="rounded-[18px] bg-white/80 px-3 py-2 text-right ring-1 ring-[var(--child-border)]">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]">
+                        时间
+                      </div>
+                      <div className="mt-0.5 text-[13px] font-bold leading-4 text-[var(--child-text)]">
+                        {dayjs(order.createdAt).format("MM-DD HH:mm")}
+                      </div>
                     </div>
-                    <div className="rounded-[18px] bg-sky-950 px-3 py-2 text-right text-white shadow-sm">
+                    <div className="rounded-[18px] bg-[linear-gradient(135deg,#0f766e_0%,#0ea5a4_100%)] px-3 py-2 text-right text-white shadow-sm">
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">核销码</div>
                       <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">{order.verificationCode}</div>
                     </div>
@@ -413,13 +455,10 @@ export default function StorePage() {
               </div>
             ))
           ) : (
-            <div className="rounded-[24px] border border-dashed border-slate-200 bg-white/75 py-12 text-center text-slate-500">
-              <History size={44} className="mx-auto mb-2 opacity-40" />
-              <p>还没有兑换记录</p>
-            </div>
+            <ChildEmptyState title="还没有兑换记录" hint="兑换奖励后会显示在这里。" icon="🎁" />
           )}
         </div>
-      </section>
+      </ChildPanel>
 
       {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
     </div>
