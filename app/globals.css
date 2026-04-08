@@ -628,6 +628,12 @@ body {
   padding: 16px;
 }
 
+@media (min-width: 1024px) {
+  .child-filter-panel {
+    min-height: 400px;
+  }
+}
+
 .child-page-grid {
   display: grid;
   gap: 16px;

@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  Suspense,
+} from 'react';
 import { useApp } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import {
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-} from 'lucide-react';
+import { Filter, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { Button, Modal, Image, Input, FilterSelect } from '@/components/ui';
-import { ChildEmptyState, ChildPanel, ChildPageTitle, ChildStatusPill } from '@/components/child/ChildUI';
+import {
+  ChildEmptyState,
+  ChildPanel,
+  ChildPageTitle,
+  ChildStatusPill,
+} from '@/components/child/ChildUI';
 import TaskDateRangeFilter from '@/components/tasks/TaskDateRangeFilter';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -68,7 +74,8 @@ function TaskPage() {
   const searchParams = useSearchParams();
   const initialTaskId = searchParams.get('taskId');
   const statusFromQuery = searchParams.get('status');
-  const normalizedStatusFromQuery = statusFromQuery === 'all' ? '' : statusFromQuery;
+  const normalizedStatusFromQuery =
+    statusFromQuery === 'all' ? '' : statusFromQuery;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,7 +89,9 @@ function TaskPage() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [initialFilterApplied, setInitialFilterApplied] = useState(false);
-  const [pendingOpenTaskId, setPendingOpenTaskId] = useState<string | null>(initialTaskId);
+  const [pendingOpenTaskId, setPendingOpenTaskId] = useState<string | null>(
+    initialTaskId,
+  );
   const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState({
     searchName: '',
@@ -103,10 +112,7 @@ function TaskPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchTasks = useCallback(
-    async (
-      pageNum: number = 1,
-      filters = appliedFilters,
-    ) => {
+    async (pageNum: number = 1, filters = appliedFilters) => {
       if (!currentUser?.token) return;
 
       setLoading(true);
@@ -114,12 +120,19 @@ function TaskPage() {
         const params = {
           page: pageNum,
           limit: limit,
-          ...(filters.statusFilter && filters.statusFilter !== 'in_progress' && { status: filters.statusFilter }),
+          ...(filters.statusFilter &&
+            filters.statusFilter !== 'in_progress' && {
+              status: filters.statusFilter,
+            }),
           ...(filters.statusFilter === 'in_progress' && { inProgress: 'true' }),
           ...(filters.typeFilter && { type: filters.typeFilter }),
           ...(filters.searchName && { searchName: filters.searchName }),
-          ...(filters.startDate && { startDate: dayjs(filters.startDate).format('YYYY-MM-DD') }),
-          ...(filters.endDate && { endDate: dayjs(filters.endDate).format('YYYY-MM-DD') }),
+          ...(filters.startDate && {
+            startDate: dayjs(filters.startDate).format('YYYY-MM-DD'),
+          }),
+          ...(filters.endDate && {
+            endDate: dayjs(filters.endDate).format('YYYY-MM-DD'),
+          }),
         };
 
         const data = await request('/api/tasks', {
@@ -189,15 +202,23 @@ function TaskPage() {
       searchName: searchNameParam,
       statusFilter: normalizedStatusFromQuery || '',
       typeFilter: type || '',
-      startDate: startDateParam ? dayjs(startDateParam).startOf('day').toDate() : null,
+      startDate: startDateParam
+        ? dayjs(startDateParam).startOf('day').toDate()
+        : null,
       endDate: endDateParam ? dayjs(endDateParam).endOf('day').toDate() : null,
     };
     setAppliedFilters(nextFilters);
     setInitialFilterApplied(true);
-  }, [searchParams, initialFilterApplied, fetchTasks, normalizedStatusFromQuery]);
+  }, [
+    searchParams,
+    initialFilterApplied,
+    fetchTasks,
+    normalizedStatusFromQuery,
+  ]);
 
   useEffect(() => {
-    if (!currentUser?.token || !initialFilterApplied || hasInitialLoaded) return;
+    if (!currentUser?.token || !initialFilterApplied || hasInitialLoaded)
+      return;
     void fetchTasks(1);
     setHasInitialLoaded(true);
   }, [currentUser?.token, fetchTasks, hasInitialLoaded, initialFilterApplied]);
@@ -338,7 +359,9 @@ function TaskPage() {
 
       if (data.success) {
         const nextTask = { ...task, status: 'in_progress' };
-        setTasks((prev) => prev.map((item) => (item._id === task._id ? nextTask : item)));
+        setTasks((prev) =>
+          prev.map((item) => (item._id === task._id ? nextTask : item)),
+        );
         setSelectedTask(nextTask);
         if (showTaskDetail?._id === task._id) {
           setShowTaskDetail(nextTask);
@@ -469,7 +492,9 @@ function TaskPage() {
   };
 
   const totalPages = Math.ceil(total / limit);
-  const selectedTaskStatusInfo = selectedTask ? getStatusInfo(selectedTask.status) : null;
+  const selectedTaskStatusInfo = selectedTask
+    ? getStatusInfo(selectedTask.status)
+    : null;
 
   return (
     <>
@@ -509,9 +534,8 @@ function TaskPage() {
             title='任务工作台'
             description='筛选任务，找到今天要完成的事情。'
           />
-          <div className='mt-4 grid gap-3 lg:grid-cols-[minmax(220px,1.2fr)_180px_180px] xl:grid-cols-[minmax(240px,1.4fr)_180px_180px_minmax(280px,1fr)]'>
+          <div className='mt-4 grid gap-3 lg:grid-cols-[minmax(0,300px)_180px_180px] xl:grid-cols-[minmax(0,300px)_180px_180px_minmax(280px,1fr)]'>
             <Input
-              labelPosition='left'
               allowClear
               isSearch
               value={searchName}
@@ -541,16 +565,23 @@ function TaskPage() {
             />
           </div>
           <div className='mt-4 flex gap-2'>
-            <Button onClick={handleSearch} className='min-w-[120px] rounded-full'>
+            <Button
+              onClick={handleSearch}
+              className='min-w-[120px] rounded-full'
+            >
               搜索
             </Button>
-            <Button onClick={handleReset} variant='secondary' className='rounded-full'>
+            <Button
+              onClick={handleReset}
+              variant='secondary'
+              className='rounded-full'
+            >
               重置
             </Button>
           </div>
         </ChildPanel>
 
-        <ChildPanel className='min-h-[400px]'>
+        <ChildPanel>
           <div className='mb-4 flex items-start justify-between gap-3'>
             <ChildPageTitle
               title={loading ? '正在更新任务' : '任务列表'}
@@ -576,7 +607,10 @@ function TaskPage() {
               <div className='space-y-3'>
                 {tasks.map((task, index) => {
                   const statusInfo = getStatusInfo(task.status);
-                  const deadlineInfo = getDeadlineInfo(task.deadline, task.status);
+                  const deadlineInfo = getDeadlineInfo(
+                    task.deadline,
+                    task.status,
+                  );
                   const isPending = task.status === 'pending';
                   const isInProgress = task.status === 'in_progress';
                   const isRejected = task.status === 'rejected';
@@ -591,7 +625,10 @@ function TaskPage() {
                       transition={{ delay: index * 0.05 }}
                       className={`child-card group cursor-pointer transition hover:-translate-y-0.5 md:p-5 ${statusInfo.card}`}
                       onClick={() => {
-                        if (task.status === 'pending' || task.status === 'rejected') {
+                        if (
+                          task.status === 'pending' ||
+                          task.status === 'rejected'
+                        ) {
                           openSubmitModal(task);
                         } else {
                           openTaskDetail(task);
@@ -621,7 +658,9 @@ function TaskPage() {
                           </div>
 
                           <div className='mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--child-text-muted)]'>
-                            <ChildStatusPill tone={statusInfo.tone}>{statusInfo.label}</ChildStatusPill>
+                            <ChildStatusPill tone={statusInfo.tone}>
+                              {statusInfo.label}
+                            </ChildStatusPill>
 
                             {deadlineInfo && (
                               <span
@@ -648,15 +687,22 @@ function TaskPage() {
 
                             {task.updatedAt && (
                               <span className='text-xs font-medium text-slate-400'>
-                                更新于 {dayjs(task.updatedAt).format('YYYY/MM/DD')}
+                                更新于{' '}
+                                {dayjs(task.updatedAt).format('YYYY/MM/DD')}
                               </span>
                             )}
                           </div>
 
                           {parentFeedback ? (
-                            <div className={`mt-3 rounded-[1rem] border px-3 py-2 text-xs ${parentFeedback.className}`}>
-                              <span className='font-bold'>{parentFeedback.label}：</span>
-                              <span className='ml-1 font-medium'>{parentFeedback.text}</span>
+                            <div
+                              className={`mt-3 rounded-[1rem] border px-3 py-2 text-xs ${parentFeedback.className}`}
+                            >
+                              <span className='font-bold'>
+                                {parentFeedback.label}：
+                              </span>
+                              <span className='ml-1 font-medium'>
+                                {parentFeedback.text}
+                              </span>
                             </div>
                           ) : task.rejectionReason ? (
                             <p className='mt-3 rounded-[1rem] bg-rose-50/80 px-3 py-2 text-xs font-medium text-rose-600 ring-1 ring-rose-100'>
@@ -709,7 +755,9 @@ function TaskPage() {
                             disabled={recallingTaskId === task._id}
                             className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${statusInfo.action}`}
                           >
-                            {recallingTaskId === task._id ? '撤回中...' : '撤回修改'}
+                            {recallingTaskId === task._id
+                              ? '撤回中...'
+                              : '撤回修改'}
                           </button>
                         )}
                       </div>
@@ -815,7 +863,9 @@ function TaskPage() {
                 handleRecallTask(selectedTask);
               }}
             >
-              {selectedTask && recallingTaskId === selectedTask._id ? '🔙 撤回中...' : '🔙 撤回修改'}
+              {selectedTask && recallingTaskId === selectedTask._id
+                ? '🔙 撤回中...'
+                : '🔙 撤回修改'}
             </button>
           ) : (
             <button
@@ -854,8 +904,8 @@ function TaskPage() {
 
             <div className='max-h-[45vh] space-y-4 overflow-y-auto pr-1 custom-scrollbar'>
               {selectedTask.imageUrl ||
-                selectedTask.description ||
-                selectedTask.requirePhoto ? (
+              selectedTask.description ||
+              selectedTask.requirePhoto ? (
                 <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
                   {selectedTask.imageUrl ? (
                     <>
@@ -900,94 +950,102 @@ function TaskPage() {
               {(selectedTask.status === 'approved' ||
                 selectedTask.status === 'submitted' ||
                 selectedTask.status === 'rejected') && (
+                <div>
                   <div>
-                    <div>
-                      {(selectedTask.status === 'approved' ||
-                        selectedTask.status === 'submitted' ||
-                        selectedTask.status === 'rejected') &&
-                        selectedTask.photoUrl && (
-                          <div className='mb-4 rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
-                            <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-sky-500'>
-                              📸 提交的照片
-                            </h4>
-                            <div className='relative aspect-video overflow-hidden rounded-xl'>
-                              <Image
-                                src={selectedTask.photoUrl}
-                                alt='提交的照片'
-                                className='w-full h-full object-cover'
-                                enableZoom={true}
-                                zoomHint='点击查看大图'
-                                containerClassName='w-full h-full'
-                              />
-                            </div>
+                    {(selectedTask.status === 'approved' ||
+                      selectedTask.status === 'submitted' ||
+                      selectedTask.status === 'rejected') &&
+                      selectedTask.photoUrl && (
+                        <div className='mb-4 rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
+                          <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-sky-500'>
+                            📸 提交的照片
+                          </h4>
+                          <div className='relative aspect-video overflow-hidden rounded-xl'>
+                            <Image
+                              src={selectedTask.photoUrl}
+                              alt='提交的照片'
+                              className='w-full h-full object-cover'
+                              enableZoom={true}
+                              zoomHint='点击查看大图'
+                              containerClassName='w-full h-full'
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                    <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
+                      <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-emerald-600'>
+                        {selectedTask.status === 'approved'
+                          ? '✅ 审核通过'
+                          : selectedTask.status === 'rejected'
+                            ? '❌ 已拒绝'
+                            : '⏳ 审核中'}
+                      </h4>
+                      <div className='space-y-2'>
+                        {selectedTask.startDate && (
+                          <div className='flex items-center justify-between'>
+                            <span className='text-sm text-slate-600'>
+                              开始时间
+                            </span>
+                            <span className='text-sm font-bold text-slate-800'>
+                              {dayjs(selectedTask.startDate).format(
+                                'M月D日 HH:mm',
+                              )}
+                            </span>
                           </div>
                         )}
-
-                      <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
-                        <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-emerald-600'>
-                          {selectedTask.status === 'approved'
-                            ? '✅ 审核通过'
-                            : selectedTask.status === 'rejected'
-                              ? '❌ 已拒绝'
-                              : '⏳ 审核中'}
-                        </h4>
-                        <div className='space-y-2'>
-                          {selectedTask.startDate && (
-                            <div className='flex items-center justify-between'>
-                              <span className='text-sm text-slate-600'>开始时间</span>
-                              <span className='text-sm font-bold text-slate-800'>
-                                {dayjs(selectedTask.startDate).format('M月D日 HH:mm')}
-                              </span>
-                            </div>
-                          )}
-                          {selectedTask.deadline && (
-                            <div className='flex items-center justify-between'>
-                              <span className='text-sm text-slate-600'>截止时间</span>
-                              <span className='text-sm font-bold text-slate-800'>
-                                {dayjs(selectedTask.deadline).format('M月D日 HH:mm')}
-                              </span>
-                            </div>
-                          )}
-                          {selectedTask.submittedAt && (
+                        {selectedTask.deadline && (
+                          <div className='flex items-center justify-between'>
+                            <span className='text-sm text-slate-600'>
+                              截止时间
+                            </span>
+                            <span className='text-sm font-bold text-slate-800'>
+                              {dayjs(selectedTask.deadline).format(
+                                'M月D日 HH:mm',
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {selectedTask.submittedAt && (
+                          <div className='flex items-center justify-between'>
+                            <span className='text-sm text-slate-600'>
+                              提交时间
+                            </span>
+                            <span className='text-sm font-bold text-slate-800'>
+                              {dayjs(selectedTask.submittedAt).format(
+                                'M月D日 HH:mm',
+                              )}
+                            </span>
+                          </div>
+                        )}
+                        {selectedTask.status === 'approved' &&
+                          selectedTask.approvedAt && (
                             <div className='flex items-center justify-between'>
                               <span className='text-sm text-slate-600'>
-                                提交时间
+                                审核时间
                               </span>
-                              <span className='text-sm font-bold text-slate-800'>
-                                {dayjs(selectedTask.submittedAt).format(
+                              <span className='text-sm font-bold text-green-700'>
+                                {dayjs(selectedTask.approvedAt).format(
                                   'M月D日 HH:mm',
                                 )}
                               </span>
                             </div>
                           )}
-                          {selectedTask.status === 'approved' &&
-                            selectedTask.approvedAt && (
-                              <div className='flex items-center justify-between'>
-                                <span className='text-sm text-slate-600'>
-                                  审核时间
-                                </span>
-                                <span className='text-sm font-bold text-green-700'>
-                                  {dayjs(selectedTask.approvedAt).format(
-                                    'M月D日 HH:mm',
-                                  )}
-                                </span>
-                              </div>
-                          )}
-                          {selectedTask.rejectionReason && (
-                            <div className='flex items-center justify-between'>
-                              <span className='text-sm text-slate-600'>
-                                审核意见
-                              </span>
-                              <span className='text-sm font-bold text-slate-800'>
-                                {selectedTask.rejectionReason}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                        {selectedTask.rejectionReason && (
+                          <div className='flex items-center justify-between'>
+                            <span className='text-sm text-slate-600'>
+                              审核意见
+                            </span>
+                            <span className='text-sm font-bold text-slate-800'>
+                              {selectedTask.rejectionReason}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
               {/* 操作记录 */}
               {selectedTask.auditHistory &&
@@ -1005,12 +1063,13 @@ function TaskPage() {
                           >
                             {/* 时间线节点 */}
                             <div
-                              className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${record.status === 'approved'
-                                ? 'bg-green-500'
-                                : record.status === 'rejected'
-                                  ? 'bg-red-500'
-                                  : 'bg-blue-500'
-                                }`}
+                              className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+                                record.status === 'approved'
+                                  ? 'bg-green-500'
+                                  : record.status === 'rejected'
+                                    ? 'bg-red-500'
+                                    : 'bg-blue-500'
+                              }`}
                               style={{ transform: 'translateX(-50%)' }}
                             />
 
@@ -1199,14 +1258,16 @@ function TaskPage() {
 // 包装组件以添加 Suspense
 export default function TaskPageWrapper() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-sky-50 to-indigo-50">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500"></div>
-          <p className="text-slate-600">加载中...</p>
+    <Suspense
+      fallback={
+        <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-sky-50 to-indigo-50'>
+          <div className='text-center'>
+            <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-slate-200 border-t-sky-500'></div>
+            <p className='text-slate-600'>加载中...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <TaskPage />
     </Suspense>
   );

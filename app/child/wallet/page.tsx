@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import {
-  Search,
   CalendarDays,
   ArrowUpRight,
   ArrowDownLeft,
@@ -15,7 +14,7 @@ import {
   ClipboardList,
   Image as ImageIcon,
 } from "lucide-react";
-import { Button, DatePicker } from "@/components/ui";
+import { Button, DatePicker, Input } from "@/components/ui";
 import Image from "@/components/ui/Image";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/utils/date";
@@ -225,7 +224,7 @@ export default function WalletPage() {
             </button>
           ))}
         </div>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="mt-3 grid gap-2 lg:grid-cols-[300px_300px_300px] lg:items-center">
           <DatePicker
             selected={ledgerStartDate}
             onChange={(date: Date | null) => setLedgerStartDate(date)}
@@ -238,18 +237,15 @@ export default function WalletPage() {
             placeholderText="结束日期"
             className="border-slate-200 bg-slate-50 text-gray-800"
           />
-        </div>
-        <div className="relative mt-3">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            size={16}
-          />
-          <input
-            type="text"
-            placeholder="搜索记录..."
+          <Input
+            allowClear
+            isSearch
             value={ledgerKeyword}
             onChange={(e) => handleKeywordSearch(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-9 py-3 text-sm text-gray-800 shadow-sm outline-none transition focus:border-sky-400 focus:bg-white focus:ring-4 focus:ring-sky-100"
+            placeholder="搜索记录..."
+            size="sm"
+            containerClassName="w-full"
+            className="!h-11 !min-h-11 !rounded-2xl !border-slate-200 !bg-slate-50 !text-sm !text-gray-800 !shadow-sm focus:!border-sky-400 focus:!bg-white"
           />
         </div>
         <div className="mt-4 flex gap-2 overflow-x-auto pb-1">

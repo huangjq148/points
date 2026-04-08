@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
-import { Gift, Search, History } from "lucide-react";
+import { Gift, History } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { Pagination } from "@/components/ui";
+import { Input, Pagination } from "@/components/ui";
 import ConfirmModal from "@/components/ConfirmModal";
 import confetti from "canvas-confetti";
 import { useToast } from "@/components/ui/Toast";
@@ -232,20 +232,17 @@ export default function StorePage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(260px,1fr)_auto]">
-          <div className="relative min-w-0">
-            <Search
-              size={18}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              type="text"
-              placeholder="搜索奖励名字..."
-              value={rewardSearchQuery}
-              onChange={(e) => setRewardSearchQuery(e.target.value)}
-              className="w-full rounded-[18px] border border-slate-200/80 bg-white/95 px-11 py-3 text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
-            />
-          </div>
+        <div className="mt-4 grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-center">
+          <Input
+            allowClear
+            isSearch
+            value={rewardSearchQuery}
+            onChange={(e) => setRewardSearchQuery(e.target.value)}
+            placeholder="搜索奖励名字..."
+            size="sm"
+            containerClassName="w-full"
+            className="!h-11 !min-h-11 !rounded-[18px]"
+          />
 
           <div className="flex flex-wrap items-center gap-2">
             {[

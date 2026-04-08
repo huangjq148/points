@@ -680,8 +680,8 @@ function TasksPage() {
                 isSearch
                 allowClear
                 size="sm"
-                className="w-full max-w-[200px]"
-                containerClassName="w-full max-w-[200px]"
+                className="w-full max-w-[300px]"
+                containerClassName="w-full max-w-[300px]"
               />
             </div>
             <div className="flex flex-wrap items-center gap-2 lg:justify-end">

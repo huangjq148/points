@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { useRouter } from "next/navigation";
 import {
-  Search,
   ChevronRight,
   Gift,
   Wallet,
@@ -12,7 +11,7 @@ import {
   Clock3,
   Sparkles,
 } from "lucide-react";
-import { Button, DatePicker, Modal } from "@/components/ui";
+import { Button, DatePicker, Input, Modal } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import { useToast } from "@/components/ui/Toast";
 import request from "@/utils/request";
@@ -282,20 +281,17 @@ export default function GiftPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.6fr)_220px]">
-            <div className="relative min-w-0">
-              <Search
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="搜索礼物..."
-                value={giftSearchQuery}
-                onChange={(e) => setGiftSearchQuery(e.target.value)}
-                className="h-11 w-full rounded-[18px] border border-slate-200/80 bg-white/95 py-0 pl-10 pr-4 text-slate-700 outline-none transition placeholder:text-slate-300 focus:border-sky-300 focus:ring-4 focus:ring-sky-100"
-              />
-            </div>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[300px_220px] lg:items-center">
+            <Input
+              allowClear
+              isSearch
+              value={giftSearchQuery}
+              onChange={(e) => setGiftSearchQuery(e.target.value)}
+              placeholder="搜索礼物..."
+              size="sm"
+              containerClassName="w-full"
+              className="!h-11 !min-h-11 !rounded-[18px]"
+            />
             <DatePicker
               selected={giftDate}
               onChange={(date: Date | null) => setGiftDate(date)}
