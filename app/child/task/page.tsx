@@ -11,6 +11,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { Button, Modal, Image, Input } from '@/components/ui';
+import { ChildEmptyState, ChildPanel, ChildPageTitle, ChildStatusPill } from '@/components/child/ChildUI';
 import DatePicker from '@/components/ui/DatePicker';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -300,6 +301,7 @@ function TaskPage() {
 
   const handleRecallTask = async (task: Task) => {
     if (!task._id || !currentUser?.token) return;
+    if (recallingTaskId === task._id) return;
 
     setRecallingTaskId(task._id);
     try {
@@ -363,19 +365,15 @@ function TaskPage() {
       case 'in_progress':
         return {
           label: '进行中',
-          bg: 'bg-sky-50',
-          text: 'text-sky-700',
-          dot: 'bg-blue-500',
-          iconWrap: 'bg-sky-50 text-sky-700',
-          card: 'border-sky-200/70 bg-sky-50/60',
-          action: 'bg-sky-600 hover:bg-sky-700 text-white',
+          tone: 'teal' as const,
+          iconWrap: 'bg-teal-50 text-teal-700',
+          card: 'border-teal-200/70 bg-white/95',
+          action: 'bg-teal-500 hover:bg-teal-600 text-white',
         };
       case 'approved':
         return {
           label: '已完成',
-          bg: 'bg-emerald-50',
-          text: 'text-emerald-700',
-          dot: 'bg-emerald-500',
+          tone: 'emerald' as const,
           iconWrap: 'bg-emerald-50 text-emerald-700',
           card: 'border-emerald-200/70 bg-emerald-50/60',
           action:
@@ -384,29 +382,23 @@ function TaskPage() {
       case 'submitted':
         return {
           label: '审核中',
-          bg: 'bg-blue-50',
-          text: 'text-sky-700',
-          dot: 'bg-sky-500',
-          iconWrap: 'bg-blue-50 text-sky-700',
-          card: 'border-sky-200/70 bg-white',
+          tone: 'amber' as const,
+          iconWrap: 'bg-amber-50 text-amber-700',
+          card: 'border-amber-200/70 bg-white/95',
           action: 'bg-amber-500 hover:bg-amber-600 text-white',
         };
       case 'pending':
         return {
           label: '待开始',
-          bg: 'bg-slate-100',
-          text: 'text-slate-700',
-          dot: 'bg-slate-500',
+          tone: 'slate' as const,
           iconWrap: 'bg-slate-100 text-slate-700',
-          card: 'border-slate-200/70 bg-white',
+          card: 'border-slate-200/70 bg-white/95',
           action: 'bg-slate-900 hover:bg-slate-800 text-white',
         };
       case 'rejected':
         return {
           label: '需修改',
-          bg: 'bg-rose-50',
-          text: 'text-rose-700',
-          dot: 'bg-rose-500',
+          tone: 'rose' as const,
           iconWrap: 'bg-rose-50 text-rose-700',
           card: 'border-rose-200/70 bg-rose-50/60',
           action: 'bg-rose-500 hover:bg-rose-600 text-white',
@@ -414,11 +406,9 @@ function TaskPage() {
       default:
         return {
           label: '未知',
-          bg: 'bg-slate-100',
-          text: 'text-slate-700',
-          dot: 'bg-slate-500',
+          tone: 'slate' as const,
           iconWrap: 'bg-slate-100 text-slate-700',
-          card: 'border-slate-200 bg-white',
+          card: 'border-slate-200 bg-white/95',
           action: 'bg-blue-500 hover:bg-blue-600 text-white',
         };
     }
@@ -479,6 +469,7 @@ function TaskPage() {
   };
 
   const totalPages = Math.ceil(total / limit);
+  const selectedTaskStatusInfo = selectedTask ? getStatusInfo(selectedTask.status) : null;
 
   return (
     <>
@@ -511,54 +502,53 @@ function TaskPage() {
         }
       `}</style>
 
-      <div className='relative min-h-screen px-4 py-4'>
-        {/* 搜索区域 */}
-        <div className='glass-strong relative z-10 mb-4 rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
-          <div className='flex flex-col gap-4'>
-            {/* 筛选条件 */}
-            <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-3'>
-              {/* 搜索框 */}
-              <Input
-                labelPosition="left"
-                allowClear
-                isSearch
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                placeholder="搜索任务名称..."
-              />
-              <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
-                <Filter size={16} className='shrink-0 text-slate-400' />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
-                >
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
-                <span className='shrink-0 text-sm font-bold text-slate-400'>类型</span>
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
-                >
-                  {TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+      <div className='child-page-grid'>
+        <ChildPanel className='child-filter-panel'>
+          <ChildPageTitle
+            icon={<Filter size={22} />}
+            title='任务工作台'
+            description='筛选任务，找到今天要完成的事情。'
+          />
+          <div className='mt-4 grid gap-3 lg:grid-cols-[minmax(220px,1.2fr)_180px_180px] xl:grid-cols-[minmax(240px,1.4fr)_180px_180px_minmax(280px,1fr)]'>
+            <Input
+              labelPosition='left'
+              allowClear
+              isSearch
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              placeholder='搜索任务名称...'
+            />
+            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
+              <Filter size={16} className='shrink-0 text-slate-400' />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm md:col-span-2 xl:col-span-1'>
+            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm'>
+              <span className='shrink-0 text-sm font-bold text-slate-400'>类型</span>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className='w-full bg-transparent text-sm text-slate-700 focus:outline-none'
+              >
+                {TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className='flex items-center gap-2 rounded-[18px] border border-slate-200/80 bg-white/95 px-3 py-2.5 shadow-sm xl:col-span-1'>
               <Calendar size={16} className='shrink-0 text-slate-400' />
-              <div className='grid grid-cols-2 gap-2 flex-1'>
+              <div className='grid flex-1 grid-cols-2 gap-2'>
                 <DatePicker
                   selected={startDate}
                   onChange={(date) => setStartDate(date)}
@@ -573,36 +563,39 @@ function TaskPage() {
                 />
               </div>
             </div>
-
-            {/* 按钮 */}
-            <div className='flex gap-2'>
-              <Button onClick={handleSearch} className='flex-1 rounded-full'>
-                搜索
-              </Button>
-              <Button onClick={handleReset} variant='secondary' className='rounded-full'>
-                重置
-              </Button>
-            </div>
           </div>
-        </div>
+          <div className='mt-4 flex gap-2'>
+            <Button onClick={handleSearch} className='min-w-[120px] rounded-full'>
+              搜索
+            </Button>
+            <Button onClick={handleReset} variant='secondary' className='rounded-full'>
+              重置
+            </Button>
+          </div>
+        </ChildPanel>
 
-        {/* 任务列表 */}
-        <div className='glass-strong min-h-[400px] rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
-          <div className='mb-4 flex items-center justify-between'>
-            <h2 className='text-xl font-black text-slate-900'>任务列表</h2>
-            <span className='text-sm text-slate-500'>共 {total} 个任务</span>
+        <ChildPanel className='min-h-[400px]'>
+          <div className='mb-4 flex items-start justify-between gap-3'>
+            <ChildPageTitle
+              title={loading ? '正在更新任务' : '任务列表'}
+              description={`共 ${total} 个任务`}
+            />
+            <ChildStatusPill tone='sky'>第 {page} 页</ChildStatusPill>
           </div>
 
           {loading ? (
             <div className='flex items-center justify-center py-12'>
-              <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent'></div>
+              <div className='h-9 w-9 animate-spin rounded-full border-4 border-sky-500 border-t-transparent' />
             </div>
           ) : tasks.length === 0 ? (
-            <div className='py-12 text-center text-slate-500'>
-              <div className='mb-4 text-4xl'>📭</div>
-              <p>暂无任务</p>
-            </div>
-          ) : (
+            <ChildEmptyState
+              title='没有找到任务'
+              hint='换个筛选条件，或者晚一点再看看。'
+              icon='📭'
+            />
+          ) : null}
+
+          {tasks.length > 0 && (
             <>
               <div className='space-y-3'>
                 {tasks.map((task, index) => {
@@ -620,7 +613,7 @@ function TaskPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`group cursor-pointer rounded-[24px] border p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(15,23,42,0.1)] md:p-5 ${statusInfo.card}`}
+                      className={`child-card group cursor-pointer transition hover:-translate-y-0.5 md:p-5 ${statusInfo.card}`}
                       onClick={() => {
                         if (task.status === 'pending' || task.status === 'rejected') {
                           openSubmitModal(task);
@@ -636,34 +629,27 @@ function TaskPage() {
                           {task.status === 'approved' ? '✓' : task.icon}
                         </div>
 
-                        <div className='flex-1 min-w-0'>
+                        <div className='min-w-0 flex-1'>
                           <div className='flex items-start justify-between gap-3'>
                             <div className='min-w-0'>
-                              <h3 className='truncate text-[15px] font-extrabold text-slate-900 md:text-base'>
+                              <h3 className='truncate text-[15px] font-extrabold text-[var(--child-text)] md:text-base'>
                                 {task.name}
                               </h3>
-                              <p className='mt-1 line-clamp-2 text-xs text-slate-500'>
+                              <p className='mt-1 line-clamp-2 text-xs font-medium text-[var(--child-text-muted)]'>
                                 {task.description || '暂无描述'}
                               </p>
                             </div>
-                            <span className='shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100'>
+                            <span className='shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-100'>
                               +{task.points} 分
                             </span>
                           </div>
 
-                          <div className='flex flex-wrap items-center gap-2 mt-3'>
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-bold ${statusInfo.bg} ${statusInfo.text}`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`}
-                              />
-                              {statusInfo.label}
-                            </span>
+                          <div className='mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--child-text-muted)]'>
+                            <ChildStatusPill tone={statusInfo.tone}>{statusInfo.label}</ChildStatusPill>
 
                             {deadlineInfo && (
                               <span
-                                className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ring-1 ${deadlineInfo.className}`}
+                                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${deadlineInfo.className}`}
                               >
                                 <Calendar size={12} />
                                 {deadlineInfo.label}
@@ -671,47 +657,47 @@ function TaskPage() {
                             )}
 
                             {task.startDate && (
-                              <span className='inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100'>
+                              <span className='inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100'>
                                 <span className='h-1.5 w-1.5 rounded-full bg-indigo-500' />
                                 开始 {dayjs(task.startDate).format('MM/DD')}
                               </span>
                             )}
 
                             {task.deadline && (
-                              <span className='inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100'>
+                              <span className='inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100'>
                                 <span className='h-1.5 w-1.5 rounded-full bg-rose-500' />
                                 截止 {dayjs(task.deadline).format('MM/DD')}
                               </span>
                             )}
 
                             {task.updatedAt && (
-                              <span className='text-xs text-slate-400'>
+                              <span className='text-xs font-medium text-slate-400'>
                                 更新于 {dayjs(task.updatedAt).format('YYYY/MM/DD')}
                               </span>
                             )}
                           </div>
 
                           {parentFeedback ? (
-                            <div className={`mt-2 rounded-xl border px-2 py-1.5 text-xs ${parentFeedback.className}`}>
+                            <div className={`mt-3 rounded-[1rem] border px-3 py-2 text-xs ${parentFeedback.className}`}>
                               <span className='font-bold'>{parentFeedback.label}：</span>
                               <span className='ml-1 font-medium'>{parentFeedback.text}</span>
                             </div>
                           ) : task.rejectionReason ? (
-                            <p className='mt-2 rounded-xl bg-rose-50/80 px-2 py-1.5 text-xs text-rose-600 ring-1 ring-rose-100'>
+                            <p className='mt-3 rounded-[1rem] bg-rose-50/80 px-3 py-2 text-xs font-medium text-rose-600 ring-1 ring-rose-100'>
                               ✏️ {task.rejectionReason}
                             </p>
                           ) : null}
                         </div>
                       </div>
 
-                      <div className='mt-3 flex justify-end'>
+                      <div className='mt-4 flex justify-end'>
                         {isPending && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStartTask(task);
                             }}
-                            className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${statusInfo.action}`}
+                            className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors ${statusInfo.action}`}
                           >
                             开始任务
                           </button>
@@ -722,7 +708,7 @@ function TaskPage() {
                               e.stopPropagation();
                               openSubmitModal(task);
                             }}
-                            className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${statusInfo.action}`}
+                            className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors ${statusInfo.action}`}
                           >
                             重新提交
                           </button>
@@ -733,7 +719,7 @@ function TaskPage() {
                               e.stopPropagation();
                               openSubmitModal(task);
                             }}
-                            className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-600"
+                            className='min-h-11 rounded-2xl bg-teal-500 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-teal-600'
                           >
                             提交审核
                           </button>
@@ -745,11 +731,9 @@ function TaskPage() {
                               handleRecallTask(task);
                             }}
                             disabled={recallingTaskId === task._id}
-                            className={`rounded-full px-4 py-2 text-sm font-bold transition-colors disabled:opacity-50 ${statusInfo.action}`}
+                            className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${statusInfo.action}`}
                           >
-                            {recallingTaskId === task._id
-                              ? '撤回中...'
-                              : '撤回修改'}
+                            {recallingTaskId === task._id ? '撤回中...' : '撤回修改'}
                           </button>
                         )}
                       </div>
@@ -758,14 +742,13 @@ function TaskPage() {
                 })}
               </div>
 
-              {/* 分页 */}
               {totalPages > 1 && (
-                <div className='flex justify-center items-center gap-2 mt-6'>
+                <div className='mt-6 flex items-center justify-center gap-2'>
                   <Button
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page === 1}
                     variant='secondary'
-                    className='h-10 w-10 rounded-full p-0'
+                    className='h-10 w-10 rounded-2xl p-0'
                   >
                     <ChevronLeft size={20} />
                   </Button>
@@ -786,10 +769,11 @@ function TaskPage() {
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`h-10 w-10 rounded-full text-sm font-bold ${page === pageNum
-                            ? 'bg-slate-900 text-white'
-                            : 'bg-white/80 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50'
-                            }`}
+                          className={`h-10 w-10 rounded-2xl text-sm font-black ${
+                            page === pageNum
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-white/80 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50'
+                          }`}
                         >
                           {pageNum}
                         </button>
@@ -800,7 +784,7 @@ function TaskPage() {
                     onClick={() => handlePageChange(page + 1)}
                     disabled={page === totalPages}
                     variant='secondary'
-                    className='h-10 w-10 rounded-full p-0'
+                    className='h-10 w-10 rounded-2xl p-0'
                   >
                     <ChevronRight size={20} />
                   </Button>
@@ -808,18 +792,20 @@ function TaskPage() {
               )}
             </>
           )}
-        </div>
+        </ChildPanel>
       </div>
 
       {/* 任务详情弹窗 */}
       <Modal
         isOpen={!!showTaskDetail}
         onClose={() => setShowTaskDetail(null)}
+        width={640}
+        className='overflow-hidden !rounded-[2rem] shadow-[0_24px_80px_rgba(14,116,144,0.22)]'
         showCloseButton={false}
         footer={
           selectedTask?.status === 'pending' ? (
             <button
-              className='w-full rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 py-4 !font-bold text-lg text-white shadow-xl'
+              className='min-h-12 w-full rounded-[1.25rem] bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-4 py-3 text-lg font-black text-white shadow-lg'
               onClick={() => {
                 setShowTaskDetail(null);
                 handleStartTask(selectedTask);
@@ -829,14 +815,14 @@ function TaskPage() {
             </button>
           ) : selectedTask?.status === 'rejected' ? (
             <button
-              className='w-full rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 py-4 !font-bold text-lg text-white shadow-xl'
+              className='min-h-12 w-full rounded-[1.25rem] bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-4 py-3 text-lg font-black text-white shadow-lg'
               onClick={() => openSubmitModal(selectedTask)}
             >
               💪 重新提交
             </button>
           ) : selectedTask?.status === 'in_progress' ? (
             <button
-              className='w-full rounded-2xl bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 py-4 !font-bold text-lg text-white shadow-xl'
+              className='min-h-12 w-full rounded-[1.25rem] bg-gradient-to-r from-teal-500 via-sky-500 to-indigo-500 px-4 py-3 text-lg font-black text-white shadow-lg'
               onClick={() => {
                 setShowTaskDetail(null);
                 openSubmitModal(selectedTask);
@@ -846,17 +832,18 @@ function TaskPage() {
             </button>
           ) : selectedTask?.status === 'submitted' ? (
             <button
-              className='w-full rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 py-4 !font-bold text-lg text-white shadow-xl'
+              disabled={!!selectedTask && recallingTaskId === selectedTask._id}
+              className='min-h-12 w-full rounded-[1.25rem] bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-4 py-3 text-lg font-black text-white shadow-lg transition disabled:cursor-not-allowed disabled:opacity-60'
               onClick={() => {
                 setShowTaskDetail(null);
                 handleRecallTask(selectedTask);
               }}
             >
-              🔙 撤回修改
+              {selectedTask && recallingTaskId === selectedTask._id ? '🔙 撤回中...' : '🔙 撤回修改'}
             </button>
           ) : (
             <button
-              className='w-full rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 py-4 !font-bold text-lg text-white shadow-xl'
+              className='min-h-12 w-full rounded-[1.25rem] bg-gradient-to-r from-slate-700 to-slate-900 px-4 py-3 text-lg font-black text-white shadow-lg'
               onClick={() => setShowTaskDetail(null)}
             >
               知道啦
@@ -865,54 +852,41 @@ function TaskPage() {
         }
       >
         {selectedTask && (
-          <>
-            {/* 任务基本信息 - 固定在顶部 */}
-            <div className='flex items-center gap-5 mb-6'>
-              <div className='w-24 h-24 bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_12px_30px_rgba(251,146,60,0.15)] border border-amber-200/70'>
-                {selectedTask.icon}
-              </div>
-              <div className='flex-1'>
-                <h3 className='text-2xl font-black text-slate-950 leading-tight'>
-                  {selectedTask.name}
-                </h3>
-                <div className='flex items-center gap-2 mt-2 flex-wrap'>
-                  <span className='text-amber-600 font-black text-lg'>
-                    +{selectedTask.points}
-                  </span>
-                  <span
-                    className={`text-xs px-3 py-1.5 rounded-full font-black flex items-center gap-1 ${selectedTask.status === 'approved'
-                      ? 'bg-green-100 text-green-600'
-                      : selectedTask.status === 'submitted'
-                        ? 'bg-blue-100 text-blue-600'
-                        : selectedTask.status === 'rejected'
-                          ? 'bg-red-100 text-red-600'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
-                  >
-                    {selectedTask.status === 'approved'
-                      ? '✓ 完成'
-                      : selectedTask.status === 'submitted'
-                        ? '⏳ 审核中'
-                        : selectedTask.status === 'rejected'
-                          ? '✏️ 需修改'
-                          : '🔒 待完成'}
-                  </span>
+          <div className='space-y-4'>
+            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.85)_100%)] px-5 py-5 shadow-sm'>
+              <div className='flex items-center gap-5'>
+                <div className='flex h-24 w-24 items-center justify-center rounded-[2rem] border border-amber-200/70 bg-white/90 text-6xl shadow-[0_12px_30px_rgba(251,146,60,0.15)]'>
+                  {selectedTask.icon}
+                </div>
+                <div className='flex-1'>
+                  <h3 className='text-2xl font-black leading-tight text-slate-950'>
+                    {selectedTask.name}
+                  </h3>
+                  <div className='mt-3 flex flex-wrap items-center gap-2'>
+                    <span className='text-lg font-black text-amber-600'>
+                      +{selectedTask.points}
+                    </span>
+                    {selectedTaskStatusInfo && (
+                      <ChildStatusPill tone={selectedTaskStatusInfo.tone}>
+                        {selectedTaskStatusInfo.label}
+                      </ChildStatusPill>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 滚动区域 */}
-            <div className='max-h-[45vh] overflow-y-auto custom-scrollbar pr-1 space-y-4'>
+            <div className='max-h-[45vh] space-y-4 overflow-y-auto pr-1 custom-scrollbar'>
               {selectedTask.imageUrl ||
                 selectedTask.description ||
                 selectedTask.requirePhoto ? (
-                <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm'>
+                <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
                   {selectedTask.imageUrl ? (
                     <>
-                      <h4 className='text-xs font-black text-slate-500 uppercase tracking-wider mb-2'>
+                      <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-slate-500'>
                         任务图片
                       </h4>
-                      <div className='relative aspect-video rounded-xl overflow-hidden mb-6'>
+                      <div className='relative mb-6 aspect-video overflow-hidden rounded-xl'>
                         <Image
                           src={selectedTask.imageUrl}
                           alt='任务图片'
@@ -927,17 +901,17 @@ function TaskPage() {
 
                   {selectedTask.description ? (
                     <>
-                      <h4 className='text-xs font-black text-slate-500 uppercase tracking-wider mb-2'>
+                      <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-slate-500'>
                         任务描述
                       </h4>
-                      <p className='text-slate-700 font-medium leading-relaxed'>
+                      <p className='font-medium leading-relaxed text-slate-700'>
                         {selectedTask.description || '快去完成这个任务吧！'}
                       </p>
                     </>
                   ) : null}
 
                   {selectedTask.requirePhoto && (
-                    <div className='mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl border border-amber-200'>
+                    <div className='mt-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2'>
                       <span className='text-amber-500'>📸</span>
                       <span className='text-sm font-bold text-amber-700'>
                         需要上传照片才能完成
@@ -956,11 +930,11 @@ function TaskPage() {
                         selectedTask.status === 'submitted' ||
                         selectedTask.status === 'rejected') &&
                         selectedTask.photoUrl && (
-                          <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-2xl mb-4'>
-                            <h4 className='text-xs font-black text-blue-400 uppercase tracking-wider mb-2'>
+                          <div className='mb-4 rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
+                            <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-sky-500'>
                               📸 提交的照片
                             </h4>
-                            <div className='relative aspect-video rounded-xl overflow-hidden'>
+                            <div className='relative aspect-video overflow-hidden rounded-xl'>
                               <Image
                                 src={selectedTask.photoUrl}
                                 alt='提交的照片'
@@ -973,8 +947,8 @@ function TaskPage() {
                           </div>
                         )}
 
-                      <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm'>
-                        <h4 className='text-xs font-black text-green-600 uppercase tracking-wider mb-2'>
+                      <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
+                        <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-emerald-600'>
                           {selectedTask.status === 'approved'
                             ? '✅ 审核通过'
                             : selectedTask.status === 'rejected'
@@ -983,7 +957,7 @@ function TaskPage() {
                         </h4>
                         <div className='space-y-2'>
                           {selectedTask.startDate && (
-                            <div className='flex justify-between items-center'>
+                            <div className='flex items-center justify-between'>
                               <span className='text-sm text-slate-600'>开始时间</span>
                               <span className='text-sm font-bold text-slate-800'>
                                 {dayjs(selectedTask.startDate).format('M月D日 HH:mm')}
@@ -991,7 +965,7 @@ function TaskPage() {
                             </div>
                           )}
                           {selectedTask.deadline && (
-                            <div className='flex justify-between items-center'>
+                            <div className='flex items-center justify-between'>
                               <span className='text-sm text-slate-600'>截止时间</span>
                               <span className='text-sm font-bold text-slate-800'>
                                 {dayjs(selectedTask.deadline).format('M月D日 HH:mm')}
@@ -999,7 +973,7 @@ function TaskPage() {
                             </div>
                           )}
                           {selectedTask.submittedAt && (
-                            <div className='flex justify-between items-center'>
+                            <div className='flex items-center justify-between'>
                               <span className='text-sm text-slate-600'>
                                 提交时间
                               </span>
@@ -1012,7 +986,7 @@ function TaskPage() {
                           )}
                           {selectedTask.status === 'approved' &&
                             selectedTask.approvedAt && (
-                              <div className='flex justify-between items-center'>
+                              <div className='flex items-center justify-between'>
                                 <span className='text-sm text-slate-600'>
                                   审核时间
                                 </span>
@@ -1022,9 +996,9 @@ function TaskPage() {
                                   )}
                                 </span>
                               </div>
-                            )}
+                          )}
                           {selectedTask.rejectionReason && (
-                            <div className='flex justify-between items-center'>
+                            <div className='flex items-center justify-between'>
                               <span className='text-sm text-slate-600'>
                                 审核意见
                               </span>
@@ -1043,11 +1017,11 @@ function TaskPage() {
               {selectedTask.auditHistory &&
                 selectedTask.auditHistory.length > 0 && (
                   <div>
-                    <div className='bg-white p-5 rounded-2xl border border-slate-200 shadow-sm'>
-                      <h4 className='text-xs font-black text-slate-500 uppercase tracking-wider mb-4'>
+                    <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
+                      <h4 className='mb-4 text-xs font-black uppercase tracking-wider text-slate-500'>
                         📋 操作记录 ({selectedTask.auditHistory.length})
                       </h4>
-                      <div className='space-y-3 max-h-[200px] overflow-y-auto custom-scrollbar'>
+                      <div className='max-h-[200px] space-y-3 overflow-y-auto custom-scrollbar'>
                         {selectedTask.auditHistory.map((record, index) => (
                           <div
                             key={record._id || index}
@@ -1065,33 +1039,32 @@ function TaskPage() {
                             />
 
                             <div className='ml-2'>
-                              <div className='flex items-center gap-2 mb-1'>
-                                <span className='text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100'>
-                                  第 {index + 1}{' '}
-                                  次操作
+                              <div className='mb-1 flex items-center gap-2'>
+                                <span className='rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700'>
+                                  第 {index + 1} 次操作
                                 </span>
                                 {record.status === 'approved' ? (
-                                  <span className='text-xs font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-100'>
+                                  <span className='rounded-full border border-green-100 bg-green-50 px-2 py-0.5 text-xs font-bold text-green-700'>
                                     通过
                                   </span>
                                 ) : record.status === 'rejected' ? (
-                                  <span className='text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-100'>
+                                  <span className='rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-xs font-bold text-red-700'>
                                     驳回
                                   </span>
                                 ) : (
-                                  <span className='text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100'>
+                                  <span className='rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700'>
                                     审核中
                                   </span>
                                 )}
                               </div>
-                              <p className='text-xs text-slate-500 mb-1'>
+                              <p className='mb-1 text-xs text-slate-500'>
                                 提交:{' '}
                                 {dayjs(record.submittedAt).format(
                                   'M月D日 HH:mm',
                                 )}
                               </p>
                               {record.auditedAt && (
-                                <p className='text-xs text-slate-500 mb-1'>
+                                <p className='mb-1 text-xs text-slate-500'>
                                   审核:{' '}
                                   {dayjs(record.auditedAt).format(
                                     'M月D日 HH:mm',
@@ -1101,10 +1074,10 @@ function TaskPage() {
                               {/* 提交的照片 */}
                               {record.photoUrl && (
                                 <div className='mt-2'>
-                                  <p className='text-xs text-slate-500 mb-1'>
+                                  <p className='mb-1 text-xs text-slate-500'>
                                     提交的照片：
                                   </p>
-                                  <div className='w-20 h-20 rounded-xl overflow-hidden border border-blue-200 shadow-sm bg-white'>
+                                  <div className='h-20 w-20 overflow-hidden rounded-xl border border-blue-200 bg-white shadow-sm'>
                                     <Image
                                       src={record.photoUrl}
                                       alt={`第 ${index + 1} 次提交的照片`}
@@ -1118,8 +1091,8 @@ function TaskPage() {
 
                               {/* 审核意见 */}
                               {record.auditNote && (
-                                <div className='mt-2 bg-white rounded-lg p-2 border border-slate-200'>
-                                  <p className='text-xs text-slate-500 mb-1'>
+                                <div className='mt-2 rounded-lg border border-slate-200 bg-white p-2'>
+                                  <p className='mb-1 text-xs text-slate-500'>
                                     家长意见：
                                   </p>
                                   <p className='text-xs text-slate-700'>
@@ -1135,8 +1108,7 @@ function TaskPage() {
                   </div>
                 )}
             </div>
-            {/* 滚动区域结束 */}
-          </>
+          </div>
         )}
       </Modal>
 
@@ -1147,11 +1119,13 @@ function TaskPage() {
           setShowSubmitModal(false);
           setPhotoPreview('');
         }}
+        width={520}
+        className='overflow-hidden !rounded-[2rem] shadow-[0_24px_80px_rgba(14,116,144,0.22)]'
         showCloseButton={false}
         footer={
-          <>
+          <div className='flex w-full gap-3'>
             <button
-              className='flex-1 py-4 !rounded-2xl font-bold bg-gray-200 text-gray-700 hover:bg-gray-300 border-none'
+              className='min-h-12 flex-1 rounded-[1.25rem] border border-slate-200 bg-slate-100 px-4 py-3 text-base font-black text-slate-700 transition hover:bg-slate-200'
               onClick={() => {
                 setShowSubmitModal(false);
                 setPhotoPreview('');
@@ -1160,7 +1134,7 @@ function TaskPage() {
               取消
             </button>
             <button
-              className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 shadow-xl hover:shadow-2xl hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed'
+              className='min-h-12 flex-1 rounded-[1.25rem] bg-gradient-to-r from-teal-500 via-sky-500 to-indigo-500 px-4 py-3 text-lg font-black text-white shadow-lg transition hover:shadow-sky-200 disabled:cursor-not-allowed disabled:opacity-50'
               onClick={handleSubmitTask}
               disabled={
                 submitting || (selectedTask?.requirePhoto && !photoFile)
@@ -1168,13 +1142,13 @@ function TaskPage() {
             >
               {submitting ? '提交中...' : '提交审核'}
             </button>
-          </>
+          </div>
         }
       >
         {selectedTask && (
-          <>
-            <div className='text-center mb-8'>
-              <div className='mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-gradient-to-br from-sky-50 via-blue-100 to-indigo-100 text-7xl shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_12px_30px_rgba(59,130,246,0.12)] border border-sky-100'>
+          <div className='space-y-5'>
+            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.82)_100%)] px-5 py-6 text-center shadow-sm'>
+              <div className='mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-[2.5rem] border border-sky-100 bg-white/90 text-7xl shadow-[0_12px_30px_rgba(59,130,246,0.12)]'>
                 {selectedTask.icon}
               </div>
               <h3 className='text-2xl font-black text-slate-900'>
@@ -1186,7 +1160,7 @@ function TaskPage() {
               </div>
             </div>
 
-            <div className='mb-8'>
+            <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
               <input
                 type='file'
                 accept='image/*'
@@ -1195,7 +1169,7 @@ function TaskPage() {
                 onChange={handlePhotoSelect}
               />
               <div
-                className='group relative cursor-pointer rounded-[2rem] border-4 border-dashed border-slate-200 p-2 transition-all hover:border-sky-300 hover:bg-sky-50/30'
+                className='group relative cursor-pointer rounded-[2rem] border-2 border-dashed border-slate-200 bg-[linear-gradient(180deg,rgba(240,249,255,0.65)_0%,rgba(255,255,255,0.95)_100%)] p-2 transition-all hover:border-sky-300 hover:bg-sky-50/30'
                 onClick={() => {
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
@@ -1204,7 +1178,7 @@ function TaskPage() {
                 }}
               >
                 {photoPreview ? (
-                  <div className='relative aspect-video rounded-2xl overflow-hidden'>
+                  <div className='relative aspect-video overflow-hidden rounded-2xl'>
                     <Image
                       src={photoPreview}
                       alt='照片预览'
@@ -1212,7 +1186,7 @@ function TaskPage() {
                       enableZoom={false}
                       containerClassName='w-full h-full'
                     />
-                    <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity pointer-events-none group-hover:opacity-100'>
+                    <div className='pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'>
                       <span className='rounded-full bg-white/95 px-5 py-2.5 text-sm font-bold text-slate-800 backdrop-blur-sm'>
                         📷 更换照片
                       </span>
@@ -1237,7 +1211,7 @@ function TaskPage() {
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
       </Modal>
 
