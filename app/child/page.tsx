@@ -218,6 +218,7 @@ export default function ChildHome() {
 
   const handleRecallTask = async (task: Task) => {
     if (!task._id || !currentUser?.token) return;
+    if (recallingTaskId === task._id) return;
 
     setRecallingTaskId(task._id);
     try {
@@ -573,10 +574,11 @@ export default function ChildHome() {
               </button>
             ) : selectedTask?.status === 'submitted' ? (
               <button
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-xl hover:shadow-orange-500/25 transition-shadow'
+                disabled={!!selectedTask && recallingTaskId === selectedTask._id}
+                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-xl hover:shadow-orange-500/25 transition-shadow disabled:cursor-not-allowed disabled:opacity-60'
                 onClick={() => handleRecallTask(selectedTask!)}
               >
-                🔙 撤回修改
+                {selectedTask && recallingTaskId === selectedTask._id ? '🔙 撤回中...' : '🔙 撤回修改'}
               </button>
             ) : (
               <button
