@@ -86,7 +86,21 @@ export function ChildCard({
       onClick={onClick}
       onKeyDown={(event) => {
         if (!onClick) return;
-        if (event.key === "Enter" || event.key === " ") onClick();
+        if (event.key === " ") {
+          event.preventDefault();
+          return;
+        }
+        if (event.key === "Enter" && !event.repeat) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      onKeyUp={(event) => {
+        if (!onClick) return;
+        if (event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
       }}
       className={cx(
         "child-card transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(14,116,144,0.14)]",
