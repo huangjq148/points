@@ -442,7 +442,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         <button
           type="button"
           onClick={scrollToTop}
-          className="fixed bottom-28 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white/90 text-sky-600 shadow-lg transition-all hover:bg-white active:scale-95 sm:bottom-6 sm:right-6"
+          className="fixed bottom-28 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full border-2 border-sky-200 bg-white/90 text-sky-600 shadow-lg transition-all hover:bg-white active:scale-95 md:bottom-6 md:right-6"
           aria-label="回到顶部"
         >
           <ArrowUp size={24} />
