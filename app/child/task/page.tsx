@@ -595,7 +595,7 @@ function TaskPage() {
             />
           ) : null}
 
-          {tasks.length > 0 && (
+          {!loading && tasks.length > 0 && (
             <>
               <div className='space-y-3'>
                 {tasks.map((task, index) => {
