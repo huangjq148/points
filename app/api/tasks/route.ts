@@ -21,11 +21,53 @@ interface ITaskQuery {
     | { $in: Array<"pending" | "in_progress" | "submitted" | "approved" | "rejected" | "expired" | "failed"> };
   userId?: mongoose.Types.ObjectId;
   name?: { $regex: string; $options: string };
-  approvedAt?: { $gte?: Date; $lte?: Date };
-  startDate?: { $lte?: Date; $gt?: Date };
+  startDate?: { $lte?: Date; $gt?: Date; $exists?: boolean; $eq?: Date | null };
   deadline?: { $gte?: Date; $lte?: Date; $exists?: boolean; $eq?: Date | null };
   $and?: Array<Record<string, unknown>>;
   $or?: Array<Record<string, unknown>>;
+}
+
+function parseDateBoundary(dateString: string, endOfDay = false) {
+  const boundary = new Date(dateString);
+  boundary.setHours(endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
+  return boundary;
+}
+
+function appendOverlapDateFilter(
+  query: ITaskQuery,
+  startDate: string | null,
+  endDate: string | null,
+) {
+  if (!startDate && !endDate) return;
+
+  const rangeStart = startDate ? parseDateBoundary(startDate, false) : null;
+  const rangeEnd = endDate ? parseDateBoundary(endDate, true) : null;
+  const andConditions: Array<Record<string, unknown>> = [];
+
+  if (rangeEnd) {
+    andConditions.push({
+      $or: [
+        { startDate: { $exists: false } },
+        { startDate: { $eq: null } },
+        { startDate: { $lte: rangeEnd } },
+      ],
+    });
+  }
+
+  if (rangeStart) {
+    andConditions.push({
+      $or: [
+        { deadline: { $exists: false } },
+        { deadline: { $eq: null } },
+        { deadline: { $gte: rangeStart } },
+      ],
+    });
+  }
+
+  if (!query.$and) {
+    query.$and = [];
+  }
+  query.$and.push(...andConditions);
 }
 
 export async function GET(request: NextRequest) {
@@ -117,21 +159,8 @@ export async function GET(request: NextRequest) {
       query.name = { $regex: searchName, $options: "i" };
     }
 
-    // 添加日期范围筛选
-    if (startDate || endDate) {
-      const dateQuery: Record<string, Date> = {};
-      if (startDate) {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        dateQuery.$gte = start;
-      }
-      if (endDate) {
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        dateQuery.$lte = end;
-      }
-      query.approvedAt = dateQuery;
-    }
+    // 添加日期范围筛选：任务区间与筛选区间有重叠即可命中
+    appendOverlapDateFilter(query, startDate, endDate);
 
     // 添加截止日期范围筛选
     if (deadlineFrom || deadlineTo) {

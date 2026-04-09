@@ -714,51 +714,59 @@ function TaskPage() {
 
                       <div className='mt-4 flex justify-end'>
                         {isPending && (
-                          <button
+                          <Button
+                            type='button'
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStartTask(task);
                             }}
-                            className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors ${statusInfo.action}`}
+                            variant='secondary'
+                            className='!border-none !shadow-none !bg-slate-900 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-slate-800 hover:!text-white'
                           >
                             开始任务
-                          </button>
+                          </Button>
                         )}
                         {isRejected && (
-                          <button
+                          <Button
+                            type='button'
                             onClick={(e) => {
                               e.stopPropagation();
                               openSubmitModal(task);
                             }}
-                            className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors ${statusInfo.action}`}
+                            variant='secondary'
+                            className='!border-none !shadow-none !bg-rose-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-rose-600 hover:!text-white'
                           >
                             重新提交
-                          </button>
+                          </Button>
                         )}
                         {isInProgress && (
-                          <button
+                          <Button
+                            type='button'
                             onClick={(e) => {
                               e.stopPropagation();
                               openSubmitModal(task);
                             }}
-                            className='min-h-11 rounded-2xl bg-teal-500 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-teal-600'
+                            variant='secondary'
+                            className='!border-none !shadow-none !bg-teal-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-teal-600 hover:!text-white'
                           >
                             提交审核
-                          </button>
+                          </Button>
                         )}
                         {isSubmitted && (
-                          <button
+                          <Button
+                            type='button'
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRecallTask(task);
                             }}
                             disabled={recallingTaskId === task._id}
-                            className={`min-h-11 rounded-2xl px-4 py-2 text-sm font-black transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${statusInfo.action}`}
+                            variant='secondary'
+                            className='!border-none !shadow-none !bg-amber-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-amber-600 hover:!text-white disabled:!cursor-not-allowed disabled:!opacity-50'
                           >
                             {recallingTaskId === task._id
                               ? '撤回中...'
                               : '撤回修改'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </motion.div>
@@ -879,25 +887,25 @@ function TaskPage() {
       >
         {selectedTask && (
           <div className='space-y-4'>
-            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.85)_100%)] px-5 py-5 shadow-sm'>
-              <div className='flex items-center gap-5'>
-                <div className='flex h-24 w-24 items-center justify-center rounded-[2rem] border border-amber-200/70 bg-white/90 text-6xl shadow-[0_12px_30px_rgba(251,146,60,0.15)]'>
+            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.85)_100%)] px-4 py-4 shadow-sm sm:px-5 sm:py-5'>
+              <div className='flex min-w-0 items-center gap-3 sm:gap-4'>
+                <div className='flex h-14 w-14 flex-none items-center justify-center rounded-[1.4rem] border border-amber-200/70 bg-white/90 text-3xl shadow-[0_12px_30px_rgba(251,146,60,0.15)] sm:h-16 sm:w-16 sm:text-4xl'>
                   {selectedTask.icon}
                 </div>
-                <div className='flex-1'>
-                  <h3 className='text-2xl font-black leading-tight text-slate-950'>
+                <div className='min-w-0 flex-1'>
+                  <h3 className='truncate text-lg font-black leading-tight text-slate-950 sm:text-xl'>
                     {selectedTask.name}
                   </h3>
-                  <div className='mt-3 flex flex-wrap items-center gap-2'>
-                    <span className='text-lg font-black text-amber-600'>
-                      +{selectedTask.points}
-                    </span>
-                    {selectedTaskStatusInfo && (
-                      <ChildStatusPill tone={selectedTaskStatusInfo.tone}>
-                        {selectedTaskStatusInfo.label}
-                      </ChildStatusPill>
-                    )}
-                  </div>
+                </div>
+                <div className='flex flex-none items-center gap-2'>
+                  <span className='inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-sm font-black text-amber-700'>
+                    +{selectedTask.points}
+                  </span>
+                  {selectedTaskStatusInfo && (
+                    <ChildStatusPill tone={selectedTaskStatusInfo.tone}>
+                      {selectedTaskStatusInfo.label}
+                    </ChildStatusPill>
+                  )}
                 </div>
               </div>
             </div>
@@ -1181,21 +1189,26 @@ function TaskPage() {
         }
       >
         {selectedTask && (
-          <div className='space-y-5'>
-            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.82)_100%)] px-5 py-6 text-center shadow-sm'>
-              <div className='mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-[2.5rem] border border-sky-100 bg-white/90 text-7xl shadow-[0_12px_30px_rgba(59,130,246,0.12)]'>
-                {selectedTask.icon}
-              </div>
-              <h3 className='text-2xl font-black text-slate-900'>
-                {selectedTask.name}
-              </h3>
-              <div className='mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-3 font-black text-white shadow-[0_12px_24px_rgba(59,130,246,0.18)]'>
-                <span>⚡</span>
-                <span>+{selectedTask.points} 积分</span>
+          <div className='space-y-4'>
+            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.82)_100%)] px-4 py-4 shadow-sm sm:px-5 sm:py-5'>
+              <div className='flex min-w-0 items-center gap-3 sm:gap-4'>
+                <div className='flex h-14 w-14 flex-none items-center justify-center rounded-[1.4rem] border border-sky-100 bg-white/90 text-3xl shadow-[0_12px_30px_rgba(59,130,246,0.12)] sm:h-16 sm:w-16 sm:text-4xl'>
+                  {selectedTask.icon}
+                </div>
+                <div className='min-w-0 flex-1'>
+                  <h3 className='truncate text-lg font-black leading-tight text-slate-900 sm:text-xl'>
+                    {selectedTask.name}
+                  </h3>
+                </div>
+                <div className='flex flex-none items-center gap-2'>
+                  <span className='inline-flex items-center rounded-full bg-sky-100 px-2.5 py-1 text-sm font-black text-sky-700'>
+                    +{selectedTask.points}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-5 shadow-sm'>
+            <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-3 shadow-sm sm:p-4'>
               <input
                 type='file'
                 accept='image/*'
@@ -1204,7 +1217,7 @@ function TaskPage() {
                 onChange={handlePhotoSelect}
               />
               <div
-                className='group relative cursor-pointer rounded-[2rem] border-2 border-dashed border-slate-200 bg-[linear-gradient(180deg,rgba(240,249,255,0.65)_0%,rgba(255,255,255,0.95)_100%)] p-2 transition-all hover:border-sky-300 hover:bg-sky-50/30'
+                className='group relative cursor-pointer rounded-[2rem] border-2 border-dashed border-slate-200 bg-[linear-gradient(180deg,rgba(240,249,255,0.65)_0%,rgba(255,255,255,0.95)_100%)] p-1.5 transition-all hover:border-sky-300 hover:bg-sky-50/30'
                 onClick={() => {
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
@@ -1228,15 +1241,15 @@ function TaskPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className='flex flex-col items-center gap-4 py-10'>
-                    <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-sky-50 to-indigo-100'>
-                      <span className='text-4xl'>📸</span>
+                  <div className='flex flex-col items-center gap-2.5 py-6 sm:py-8'>
+                    <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-50 to-indigo-100 sm:h-16 sm:w-16'>
+                      <span className='text-2xl sm:text-3xl'>📸</span>
                     </div>
                     <div className='text-center'>
-                      <p className='text-lg font-black text-slate-800'>
+                      <p className='text-sm font-black text-slate-800 sm:text-base'>
                         上传任务照片
                       </p>
-                      <p className='mt-1 text-sm text-slate-500'>
+                      <p className='mt-1 text-xs text-slate-500 sm:text-sm'>
                         {selectedTask.requirePhoto
                           ? '⚠️ 必须上传照片'
                           : '✨ 上传更容易通过'}
