@@ -36,6 +36,8 @@ const CustomDatePicker = memo(({
   isClearable = true,
   placeholderText = "选择日期",
   wrapperClassName = "w-full",
+  calendarClassName,
+  popperClassName,
   ...props
 }: CustomDatePickerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +65,14 @@ const CustomDatePicker = memo(({
     ${className}
   `.trim().replace(/\s+/g, ' ');
 
+  const combinedCalendarClassName = `ui-datepicker-calendar ${calendarClassName ?? ""}`
+    .trim()
+    .replace(/\s+/g, " ");
+
+  const combinedPopperClassName = `ui-datepicker-popper ${popperClassName ?? ""}`
+    .trim()
+    .replace(/\s+/g, " ");
+
   return (
     <div
       ref={containerRef}
@@ -84,6 +94,8 @@ const CustomDatePicker = memo(({
         popperProps={{ strategy: "fixed" }}
         popperPlacement={popperPlacement}
         withPortal={withPortal}
+        calendarClassName={combinedCalendarClassName}
+        popperClassName={combinedPopperClassName}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...(props as any)}
         className={combinedClassName}

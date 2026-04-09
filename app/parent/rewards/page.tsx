@@ -25,6 +25,34 @@ const durationOptions = [
   { value: "hour", label: "小时" },
 ] as const;
 
+const rewardModalClassName =
+  "border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-0 shadow-[var(--ui-shadow-md)]";
+const rewardModalSecondaryButtonClassName = "min-w-[108px]";
+const rewardModalPrimaryButtonClassName = "min-w-[140px]";
+const rewardFieldLabelClassName = "mb-2 block text-sm font-medium text-[var(--ui-text-secondary)]";
+const rewardHelperTextClassName = "mt-2 text-xs text-[var(--ui-text-muted)]";
+const rewardOptionBaseClassName = "rounded-2xl border transition";
+const rewardIconOptionBaseClassName = `${rewardOptionBaseClassName} h-11 w-11 p-0 text-xl shadow-none`;
+const rewardIconOptionIdleClassName =
+  "border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] hover:bg-[var(--ui-surface-2)]";
+const rewardIconOptionActiveClassName =
+  "border-[color:var(--ui-action-amber-border)] bg-[var(--ui-action-amber-bg)] shadow-[var(--ui-primary-soft-shadow)]";
+const rewardTypeOptionBaseClassName = `${rewardOptionBaseClassName} px-4 py-3 text-left`;
+const rewardTypeOptionIdleClassName =
+  "border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] hover:bg-[var(--ui-surface-2)]";
+const rewardAddTypeOptionActiveClassName =
+  "border-[color:var(--ui-action-amber-border)] bg-[var(--ui-action-amber-bg)] shadow-[var(--ui-primary-soft-shadow)]";
+const rewardEditTypeOptionActiveClassName =
+  "border-[color:var(--ui-action-blue-border)] bg-[var(--ui-action-blue-bg)] shadow-[var(--ui-primary-soft-shadow)]";
+const rewardTypeTitleClassName = "text-sm font-bold text-[var(--ui-text-primary)]";
+const rewardTypeDescClassName = "mt-1 text-xs text-[var(--ui-text-muted)]";
+const rewardAddPrivilegePanelClassName =
+  "grid gap-4 rounded-[28px] border border-[color:var(--ui-action-amber-border)] bg-[linear-gradient(135deg,var(--ui-warning-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 md:grid-cols-2";
+const rewardEditPrivilegePanelClassName =
+  "grid gap-4 rounded-[28px] border border-[color:var(--ui-action-blue-border)] bg-[linear-gradient(135deg,var(--ui-action-blue-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 md:grid-cols-2";
+const rewardSelectClassName =
+  "rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 py-3 text-sm text-[var(--ui-text-primary)] outline-none transition focus:border-[color:var(--ui-focus)] focus:ring-2 focus:ring-[var(--ui-focus-ring)]";
+
 function formatDuration(value?: number | null, unit?: "day" | "hour" | null) {
   if (!value || !unit) return "未设置有效期";
   return `${value} ${unit === "day" ? "天" : "小时"}`;
@@ -366,13 +394,13 @@ export default function RewardsPage() {
         onClose={() => setShowAddReward(false)}
         title="添加新奖励"
         width={760}
-        className="border border-slate-100 bg-gradient-to-br from-white via-white to-amber-50/30 p-0 shadow-[0_40px_120px_rgba(15,23,42,0.18)]"
+        className={`add-reward-modal ${rewardModalClassName}`}
         footer={
           <>
-            <Button onClick={() => setShowAddReward(false)} variant="secondary" className="min-w-[108px] border-slate-200 bg-white/90">
+            <Button onClick={() => setShowAddReward(false)} variant="secondary" className={rewardModalSecondaryButtonClassName}>
               取消
             </Button>
-            <Button onClick={handleAddReward} className="min-w-[140px] bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg shadow-amber-200">
+            <Button onClick={handleAddReward} className={rewardModalPrimaryButtonClassName}>
               确认添加
             </Button>
           </>
@@ -394,14 +422,14 @@ export default function RewardsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-600">选择图标</label>
+              <label className={rewardFieldLabelClassName}>选择图标</label>
               <div className="flex flex-wrap gap-2">
                 {iconChoices.map((icon) => (
                   <Button
                     key={icon}
                     onClick={() => setNewReward({ ...newReward, icon })}
-                    className={`h-11 w-11 rounded-2xl p-0 text-xl shadow-none transition ${
-                      newReward.icon === icon ? "bg-amber-100 ring-2 ring-amber-400" : "bg-white border border-slate-200 hover:bg-amber-50"
+                    className={`${rewardIconOptionBaseClassName} ${
+                      newReward.icon === icon ? rewardIconOptionActiveClassName : rewardIconOptionIdleClassName
                     }`}
                     variant="secondary"
                   >
@@ -411,7 +439,7 @@ export default function RewardsPage() {
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-600">奖励类型</label>
+              <label className={rewardFieldLabelClassName}>奖励类型</label>
               <div className="grid grid-cols-2 gap-2">
                 {rewardTypeOptions.map((item) => (
                   <button
@@ -425,12 +453,12 @@ export default function RewardsPage() {
                         validDurationUnit: item.value === "physical" ? "day" : newReward.validDurationUnit,
                       })
                     }
-                    className={`rounded-2xl border px-4 py-3 text-left transition ${
-                      newReward.type === item.value ? "border-amber-300 bg-amber-50 shadow-sm" : "border-slate-200 bg-white hover:bg-slate-50"
+                    className={`${rewardTypeOptionBaseClassName} ${
+                      newReward.type === item.value ? rewardAddTypeOptionActiveClassName : rewardTypeOptionIdleClassName
                     }`}
                   >
-                    <div className="text-sm font-bold text-slate-900">{item.label}</div>
-                    <div className="mt-1 text-xs text-slate-500">{item.desc}</div>
+                    <div className={rewardTypeTitleClassName}>{item.label}</div>
+                    <div className={rewardTypeDescClassName}>{item.desc}</div>
                   </button>
                 ))}
               </div>
@@ -438,7 +466,7 @@ export default function RewardsPage() {
           </div>
 
           {newReward.type === "privilege" && (
-            <div className="grid gap-4 rounded-[28px] border border-amber-100 bg-amber-50/70 p-4 md:grid-cols-2">
+            <div className={rewardAddPrivilegePanelClassName}>
               <Input
                 label="兑换截止日期"
                 type="date"
@@ -446,7 +474,7 @@ export default function RewardsPage() {
                 onChange={(e) => setNewReward({ ...newReward, expiresAt: e.target.value })}
               />
               <div>
-                <label className="mb-2 block text-sm text-slate-600">有效期长度</label>
+                <label className={rewardFieldLabelClassName}>有效期长度</label>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <Input
                     type="number"
@@ -457,7 +485,7 @@ export default function RewardsPage() {
                   <select
                     value={newReward.validDurationUnit}
                     onChange={(e) => setNewReward({ ...newReward, validDurationUnit: e.target.value as "day" | "hour" })}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
+                    className={rewardSelectClassName}
                   >
                     {durationOptions.map((item) => (
                       <option key={item.value} value={item.value}>
@@ -466,7 +494,7 @@ export default function RewardsPage() {
                     ))}
                   </select>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">兑换后从领取时间开始计算，孩子可在这段时间内使用该特权。</p>
+                <p className={rewardHelperTextClassName}>兑换后从领取时间开始计算，孩子可在这段时间内使用该特权。</p>
               </div>
             </div>
           )}
@@ -480,13 +508,13 @@ export default function RewardsPage() {
         onClose={() => setShowEditRewardModal(false)}
         title="编辑奖励"
         width={760}
-        className="border border-slate-100 bg-gradient-to-br from-white via-white to-sky-50/30 p-0 shadow-[0_40px_120px_rgba(15,23,42,0.18)]"
+        className={`edit-reward-modal ${rewardModalClassName}`}
         footer={
           <>
-            <Button onClick={() => setShowEditRewardModal(false)} variant="secondary" className="min-w-[108px] border-slate-200 bg-white/90">
+            <Button onClick={() => setShowEditRewardModal(false)} variant="secondary" className={rewardModalSecondaryButtonClassName}>
               取消
             </Button>
-            <Button onClick={handleUpdateReward} className="min-w-[140px] bg-gradient-to-r from-sky-500 to-blue-500 shadow-lg shadow-sky-200">
+            <Button onClick={handleUpdateReward} className={rewardModalPrimaryButtonClassName}>
               保存修改
             </Button>
           </>
@@ -515,14 +543,14 @@ export default function RewardsPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-600">选择图标</label>
+              <label className={rewardFieldLabelClassName}>选择图标</label>
               <div className="flex flex-wrap gap-2">
                 {iconChoices.map((icon) => (
                   <Button
                     key={icon}
                     onClick={() => setEditingRewardData({ ...editingRewardData, icon })}
-                    className={`h-11 w-11 rounded-2xl p-0 text-xl shadow-none transition ${
-                      editingRewardData.icon === icon ? "bg-amber-100 ring-2 ring-amber-400" : "bg-white border border-slate-200 hover:bg-amber-50"
+                    className={`${rewardIconOptionBaseClassName} ${
+                      editingRewardData.icon === icon ? rewardIconOptionActiveClassName : rewardIconOptionIdleClassName
                     }`}
                     variant="secondary"
                   >
@@ -532,7 +560,7 @@ export default function RewardsPage() {
               </div>
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-600">奖励类型</label>
+              <label className={rewardFieldLabelClassName}>奖励类型</label>
               <div className="grid grid-cols-2 gap-2">
                 {rewardTypeOptions.map((item) => (
                   <button
@@ -546,12 +574,12 @@ export default function RewardsPage() {
                         validDurationUnit: item.value === "physical" ? "day" : editingRewardData.validDurationUnit,
                       })
                     }
-                    className={`rounded-2xl border px-4 py-3 text-left transition ${
-                      editingRewardData.type === item.value ? "border-sky-300 bg-sky-50 shadow-sm" : "border-slate-200 bg-white hover:bg-slate-50"
+                    className={`${rewardTypeOptionBaseClassName} ${
+                      editingRewardData.type === item.value ? rewardEditTypeOptionActiveClassName : rewardTypeOptionIdleClassName
                     }`}
                   >
-                    <div className="text-sm font-bold text-slate-900">{item.label}</div>
-                    <div className="mt-1 text-xs text-slate-500">{item.desc}</div>
+                    <div className={rewardTypeTitleClassName}>{item.label}</div>
+                    <div className={rewardTypeDescClassName}>{item.desc}</div>
                   </button>
                 ))}
               </div>
@@ -559,7 +587,7 @@ export default function RewardsPage() {
           </div>
 
           {editingRewardData.type === "privilege" && (
-            <div className="grid gap-4 rounded-[28px] border border-sky-100 bg-sky-50/70 p-4 md:grid-cols-2">
+            <div className={rewardEditPrivilegePanelClassName}>
               <Input
                 label="兑换截止日期"
                 type="date"
@@ -567,7 +595,7 @@ export default function RewardsPage() {
                 onChange={(e) => setEditingRewardData({ ...editingRewardData, expiresAt: e.target.value })}
               />
               <div>
-                <label className="mb-2 block text-sm text-slate-600">有效期长度</label>
+                <label className={rewardFieldLabelClassName}>有效期长度</label>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <Input
                     type="number"
@@ -578,7 +606,7 @@ export default function RewardsPage() {
                   <select
                     value={editingRewardData.validDurationUnit}
                     onChange={(e) => setEditingRewardData({ ...editingRewardData, validDurationUnit: e.target.value as "day" | "hour" })}
-                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200"
+                    className={rewardSelectClassName}
                   >
                     {durationOptions.map((item) => (
                       <option key={item.value} value={item.value}>
@@ -587,7 +615,7 @@ export default function RewardsPage() {
                     ))}
                   </select>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">兑换后从领取时间开始计算，孩子可在这段时间内使用该特权。</p>
+                <p className={rewardHelperTextClassName}>兑换后从领取时间开始计算，孩子可在这段时间内使用该特权。</p>
               </div>
             </div>
           )}

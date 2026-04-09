@@ -168,15 +168,15 @@ export default function WalletPage() {
   const hasLedgerData = ledgerData.length > 0;
 
   return (
-    <div className="child-page-grid">
-      <ChildPanel className="overflow-hidden bg-[linear-gradient(135deg,rgba(255,255,255,0.94)_0%,rgba(224,242,254,0.84)_52%,rgba(236,253,245,0.86)_100%)]">
+    <div className="child-page-grid child-wallet-page">
+      <ChildPanel className="child-wallet-hero overflow-hidden">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)] lg:items-center">
           <ChildPageTitle
             icon={<Wallet size={24} />}
             title="积分钱包"
             description="看看积分从哪里来，又花到哪里去。"
           />
-          <div className="rounded-[30px] bg-white/82 p-5 text-center shadow-sm ring-1 ring-white">
+          <div className="child-wallet-points-card rounded-[30px] p-5 text-center">
             <div className="text-sm font-black text-[var(--child-text-muted)]">当前可用积分</div>
             <div className="mt-2 text-5xl font-black text-sky-700">
               🪙 {currentUser?.availablePoints || 0}
@@ -219,7 +219,7 @@ export default function WalletPage() {
             <button
               key={item.label}
               onClick={item.onClick}
-              className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+              className="child-wallet-range-button shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition"
             >
               {item.label}
             </button>
@@ -235,7 +235,7 @@ export default function WalletPage() {
               placeholder="搜索记录..."
               size="sm"
               containerClassName="w-full"
-              className="!h-11 !min-h-11 !rounded-[18px] !border-slate-200 !bg-slate-50 !text-sm !text-gray-800 !shadow-sm focus:!border-sky-400 focus:!bg-white"
+              className="!h-11 !min-h-11 !rounded-[18px] !border-[color:var(--ui-border)] !bg-[var(--ui-surface-1)] !text-sm !text-[var(--ui-text-primary)] !shadow-sm placeholder:!text-[var(--ui-text-soft)] focus:!border-[color:var(--ui-focus)] focus:!bg-[var(--ui-surface-1)]"
             />
           </div>
 
@@ -244,13 +244,13 @@ export default function WalletPage() {
               selected={ledgerStartDate}
               onChange={(date: Date | null) => setLedgerStartDate(date)}
               placeholderText="开始日期"
-              className="border-slate-200 bg-slate-50 text-gray-800"
+              className="!border-[color:var(--ui-border)] !bg-[var(--ui-surface-1)] !text-[var(--ui-text-primary)] placeholder:!text-[var(--ui-text-soft)]"
             />
             <DatePicker
               selected={ledgerEndDate}
               onChange={(date: Date | null) => setLedgerEndDate(date)}
               placeholderText="结束日期"
-              className="border-slate-200 bg-slate-50 text-gray-800"
+              className="!border-[color:var(--ui-border)] !bg-[var(--ui-surface-1)] !text-[var(--ui-text-primary)] placeholder:!text-[var(--ui-text-soft)]"
             />
           </div>
 
@@ -272,12 +272,12 @@ export default function WalletPage() {
             description={`共 ${ledgerTotal} 条记录`}
           />
           {ledgerLoading ? (
-            <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-sky-700 ring-1 ring-sky-100">
+            <div className="child-wallet-loading-chip flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold text-sky-700">
               <div className="h-3 w-3 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
               更新中
             </div>
           ) : (
-            <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-white/80 shadow-sm sm:inline-flex">
+            <div className="child-wallet-pagination-chip hidden rounded-full px-3 py-1 text-xs font-bold text-[var(--child-text-muted)] sm:inline-flex">
               第 {ledgerPage} / {totalPages || 1} 页
             </div>
           )}
@@ -389,7 +389,7 @@ export default function WalletPage() {
           onClick={() => setSelectedLedgerItem(null)}
         >
           <div
-            className="flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2rem] bg-white text-slate-800 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
+            className="child-wallet-detail-modal flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2rem] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex min-h-0 flex-1 flex-col">
@@ -400,14 +400,14 @@ export default function WalletPage() {
                 </div>
                 <button
                   onClick={() => setSelectedLedgerItem(null)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200"
+                  className="child-wallet-detail-close flex h-10 w-10 items-center justify-center rounded-full transition"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-5 hide-scrollbar">
-                <div className="space-y-4 rounded-[1.5rem] bg-slate-50 p-4">
+                <div className="child-wallet-detail-surface space-y-4 rounded-[1.5rem] p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
@@ -537,7 +537,7 @@ export default function WalletPage() {
           onClick={() => setShowTaskDetailModal(false)}
         >
           <div
-            className="flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2rem] bg-white text-slate-800 shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
+            className="child-wallet-detail-modal flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[2rem] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between gap-4 px-5 pt-5">
@@ -547,14 +547,14 @@ export default function WalletPage() {
               </div>
               <button
                 onClick={() => setShowTaskDetailModal(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200"
+                className="child-wallet-detail-close flex h-10 w-10 items-center justify-center rounded-full transition"
               >
                 <X size={18} />
               </button>
             </div>
 
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 pb-5 pr-1 hide-scrollbar">
-              <div className="rounded-[1.5rem] bg-slate-50 p-4">
+              <div className="child-wallet-detail-surface rounded-[1.5rem] p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
