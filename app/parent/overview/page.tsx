@@ -24,6 +24,8 @@ import PointsFlow from "./components/PointsFlow";
 import HabitTracking from "./components/HabitTracking";
 import ComparisonChart from "./components/ComparisonChart";
 
+type OverviewTone = "info" | "warning" | "accent" | "success" | "danger" | "orange" | "neutral";
+
 const pct = (value: number, total: number): number => {
   if (total <= 0) return 0;
   return Math.round((value / total) * 100);
@@ -58,28 +60,28 @@ export default function OverviewPage() {
           label: "家庭总任务",
           value: data.pulse.totalTasks,
           icon: ListChecks,
-          color: "text-blue-600 bg-blue-100",
+          tone: "info" as OverviewTone,
           href: "/parent/tasks",
         },
         {
           label: "待审核",
           value: data.pulse.submitted,
           icon: Clock,
-          color: "text-amber-600 bg-amber-100",
+          tone: "warning" as OverviewTone,
           href: "/parent/audit",
         },
         {
           label: "待核销",
           value: data.pulse.pendingOrders,
           icon: Star,
-          color: "text-indigo-600 bg-indigo-100",
+          tone: "accent" as OverviewTone,
           href: "/parent/orders?status=pending",
         },
         {
           label: "可用总积分",
           value: data.pulse.totalAvailablePoints,
           icon: Sparkles,
-          color: "text-emerald-600 bg-emerald-100",
+          tone: "success" as OverviewTone,
         },
       ]
     : [];
@@ -139,12 +141,58 @@ export default function OverviewPage() {
       ]
     : [];
 
+  const statusDistribution = data
+    ? [
+        { label: "进行中", value: data.pulse.pending, tone: "info" as OverviewTone },
+        { label: "待审核", value: data.pulse.submitted, tone: "warning" as OverviewTone },
+        { label: "已完成", value: data.pulse.approved, tone: "success" as OverviewTone },
+        { label: "已驳回", value: data.pulse.rejected, tone: "danger" as OverviewTone },
+      ]
+    : [];
+
+  const typeDistribution = data
+    ? [
+        { label: "日常任务", value: data.pulse.dailyCount, tone: "success" as OverviewTone },
+        { label: "进阶任务", value: data.pulse.advancedCount, tone: "accent" as OverviewTone },
+        { label: "挑战任务", value: data.pulse.challengeCount, tone: "orange" as OverviewTone },
+      ]
+    : [];
+
+  const resultCards = data
+    ? [
+        {
+          label: "按时完成",
+          value: data.pulse.onTimeCount,
+          icon: CheckCircle,
+          tone: "success" as OverviewTone,
+        },
+        {
+          label: "逾期完成",
+          value: data.pulse.overdueCount,
+          icon: XCircle,
+          tone: "danger" as OverviewTone,
+        },
+        {
+          label: "待审核",
+          value: data.pulse.submitted,
+          icon: Clock,
+          tone: "warning" as OverviewTone,
+        },
+        {
+          label: "已完成",
+          value: data.pulse.approved,
+          icon: Trophy,
+          tone: "info" as OverviewTone,
+        },
+      ]
+    : [];
+
   // 空状态
   if (!loading && !data && !error) {
     return (
       <div className="card-parent text-center py-12">
-        <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <ListChecks size={32} className="text-slate-400" />
+        <div className="overview-icon-badge overview-icon-badge--neutral w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <ListChecks size={32} />
         </div>
         <h3 className="text-lg font-semibold text-slate-800 mb-2">暂无数据</h3>
         <p className="text-slate-500 mb-4">创建任务后即可查看概览数据</p>
@@ -193,7 +241,12 @@ export default function OverviewPage() {
       </div>
 
       {/* 错误提示 */}
-      {error && <div className="p-4 bg-red-50/80 border border-red-100 rounded-2xl text-red-700 text-sm">{error}</div>}
+      {error && (
+        <div className="overview-alert overview-alert--danger p-4 rounded-2xl text-sm flex items-start gap-3">
+          <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+          <p>{error}</p>
+        </div>
+      )}
 
       {/* 行动建议 */}
       <div className="card-parent">
@@ -210,7 +263,7 @@ export default function OverviewPage() {
               <div
                 key={index}
                 className={`overview-suggestion-item p-3 rounded-2xl flex items-start gap-3 ${
-                  tip.href ? "cursor-pointer hover:bg-slate-50 transition-colors" : ""
+                  tip.href ? "cursor-pointer" : ""
                 }`}
                 onClick={() => tip.href && router.push(tip.href)}
               >
@@ -245,7 +298,7 @@ export default function OverviewPage() {
                 onClick={() => item.href && router.push(item.href)}
               >
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${item.color}`}
+                  className={`overview-icon-badge overview-icon-badge--${item.tone} w-10 h-10 rounded-xl flex items-center justify-center mb-3`}
                 >
                   <item.icon size={20} />
                 </div>
@@ -335,22 +388,19 @@ export default function OverviewPage() {
               <div className="card">
                 <h3 className="text-lg font-bold text-slate-800 mb-6">任务状态分布</h3>
                 <div className="space-y-4">
-                  {[
-                    { label: "进行中", value: data.pulse.pending, color: "bg-blue-500", text: "text-blue-600" },
-                    { label: "待审核", value: data.pulse.submitted, color: "bg-yellow-500", text: "text-yellow-600" },
-                    { label: "已完成", value: data.pulse.approved, color: "bg-green-500", text: "text-green-600" },
-                    { label: "已驳回", value: data.pulse.rejected, color: "bg-red-500", text: "text-red-600" },
-                  ].map((item) => (
+                  {statusDistribution.map((item) => (
                     <div key={item.label} className="flex items-center gap-4">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                      <div className={`overview-accent-dot overview-accent-dot--${item.tone} w-3 h-3 rounded-full`} />
                       <span className="text-sm text-slate-600 w-16">{item.label}</span>
-                      <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="overview-track flex-1 h-4 rounded-full overflow-hidden">
                         <div
-                          className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                          className={`overview-track-fill overview-track-fill--${item.tone} h-full rounded-full transition-all duration-500`}
                           style={{ width: `${pct(item.value, data.pulse.totalTasks)}%` }}
                         />
                       </div>
-                      <span className={`font-bold w-12 text-right ${item.text}`}>{item.value}</span>
+                      <span className={`overview-accent-text overview-accent-text--${item.tone} font-bold w-12 text-right`}>
+                        {item.value}
+                      </span>
                       <span className="text-xs text-slate-400 w-10 text-right">
                         {pct(item.value, data.pulse.totalTasks)}%
                       </span>
@@ -363,21 +413,19 @@ export default function OverviewPage() {
               <div className="card">
                 <h3 className="text-lg font-bold text-slate-800 mb-6">任务类型分布</h3>
                 <div className="space-y-4">
-                  {[
-                    { label: "日常任务", value: data.pulse.dailyCount, color: "bg-green-500", text: "text-green-600" },
-                    { label: "进阶任务", value: data.pulse.advancedCount, color: "bg-purple-500", text: "text-purple-600" },
-                    { label: "挑战任务", value: data.pulse.challengeCount, color: "bg-orange-500", text: "text-orange-600" },
-                  ].map((item) => (
+                  {typeDistribution.map((item) => (
                     <div key={item.label} className="flex items-center gap-4">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                      <div className={`overview-accent-dot overview-accent-dot--${item.tone} w-3 h-3 rounded-full`} />
                       <span className="text-sm text-slate-600 w-16">{item.label}</span>
-                      <div className="flex-1 h-4 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="overview-track flex-1 h-4 rounded-full overflow-hidden">
                         <div
-                          className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                          className={`overview-track-fill overview-track-fill--${item.tone} h-full rounded-full transition-all duration-500`}
                           style={{ width: `${pct(item.value, data.pulse.totalTasks)}%` }}
                         />
                       </div>
-                      <span className={`font-bold w-12 text-right ${item.text}`}>{item.value}</span>
+                      <span className={`overview-accent-text overview-accent-text--${item.tone} font-bold w-12 text-right`}>
+                        {item.value}
+                      </span>
                       <span className="text-xs text-slate-400 w-10 text-right">
                         {pct(item.value, data.pulse.totalTasks)}%
                       </span>
@@ -407,7 +455,7 @@ export default function OverviewPage() {
               return (
                 <div key={d.dateKey} className={`${minWidth} flex flex-col items-center gap-2 shrink-0`}>
                   <span className="text-xs text-slate-400">{d.approved}</span>
-                  <div className="w-full bg-blue-100 rounded-xl overflow-hidden h-24 flex items-end">
+                  <div className="overview-trend-track w-full rounded-xl overflow-hidden h-24 flex items-end">
                     <div
                       className="w-full bg-linear-to-t from-blue-500 to-indigo-400 rounded-xl transition-all duration-500"
                       style={{ height: `${heightPct}%` }}
@@ -445,7 +493,7 @@ export default function OverviewPage() {
               {data.childPanels.map((child) => (
                 <div
                   key={child.id}
-                  className="overview-support-surface p-3 rounded-2xl cursor-pointer transition-colors"
+                  className="overview-soft-surface p-3 rounded-2xl cursor-pointer transition-colors"
                   onClick={() => router.push(`/parent/tasks?childId=${child.id}`)}
                 >
                   <div className="flex items-center justify-between">
@@ -508,34 +556,15 @@ export default function OverviewPage() {
             </div>
           ) : data ? (
             <div className="grid grid-cols-2 gap-3">
-              <div className="overview-status-card overview-status-card--success p-3 rounded-xl">
-                <div className="overview-status-card__label flex items-center gap-2 mb-1">
-                  <CheckCircle size={16} />
-                  <span className="text-xs font-medium">按时完成</span>
+              {resultCards.map((item) => (
+                <div key={item.label} className={`overview-status-card overview-status-card--${item.tone} p-3 rounded-xl`}>
+                  <div className="overview-status-card__label flex items-center gap-2 mb-1">
+                    <item.icon size={16} />
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </div>
+                  <p className="overview-status-card__value text-xl font-bold">{item.value}</p>
                 </div>
-                <p className="overview-status-card__value text-xl font-bold">{data.pulse.onTimeCount}</p>
-              </div>
-              <div className="overview-status-card overview-status-card--danger p-3 rounded-xl">
-                <div className="overview-status-card__label flex items-center gap-2 mb-1">
-                  <XCircle size={16} />
-                  <span className="text-xs font-medium">逾期完成</span>
-                </div>
-                <p className="overview-status-card__value text-xl font-bold">{data.pulse.overdueCount}</p>
-              </div>
-              <div className="overview-status-card overview-status-card--warning p-3 rounded-xl">
-                <div className="overview-status-card__label flex items-center gap-2 mb-1">
-                  <Clock size={16} />
-                  <span className="text-xs font-medium">待审核</span>
-                </div>
-                <p className="overview-status-card__value text-xl font-bold">{data.pulse.submitted}</p>
-              </div>
-              <div className="overview-status-card overview-status-card--info p-3 rounded-xl">
-                <div className="overview-status-card__label flex items-center gap-2 mb-1">
-                  <Trophy size={16} />
-                  <span className="text-xs font-medium">已完成</span>
-                </div>
-                <p className="overview-status-card__value text-xl font-bold">{data.pulse.approved}</p>
-              </div>
+              ))}
             </div>
           ) : null}
         </div>

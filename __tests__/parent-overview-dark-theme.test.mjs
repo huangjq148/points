@@ -218,6 +218,16 @@ async function expectReadableStatusBadge(locator, label) {
   );
 }
 
+async function expectClassContains(locator, expectedClassName, label) {
+  await locator.waitFor({ state: 'visible' });
+  const className = await locator.evaluate((element) => element.className);
+  assert.match(
+    className,
+    new RegExp(`\\b${expectedClassName}\\b`),
+    `${label} should use ${expectedClassName}, got ${className}`,
+  );
+}
+
 function getSectionByHeading(page, heading) {
   return page
     .getByRole('heading', { name: heading })
@@ -435,12 +445,31 @@ test('parent overview result cards and child status chips stay dark in dark them
     await page.getByRole('heading', { name: '关键结果看板' }).waitFor({ state: 'visible' });
     await page.getByText(childUsername).waitFor({ state: 'visible' });
     await page.getByRole('heading', { name: '行动建议' }).waitFor({ state: 'visible' });
+    await page.getByRole('heading', { name: '任务状态分布' }).waitFor({ state: 'visible' });
+    await page.getByRole('heading', { name: '完成趋势' }).waitFor({ state: 'visible' });
 
     const suggestionBoard = getSectionByHeading(page, '行动建议');
     const suggestionRow = suggestionBoard.locator(
       'xpath=.//p[contains(normalize-space(), "先处理 1 条待审核任务")]/ancestor::div[1]',
     );
     await expectDarkSurface(suggestionRow, 'Overview suggestion row');
+
+    const totalTasksCard = page.getByText('家庭总任务', { exact: true }).locator('xpath=ancestor::div[contains(@class, "card")][1]');
+    const totalTasksBadge = totalTasksCard.locator('xpath=.//div[contains(@class, "rounded-xl")][1]');
+    await expectClassContains(totalTasksBadge, 'overview-icon-badge', 'Core metric icon badge');
+    await expectDarkSurface(totalTasksBadge, 'Core metric icon badge');
+
+    const statusDistribution = getSectionByHeading(page, '任务状态分布');
+    const distributionTrack = statusDistribution.locator('xpath=.//span[normalize-space()="进行中"]/following-sibling::div[1]');
+    await expectClassContains(distributionTrack, 'overview-track', 'Distribution rail');
+    await expectDarkSurface(distributionTrack, 'Distribution rail');
+
+    const trendCard = page
+      .getByRole('heading', { name: '完成趋势' })
+      .locator('xpath=ancestor::div[contains(@class, "card")][1]');
+    const trendTrack = trendCard.locator('.overview-trend-track').first();
+    await expectClassContains(trendTrack, 'overview-trend-track', 'Trend track');
+    await expectDarkSurface(trendTrack, 'Trend track');
 
     const resultBoard = getSectionByHeading(page, '关键结果看板');
     const resultCards = [
