@@ -4111,6 +4111,134 @@ body.child-theme-dark {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+.overview-page .overview-suggestion-item,
+.overview-page .overview-support-surface,
+.overview-page .overview-status-card,
+.overview-page .overview-status-chip,
+.overview-page .overview-suggestion-index {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.overview-page .overview-suggestion-item {
+  border: 1px solid rgb(241 245 249);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.overview-page .overview-suggestion-item:hover {
+  background-color: rgb(248 250 252);
+  border-color: rgb(226 232 240);
+}
+
+.overview-page .overview-suggestion-index {
+  background-color: rgb(219 234 254);
+  color: rgb(29 78 216);
+}
+
+.overview-page .overview-support-surface {
+  border: 1px solid rgb(241 245 249);
+  background-color: rgb(248 250 252);
+}
+
+.overview-page .overview-support-surface:hover {
+  background-color: rgb(241 245 249);
+  border-color: rgb(226 232 240);
+}
+
+.overview-page .overview-status-chip {
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.overview-page .overview-status-chip--pending {
+  background-color: rgb(255 237 213);
+  border-color: rgb(254 215 170);
+  color: rgb(194 65 12);
+}
+
+.overview-page .overview-status-chip--pending:hover {
+  background-color: rgb(254 215 170);
+}
+
+.overview-page .overview-status-chip--submitted {
+  background-color: rgb(219 234 254);
+  border-color: rgb(191 219 254);
+  color: rgb(29 78 216);
+}
+
+.overview-page .overview-status-chip--submitted:hover {
+  background-color: rgb(191 219 254);
+}
+
+.overview-page .overview-status-chip--pending-order {
+  background-color: rgb(224 231 255);
+  border-color: rgb(199 210 254);
+  color: rgb(67 56 202);
+}
+
+.overview-page .overview-status-chip--pending-order:hover {
+  background-color: rgb(199 210 254);
+}
+
+.overview-page .overview-status-card {
+  border: 1px solid transparent;
+}
+
+.overview-page .overview-status-card--success {
+  background-color: rgb(240 253 244);
+  border-color: rgb(187 247 208);
+}
+
+.overview-page .overview-status-card--success .overview-status-card__label {
+  color: rgb(21 128 61);
+}
+
+.overview-page .overview-status-card--success .overview-status-card__value {
+  color: rgb(22 101 52);
+}
+
+.overview-page .overview-status-card--danger {
+  background-color: rgb(254 242 242);
+  border-color: rgb(254 202 202);
+}
+
+.overview-page .overview-status-card--danger .overview-status-card__label {
+  color: rgb(185 28 28);
+}
+
+.overview-page .overview-status-card--danger .overview-status-card__value {
+  color: rgb(153 27 27);
+}
+
+.overview-page .overview-status-card--warning {
+  background-color: rgb(254 252 232);
+  border-color: rgb(254 240 138);
+}
+
+.overview-page .overview-status-card--warning .overview-status-card__label {
+  color: rgb(161 98 7);
+}
+
+.overview-page .overview-status-card--warning .overview-status-card__value {
+  color: rgb(133 77 14);
+}
+
+.overview-page .overview-status-card--info {
+  background-color: rgb(239 246 255);
+  border-color: rgb(191 219 254);
+}
+
+.overview-page .overview-status-card--info .overview-status-card__label {
+  color: rgb(29 78 216);
+}
+
+.overview-page .overview-status-card--info .overview-status-card__value {
+  color: rgb(30 64 175);
+}
+
 /* Parent Dark Theme - comprehensive overrides */
 .parent-theme-dark {
   color: #e2e8f0;
@@ -4441,6 +4569,130 @@ body.child-theme-dark {
   box-shadow:
     0 4px 12px rgba(2, 6, 23, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.parent-theme-dark .overview-page .overview-suggestion-item {
+  background-color: rgba(15, 23, 42, 0.86);
+  border-color: rgba(71, 85, 105, 0.68);
+  box-shadow:
+    0 12px 24px rgba(2, 6, 23, 0.22),
+    inset 0 1px 0 rgba(148, 163, 184, 0.06);
+}
+
+.parent-theme-dark .overview-page .overview-suggestion-item:hover {
+  background-color: rgba(30, 41, 59, 0.92);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.parent-theme-dark .overview-page .overview-suggestion-index {
+  background-color: rgba(30, 64, 175, 0.34);
+  color: rgb(191 219 254);
+  box-shadow: inset 0 1px 0 rgba(191, 219, 254, 0.1);
+}
+
+.parent-theme-dark .overview-page .overview-support-surface {
+  background-color: rgba(30, 41, 59, 0.82);
+  border-color: rgba(71, 85, 105, 0.72);
+  box-shadow:
+    0 12px 26px rgba(2, 6, 23, 0.2),
+    inset 0 1px 0 rgba(148, 163, 184, 0.05);
+}
+
+.parent-theme-dark .overview-page .overview-support-surface:hover {
+  background-color: rgba(30, 41, 59, 0.9);
+  border-color: rgba(96, 165, 250, 0.24);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip {
+  box-shadow: inset 0 1px 0 rgba(248, 250, 252, 0.04);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip--pending {
+  background-color: rgba(124, 45, 18, 0.6);
+  border-color: rgba(251, 146, 60, 0.34);
+  color: rgb(254 215 170);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip--pending:hover {
+  background-color: rgba(154, 52, 18, 0.72);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip--submitted {
+  background-color: rgba(30, 64, 175, 0.5);
+  border-color: rgba(96, 165, 250, 0.34);
+  color: rgb(191 219 254);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip--submitted:hover {
+  background-color: rgba(30, 64, 175, 0.64);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip--pending-order {
+  background-color: rgba(67, 56, 202, 0.5);
+  border-color: rgba(129, 140, 248, 0.34);
+  color: rgb(224 231 255);
+}
+
+.parent-theme-dark .overview-page .overview-status-chip--pending-order:hover {
+  background-color: rgba(67, 56, 202, 0.64);
+}
+
+.parent-theme-dark .overview-page .overview-status-card {
+  box-shadow:
+    0 14px 26px rgba(2, 6, 23, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.04);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--success {
+  background-color: rgba(6, 95, 70, 0.44);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--success .overview-status-card__label {
+  color: rgb(167 243 208);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--success .overview-status-card__value {
+  color: rgb(220 252 231);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--danger {
+  background-color: rgba(127, 29, 29, 0.48);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--danger .overview-status-card__label {
+  color: rgb(254 202 202);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--danger .overview-status-card__value {
+  color: rgb(254 226 226);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--warning {
+  background-color: rgba(120, 53, 15, 0.52);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--warning .overview-status-card__label {
+  color: rgb(253 230 138);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--warning .overview-status-card__value {
+  color: rgb(254 243 199);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--info {
+  background-color: rgba(30, 64, 175, 0.46);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--info .overview-status-card__label {
+  color: rgb(191 219 254);
+}
+
+.parent-theme-dark .overview-page .overview-status-card--info .overview-status-card__value {
+  color: rgb(219 234 254);
 }
 
 .parent-theme-dark .sidebar-toggle-btn {

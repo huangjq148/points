@@ -209,12 +209,12 @@ export default function OverviewPage() {
             {actions.slice(0, 3).map((tip, index) => (
               <div
                 key={index}
-                className={`p-3 rounded-2xl border border-slate-100 bg-white/90 flex items-start gap-3 ${
+                className={`overview-suggestion-item p-3 rounded-2xl flex items-start gap-3 ${
                   tip.href ? "cursor-pointer hover:bg-slate-50 transition-colors" : ""
                 }`}
                 onClick={() => tip.href && router.push(tip.href)}
               >
-                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 text-sm font-bold flex items-center justify-center shrink-0">
+                <div className="overview-suggestion-index w-7 h-7 rounded-full text-sm font-bold flex items-center justify-center shrink-0">
                   {index + 1}
                 </div>
                 <p className="text-sm text-slate-700 leading-6">{tip.text}</p>
@@ -445,7 +445,7 @@ export default function OverviewPage() {
               {data.childPanels.map((child) => (
                 <div
                   key={child.id}
-                  className="p-3 rounded-2xl bg-slate-50 border border-slate-100 cursor-pointer hover:bg-slate-100 transition-colors"
+                  className="overview-support-surface p-3 rounded-2xl cursor-pointer transition-colors"
                   onClick={() => router.push(`/parent/tasks?childId=${child.id}`)}
                 >
                   <div className="flex items-center justify-between">
@@ -460,7 +460,7 @@ export default function OverviewPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                     <div
-                      className="bg-orange-100 text-orange-700 rounded-xl px-2 py-1 text-center cursor-pointer hover:bg-orange-200 transition-colors"
+                      className="overview-status-chip overview-status-chip--pending rounded-xl px-2 py-1 text-center cursor-pointer transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/parent/tasks?status=uncompleted&childId=${child.id}`);
@@ -469,7 +469,7 @@ export default function OverviewPage() {
                       待完成 {child.pendingCount}
                     </div>
                     <div
-                      className="bg-blue-100 text-blue-700 rounded-xl px-2 py-1 text-center cursor-pointer hover:bg-blue-200 transition-colors"
+                      className="overview-status-chip overview-status-chip--submitted rounded-xl px-2 py-1 text-center cursor-pointer transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/parent/audit?childId=${child.id}`);
@@ -478,7 +478,7 @@ export default function OverviewPage() {
                       待审核 {child.submittedCount}
                     </div>
                     <div
-                      className="bg-indigo-100 text-indigo-700 rounded-xl px-2 py-1 text-center cursor-pointer hover:bg-indigo-200 transition-colors"
+                      className="overview-status-chip overview-status-chip--pending-order rounded-xl px-2 py-1 text-center cursor-pointer transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/parent/orders?status=pending&childId=${child.id}`);
@@ -508,33 +508,33 @@ export default function OverviewPage() {
             </div>
           ) : data ? (
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-xl bg-green-50">
-                <div className="flex items-center gap-2 text-green-700 mb-1">
+              <div className="overview-status-card overview-status-card--success p-3 rounded-xl">
+                <div className="overview-status-card__label flex items-center gap-2 mb-1">
                   <CheckCircle size={16} />
                   <span className="text-xs font-medium">按时完成</span>
                 </div>
-                <p className="text-xl font-bold text-green-800">{data.pulse.onTimeCount}</p>
+                <p className="overview-status-card__value text-xl font-bold">{data.pulse.onTimeCount}</p>
               </div>
-              <div className="p-3 rounded-xl bg-red-50">
-                <div className="flex items-center gap-2 text-red-700 mb-1">
+              <div className="overview-status-card overview-status-card--danger p-3 rounded-xl">
+                <div className="overview-status-card__label flex items-center gap-2 mb-1">
                   <XCircle size={16} />
                   <span className="text-xs font-medium">逾期完成</span>
                 </div>
-                <p className="text-xl font-bold text-red-800">{data.pulse.overdueCount}</p>
+                <p className="overview-status-card__value text-xl font-bold">{data.pulse.overdueCount}</p>
               </div>
-              <div className="p-3 rounded-xl bg-yellow-50">
-                <div className="flex items-center gap-2 text-yellow-700 mb-1">
+              <div className="overview-status-card overview-status-card--warning p-3 rounded-xl">
+                <div className="overview-status-card__label flex items-center gap-2 mb-1">
                   <Clock size={16} />
                   <span className="text-xs font-medium">待审核</span>
                 </div>
-                <p className="text-xl font-bold text-yellow-800">{data.pulse.submitted}</p>
+                <p className="overview-status-card__value text-xl font-bold">{data.pulse.submitted}</p>
               </div>
-              <div className="p-3 rounded-xl bg-blue-50">
-                <div className="flex items-center gap-2 text-blue-700 mb-1">
+              <div className="overview-status-card overview-status-card--info p-3 rounded-xl">
+                <div className="overview-status-card__label flex items-center gap-2 mb-1">
                   <Trophy size={16} />
                   <span className="text-xs font-medium">已完成</span>
                 </div>
-                <p className="text-xl font-bold text-blue-800">{data.pulse.approved}</p>
+                <p className="overview-status-card__value text-xl font-bold">{data.pulse.approved}</p>
               </div>
             </div>
           ) : null}
