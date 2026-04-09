@@ -452,13 +452,13 @@ export default function ChildHome() {
           title='特权详情'
           isOpen={!!showPrivilegeDetail}
           onClose={() => setShowPrivilegeDetail(null)}
-          width={520}
-          className='!bg-white !backdrop-blur-xl !border-gray-200'
+          width={480}
+          className='!bg-white !backdrop-blur-xl !border-gray-200 !rounded-[1.75rem]'
         >
           {showPrivilegeDetail && (
-            <div className='space-y-4'>
-              <div className='flex items-center gap-4 rounded-[24px] bg-[linear-gradient(135deg,rgba(255,255,255,0.95)_0%,rgba(240,249,255,0.92)_100%)] p-4 ring-1 ring-sky-100'>
-                <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-white text-[30px] shadow-sm ring-1 ring-white'>
+            <div className='space-y-3'>
+              <div className='flex items-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,rgba(255,255,255,0.95)_0%,rgba(240,249,255,0.92)_100%)] px-4 py-3 ring-1 ring-sky-100'>
+                <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-white text-[26px] shadow-sm ring-1 ring-white'>
                   {showPrivilegeDetail.rewardIcon || '🎁'}
                 </div>
                 <div className='min-w-0 flex-1'>
@@ -467,18 +467,18 @@ export default function ChildHome() {
                       {showPrivilegeDetail.status === 'verified' ? '已生效' : '待生效'}
                     </ChildStatusPill>
                   </div>
-                  <h3 className='mt-2 truncate text-xl font-black tracking-tight text-[var(--child-text)]'>
+                  <h3 className='mt-1 truncate text-lg font-black tracking-tight text-[var(--child-text)]'>
                     {showPrivilegeDetail.rewardName}
                   </h3>
                 </div>
               </div>
 
-              <div className='grid gap-3 sm:grid-cols-2'>
-                <div className='rounded-[20px] bg-slate-50 p-4 ring-1 ring-slate-100'>
-                  <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+              <div className='grid gap-2.5 sm:grid-cols-2'>
+                <div className='rounded-[18px] bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100'>
+                  <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
                     生效时间
                   </div>
-                  <div className='mt-1 text-sm font-bold text-[var(--child-text)]'>
+                  <div className='mt-0.5 text-[13px] font-bold text-[var(--child-text)]'>
                     {showPrivilegeDetail.privilegeMeta?.startsAt
                       ? formatPrivilegeTime(showPrivilegeDetail.privilegeMeta.startsAt)
                       : showPrivilegeDetail.verifiedAt
@@ -486,11 +486,11 @@ export default function ChildHome() {
                         : '待家长核销'}
                   </div>
                 </div>
-                <div className='rounded-[20px] bg-slate-50 p-4 ring-1 ring-slate-100'>
-                  <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+                <div className='rounded-[18px] bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100'>
+                  <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
                     截止时间
                   </div>
-                  <div className='mt-1 text-sm font-bold text-[var(--child-text)]'>
+                  <div className='mt-0.5 text-[13px] font-bold text-[var(--child-text)]'>
                     {showPrivilegeDetail.privilegeMeta?.endsAt
                       ? formatPrivilegeTime(showPrivilegeDetail.privilegeMeta.endsAt)
                       : '长期有效'}
@@ -498,16 +498,16 @@ export default function ChildHome() {
                 </div>
               </div>
 
-              <div className='rounded-[20px] bg-white/80 p-4 ring-1 ring-[var(--child-border)]'>
-                <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+              <div className='rounded-[18px] bg-white/80 px-3 py-2.5 ring-1 ring-[var(--child-border)]'>
+                <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
                   核销码
                 </div>
-                <div className='mt-2 font-mono text-xl font-black tracking-[0.22em] text-[var(--child-text)]'>
+                <div className='mt-1 font-mono text-lg font-black tracking-[0.18em] text-[var(--child-text)]'>
                   {showPrivilegeDetail.verificationCode}
                 </div>
               </div>
 
-              <div className='rounded-[20px] bg-[linear-gradient(135deg,rgba(14,165,164,0.08)_0%,rgba(59,130,246,0.08)_100%)] p-4 text-sm font-semibold text-[var(--child-text-muted)] ring-1 ring-sky-100'>
+              <div className='rounded-[18px] bg-[linear-gradient(135deg,rgba(14,165,164,0.08)_0%,rgba(59,130,246,0.08)_100%)] px-3 py-2.5 text-xs font-semibold leading-5 text-[var(--child-text-muted)] ring-1 ring-sky-100'>
                 {showPrivilegeDetail.status === 'verified'
                   ? '家长已经确认，这个特权现在可以使用。'
                   : '还在等待家长核销，核销后才会开始生效。'}
