@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useRef,
   Suspense,
+  useMemo,
 } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
@@ -92,14 +93,6 @@ function TaskPage() {
   const [pendingOpenTaskId, setPendingOpenTaskId] = useState<string | null>(
     initialTaskId,
   );
-  const [hasInitialLoaded, setHasInitialLoaded] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState({
-    searchName: '',
-    statusFilter: '',
-    typeFilter: '',
-    startDate: null as Date | null,
-    endDate: null as Date | null,
-  });
 
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -111,8 +104,22 @@ function TaskPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const currentFilters = useMemo(
+    () => ({
+      searchName,
+      statusFilter,
+      typeFilter,
+      startDate,
+      endDate,
+    }),
+    [endDate, searchName, startDate, statusFilter, typeFilter],
+  );
+
   const fetchTasks = useCallback(
-    async (pageNum: number = 1, filters = appliedFilters) => {
+    async (
+      pageNum: number = 1,
+      filters = currentFilters,
+    ) => {
       if (!currentUser?.token) return;
 
       setLoading(true);
@@ -149,7 +156,7 @@ function TaskPage() {
         setLoading(false);
       }
     },
-    [currentUser?.token, appliedFilters],
+    [currentUser?.token, currentFilters, limit],
   );
 
   // 处理URL查询参数（从首页跳转或探索日志进入）
@@ -198,30 +205,22 @@ function TaskPage() {
       setEndDate(sunday);
     }
 
-    const nextFilters = {
-      searchName: searchNameParam,
-      statusFilter: normalizedStatusFromQuery || '',
-      typeFilter: type || '',
-      startDate: startDateParam
-        ? dayjs(startDateParam).startOf('day').toDate()
-        : null,
-      endDate: endDateParam ? dayjs(endDateParam).endOf('day').toDate() : null,
-    };
-    setAppliedFilters(nextFilters);
     setInitialFilterApplied(true);
   }, [
     searchParams,
     initialFilterApplied,
-    fetchTasks,
     normalizedStatusFromQuery,
   ]);
 
   useEffect(() => {
-    if (!currentUser?.token || !initialFilterApplied || hasInitialLoaded)
-      return;
-    void fetchTasks(1);
-    setHasInitialLoaded(true);
-  }, [currentUser?.token, fetchTasks, hasInitialLoaded, initialFilterApplied]);
+    if (!currentUser?.token || !initialFilterApplied) return;
+
+    const timer = window.setTimeout(() => {
+      void fetchTasks(1, currentFilters);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [currentFilters, currentUser?.token, fetchTasks, initialFilterApplied]);
 
   useEffect(() => {
     if (!pendingOpenTaskId || tasks.length === 0) return;
@@ -232,37 +231,8 @@ function TaskPage() {
     }
   }, [pendingOpenTaskId, tasks]);
 
-  const handleSearch = () => {
-    const nextFilters = {
-      searchName,
-      statusFilter,
-      typeFilter,
-      startDate,
-      endDate,
-    };
-    setAppliedFilters(nextFilters);
-    fetchTasks(1, nextFilters);
-  };
-
-  const handleReset = () => {
-    setSearchName('');
-    setStatusFilter('');
-    setTypeFilter('');
-    setStartDate(null);
-    setEndDate(null);
-    const nextFilters = {
-      searchName: '',
-      statusFilter: '',
-      typeFilter: '',
-      startDate: null,
-      endDate: null,
-    };
-    setAppliedFilters(nextFilters);
-    fetchTasks(1, nextFilters);
-  };
-
   const handlePageChange = (newPage: number) => {
-    fetchTasks(newPage);
+    fetchTasks(newPage, currentFilters);
   };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -563,21 +533,6 @@ function TaskPage() {
               onEndDateChange={setEndDate}
               className='xl:col-span-1'
             />
-          </div>
-          <div className='mt-4 flex gap-2'>
-            <Button
-              onClick={handleSearch}
-              className='min-w-[120px] rounded-full'
-            >
-              搜索
-            </Button>
-            <Button
-              onClick={handleReset}
-              variant='secondary'
-              className='rounded-full'
-            >
-              重置
-            </Button>
           </div>
         </ChildPanel>
 

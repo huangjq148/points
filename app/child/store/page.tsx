@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import { Gift, History } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { Input, Pagination } from "@/components/ui";
+import { Input, Pagination, TabFilter } from "@/components/ui";
 import ConfirmModal from "@/components/ConfirmModal";
 import confetti from "canvas-confetti";
 import { useToast } from "@/components/ui/Toast";
@@ -207,6 +207,18 @@ export default function StorePage() {
     return "已取消";
   };
 
+  const categoryTabs = [
+    { key: "all", label: "全部" },
+    { key: "sold-out", label: `已售罄${soldOutCount > 0 ? ` (${soldOutCount})` : ""}` },
+    { key: "in-stock", label: `有库存${inStockCount > 0 ? ` (${inStockCount})` : ""}` },
+  ] as const;
+
+  const sortTabs = [
+    { key: "points-asc", label: "积分升序" },
+    { key: "points-desc", label: "积分降序" },
+    { key: "stock-desc", label: "库存最多" },
+  ] as const;
+
   return (
     <div className="child-page-grid">
       <ConfirmModal
@@ -232,73 +244,37 @@ export default function StorePage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-center">
-          <Input
-            allowClear
-            isSearch
-            value={rewardSearchQuery}
-            onChange={(e) => setRewardSearchQuery(e.target.value)}
-            placeholder="搜索奖励名字..."
-            size="sm"
-            containerClassName="w-full"
-            className="!h-11 !min-h-11 !rounded-[18px]"
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            {[
-              { key: "all", label: "全部" },
-              { key: "sold-out", label: "已售罄", count: soldOutCount },
-              { key: "in-stock", label: "有库存", count: inStockCount },
-            ].map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => setActiveCategory(item.key as typeof activeCategory)}
-                className={`rounded-full px-4 py-2 text-sm font-black transition ${
-                  activeCategory === item.key
-                    ? "bg-sky-500 text-white shadow-sm"
-                    : "bg-white/85 text-slate-600 ring-1 ring-slate-200/70"
-                }`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {item.label}
-                  {"count" in item && typeof item.count === "number" && item.count > 0 && (
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
-                        activeCategory === item.key ? "bg-white/20 text-current" : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {item.count}
-                    </span>
-                  )}
-                </span>
-              </button>
-            ))}
+        <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,280px)_max-content_max-content] xl:items-end">
+          <div className="min-w-0">
+            <Input
+              allowClear
+              isSearch
+              value={rewardSearchQuery}
+              onChange={(e) => setRewardSearchQuery(e.target.value)}
+              placeholder="搜索奖励名字..."
+              size="sm"
+              containerClassName="w-full"
+              className="!h-11 !min-h-11 !rounded-[18px]"
+            />
           </div>
-        </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {[
-            { key: "points-asc", label: "积分从低到高" },
-            { key: "points-desc", label: "积分从高到低" },
-            { key: "stock-desc", label: "库存最多" },
-          ].map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => setSortKey(item.key as typeof sortKey)}
-              className={`rounded-full px-4 py-2 text-sm font-black transition ${
-                sortKey === item.key
-                  ? "bg-teal-50 text-teal-700 ring-1 ring-teal-100"
-                  : "bg-white/85 text-slate-600 ring-1 ring-slate-200/70"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-          <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200/70">
-            共 {filteredRewards.length} 件奖励
-          </span>
+          <div className="flex min-w-0 flex-col gap-2 xl:flex-[0_1_auto]">
+            <TabFilter
+              items={categoryTabs}
+              activeKey={activeCategory}
+              onFilterChange={(key) => setActiveCategory(key as typeof activeCategory)}
+              className="w-fit max-w-full shrink-0 overflow-hidden [&_button]:h-11 [&_button]:px-3 [&_button]:text-sm [&_button]:font-black"
+            />
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-2 xl:flex-[0_1_auto]">
+            <TabFilter
+              items={sortTabs}
+              activeKey={sortKey}
+              onFilterChange={(key) => setSortKey(key as typeof sortKey)}
+              className="w-fit max-w-full shrink-0 overflow-hidden [&_button]:h-11 [&_button]:px-3 [&_button]:text-sm [&_button]:font-black"
+            />
+          </div>
         </div>
       </ChildPanel>
 
@@ -358,7 +334,11 @@ export default function StorePage() {
                         <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
                           {formatDuration(reward.validDurationValue, reward.validDurationUnit) || "未设置有效期"}
                         </span>
-                        {expired && <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100">已过截止日期</span>}
+                        {expired && (
+                          <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100">
+                            已过截止日期
+                          </span>
+                        )}
                       </>
                     ) : undefined
                   }
@@ -378,11 +358,7 @@ export default function StorePage() {
             })}
           </div>
         ) : (
-          <ChildEmptyState
-            title="没有找到奖励"
-            hint="换个分类、关键词或者排序试试。"
-            icon="🎁"
-          />
+          <ChildEmptyState title="没有找到奖励" hint="换个分类、关键词或者排序试试。" icon="🎁" />
         )}
       </ChildPanel>
 
@@ -403,10 +379,7 @@ export default function StorePage() {
         <div className="mt-4 space-y-3">
           {orders.length > 0 ? (
             orders.map((order) => (
-              <div
-                key={order._id}
-                className="child-card px-4 py-4 sm:px-5 sm:py-3.5"
-              >
+              <div key={order._id} className="child-card px-4 py-4 sm:px-5 sm:py-3.5">
                 <div className="grid gap-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[20px] bg-white text-[22px] shadow-sm ring-1 ring-white">
@@ -445,7 +418,9 @@ export default function StorePage() {
                     </div>
                     <div className="rounded-[18px] bg-[linear-gradient(135deg,#0f766e_0%,#0ea5a4_100%)] px-3 py-2 text-right text-white shadow-sm">
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">核销码</div>
-                      <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">{order.verificationCode}</div>
+                      <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">
+                        {order.verificationCode}
+                      </div>
                     </div>
                   </div>
                 </div>

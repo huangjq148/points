@@ -6,12 +6,11 @@ import { useRouter } from "next/navigation";
 import {
   ChevronRight,
   Gift,
-  Wallet,
   BadgeCheck,
   Clock3,
   Sparkles,
 } from "lucide-react";
-import { Button, DatePicker, Input, Modal } from "@/components/ui";
+import { Button, DatePicker, Input, Modal, TabFilter } from "@/components/ui";
 import { formatDate } from "@/utils/date";
 import { useToast } from "@/components/ui/Toast";
 import request from "@/utils/request";
@@ -120,6 +119,13 @@ export default function GiftPage() {
 
     return counts;
   }, [orders]);
+
+  const statusTabs = [
+    { key: "all", label: `全部 (${orderStats.all})` },
+    { key: "pending", label: `待核销 (${orderStats.pending})` },
+    { key: "verified", label: `已核销 (${orderStats.verified})` },
+    { key: "cancelled", label: `已取消 (${orderStats.cancelled})` },
+  ] as const;
 
   const handleCancelOrder = async (order: Order) => {
     const data = await request("/api/orders", {
@@ -261,17 +267,6 @@ export default function GiftPage() {
               icon={<Gift size={22} />}
               title="我的奖品"
               description="待核销的奖品会排在最前面。"
-              action={
-                <Button
-                  onClick={() => navigateTo("wallet")}
-                  variant="secondary"
-                  size="sm"
-                  className="rounded-full border-none bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 hover:bg-emerald-100"
-                >
-                  <Wallet size={16} className="mr-1" />
-                  钱包
-                </Button>
-              }
             />
             <div className="flex flex-wrap gap-2 xl:justify-end">
               <ChildStatusPill tone="sky">全部 {orderStats.all}</ChildStatusPill>
@@ -281,66 +276,40 @@ export default function GiftPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 lg:grid-cols-[300px_220px] lg:items-center">
-            <Input
-              allowClear
-              isSearch
-              value={giftSearchQuery}
-              onChange={(e) => setGiftSearchQuery(e.target.value)}
-              placeholder="搜索礼物..."
-              size="sm"
-              containerClassName="w-full"
-              className="!h-11 !min-h-11 !rounded-[18px]"
-            />
-            <DatePicker
-              selected={giftDate}
-              onChange={(date: Date | null) => setGiftDate(date)}
-              placeholderText="兑换日期"
-              wrapperClassName="w-full"
-              className="h-11 rounded-[18px] border-slate-200/80 text-slate-700"
-              popperPlacement="top-end"
-              portalId="datepicker-portal"
-            />
-          </div>
+          <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(0,300px)_minmax(0,220px)_max-content] xl:items-end">
+            <div className="min-w-0">
+              <Input
+                allowClear
+                isSearch
+                value={giftSearchQuery}
+                onChange={(e) => setGiftSearchQuery(e.target.value)}
+                placeholder="搜索礼物..."
+                size="sm"
+                containerClassName="w-full"
+                className="!h-11 !min-h-11 !rounded-[18px]"
+              />
+            </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {(["all", "pending", "verified", "cancelled"] as const).map((status) => (
-              <button
-                key={status}
-                type="button"
-                onClick={() => setGiftStatusFilter(status)}
-                className={`rounded-full px-4 py-2 text-sm font-black transition ${
-                  giftStatusFilter === status
-                    ? "bg-sky-500 text-white shadow-sm"
-                    : "bg-white/85 text-slate-600 ring-1 ring-slate-200/70"
-                }`}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {status === "all"
-                    ? "全部"
-                    : status === "pending"
-                      ? "未核销"
-                      : status === "verified"
-                        ? "已核销"
-                        : "已取消"}
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
-                      giftStatusFilter === status
-                        ? "bg-white/20 text-current"
-                        : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {status === "all"
-                      ? orderStats.all
-                      : status === "pending"
-                        ? orderStats.pending
-                        : status === "verified"
-                          ? orderStats.verified
-                          : orderStats.cancelled}
-                  </span>
-                </span>
-              </button>
-            ))}
+            <div className="min-w-0">
+              <DatePicker
+                selected={giftDate}
+                onChange={(date: Date | null) => setGiftDate(date)}
+                placeholderText="兑换日期"
+                wrapperClassName="w-full"
+                className="h-11 rounded-[18px] border-slate-200/80 text-slate-700"
+                popperPlacement="top-end"
+                portalId="datepicker-portal"
+              />
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-2">
+              <TabFilter
+                items={statusTabs}
+                activeKey={giftStatusFilter}
+                onFilterChange={(key) => setGiftStatusFilter(key as typeof giftStatusFilter)}
+                className="w-fit max-w-full shrink-0 overflow-hidden [&_button]:h-11 [&_button]:px-3 [&_button]:text-sm [&_button]:font-black"
+              />
+            </div>
           </div>
         </ChildPanel>
 

@@ -14,7 +14,7 @@ import {
   ClipboardList,
   Image as ImageIcon,
 } from "lucide-react";
-import { Button, DatePicker, Input } from "@/components/ui";
+import { Button, DatePicker, Input, TabFilter } from "@/components/ui";
 import Image from "@/components/ui/Image";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/utils/date";
@@ -163,7 +163,8 @@ export default function WalletPage() {
     { key: "all" as const, label: "全部" },
     { key: "income" as const, label: "收入" },
     { key: "expense" as const, label: "支出" },
-  ];
+  ] as const;
+
   const hasLedgerData = ledgerData.length > 0;
 
   return (
@@ -213,7 +214,7 @@ export default function WalletPage() {
           title="筛选记录"
           description={`当前页 ${ledgerData.length} 条记录`}
         />
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-4 flex flex-wrap gap-2">
           {quickRanges.map((item) => (
             <button
               key={item.label}
@@ -224,45 +225,43 @@ export default function WalletPage() {
             </button>
           ))}
         </div>
-        <div className="mt-3 grid gap-2 lg:grid-cols-[300px_300px_300px] lg:items-center">
-          <DatePicker
-            selected={ledgerStartDate}
-            onChange={(date: Date | null) => setLedgerStartDate(date)}
-            placeholderText="开始日期"
-            className="border-slate-200 bg-slate-50 text-gray-800"
-          />
-          <DatePicker
-            selected={ledgerEndDate}
-            onChange={(date: Date | null) => setLedgerEndDate(date)}
-            placeholderText="结束日期"
-            className="border-slate-200 bg-slate-50 text-gray-800"
-          />
-          <Input
-            allowClear
-            isSearch
-            value={ledgerKeyword}
-            onChange={(e) => handleKeywordSearch(e.target.value)}
-            placeholder="搜索记录..."
-            size="sm"
-            containerClassName="w-full"
-            className="!h-11 !min-h-11 !rounded-2xl !border-slate-200 !bg-slate-50 !text-sm !text-gray-800 !shadow-sm focus:!border-sky-400 focus:!bg-white"
-          />
-        </div>
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-          {typeFilters.map((item) => (
-            <button
-              key={item.key}
-              onClick={() => setLedgerTypeFilter(item.key)}
-              disabled={ledgerLoading}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold shadow-sm transition ${
-                ledgerTypeFilter === item.key
-                  ? "border-sky-500 bg-sky-50 text-sky-700"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
-              } ${ledgerLoading ? "cursor-wait opacity-80" : ""}`}
-            >
-              {item.label}
-            </button>
-          ))}
+        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,240px)_minmax(0,360px)_max-content] xl:items-end">
+          <div className="min-w-0">
+            <Input
+              allowClear
+              isSearch
+              value={ledgerKeyword}
+              onChange={(e) => handleKeywordSearch(e.target.value)}
+              placeholder="搜索记录..."
+              size="sm"
+              containerClassName="w-full"
+              className="!h-11 !min-h-11 !rounded-[18px] !border-slate-200 !bg-slate-50 !text-sm !text-gray-800 !shadow-sm focus:!border-sky-400 focus:!bg-white"
+            />
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            <DatePicker
+              selected={ledgerStartDate}
+              onChange={(date: Date | null) => setLedgerStartDate(date)}
+              placeholderText="开始日期"
+              className="border-slate-200 bg-slate-50 text-gray-800"
+            />
+            <DatePicker
+              selected={ledgerEndDate}
+              onChange={(date: Date | null) => setLedgerEndDate(date)}
+              placeholderText="结束日期"
+              className="border-slate-200 bg-slate-50 text-gray-800"
+            />
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-2">
+            <TabFilter
+              items={typeFilters}
+              activeKey={ledgerTypeFilter}
+              onFilterChange={(key) => setLedgerTypeFilter(key as typeof ledgerTypeFilter)}
+              className="w-fit max-w-full shrink-0 overflow-hidden [&_button]:h-11 [&_button]:px-3 [&_button]:text-sm [&_button]:font-black"
+            />
+          </div>
         </div>
       </ChildPanel>
 
