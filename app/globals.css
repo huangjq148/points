@@ -4118,6 +4118,9 @@ body.child-theme-dark {
 .overview-page .overview-status-chip,
 .overview-page .overview-suggestion-index,
 .overview-page .overview-icon-badge,
+.overview-page .overview-note,
+.overview-page .overview-rank-badge,
+.overview-page .overview-skeleton-surface,
 .overview-page .overview-track,
 .overview-page .overview-trend-track {
   transition:
@@ -4150,6 +4153,12 @@ body.child-theme-dark {
 .overview-page .overview-soft-surface:hover {
   background-color: rgb(241 245 249);
   border-color: rgb(226 232 240);
+}
+
+.overview-page .overview-skeleton-surface {
+  border: 1px solid rgb(226 232 240);
+  background-color: rgb(226 232 240);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .overview-page .overview-alert {
@@ -4297,6 +4306,39 @@ body.child-theme-dark {
 
 .overview-page .overview-status-card--info .overview-status-card__value {
   color: rgb(30 64 175);
+}
+
+.overview-page .overview-note {
+  border: 1px solid transparent;
+}
+
+.overview-page .overview-note--accent {
+  background: linear-gradient(135deg, rgba(224, 231, 255, 0.92) 0%, rgba(243, 232, 255, 0.96) 100%);
+  border-color: rgb(216 180 254);
+  color: rgb(91 33 182);
+}
+
+.overview-page .overview-rank-badge {
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.overview-page .overview-rank-badge--gold {
+  background-color: rgb(254 240 138);
+  border-color: rgb(253 224 71);
+  color: rgb(133 77 14);
+}
+
+.overview-page .overview-rank-badge--silver {
+  background-color: rgb(226 232 240);
+  border-color: rgb(203 213 225);
+  color: rgb(51 65 85);
+}
+
+.overview-page .overview-rank-badge--bronze {
+  background-color: rgb(254 215 170);
+  border-color: rgb(253 186 116);
+  color: rgb(154 52 18);
 }
 
 .overview-page .overview-accent-dot--info,
@@ -4727,6 +4769,14 @@ body.child-theme-dark {
   border-color: rgba(96, 165, 250, 0.24);
 }
 
+.parent-theme-dark .overview-page .overview-skeleton-surface {
+  background-color: rgba(30, 41, 59, 0.84);
+  border-color: rgba(71, 85, 105, 0.72);
+  box-shadow:
+    0 10px 22px rgba(2, 6, 23, 0.16),
+    inset 0 1px 0 rgba(148, 163, 184, 0.05);
+}
+
 .parent-theme-dark .overview-page .overview-alert--danger {
   background-color: rgba(127, 29, 29, 0.42);
   border-color: rgba(248, 113, 113, 0.3);
@@ -4874,6 +4924,39 @@ body.child-theme-dark {
 
 .parent-theme-dark .overview-page .overview-status-card--info .overview-status-card__value {
   color: rgb(219 234 254);
+}
+
+.parent-theme-dark .overview-page .overview-note--accent {
+  background: linear-gradient(135deg, rgba(49, 46, 129, 0.44) 0%, rgba(88, 28, 135, 0.4) 100%);
+  border-color: rgba(192, 132, 252, 0.28);
+  color: rgb(233 213 255);
+  box-shadow:
+    0 14px 28px rgba(2, 6, 23, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.05);
+}
+
+.parent-theme-dark .overview-page .overview-rank-badge {
+  box-shadow:
+    0 8px 18px rgba(2, 6, 23, 0.16),
+    inset 0 1px 0 rgba(248, 250, 252, 0.06);
+}
+
+.parent-theme-dark .overview-page .overview-rank-badge--gold {
+  background-color: rgba(120, 53, 15, 0.6);
+  border-color: rgba(251, 191, 36, 0.32);
+  color: rgb(253 230 138);
+}
+
+.parent-theme-dark .overview-page .overview-rank-badge--silver {
+  background-color: rgba(51, 65, 85, 0.78);
+  border-color: rgba(148, 163, 184, 0.28);
+  color: rgb(226 232 240);
+}
+
+.parent-theme-dark .overview-page .overview-rank-badge--bronze {
+  background-color: rgba(124, 45, 18, 0.6);
+  border-color: rgba(251, 146, 60, 0.32);
+  color: rgb(254 215 170);
 }
 
 .parent-theme-dark .overview-page .overview-accent-text--info {

@@ -62,6 +62,7 @@ export default function OverviewPage() {
           icon: ListChecks,
           tone: "info" as OverviewTone,
           href: "/parent/tasks",
+          surfaceName: "core-metric-family-total",
         },
         {
           label: "待审核",
@@ -69,6 +70,7 @@ export default function OverviewPage() {
           icon: Clock,
           tone: "warning" as OverviewTone,
           href: "/parent/audit",
+          surfaceName: "core-metric-submitted",
         },
         {
           label: "待核销",
@@ -76,12 +78,14 @@ export default function OverviewPage() {
           icon: Star,
           tone: "accent" as OverviewTone,
           href: "/parent/orders?status=pending",
+          surfaceName: "core-metric-pending-orders",
         },
         {
           label: "可用总积分",
           value: data.pulse.totalAvailablePoints,
           icon: Sparkles,
           tone: "success" as OverviewTone,
+          surfaceName: "core-metric-available-points",
         },
       ]
     : [];
@@ -232,6 +236,7 @@ export default function OverviewPage() {
           <button
             onClick={refresh}
             disabled={loading}
+            data-overview-action="refresh"
             className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-50"
             title="刷新数据"
           >
@@ -249,12 +254,16 @@ export default function OverviewPage() {
       )}
 
       {/* 行动建议 */}
-      <div className="card-parent">
+      <div className="card-parent" data-overview-section="action-suggestions">
         <h3 className="text-lg font-bold text-slate-800 mb-4">行动建议</h3>
         {loading ? (
           <div className="animate-pulse space-y-3">
             {[1, 2].map((i) => (
-              <div key={i} className="h-14 bg-slate-200 rounded-xl"></div>
+              <div
+                key={i}
+                data-overview-skeleton="action-suggestions"
+                className="overview-skeleton-surface h-14 rounded-xl"
+              />
             ))}
           </div>
         ) : actions.length > 0 ? (
@@ -262,6 +271,7 @@ export default function OverviewPage() {
             {actions.slice(0, 3).map((tip, index) => (
               <div
                 key={index}
+                data-overview-surface="action-suggestion-row"
                 className={`overview-suggestion-item p-3 rounded-2xl flex items-start gap-3 ${
                   tip.href ? "cursor-pointer" : ""
                 }`}
@@ -284,20 +294,25 @@ export default function OverviewPage() {
         {loading
           ? [1, 2, 3, 4].map((i) => (
               <div key={i} className="card p-4 animate-pulse">
-                <div className="h-10 w-10 bg-slate-200 rounded-xl mb-3"></div>
-                <div className="h-8 bg-slate-200 rounded w-1/2 mb-1"></div>
-                <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                <div
+                  data-overview-skeleton="summary-cards"
+                  className="overview-skeleton-surface h-10 w-10 rounded-xl mb-3"
+                />
+                <div className="overview-skeleton-surface h-8 rounded w-1/2 mb-1" />
+                <div className="overview-skeleton-surface h-4 rounded w-1/3" />
               </div>
             ))
           : coreCards.map((item) => (
               <div
                 key={item.label}
+                data-overview-surface={item.surfaceName}
                 className={`card p-4 ${
                   item.href ? "cursor-pointer hover:scale-[1.01] transition-transform" : ""
                 }`}
                 onClick={() => item.href && router.push(item.href)}
               >
                 <div
+                  data-overview-surface="core-metric-icon"
                   className={`overview-icon-badge overview-icon-badge--${item.tone} w-10 h-10 rounded-xl flex items-center justify-center mb-3`}
                 >
                   <item.icon size={20} />
@@ -313,9 +328,9 @@ export default function OverviewPage() {
         {loading
           ? [1, 2, 3].map((i) => (
               <div key={i} className="card p-5 animate-pulse">
-                <div className="h-4 bg-slate-200 rounded w-1/4 mb-3"></div>
-                <div className="h-10 bg-slate-200 rounded w-1/3 mb-1"></div>
-                <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                <div className="overview-skeleton-surface h-4 rounded w-1/4 mb-3" />
+                <div className="overview-skeleton-surface h-10 rounded w-1/3 mb-1" />
+                <div className="overview-skeleton-surface h-3 rounded w-1/2" />
               </div>
             ))
           : data && (
@@ -365,18 +380,18 @@ export default function OverviewPage() {
         {loading ? (
           <>
             <div className="card p-5 animate-pulse">
-              <div className="h-6 bg-slate-200 rounded w-1/3 mb-6"></div>
+              <div className="overview-skeleton-surface h-6 rounded w-1/3 mb-6" />
               <div className="space-y-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-4 bg-slate-200 rounded"></div>
+                  <div key={i} className="overview-skeleton-surface h-4 rounded" />
                 ))}
               </div>
             </div>
             <div className="card p-5 animate-pulse">
-              <div className="h-6 bg-slate-200 rounded w-1/3 mb-6"></div>
+              <div className="overview-skeleton-surface h-6 rounded w-1/3 mb-6" />
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-4 bg-slate-200 rounded"></div>
+                  <div key={i} className="overview-skeleton-surface h-4 rounded" />
                 ))}
               </div>
             </div>
@@ -385,14 +400,17 @@ export default function OverviewPage() {
           data && (
             <>
               {/* 任务状态分布 */}
-              <div className="card">
+              <div className="card" data-overview-section="status-distribution">
                 <h3 className="text-lg font-bold text-slate-800 mb-6">任务状态分布</h3>
                 <div className="space-y-4">
                   {statusDistribution.map((item) => (
                     <div key={item.label} className="flex items-center gap-4">
                       <div className={`overview-accent-dot overview-accent-dot--${item.tone} w-3 h-3 rounded-full`} />
                       <span className="text-sm text-slate-600 w-16">{item.label}</span>
-                      <div className="overview-track flex-1 h-4 rounded-full overflow-hidden">
+                      <div
+                        data-overview-surface={`distribution-track-${item.tone}`}
+                        className="overview-track flex-1 h-4 rounded-full overflow-hidden"
+                      >
                         <div
                           className={`overview-track-fill overview-track-fill--${item.tone} h-full rounded-full transition-all duration-500`}
                           style={{ width: `${pct(item.value, data.pulse.totalTasks)}%` }}
@@ -439,13 +457,16 @@ export default function OverviewPage() {
       </div>
 
       {/* 趋势图表 */}
-      <div className="card">
+      <div className="card" data-overview-section="trend-chart">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-bold text-slate-800">完成趋势</h3>
           <span className="text-xs text-slate-500">按已完成任务计数</span>
         </div>
         {loading ? (
-          <div className="h-40 bg-slate-200 rounded-xl animate-pulse"></div>
+          <div
+            data-overview-skeleton="trend-chart"
+            className="overview-skeleton-surface h-40 rounded-xl animate-pulse"
+          />
         ) : data && data.trend7d.length > 0 ? (
           <div className="flex items-end gap-2 h-40 overflow-x-auto pb-2">
             {data.trend7d.map((d) => {
@@ -455,7 +476,10 @@ export default function OverviewPage() {
               return (
                 <div key={d.dateKey} className={`${minWidth} flex flex-col items-center gap-2 shrink-0`}>
                   <span className="text-xs text-slate-400">{d.approved}</span>
-                  <div className="overview-trend-track w-full rounded-xl overflow-hidden h-24 flex items-end">
+                  <div
+                    data-overview-surface="trend-track"
+                    className="overview-trend-track w-full rounded-xl overflow-hidden h-24 flex items-end"
+                  >
                     <div
                       className="w-full bg-linear-to-t from-blue-500 to-indigo-400 rounded-xl transition-all duration-500"
                       style={{ height: `${heightPct}%` }}
@@ -480,12 +504,16 @@ export default function OverviewPage() {
 
       {/* 孩子表现面板 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card">
+        <div className="card" data-overview-section="child-performance">
           <h3 className="text-lg font-bold text-slate-800 mb-4">孩子表现面板</h3>
           {loading ? (
             <div className="animate-pulse space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="h-24 bg-slate-200 rounded-xl"></div>
+                <div
+                  key={i}
+                  data-overview-skeleton="child-performance"
+                  className="overview-skeleton-surface h-24 rounded-xl"
+                />
               ))}
             </div>
           ) : data && data.childPanels.length > 0 ? (
@@ -493,6 +521,8 @@ export default function OverviewPage() {
               {data.childPanels.map((child) => (
                 <div
                   key={child.id}
+                  data-overview-child-id={child.id}
+                  data-overview-surface="child-panel"
                   className="overview-soft-surface p-3 rounded-2xl cursor-pointer transition-colors"
                   onClick={() => router.push(`/parent/tasks?childId=${child.id}`)}
                 >
@@ -508,6 +538,7 @@ export default function OverviewPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
                     <div
+                      data-overview-surface="child-chip-pending"
                       className="overview-status-chip overview-status-chip--pending rounded-xl px-2 py-1 text-center cursor-pointer transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -517,6 +548,7 @@ export default function OverviewPage() {
                       待完成 {child.pendingCount}
                     </div>
                     <div
+                      data-overview-surface="child-chip-submitted"
                       className="overview-status-chip overview-status-chip--submitted rounded-xl px-2 py-1 text-center cursor-pointer transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -526,6 +558,7 @@ export default function OverviewPage() {
                       待审核 {child.submittedCount}
                     </div>
                     <div
+                      data-overview-surface="child-chip-pending-order"
                       className="overview-status-chip overview-status-chip--pending-order rounded-xl px-2 py-1 text-center cursor-pointer transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -546,18 +579,26 @@ export default function OverviewPage() {
         </div>
 
         {/* 关键结果看板 */}
-        <div className="card">
+        <div className="card" data-overview-section="result-board">
           <h3 className="text-lg font-bold text-slate-800 mb-4">关键结果看板</h3>
           {loading ? (
             <div className="animate-pulse grid grid-cols-2 gap-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-20 bg-slate-200 rounded-xl"></div>
+                <div
+                  key={i}
+                  data-overview-skeleton="result-board"
+                  className="overview-skeleton-surface h-20 rounded-xl"
+                />
               ))}
             </div>
           ) : data ? (
             <div className="grid grid-cols-2 gap-3">
               {resultCards.map((item) => (
-                <div key={item.label} className={`overview-status-card overview-status-card--${item.tone} p-3 rounded-xl`}>
+                <div
+                  key={item.label}
+                  data-overview-surface={`result-card-${item.label}`}
+                  className={`overview-status-card overview-status-card--${item.tone} p-3 rounded-xl`}
+                >
                   <div className="overview-status-card__label flex items-center gap-2 mb-1">
                     <item.icon size={16} />
                     <span className="text-xs font-medium">{item.label}</span>

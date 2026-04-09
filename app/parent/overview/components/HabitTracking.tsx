@@ -41,12 +41,16 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
 
   if (loading) {
     return (
-      <div className="card">
+      <div className="card" data-overview-section="habit-tracking">
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-200 rounded w-1/3 mb-4"></div>
+          <div className="overview-skeleton-surface h-6 rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-2 gap-3 mb-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-16 bg-slate-200 rounded-xl"></div>
+              <div
+                key={i}
+                data-overview-skeleton="habit-tracking-stat"
+                className="overview-skeleton-surface h-16 rounded-xl"
+              ></div>
             ))}
           </div>
         </div>
@@ -56,7 +60,7 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
 
   if (!habits || habits.length === 0) {
     return (
-      <div className="card flex flex-col items-center justify-center min-h-[200px]">
+      <div className="card flex flex-col items-center justify-center min-h-[200px]" data-overview-section="habit-tracking">
         <div className="text-center text-slate-500">
           <Target size={40} className="mx-auto mb-2 text-slate-300" />
           <p className="text-sm">暂无习惯数据</p>
@@ -67,7 +71,7 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
   }
 
   return (
-    <div className="card">
+    <div className="card" data-overview-section="habit-tracking">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-slate-800">习惯养成</h3>
         <span className="text-xs text-slate-500">{stats?.totalHabits}个习惯</span>
@@ -76,21 +80,27 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
       {/* 统计概览 */}
       {stats && (
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <div className="p-3 rounded-xl bg-orange-50 border border-orange-100">
-            <div className="flex items-center gap-2 text-orange-700 mb-1">
+          <div
+            data-overview-surface="habit-stat-best-streak"
+            className="overview-status-card overview-status-card--warning p-3 rounded-xl"
+          >
+            <div className="overview-status-card__label flex items-center gap-2 mb-1">
               <Flame size={16} />
               <span className="text-xs font-medium">最长连续</span>
             </div>
-            <p className="text-2xl font-bold text-orange-800">{stats.bestStreak}</p>
-            <p className="text-xs text-orange-600">天</p>
+            <p className="overview-status-card__value text-2xl font-bold">{stats.bestStreak}</p>
+            <p className="overview-accent-text overview-accent-text--warning text-xs">天</p>
           </div>
-          <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
-            <div className="flex items-center gap-2 text-blue-700 mb-1">
+          <div
+            data-overview-surface="habit-stat-completion-rate"
+            className="overview-status-card overview-status-card--info p-3 rounded-xl"
+          >
+            <div className="overview-status-card__label flex items-center gap-2 mb-1">
               <TrendingUp size={16} />
               <span className="text-xs font-medium">平均完成率</span>
             </div>
-            <p className="text-2xl font-bold text-blue-800">{stats.avgCompletionRate}%</p>
-            <p className="text-xs text-blue-600">{stats.avgStreak}天平均连续</p>
+            <p className="overview-status-card__value text-2xl font-bold">{stats.avgCompletionRate}%</p>
+            <p className="overview-accent-text overview-accent-text--info text-xs">{stats.avgStreak}天平均连续</p>
           </div>
         </div>
       )}
@@ -101,7 +111,8 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
         {sortedHabits.slice(0, 5).map((habit) => (
           <div
             key={habit.id}
-            className="p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors"
+            data-overview-surface="habit-row"
+            className="overview-soft-surface p-3 rounded-xl transition-colors"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -125,7 +136,7 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
               </div>
             </div>
             {/* 进度条 */}
-            <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div className="overview-track mt-2 h-1.5 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-orange-400 to-red-400 rounded-full transition-all"
                 style={{ width: `${Math.min(habit.completionRate, 100)}%` }}
@@ -136,8 +147,8 @@ export default function HabitTracking({ habits, loading }: HabitTrackingProps) {
       </div>
 
       {/* 21天法则提示 */}
-      <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100">
-        <p className="text-xs text-purple-700">
+      <div className="overview-note overview-note--accent mt-4 p-3 rounded-xl">
+        <p className="text-xs">
           <span className="font-semibold">💡 21天法则：</span>
           连续坚持21天就能养成一个习惯，继续保持！
         </p>

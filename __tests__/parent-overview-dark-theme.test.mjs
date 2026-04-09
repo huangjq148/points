@@ -228,16 +228,36 @@ async function expectClassContains(locator, expectedClassName, label) {
   );
 }
 
-function getSectionByHeading(page, heading) {
-  return page
-    .getByRole('heading', { name: heading })
-    .locator(`xpath=ancestor::div[.//h3[normalize-space()="${heading}"]][1]`);
+function getOverviewSection(page, sectionName) {
+  return page.locator(`[data-overview-section="${sectionName}"]`);
 }
 
-async function createParentAndChild(prefix) {
+function getOverviewSurface(page, surfaceName) {
+  return page.locator(`[data-overview-surface="${surfaceName}"]`);
+}
+
+function getOverviewSkeleton(page, skeletonName) {
+  return page.locator(`[data-overview-skeleton="${skeletonName}"]`);
+}
+
+async function createChild(parentToken, username, avatar = '🧒') {
+  return api('/api/children', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentToken}`,
+    },
+    body: JSON.stringify({
+      username,
+      nickname: username,
+      avatar,
+      password: PASSWORD,
+    }),
+  });
+}
+
+async function createParentAndChildren(prefix, childCount = 1) {
   const ts = Date.now();
   const parentUsername = `${prefix}_parent_${ts}`;
-  const childUsername = `${prefix}_child_${ts}`;
 
   const parentLogin = await api('/api/auth', {
     method: 'POST',
@@ -248,23 +268,35 @@ async function createParentAndChild(prefix) {
     }),
   });
 
-  const childCreate = await api('/api/children', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${parentLogin.token}`,
-    },
-    body: JSON.stringify({
-      username: childUsername,
-      nickname: 'Overview Dark Theme Child',
-      avatar: '🧒',
-      password: PASSWORD,
-    }),
-  });
+  const children = [];
+  for (let index = 0; index < childCount; index += 1) {
+    const childUsername = `${prefix}_child_${index + 1}_${ts}`;
+    const childCreate = await createChild(
+      parentLogin.token,
+      childUsername,
+      index === 0 ? '🧒' : '🦊',
+    );
+
+    children.push({
+      childId: childCreate.child.id,
+      childUsername,
+    });
+  }
 
   return {
     parentLogin,
-    childUsername,
-    childId: childCreate.child.id,
+    children,
+  };
+}
+
+async function createParentAndChild(prefix) {
+  const { parentLogin, children } = await createParentAndChildren(prefix, 1);
+  const [child] = children;
+
+  return {
+    parentLogin,
+    childUsername: child.childUsername,
+    childId: child.childId,
   };
 }
 
@@ -398,7 +430,19 @@ async function seedOverviewScenario(parentLogin, childId, childUsername) {
   };
 }
 
-async function openDarkParentOverview(user) {
+async function seedComparisonChild(parentLogin, childId) {
+  const approvedTask = await createTask(parentLogin.token, childId, {
+    name: '对比概览任务',
+    deadline: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
+    type: 'daily',
+    icon: '📘',
+  });
+
+  await updateTaskStatus(parentLogin.token, approvedTask.task._id, 'approved');
+}
+
+async function openDarkParentOverview(user, options = {}) {
+  const { beforeGoto, waitUntil = 'networkidle' } = options;
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1800 },
@@ -423,18 +467,69 @@ async function openDarkParentOverview(user) {
   }, { currentUser: user });
 
   const page = await context.newPage();
+  if (beforeGoto) {
+    await beforeGoto(page, context);
+  }
+
   await page.goto(`${BASE_URL}/parent/overview`, {
-    waitUntil: 'networkidle',
+    waitUntil,
     timeout: 30000,
   });
 
   return { browser, context, page };
 }
 
-test('parent overview result cards and child status chips stay dark in dark theme', { timeout: 120000 }, async () => {
-  const { parentLogin, childUsername, childId } = await createParentAndChild('parent_overview_dark');
+test('parent overview loading placeholders stay dark in dark theme', { timeout: 120000 }, async () => {
+  const { parentLogin } = await createParentAndChild('parent_overview_loading_dark');
 
-  await seedOverviewScenario(parentLogin, childId, childUsername);
+  const { browser, context, page } = await openDarkParentOverview(
+    {
+      ...parentLogin.user,
+      token: parentLogin.token,
+    },
+    {
+      waitUntil: 'domcontentloaded',
+      beforeGoto: async (page) => {
+        await page.route('**/api/tasks*', async (route) => {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          await route.continue();
+        });
+        await page.route('**/api/orders*', async (route) => {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          await route.continue();
+        });
+      },
+    },
+  );
+
+  try {
+    const loadingChecks = [
+      { locator: getOverviewSkeleton(page, 'action-suggestions').first(), label: 'Action suggestions loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'summary-cards').first(), label: 'Summary cards loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'trend-chart').first(), label: 'Trend chart loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'child-performance').first(), label: 'Child performance loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'result-board').first(), label: 'Result board loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'points-flow-metric').first(), label: 'Points flow loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'habit-tracking-stat').first(), label: 'Habit tracking loading skeleton' },
+      { locator: getOverviewSkeleton(page, 'comparison-chart').first(), label: 'Comparison chart loading skeleton' },
+    ];
+
+    for (const { locator, label } of loadingChecks) {
+      await expectClassContains(locator, 'overview-skeleton-surface', label);
+      await expectDarkSurface(locator, label);
+    }
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+test('parent overview keeps semantic dark surfaces across loaded overview panels', { timeout: 120000 }, async () => {
+  const { parentLogin, children } = await createParentAndChildren('parent_overview_dark_loaded', 2);
+  const [primaryChild, comparisonChild] = children;
+
+  await seedOverviewScenario(parentLogin, primaryChild.childId, primaryChild.childUsername);
+  await seedComparisonChild(parentLogin, comparisonChild.childId);
 
   const { browser, context, page } = await openDarkParentOverview({
     ...parentLogin.user,
@@ -443,62 +538,67 @@ test('parent overview result cards and child status chips stay dark in dark them
 
   try {
     await page.getByRole('heading', { name: '关键结果看板' }).waitFor({ state: 'visible' });
-    await page.getByText(childUsername).waitFor({ state: 'visible' });
     await page.getByRole('heading', { name: '行动建议' }).waitFor({ state: 'visible' });
     await page.getByRole('heading', { name: '任务状态分布' }).waitFor({ state: 'visible' });
     await page.getByRole('heading', { name: '完成趋势' }).waitFor({ state: 'visible' });
 
-    const suggestionBoard = getSectionByHeading(page, '行动建议');
-    const suggestionRow = suggestionBoard.locator(
-      'xpath=.//p[contains(normalize-space(), "先处理 1 条待审核任务")]/ancestor::div[1]',
-    );
+    const suggestionRow = getOverviewSurface(page, 'action-suggestion-row').first();
     await expectDarkSurface(suggestionRow, 'Overview suggestion row');
 
-    const totalTasksCard = page.getByText('家庭总任务', { exact: true }).locator('xpath=ancestor::div[contains(@class, "card")][1]');
-    const totalTasksBadge = totalTasksCard.locator('xpath=.//div[contains(@class, "rounded-xl")][1]');
+    const totalTasksCard = getOverviewSurface(page, 'core-metric-family-total');
+    const totalTasksBadge = totalTasksCard.locator('[data-overview-surface="core-metric-icon"]');
     await expectClassContains(totalTasksBadge, 'overview-icon-badge', 'Core metric icon badge');
     await expectDarkSurface(totalTasksBadge, 'Core metric icon badge');
 
-    const statusDistribution = getSectionByHeading(page, '任务状态分布');
-    const distributionTrack = statusDistribution.locator('xpath=.//span[normalize-space()="进行中"]/following-sibling::div[1]');
+    const statusDistribution = getOverviewSection(page, 'status-distribution');
+    const distributionTrack = statusDistribution.locator('[data-overview-surface="distribution-track-info"]').first();
     await expectClassContains(distributionTrack, 'overview-track', 'Distribution rail');
     await expectDarkSurface(distributionTrack, 'Distribution rail');
 
-    const trendCard = page
-      .getByRole('heading', { name: '完成趋势' })
-      .locator('xpath=ancestor::div[contains(@class, "card")][1]');
-    const trendTrack = trendCard.locator('.overview-trend-track').first();
+    const trendTrack = getOverviewSection(page, 'trend-chart').locator('[data-overview-surface="trend-track"]').first();
     await expectClassContains(trendTrack, 'overview-trend-track', 'Trend track');
     await expectDarkSurface(trendTrack, 'Trend track');
 
-    const resultBoard = getSectionByHeading(page, '关键结果看板');
-    const resultCards = [
-      { label: '按时完成', value: 1 },
-      { label: '逾期完成', value: 1 },
-      { label: '待审核', value: 1 },
-      { label: '已完成', value: 2 },
-    ];
+    const resultBoard = getOverviewSection(page, 'result-board');
+    const resultCardLabels = ['按时完成', '逾期完成', '待审核', '已完成'];
 
-    for (const { label, value } of resultCards) {
-      const resultCard = resultBoard.locator(
-        `xpath=.//span[normalize-space()="${label}"]/ancestor::div[2][1]`,
-      );
+    for (const label of resultCardLabels) {
+      const resultCard = resultBoard.locator(`[data-overview-surface="result-card-${label}"]`);
       await expectDarkSurface(resultCard, `${label} result card`);
-      await expectLightText(resultCard.getByText(String(value), { exact: true }), `${label} result value`);
+      await expectLightText(resultCard.locator('.overview-status-card__value'), `${label} result value`);
     }
 
+    const childPanel = getOverviewSection(page, 'child-performance').locator(
+      `[data-overview-child-id="${primaryChild.childId}"]`,
+    );
+    await childPanel.waitFor({ state: 'visible' });
+    await expectDarkSurface(childPanel, 'Child performance panel');
     await expectReadableStatusBadge(
-      page.getByText('待完成 1', { exact: true }),
+      childPanel.locator('[data-overview-surface="child-chip-pending"]'),
       'Child pending status chip',
     );
     await expectReadableStatusBadge(
-      page.getByText('待审核 1', { exact: true }),
+      childPanel.locator('[data-overview-surface="child-chip-submitted"]'),
       'Child submitted status chip',
     );
     await expectReadableStatusBadge(
-      page.getByText('待核销 1', { exact: true }),
+      childPanel.locator('[data-overview-surface="child-chip-pending-order"]'),
       'Child pending-order status chip',
     );
+
+    const pointsFlow = getOverviewSection(page, 'points-flow');
+    const pointsMetric = pointsFlow.locator('[data-overview-surface="points-metric-issued"]').first();
+    const pointsTopTask = pointsFlow.locator('[data-overview-surface="points-top-task"]').first();
+    await expectDarkSurface(pointsMetric, 'Points flow metric tile');
+    await expectDarkSurface(pointsTopTask, 'Points flow top task row');
+
+    const comparisonSection = getOverviewSection(page, 'comparison-chart');
+    const comparisonTrack = comparisonSection.locator('[data-overview-surface="comparison-track-approvedTasks"]').first();
+    const comparisonRankRow = comparisonSection.locator('[data-overview-surface="comparison-rank-row"]').first();
+    const comparisonRankBadge = comparisonRankRow.locator('[data-overview-surface="comparison-rank-badge"]').first();
+    await expectDarkSurface(comparisonTrack, 'Comparison metric track');
+    await expectDarkSurface(comparisonRankRow, 'Comparison ranking row');
+    await expectReadableStatusBadge(comparisonRankBadge, 'Comparison ranking badge');
   } finally {
     await context.close();
     await browser.close();

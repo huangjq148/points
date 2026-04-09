@@ -28,15 +28,19 @@ export default function PointsFlow({ data, loading }: PointsFlowProps) {
 
   if (loading) {
     return (
-      <div className="card">
+      <div className="card" data-overview-section="points-flow">
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-200 rounded w-1/3 mb-4"></div>
+          <div className="overview-skeleton-surface h-6 rounded w-1/3 mb-4"></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 bg-slate-200 rounded-xl"></div>
+              <div
+                key={i}
+                data-overview-skeleton="points-flow-metric"
+                className="overview-skeleton-surface h-20 rounded-xl"
+              ></div>
             ))}
           </div>
-          <div className="h-32 bg-slate-200 rounded-xl"></div>
+          <div className="overview-skeleton-surface h-32 rounded-xl"></div>
         </div>
       </div>
     );
@@ -44,7 +48,7 @@ export default function PointsFlow({ data, loading }: PointsFlowProps) {
 
   if (!data) {
     return (
-      <div className="card">
+      <div className="card" data-overview-section="points-flow">
         <h3 className="text-lg font-bold text-slate-800 mb-4">积分流转</h3>
         <div className="text-center py-8 text-slate-500">
           <Coins size={48} className="mx-auto mb-3 text-slate-300" />
@@ -59,31 +63,35 @@ export default function PointsFlow({ data, loading }: PointsFlowProps) {
       label: "本周发放",
       value: data.issuedThisWeek,
       icon: TrendingUp,
-      color: "text-emerald-600 bg-emerald-100",
+      tone: "success",
+      surfaceName: "points-metric-issued",
     },
     {
       label: "本周消耗",
       value: data.redeemedThisWeek,
       icon: TrendingDown,
-      color: "text-rose-600 bg-rose-100",
+      tone: "danger",
+      surfaceName: "points-metric-redeemed",
     },
     {
       label: "净流量",
       value: Math.abs(netFlow),
       icon: isPositive ? TrendingUp : TrendingDown,
-      color: isPositive ? "text-blue-600 bg-blue-100" : "text-orange-600 bg-orange-100",
+      tone: isPositive ? "info" : "orange",
+      surfaceName: "points-metric-net-flow",
       prefix: isPositive ? "+" : "-",
     },
     {
       label: "当前余额",
       value: data.currentBalance,
       icon: Wallet,
-      color: "text-purple-600 bg-purple-100",
+      tone: "accent",
+      surfaceName: "points-metric-balance",
     },
   ];
 
   return (
-    <div className="card">
+    <div className="card" data-overview-section="points-flow">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-slate-800">积分流转</h3>
         <span className="text-xs text-slate-500">本周统计</span>
@@ -92,8 +100,14 @@ export default function PointsFlow({ data, loading }: PointsFlowProps) {
       {/* 核心指标 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {metrics.map((item) => (
-          <div key={item.label} className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${item.color}`}>
+          <div
+            key={item.label}
+            data-overview-surface={item.surfaceName}
+            className="overview-soft-surface p-3 rounded-xl"
+          >
+            <div
+              className={`overview-icon-badge overview-icon-badge--${item.tone} w-8 h-8 rounded-xl flex items-center justify-center mb-2`}
+            >
               <item.icon size={16} />
             </div>
             <p className="text-xl font-bold text-slate-800">
@@ -160,7 +174,8 @@ export default function PointsFlow({ data, loading }: PointsFlowProps) {
             {data.topTasksByPoints.slice(0, 3).map((task, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-2 rounded-xl bg-slate-50"
+                data-overview-surface="points-top-task"
+                className="overview-soft-surface flex items-center justify-between p-2 rounded-xl"
               >
                 <div className="flex items-center gap-2">
                   <Gift size={14} className="text-yellow-500" />
@@ -169,7 +184,7 @@ export default function PointsFlow({ data, loading }: PointsFlowProps) {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-semibold text-emerald-600">
+                  <span className="overview-accent-text overview-accent-text--success text-sm font-semibold">
                     +{task.points * task.count}
                   </span>
                   <span className="text-xs text-slate-400 ml-1">

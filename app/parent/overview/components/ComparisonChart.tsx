@@ -49,10 +49,13 @@ export default function ComparisonChart({ data, loading }: ComparisonChartProps)
 
   if (loading) {
     return (
-      <div className="card">
+      <div className="card" data-overview-section="comparison-chart">
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-200 rounded w-1/3 mb-4"></div>
-          <div className="h-48 bg-slate-200 rounded-xl"></div>
+          <div className="overview-skeleton-surface h-6 rounded w-1/3 mb-4"></div>
+          <div
+            data-overview-skeleton="comparison-chart"
+            className="overview-skeleton-surface h-48 rounded-xl"
+          ></div>
         </div>
       </div>
     );
@@ -60,7 +63,7 @@ export default function ComparisonChart({ data, loading }: ComparisonChartProps)
 
   if (!data || data.length === 0) {
     return (
-      <div className="card">
+      <div className="card" data-overview-section="comparison-chart">
         <h3 className="text-lg font-bold text-slate-800 mb-4">孩子表现对比</h3>
         <div className="text-center py-8 text-slate-500">
           <BarChart3 size={40} className="mx-auto mb-2 text-slate-300" />
@@ -73,7 +76,7 @@ export default function ComparisonChart({ data, loading }: ComparisonChartProps)
   // 只有一个孩子时不显示对比
   if (data.length === 1) {
     return (
-      <div className="card">
+      <div className="card" data-overview-section="comparison-chart">
         <h3 className="text-lg font-bold text-slate-800 mb-4">孩子表现对比</h3>
         <div className="text-center py-8 text-slate-500">
           <p className="text-sm">添加更多孩子后可以查看对比分析</p>
@@ -83,7 +86,7 @@ export default function ComparisonChart({ data, loading }: ComparisonChartProps)
   }
 
   return (
-    <div className="card">
+    <div className="card" data-overview-section="comparison-chart">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
           <BarChart3 size={20} className="text-blue-500" />
@@ -118,7 +121,10 @@ export default function ComparisonChart({ data, loading }: ComparisonChartProps)
                           {child.name}
                         </span>
                       </div>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        data-overview-surface={`comparison-track-${metric.key}`}
+                        className="overview-track flex-1 h-6 rounded-full overflow-hidden"
+                      >
                         <div
                           className={`h-full ${metric.color} rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
                           style={{ width: `${Math.max(percentage, 5)}%` }}
@@ -157,15 +163,17 @@ export default function ComparisonChart({ data, loading }: ComparisonChartProps)
             .map((child, index) => (
               <div
                 key={child.childId}
-                className="flex items-center gap-3 p-2 rounded-xl bg-slate-50"
+                data-overview-surface="comparison-rank-row"
+                className="overview-soft-surface flex items-center gap-3 p-2 rounded-xl"
               >
                 <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  data-overview-surface="comparison-rank-badge"
+                  className={`overview-rank-badge w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     index === 0
-                      ? "bg-yellow-100 text-yellow-700"
+                      ? "overview-rank-badge--gold"
                       : index === 1
-                      ? "bg-slate-100 text-slate-700"
-                      : "bg-orange-100 text-orange-700"
+                      ? "overview-rank-badge--silver"
+                      : "overview-rank-badge--bronze"
                   }`}
                 >
                   {index + 1}
