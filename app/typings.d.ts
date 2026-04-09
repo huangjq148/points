@@ -63,6 +63,12 @@ export interface PlainOrder {
   status: "pending" | "verified" | "cancelled";
   verificationCode: string;
   verifiedAt?: string;
+  validUntil?: string | null;
+  privilegeMeta?: {
+    isPrivilege?: boolean;
+    startsAt?: string | null;
+    endsAt?: string | null;
+  };
   createdAt: string;
   updatedAt: string;
 }

@@ -107,6 +107,14 @@ export async function GET(request: NextRequest) {
         },
       },
       {
+        $lookup: {
+          from: "rewards",
+          localField: "rewardId",
+          foreignField: "_id",
+          as: "rewardInfo",
+        },
+      },
+      {
         $addFields: {
           childName: {
             $let: {
@@ -120,9 +128,33 @@ export async function GET(request: NextRequest) {
               in: { $ifNull: ["$$firstChild.avatar", "👶"] },
             },
           },
+          privilegeMeta: {
+            $let: {
+              vars: { firstReward: { $arrayElemAt: ["$rewardInfo", 0] } },
+              in: {
+                isPrivilege: { $eq: ["$$firstReward.type", "privilege"] },
+                startsAt: {
+                  $cond: [{ $eq: ["$status", "verified"] }, "$verifiedAt", null],
+                },
+                endsAt: {
+                  $cond: [
+                    { $eq: ["$status", "verified"] },
+                    "$validUntil",
+                    {
+                      $cond: [
+                        { $eq: ["$status", "pending"] },
+                        "$$firstReward.expiresAt",
+                        null,
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
         },
       },
-      { $project: { childInfo: 0 } },
+      { $project: { childInfo: 0, rewardInfo: 0 } },
     ]);
       
     const total = await Order.countDocuments(query);
@@ -202,13 +234,6 @@ export async function POST(request: NextRequest) {
     }
 
     const verificationCode: string = generateCode();
-    let validUntil: Date | null = null;
-    if (reward.type === 'privilege' && reward.validDurationValue && reward.validDurationUnit) {
-      const ms = reward.validDurationUnit === 'day'
-        ? reward.validDurationValue * 24 * 60 * 60 * 1000
-        : reward.validDurationValue * 60 * 60 * 1000;
-      validUntil = new Date(Date.now() + ms);
-    }
 
     const order: IOrder = await Order.create({
       userId,
@@ -219,7 +244,7 @@ export async function POST(request: NextRequest) {
       pointsSpent: reward.points,
       status: 'pending',
       verificationCode,
-      validUntil,
+      validUntil: null,
     });
 
     await User.findByIdAndUpdate(childId, {
@@ -266,11 +291,25 @@ export async function PUT(request: NextRequest) {
     }
 
     if (action === 'verify') {
-      if (order.validUntil && order.validUntil.getTime() < Date.now()) {
-        return NextResponse.json({ success: false, message: '该兑换已过期' }, { status: 400 });
+      const reward = await Reward.findById(order.rewardId);
+      if (!reward) {
+        return NextResponse.json({ success: false, message: '奖励不存在' }, { status: 404 });
       }
+      if (reward.type === 'privilege' && reward.expiresAt && reward.expiresAt.getTime() < Date.now()) {
+        return NextResponse.json({ success: false, message: '该特权奖励已过期' }, { status: 400 });
+      }
+
+      const verifiedAt = new Date();
       order.status = 'verified';
-      order.verifiedAt = new Date();
+      order.verifiedAt = verifiedAt;
+      if (reward.type === 'privilege' && reward.validDurationValue && reward.validDurationUnit) {
+        const ms = reward.validDurationUnit === 'day'
+          ? reward.validDurationValue * 24 * 60 * 60 * 1000
+          : reward.validDurationValue * 60 * 60 * 1000;
+        order.validUntil = new Date(verifiedAt.getTime() + ms);
+      } else {
+        order.validUntil = null;
+      }
       await order.save();
     } else if (action === 'cancel') {
       await User.findByIdAndUpdate(order.childId, {

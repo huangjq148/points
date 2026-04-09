@@ -23,7 +23,6 @@ import {
   ChildStatCard,
   ChildStatusPill,
 } from '@/components/child/ChildUI';
-import FeatureGrid from './components/FeatureGrid';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
 import dayjs from 'dayjs';
@@ -65,6 +64,22 @@ interface RewardSummary {
   expiresAt?: string | null;
 }
 
+interface ChildPrivilegeOrder {
+  _id: string;
+  rewardName: string;
+  rewardIcon?: string;
+  status: 'pending' | 'verified' | 'cancelled';
+  verificationCode: string;
+  createdAt: string;
+  verifiedAt?: string;
+  validUntil?: string | null;
+  privilegeMeta?: {
+    isPrivilege?: boolean;
+    startsAt?: string | null;
+    endsAt?: string | null;
+  };
+}
+
 export default function ChildHome() {
   const { currentUser } = useApp();
   const router = useRouter();
@@ -90,6 +105,8 @@ export default function ChildHome() {
   const [submitting, setSubmitting] = useState(false);
   const [recallingTaskId, setRecallingTaskId] = useState<string | null>(null);
   const [rewardSummary, setRewardSummary] = useState<RewardSummary[]>([]);
+  const [privilegeOrders, setPrivilegeOrders] = useState<ChildPrivilegeOrder[]>([]);
+  const [showPrivilegeDetail, setShowPrivilegeDetail] = useState<ChildPrivilegeOrder | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,10 +168,29 @@ export default function ChildHome() {
     }
   }, [currentUser?.token]);
 
+  const fetchPrivilegeOrders = useCallback(async () => {
+    if (!currentUser?.token) return;
+    try {
+      const data = await request('/api/orders', {
+        params: {
+          status: 'pending,verified',
+          page: 1,
+          limit: 50,
+        },
+      });
+      if (data.success) {
+        setPrivilegeOrders(data.orders || []);
+      }
+    } catch (error) {
+      console.error('获取特权订单失败:', error);
+    }
+  }, [currentUser?.token]);
+
   useEffect(() => {
     fetchTasks();
     fetchRewardSummary();
-  }, [fetchRewardSummary, fetchTasks]);
+    fetchPrivilegeOrders();
+  }, [fetchPrivilegeOrders, fetchRewardSummary, fetchTasks]);
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -272,6 +308,40 @@ export default function ChildHome() {
       }),
     [privilegeRewards],
   );
+  function getPrivilegeEndTime(order: ChildPrivilegeOrder) {
+    if (order.privilegeMeta?.endsAt) {
+      return dayjs(order.privilegeMeta.endsAt);
+    }
+
+    if (order.validUntil) {
+      return dayjs(order.validUntil);
+    }
+
+    return null;
+  }
+
+  const activePrivilegeOrders = useMemo(() => {
+    return privilegeOrders
+      .filter((order) => order.privilegeMeta?.isPrivilege)
+      .filter((order) => {
+        if (order.status === 'cancelled') return false;
+        if (order.status === 'pending') {
+          const endTime = order.privilegeMeta?.endsAt ? dayjs(order.privilegeMeta.endsAt) : null;
+          if (!endTime) return true;
+          return !endTime.isBefore(dayjs());
+        }
+        if (order.status === 'verified') {
+          const endTime = getPrivilegeEndTime(order);
+          if (!endTime) return true;
+          return !endTime.isBefore(dayjs());
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'verified' ? -1 : 1;
+        return dayjs(b.verifiedAt || b.createdAt).valueOf() - dayjs(a.verifiedAt || a.createdAt).valueOf();
+      });
+  }, [privilegeOrders]);
   const totalTasks = tasks.length;
   const completedTaskCount = completedTasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTaskCount / totalTasks) * 100) : 0;
@@ -318,6 +388,37 @@ export default function ChildHome() {
   const rewardCtaPath =
     privilegeRewards.length > 0 ? '/child/store?category=privilege' : '/child/store';
 
+  const formatPrivilegeTime = (value?: string | null) => {
+    if (!value) return '长期有效';
+    return dayjs(value).format('M月D日 HH:mm');
+  };
+
+  const getPrivilegeTimingText = (order: ChildPrivilegeOrder) => {
+    if (order.status === 'verified') {
+      const endTime = getPrivilegeEndTime(order);
+      return {
+        startLabel: '生效时间',
+        startValue: order.privilegeMeta?.startsAt
+          ? formatPrivilegeTime(order.privilegeMeta.startsAt)
+          : order.verifiedAt
+            ? formatPrivilegeTime(order.verifiedAt)
+            : '已生效',
+        endLabel: '截止时间',
+        endValue: endTime ? formatPrivilegeTime(endTime.toISOString()) : '长期有效',
+      };
+    }
+
+    return {
+      startLabel: '生效时间',
+      startValue: '待家长核销',
+      endLabel: '截止时间',
+      endValue: order.privilegeMeta?.endsAt ? formatPrivilegeTime(order.privilegeMeta.endsAt) : '待确认',
+    };
+  };
+
+  const getPrivilegeDetailTone = (order: ChildPrivilegeOrder) =>
+    order.status === 'verified' ? 'emerald' : 'amber';
+
   const getTaskTone = (task: Task, isFutureToday: boolean) => {
     if (task.status === 'approved') return 'emerald' as const;
     if (task.status === 'submitted') return 'amber' as const;
@@ -347,6 +448,74 @@ export default function ChildHome() {
   return (
     <>
       <div className='child-page-grid pb-2'>
+        <Modal
+          title='特权详情'
+          isOpen={!!showPrivilegeDetail}
+          onClose={() => setShowPrivilegeDetail(null)}
+          width={520}
+          className='!bg-white !backdrop-blur-xl !border-gray-200'
+        >
+          {showPrivilegeDetail && (
+            <div className='space-y-4'>
+              <div className='flex items-center gap-4 rounded-[24px] bg-[linear-gradient(135deg,rgba(255,255,255,0.95)_0%,rgba(240,249,255,0.92)_100%)] p-4 ring-1 ring-sky-100'>
+                <div className='flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-white text-[30px] shadow-sm ring-1 ring-white'>
+                  {showPrivilegeDetail.rewardIcon || '🎁'}
+                </div>
+                <div className='min-w-0 flex-1'>
+                  <div className='flex items-center gap-2'>
+                    <ChildStatusPill tone={getPrivilegeDetailTone(showPrivilegeDetail)}>
+                      {showPrivilegeDetail.status === 'verified' ? '已生效' : '待生效'}
+                    </ChildStatusPill>
+                  </div>
+                  <h3 className='mt-2 truncate text-xl font-black tracking-tight text-[var(--child-text)]'>
+                    {showPrivilegeDetail.rewardName}
+                  </h3>
+                </div>
+              </div>
+
+              <div className='grid gap-3 sm:grid-cols-2'>
+                <div className='rounded-[20px] bg-slate-50 p-4 ring-1 ring-slate-100'>
+                  <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+                    生效时间
+                  </div>
+                  <div className='mt-1 text-sm font-bold text-[var(--child-text)]'>
+                    {showPrivilegeDetail.privilegeMeta?.startsAt
+                      ? formatPrivilegeTime(showPrivilegeDetail.privilegeMeta.startsAt)
+                      : showPrivilegeDetail.verifiedAt
+                        ? formatPrivilegeTime(showPrivilegeDetail.verifiedAt)
+                        : '待家长核销'}
+                  </div>
+                </div>
+                <div className='rounded-[20px] bg-slate-50 p-4 ring-1 ring-slate-100'>
+                  <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+                    截止时间
+                  </div>
+                  <div className='mt-1 text-sm font-bold text-[var(--child-text)]'>
+                    {showPrivilegeDetail.privilegeMeta?.endsAt
+                      ? formatPrivilegeTime(showPrivilegeDetail.privilegeMeta.endsAt)
+                      : '长期有效'}
+                  </div>
+                </div>
+              </div>
+
+              <div className='rounded-[20px] bg-white/80 p-4 ring-1 ring-[var(--child-border)]'>
+                <div className='text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+                  核销码
+                </div>
+                <div className='mt-2 font-mono text-xl font-black tracking-[0.22em] text-[var(--child-text)]'>
+                  {showPrivilegeDetail.verificationCode}
+                </div>
+              </div>
+
+              <div className='rounded-[20px] bg-[linear-gradient(135deg,rgba(14,165,164,0.08)_0%,rgba(59,130,246,0.08)_100%)] p-4 text-sm font-semibold text-[var(--child-text-muted)] ring-1 ring-sky-100'>
+                {showPrivilegeDetail.status === 'verified'
+                  ? '家长已经确认，这个特权现在可以使用。'
+                  : '还在等待家长核销，核销后才会开始生效。'}
+              </div>
+            </div>
+          )}
+        </Modal>
+
         <ChildPanel className='overflow-hidden bg-[linear-gradient(135deg,rgba(255,255,255,0.92)_0%,rgba(224,242,254,0.82)_52%,rgba(220,252,231,0.78)_100%)]'>
           <div className='grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-center'>
             <div>
@@ -396,6 +565,62 @@ export default function ChildHome() {
               </div>
             </div>
           </div>
+        </ChildPanel>
+
+        <ChildPanel>
+          <ChildPageTitle
+            icon={<Clock3 size={22} />}
+            title='特权奖励'
+          />
+          {activePrivilegeOrders.length > 0 ? (
+            <div className='mt-3 grid gap-2.5'>
+              {activePrivilegeOrders.map((order) => {
+                const timing = getPrivilegeTimingText(order);
+                return (
+                  <button
+                    key={order._id}
+                    type='button'
+                    onClick={() => setShowPrivilegeDetail(order)}
+                    className='w-full rounded-[22px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(248,250,252,0.92)_100%)] px-4 py-2.5 text-left shadow-[0_10px_22px_rgba(15,23,42,0.055)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'
+                  >
+                    <div className='flex items-center gap-3'>
+                      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] bg-white text-[22px] shadow-[0_6px_12px_rgba(15,23,42,0.08)] ring-1 ring-white'>
+                        {order.rewardIcon || '🎁'}
+                      </div>
+                      <div className='min-w-0 flex-1'>
+                        <h3 className='truncate text-[15px] font-black leading-5 tracking-tight text-[var(--child-text)]'>
+                          {order.rewardName}
+                        </h3>
+                      </div>
+                      <div className='ml-auto min-w-0 text-right'>
+                        <div className='truncate text-[12px] font-bold leading-4 text-[var(--child-text)]'>
+                          {timing.startValue} - {timing.endValue}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className='mt-4'>
+              <ChildEmptyState
+                title='还没有可用特权'
+                hint='去奖励商店兑换特权后，家长确认时会在这里显示。'
+                icon='✨'
+                action={
+                  <button
+                    type='button'
+                    onClick={() => handleNavigate('/child/store?category=privilege')}
+                    className='inline-flex min-h-11 items-center gap-2 rounded-2xl bg-teal-500 px-4 py-2 text-sm font-black text-white'
+                  >
+                    去兑换特权
+                    <ArrowRight size={16} />
+                  </button>
+                }
+              />
+            </div>
+          )}
         </ChildPanel>
 
         <div className='child-page-grid child-two-column'>
@@ -542,14 +767,6 @@ export default function ChildHome() {
                 去奖励商店
                 <ArrowRight size={16} />
               </button>
-            </div>
-            <div className='mt-4'>
-              <FeatureGrid
-                completedTasksCount={completedTaskCount}
-                privilegedCount={privilegeRewards.length}
-                urgentPrivilegeRewards={urgentPrivilegeRewards}
-                onNavigate={handleNavigate}
-              />
             </div>
           </ChildPanel>
         </div>
