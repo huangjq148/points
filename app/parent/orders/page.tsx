@@ -249,7 +249,7 @@ function OrdersPage() {
         />
       </section>
 
-      <section className='rounded-[28px] border border-white/65 bg-white/72 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl'>
+      <section className='orders-toolbar rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-5 shadow-[var(--ui-shadow-md)] backdrop-blur-xl'>
         <div className='grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center'>
           <div className='flex min-w-0 items-center gap-3 overflow-x-auto xl:overflow-visible'>
             <TabFilter
@@ -287,7 +287,7 @@ function OrdersPage() {
               setSelectedChildFilter(value ?? 'all');
             }}
             className='shrink-0 justify-self-start xl:justify-self-end'
-            buttonClassName='h-11 min-w-[140px] justify-between rounded-full border-slate-200/80 bg-white/90 px-4 text-[var(--ui-text-primary)] shadow-sm transition-all duration-200 hover:border-slate-300 hover:bg-slate-50'
+            buttonClassName='h-11 min-w-[140px] justify-between rounded-full border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 text-[var(--ui-text-primary)] shadow-[var(--ui-shadow-sm)] transition-all duration-200 hover:border-[color:var(--ui-border-strong)] hover:bg-[var(--ui-surface-2)]'
           />
         </div>
       </section>
@@ -331,7 +331,7 @@ function OrdersPage() {
                 }
               />
             ))}
-            <div className='rounded-[28px] border border-slate-200/70 bg-white/90 px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] backdrop-blur'>
+            <div className='rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] px-5 py-4 shadow-[var(--ui-shadow-md)] backdrop-blur'>
               <Pagination
                 currentPage={pendingPage}
                 totalItems={pendingTotal}
@@ -364,11 +364,11 @@ function OrdersPage() {
                   statusLabel='已核销'
                   statusTone='emerald'
                   actionArea={
-                    <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
-                      <div className='text-xs font-semibold text-[var(--ui-text-muted)]'>
+                    <div className='flex w-full flex-col gap-1.5 text-sm'>
+                      <div className='text-xs font-semibold tracking-[0.14em] text-[var(--ui-text-muted)]'>
                         完成时间
                       </div>
-                      <div className='text-sm font-medium text-[var(--ui-text-primary)]'>
+                      <div className='text-sm font-medium tabular-nums text-[var(--ui-text-primary)]'>
                         {order.verifiedAt
                           ? formatDate(order.verifiedAt)
                           : formatDate(order.updatedAt)}
@@ -377,7 +377,7 @@ function OrdersPage() {
                   }
                 />
               ))}
-            <div className='rounded-[28px] border border-slate-200/70 bg-white/90 px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] backdrop-blur'>
+            <div className='rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] px-5 py-4 shadow-[var(--ui-shadow-md)] backdrop-blur'>
               <Pagination
                   currentPage={verifiedPage}
                   totalItems={verifiedTotal}
@@ -411,18 +411,18 @@ function OrdersPage() {
                   statusLabel='已取消'
                   statusTone='rose'
                   actionArea={
-                    <div className='flex w-full items-center justify-between gap-2 whitespace-nowrap text-sm'>
-                      <div className='text-xs font-semibold text-[var(--ui-text-muted)]'>
+                    <div className='flex w-full flex-col gap-1.5 text-sm'>
+                      <div className='text-xs font-semibold tracking-[0.14em] text-[var(--ui-text-muted)]'>
                         取消时间
                       </div>
-                      <div className='text-sm font-medium text-[var(--ui-text-primary)]'>
+                      <div className='text-sm font-medium tabular-nums text-[var(--ui-text-primary)]'>
                         {formatDate(order.updatedAt)}
                       </div>
                     </div>
                   }
                 />
               ))}
-            <div className='rounded-[28px] border border-slate-200/70 bg-white/90 px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.05)] backdrop-blur'>
+            <div className='rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] px-5 py-4 shadow-[var(--ui-shadow-md)] backdrop-blur'>
               <Pagination
                   currentPage={cancelledPage}
                   totalItems={cancelledTotal}
@@ -455,27 +455,27 @@ function OrderCard({
   const isPending = statusTone === 'amber';
   const accentClassMap: Record<typeof statusTone, string> = {
     slate:
-      'from-slate-100/90 via-white to-slate-50 border-slate-200/80 text-slate-700 shadow-[0_12px_28px_rgba(100,116,139,0.12)]',
+      'border-[color:var(--ui-border)] bg-[linear-gradient(135deg,var(--ui-surface-2)_0%,var(--ui-panel-bg)_100%)] text-[var(--ui-text-secondary)] shadow-[var(--ui-shadow-sm)]',
     emerald:
-      'from-emerald-100/90 via-white to-emerald-50 border-emerald-200/80 text-emerald-700 shadow-[0_12px_28px_rgba(16,185,129,0.12)]',
+      'border-[color:var(--ui-success-border)] bg-[linear-gradient(135deg,var(--ui-success-bg)_0%,var(--ui-panel-bg)_100%)] text-[var(--ui-success-text)] shadow-[var(--ui-status-success-shadow)]',
     amber:
-      'from-amber-100/90 via-white to-orange-50 border-amber-200/80 text-amber-700 shadow-[0_12px_28px_rgba(245,158,11,0.14)]',
+      'border-[color:var(--ui-warning-border)] bg-[linear-gradient(135deg,var(--ui-warning-bg)_0%,var(--ui-panel-bg)_100%)] text-[var(--ui-warning-text)] shadow-[var(--ui-status-warning-shadow)]',
     rose:
-      'from-rose-100/90 via-white to-rose-50 border-rose-200/80 text-rose-700 shadow-[0_12px_28px_rgba(244,63,94,0.12)]',
+      'border-[color:var(--ui-danger-border)] bg-[linear-gradient(135deg,var(--ui-danger-bg)_0%,var(--ui-panel-bg)_100%)] text-[var(--ui-danger-text)] shadow-[var(--ui-status-error-shadow)]',
     blue:
-      'from-blue-100/90 via-white to-cyan-50 border-blue-200/80 text-blue-700 shadow-[0_12px_28px_rgba(59,130,246,0.12)]',
+      'border-[color:var(--ui-action-blue-border)] bg-[var(--ui-action-blue-bg)] text-[var(--ui-action-blue-text)] shadow-[var(--ui-primary-soft-shadow)]',
   };
 
   const accentGlowMap: Record<typeof statusTone, string> = {
-    slate: 'bg-slate-200/60',
-    emerald: 'bg-emerald-200/60',
-    amber: 'bg-amber-200/60',
-    rose: 'bg-rose-200/60',
-    blue: 'bg-blue-200/60',
+    slate: 'bg-slate-400/20',
+    emerald: 'bg-emerald-400/24',
+    amber: 'bg-amber-300/28',
+    rose: 'bg-rose-400/24',
+    blue: 'bg-sky-400/24',
   };
 
   return (
-    <div className='group relative overflow-hidden rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.92)_100%)] p-5 shadow-[0_16px_36px_rgba(15,23,42,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_46px_rgba(15,23,42,0.1)] sm:p-6'>
+    <div className='order-card group relative overflow-hidden rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-5 shadow-[var(--ui-shadow-md)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--ui-shadow-lg)] sm:p-6'>
       <div
         className={`pointer-events-none absolute right-[-28px] top-[-36px] h-32 w-32 rounded-full blur-3xl transition-opacity duration-300 group-hover:opacity-100 ${accentGlowMap[statusTone]} opacity-80`}
       />
@@ -483,13 +483,13 @@ function OrderCard({
       <div className='relative flex flex-col gap-4 md:flex-row md:items-stretch md:justify-between'>
         <div className='min-w-0 flex-1'>
           <div className='flex items-start gap-4'>
-            <div className='flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[26px] bg-gradient-to-br from-amber-100 via-white to-orange-100 text-3xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_12px_26px_rgba(251,191,36,0.16)] ring-1 ring-white/80'>
+            <div className='flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-[26px] border border-[color:var(--ui-warning-border)] bg-[linear-gradient(135deg,var(--ui-warning-bg)_0%,var(--ui-surface-1)_100%)] text-3xl shadow-[var(--ui-status-warning-shadow)]'>
               {order.rewardIcon || '🎁'}
             </div>
             <div className='min-w-0 flex-1'>
               <div className='flex flex-wrap items-center gap-2'>
                 <Badge tone={statusTone}>{statusLabel}</Badge>
-                <span className='inline-flex items-center rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em] text-white/90'>
+                <span className='inline-flex items-center rounded-full border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em] text-[var(--ui-text-secondary)]'>
                   {isPending ? '等待处理' : '处理已完成'}
                 </span>
               </div>
@@ -497,11 +497,11 @@ function OrderCard({
                 {order.rewardName}
               </h3>
               <div className='mt-3 flex flex-wrap items-center gap-2.5 text-sm text-[var(--ui-text-muted)]'>
-                <span className='inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50/80 px-3 py-1.5 font-semibold text-amber-700'>
+                <span className='inline-flex items-center gap-1.5 rounded-full border border-[color:var(--ui-warning-border)] bg-[var(--ui-warning-bg)] px-3 py-1.5 font-semibold text-[var(--ui-warning-text)]'>
                   <Gift size={14} />
                   {order.pointsSpent} 积分
                 </span>
-                <span className='inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-white px-3 py-1.5 text-[var(--ui-text-secondary)]'>
+                <span className='inline-flex items-center gap-1.5 rounded-full border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-3 py-1.5 text-[var(--ui-text-secondary)]'>
                   <Clock3 size={14} />
                   {formatDate(order.createdAt)}
                 </span>
@@ -510,8 +510,8 @@ function OrderCard({
           </div>
 
           <div className='mt-5 grid gap-3 lg:grid-cols-[minmax(0,0.95fr)_minmax(220px,1.05fr)]'>
-            <div className='flex items-center gap-3 rounded-[24px] border border-slate-200/80 bg-white/90 px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)]'>
-              <div className='flex h-12 w-12 items-center justify-center rounded-[18px] bg-slate-50 text-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_4px_10px_rgba(15,23,42,0.05)]'>
+            <div className='flex items-center gap-3 rounded-[24px] border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 py-4 shadow-[var(--ui-shadow-sm)]'>
+              <div className='flex h-12 w-12 items-center justify-center rounded-[18px] border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] text-xl shadow-[var(--ui-shadow-sm)]'>
                 {order.childAvatar}
               </div>
               <div className='min-w-0'>
@@ -525,12 +525,12 @@ function OrderCard({
             </div>
 
             <div
-              className={`rounded-[24px] border bg-gradient-to-r px-4 py-4 ${accentClassMap[statusTone]}`}
+              className={`rounded-[24px] border px-4 py-4 ${accentClassMap[statusTone]}`}
             >
               <div className='text-[11px] font-semibold uppercase tracking-[0.18em] opacity-75'>
                 Verification Code
               </div>
-              <div className='mt-2 font-mono text-lg font-black tracking-[0.22em] text-slate-950 sm:text-[20px]'>
+              <div className='mt-2 font-mono text-lg font-black tracking-[0.22em] text-current sm:text-[20px]'>
                 {order.verificationCode}
               </div>
             </div>
@@ -538,7 +538,7 @@ function OrderCard({
         </div>
 
         <div className='md:w-[198px] md:shrink-0'>
-          <div className='w-full overflow-x-auto rounded-[22px]'>{actionArea}</div>
+          <div className='w-full rounded-[22px]'>{actionArea}</div>
         </div>
       </div>
     </div>
@@ -552,8 +552,8 @@ export default function OrdersPageWrapper() {
       fallback={
         <div className='flex min-h-[400px] items-center justify-center'>
           <div className='text-center'>
-            <div className='mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500'></div>
-            <p className='text-slate-500'>加载中...</p>
+            <div className='mx-auto mb-3 h-12 w-12 animate-spin rounded-full border-4 border-[color:var(--ui-border)] border-t-[color:var(--ui-focus)]'></div>
+            <p className='text-[var(--ui-text-muted)]'>加载中...</p>
           </div>
         </div>
       }

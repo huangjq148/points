@@ -10,13 +10,13 @@ function cx(...classes: Array<string | false | null | undefined>) {
 export type ChildTone = "sky" | "teal" | "amber" | "rose" | "emerald" | "slate" | "violet";
 
 const toneClassMap: Record<ChildTone, string> = {
-  sky: "bg-sky-50 text-sky-700 ring-sky-100",
-  teal: "bg-teal-50 text-teal-700 ring-teal-100",
-  amber: "bg-amber-50 text-amber-700 ring-amber-100",
-  rose: "bg-rose-50 text-rose-700 ring-rose-100",
-  emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-  slate: "bg-slate-100 text-slate-700 ring-slate-200/70",
-  violet: "bg-violet-50 text-violet-700 ring-violet-100",
+  sky: "bg-[color:rgba(14,165,233,0.14)] text-sky-700 ring-[color:rgba(125,211,252,0.24)]",
+  teal: "bg-[color:rgba(20,184,166,0.14)] text-teal-700 ring-[color:rgba(94,234,212,0.24)]",
+  amber: "bg-[color:rgba(245,158,11,0.16)] text-amber-700 ring-[color:rgba(252,211,77,0.24)]",
+  rose: "bg-[color:rgba(244,63,94,0.14)] text-rose-700 ring-[color:rgba(253,164,175,0.24)]",
+  emerald: "bg-[color:rgba(16,185,129,0.14)] text-emerald-700 ring-[color:rgba(110,231,183,0.24)]",
+  slate: "bg-[var(--child-surface-muted)] text-[var(--child-text-muted)] ring-[color:var(--child-border)]",
+  violet: "bg-[color:rgba(139,92,246,0.14)] text-violet-700 ring-[color:rgba(196,181,253,0.24)]",
 };
 
 const dotClassMap: Record<ChildTone, string> = {
@@ -47,7 +47,7 @@ export function ChildPageTitle({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90 text-xl shadow-sm ring-1 ring-white">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--child-surface-muted)] text-xl shadow-sm ring-1 ring-[color:var(--child-border)]">
               {icon}
             </span>
           )}
@@ -167,8 +167,8 @@ export function ChildEmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-[28px] border border-dashed border-[var(--child-border-strong)] bg-white/70 px-6 py-12 text-center shadow-sm">
-      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[24px] bg-sky-50 text-3xl text-sky-500 ring-1 ring-sky-100">
+    <div className="rounded-[28px] border border-dashed border-[var(--child-border-strong)] bg-[var(--child-surface-muted)] px-6 py-12 text-center shadow-sm">
+      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-[24px] bg-[color:rgba(14,165,233,0.14)] text-3xl text-sky-500 ring-1 ring-[color:rgba(125,211,252,0.24)]">
         {icon ?? <Gift size={34} />}
       </div>
       <p className="text-base font-black text-[var(--child-text)]">{title}</p>

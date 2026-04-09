@@ -31,6 +31,49 @@ interface ChildLayoutProps {
   children: React.ReactNode;
 }
 
+const CHILD_DARK_BODY_THEME_VARS: Record<string, string> = {
+  "--child-bg": "#0f172a",
+  "--child-bg-soft": "#111827",
+  "--child-bg-accent": "#1e293b",
+  "--child-surface": "rgba(15, 23, 42, 0.86)",
+  "--child-surface-strong": "rgba(15, 23, 42, 0.96)",
+  "--child-surface-muted": "rgba(30, 41, 59, 0.82)",
+  "--child-border": "rgba(148, 163, 184, 0.26)",
+  "--child-border-strong": "rgba(125, 211, 252, 0.28)",
+  "--child-text": "#f8fafc",
+  "--child-text-muted": "#cbd5e1",
+  "--ui-text-primary": "#f8fafc",
+  "--ui-text-secondary": "#e2e8f0",
+  "--ui-text-muted": "#94a3b8",
+  "--ui-text-soft": "#64748b",
+  "--ui-surface-1": "rgba(15, 23, 42, 0.94)",
+  "--ui-surface-2": "rgba(30, 41, 59, 0.9)",
+  "--ui-surface-3": "rgba(30, 41, 59, 0.76)",
+  "--ui-panel-bg": "rgba(15, 23, 42, 0.96)",
+  "--ui-panel-bg-subtle": "rgba(30, 41, 59, 0.82)",
+  "--ui-border": "rgba(71, 85, 105, 0.82)",
+  "--ui-border-strong": "rgba(100, 116, 139, 0.7)",
+  "--ui-focus": "rgba(96, 165, 250, 1)",
+  "--ui-focus-ring": "rgba(96, 165, 250, 0.16)",
+  "--ui-shadow-sm": "0 8px 20px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(148, 163, 184, 0.08)",
+  "--ui-shadow-md": "0 14px 34px rgba(2, 6, 23, 0.44)",
+  "--ui-shadow-lg": "0 18px 34px rgba(2, 6, 23, 0.5), inset 0 1px 0 rgba(148, 163, 184, 0.1)",
+  "--ui-primary-bg": "linear-gradient(90deg, rgba(96, 165, 250, 0.98) 0%, rgba(59, 130, 246, 0.98) 100%)",
+  "--ui-primary-border": "rgba(191, 219, 254, 0.3)",
+  "--ui-primary-shadow": "0 10px 26px rgba(37, 99, 235, 0.42), 0 6px 16px rgba(59, 130, 246, 0.24)",
+  "--ui-primary-shadow-hover": "0 14px 32px rgba(37, 99, 235, 0.46), 0 8px 18px rgba(59, 130, 246, 0.28)",
+  "--ui-overlay-bg": "rgba(2, 6, 23, 0.62)",
+  "--control-surface-bg": "rgba(15, 23, 42, 0.9)",
+  "--control-surface-bg-hover": "rgba(30, 41, 59, 0.96)",
+  "--control-border-color": "rgba(71, 85, 105, 0.82)",
+  "--control-border-color-hover": "rgba(148, 163, 184, 0.46)",
+  "--control-border-color-focus": "rgba(96, 165, 250, 1)",
+  "--control-panel-bg": "rgba(15, 23, 42, 0.98)",
+  "--control-box-shadow": "0 8px 20px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(148, 163, 184, 0.08)",
+  "--control-box-shadow-hover": "0 14px 28px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(148, 163, 184, 0.1)",
+  "--control-box-shadow-focus": "0 14px 28px rgba(59, 130, 246, 0.18), inset 0 1px 0 rgba(148, 163, 184, 0.08)",
+};
+
 function ChildAccountSignIn({
   onClose,
   onSuccess,
@@ -141,6 +184,28 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     if (typeof window === "undefined") return;
     setThemeStorage("child", isDarkMode ? "dark" : "light");
     applyDocumentTheme(isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    document.body.classList.toggle("child-theme-dark", isDarkMode);
+    if (isDarkMode) {
+      Object.entries(CHILD_DARK_BODY_THEME_VARS).forEach(([key, value]) => {
+        document.body.style.setProperty(key, value);
+      });
+    } else {
+      Object.keys(CHILD_DARK_BODY_THEME_VARS).forEach((key) => {
+        document.body.style.removeProperty(key);
+      });
+    }
+
+    return () => {
+      document.body.classList.remove("child-theme-dark");
+      Object.keys(CHILD_DARK_BODY_THEME_VARS).forEach((key) => {
+        document.body.style.removeProperty(key);
+      });
+    };
   }, [isDarkMode]);
 
   useEffect(() => {

@@ -657,7 +657,8 @@ body {
   scrollbar-width: none;
 }
 
-.child-app.child-app-dark {
+.child-app.child-app-dark,
+body.child-theme-dark {
   --child-bg: #0f172a;
   --child-bg-soft: #111827;
   --child-bg-accent: #1e293b;
@@ -677,6 +678,167 @@ body {
   --child-main-bg: rgba(15, 23, 42, 0.28);
   --child-shadow-soft: 0 18px 44px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(148, 163, 184, 0.12);
   --child-shadow-card: 0 12px 30px rgba(2, 6, 23, 0.36), inset 0 1px 0 rgba(148, 163, 184, 0.1);
+  --ui-text-primary: #f8fafc;
+  --ui-text-secondary: #e2e8f0;
+  --ui-text-muted: #94a3b8;
+  --ui-text-soft: #64748b;
+  --ui-surface-1: rgba(15, 23, 42, 0.94);
+  --ui-surface-2: rgba(30, 41, 59, 0.9);
+  --ui-surface-3: rgba(30, 41, 59, 0.76);
+  --ui-panel-bg: rgba(15, 23, 42, 0.96);
+  --ui-panel-bg-subtle: rgba(30, 41, 59, 0.82);
+  --ui-border: rgba(71, 85, 105, 0.82);
+  --ui-border-strong: rgba(100, 116, 139, 0.7);
+  --ui-focus: rgba(96, 165, 250, 1);
+  --ui-focus-ring: rgba(96, 165, 250, 0.16);
+  --ui-shadow-sm: 0 8px 20px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(148, 163, 184, 0.08);
+  --ui-shadow-md: 0 14px 34px rgba(2, 6, 23, 0.44);
+  --ui-shadow-lg: 0 18px 34px rgba(2, 6, 23, 0.5), inset 0 1px 0 rgba(148, 163, 184, 0.1);
+  --ui-primary-bg: linear-gradient(90deg, rgba(96, 165, 250, 0.98) 0%, rgba(59, 130, 246, 0.98) 100%);
+  --ui-primary-border: rgba(191, 219, 254, 0.3);
+  --ui-primary-shadow: 0 10px 26px rgba(37, 99, 235, 0.42), 0 6px 16px rgba(59, 130, 246, 0.24);
+  --ui-primary-shadow-hover: 0 14px 32px rgba(37, 99, 235, 0.46), 0 8px 18px rgba(59, 130, 246, 0.28);
+  --ui-overlay-bg: rgba(2, 6, 23, 0.62);
+  --control-surface-bg: rgba(15, 23, 42, 0.9);
+  --control-surface-bg-hover: rgba(30, 41, 59, 0.96);
+  --control-border-color: rgba(71, 85, 105, 0.82);
+  --control-border-color-hover: rgba(148, 163, 184, 0.46);
+  --control-border-color-focus: rgba(96, 165, 250, 1);
+  --control-panel-bg: rgba(15, 23, 42, 0.98);
+  --control-box-shadow: 0 8px 20px rgba(2, 6, 23, 0.34), inset 0 1px 0 rgba(148, 163, 184, 0.08);
+  --control-box-shadow-hover: 0 14px 28px rgba(2, 6, 23, 0.42), inset 0 1px 0 rgba(148, 163, 184, 0.1);
+  --control-box-shadow-focus: 0 14px 28px rgba(59, 130, 246, 0.18), inset 0 1px 0 rgba(148, 163, 184, 0.08);
+  --ui-color-scheme: dark;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="!bg-white"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white/95"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white/90"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white/80"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white/75"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white/70"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-white/50"] {
+  background-color: rgba(15, 23, 42, 0.88) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-slate-50"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-slate-50/90"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-slate-50/80"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-slate-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-gray-50"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-gray-100"] {
+  background-color: rgba(30, 41, 59, 0.88) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-sky-50"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-blue-50"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-blue-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-indigo-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-purple-100"] {
+  background-color: rgba(30, 64, 175, 0.22) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-green-50"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-green-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-emerald-50"] {
+  background-color: rgba(6, 95, 70, 0.24) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-amber-50"] {
+  background-color: rgba(146, 64, 14, 0.24) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="bg-red-100"] {
+  background-color: rgba(127, 29, 29, 0.24) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-gray-900"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-gray-800"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-slate-900"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-slate-800"] {
+  color: #f8fafc !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-gray-700"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-gray-600"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-slate-700"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-slate-600"] {
+  color: #cbd5e1 !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-gray-500"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-gray-400"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-slate-500"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-slate-400"] {
+  color: #94a3b8 !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-sky-700"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-sky-600"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-blue-600"] {
+  color: #7dd3fc !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-green-600"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-emerald-700"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-emerald-600"] {
+  color: #86efac !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-amber-700"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-amber-600"] {
+  color: #fcd34d !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-red-600"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="text-rose-600"] {
+  color: #fda4af !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-white"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-white/70"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-gray-200"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="!border-gray-200"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-slate-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-slate-200"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-slate-200/70"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-slate-200/80"] {
+  border-color: rgba(71, 85, 105, 0.78) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-blue-200"] {
+  border-color: rgba(96, 165, 250, 0.34) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-green-200"] {
+  border-color: rgba(52, 211, 153, 0.34) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="border-amber-200"] {
+  border-color: rgba(251, 191, 36, 0.34) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-white"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-white/80"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-gray-200"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-slate-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-slate-200/70"] {
+  --tw-ring-color: rgba(71, 85, 105, 0.78) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-sky-100"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-blue-200"] {
+  --tw-ring-color: rgba(96, 165, 250, 0.34) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-green-200"],
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-emerald-100"] {
+  --tw-ring-color: rgba(52, 211, 153, 0.34) !important;
+}
+
+:is(.child-app.child-app-dark, body.child-theme-dark) [class~="ring-amber-100"] {
+  --tw-ring-color: rgba(251, 191, 36, 0.34) !important;
 }
 
 .child-app.child-reduced-motion *,

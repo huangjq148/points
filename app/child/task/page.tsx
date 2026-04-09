@@ -19,6 +19,7 @@ import {
   ChildPageTitle,
   ChildStatusPill,
 } from '@/components/child/ChildUI';
+import ChildTaskSubmitModal from '@/components/child/ChildTaskSubmitModal';
 import TaskDateRangeFilter from '@/components/tasks/TaskDateRangeFilter';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
@@ -1110,113 +1111,20 @@ function TaskPage() {
         )}
       </Modal>
 
-      {/* 提交任务弹窗 */}
-      <Modal
+      <ChildTaskSubmitModal
         isOpen={showSubmitModal}
+        task={selectedTask}
+        submitting={submitting}
+        hasPhoto={!!photoFile}
+        photoPreview={photoPreview}
+        fileInputRef={fileInputRef}
         onClose={() => {
           setShowSubmitModal(false);
           setPhotoPreview('');
         }}
-        width={520}
-        className='overflow-hidden !rounded-[2rem] shadow-[0_24px_80px_rgba(14,116,144,0.22)]'
-        showCloseButton={false}
-        footer={
-          <div className='flex w-full gap-3'>
-            <button
-              className='min-h-12 flex-1 rounded-[1.25rem] border border-slate-200 bg-slate-100 px-4 py-3 text-base font-black text-slate-700 transition hover:bg-slate-200'
-              onClick={() => {
-                setShowSubmitModal(false);
-                setPhotoPreview('');
-              }}
-            >
-              取消
-            </button>
-            <button
-              className='min-h-12 flex-1 rounded-[1.25rem] bg-gradient-to-r from-teal-500 via-sky-500 to-indigo-500 px-4 py-3 text-lg font-black text-white shadow-lg transition hover:shadow-sky-200 disabled:cursor-not-allowed disabled:opacity-50'
-              onClick={handleSubmitTask}
-              disabled={
-                submitting || (selectedTask?.requirePhoto && !photoFile)
-              }
-            >
-              {submitting ? '提交中...' : '提交审核'}
-            </button>
-          </div>
-        }
-      >
-        {selectedTask && (
-          <div className='space-y-4'>
-            <div className='rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.82)_100%)] px-4 py-4 shadow-sm sm:px-5 sm:py-5'>
-              <div className='flex min-w-0 items-center gap-3 sm:gap-4'>
-                <div className='flex h-14 w-14 flex-none items-center justify-center rounded-[1.4rem] border border-sky-100 bg-white/90 text-3xl shadow-[0_12px_30px_rgba(59,130,246,0.12)] sm:h-16 sm:w-16 sm:text-4xl'>
-                  {selectedTask.icon}
-                </div>
-                <div className='min-w-0 flex-1'>
-                  <h3 className='truncate text-lg font-black leading-tight text-slate-900 sm:text-xl'>
-                    {selectedTask.name}
-                  </h3>
-                </div>
-                <div className='flex flex-none items-center gap-2'>
-                  <span className='inline-flex items-center rounded-full bg-sky-100 px-2.5 py-1 text-sm font-black text-sky-700'>
-                    +{selectedTask.points}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className='rounded-[1.5rem] border border-[var(--child-border)] bg-white/90 p-3 shadow-sm sm:p-4'>
-              <input
-                type='file'
-                accept='image/*'
-                ref={fileInputRef}
-                className='hidden'
-                onChange={handlePhotoSelect}
-              />
-              <div
-                className='group relative cursor-pointer rounded-[2rem] border-2 border-dashed border-slate-200 bg-[linear-gradient(180deg,rgba(240,249,255,0.65)_0%,rgba(255,255,255,0.95)_100%)] p-1.5 transition-all hover:border-sky-300 hover:bg-sky-50/30'
-                onClick={() => {
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                  }
-                  fileInputRef.current?.click();
-                }}
-              >
-                {photoPreview ? (
-                  <div className='relative aspect-video overflow-hidden rounded-2xl'>
-                    <Image
-                      src={photoPreview}
-                      alt='照片预览'
-                      className='w-full h-full object-cover'
-                      enableZoom={false}
-                      containerClassName='w-full h-full'
-                    />
-                    <div className='pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100'>
-                      <span className='rounded-full bg-white/95 px-5 py-2.5 text-sm font-bold text-slate-800 backdrop-blur-sm'>
-                        📷 更换照片
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className='flex flex-col items-center gap-2.5 py-6 sm:py-8'>
-                    <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-50 to-indigo-100 sm:h-16 sm:w-16'>
-                      <span className='text-2xl sm:text-3xl'>📸</span>
-                    </div>
-                    <div className='text-center'>
-                      <p className='text-sm font-black text-slate-800 sm:text-base'>
-                        上传任务照片
-                      </p>
-                      <p className='mt-1 text-xs text-slate-500 sm:text-sm'>
-                        {selectedTask.requirePhoto
-                          ? '⚠️ 必须上传照片'
-                          : '✨ 上传更容易通过'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        onPhotoSelect={handlePhotoSelect}
+        onSubmit={handleSubmitTask}
+      />
 
       {/* 图片全屏预览 Modal */}
     </>

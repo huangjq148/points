@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Gift } from "lucide-react";
 
 export function SectionTitle({
@@ -41,13 +41,13 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="reward-stat-card rounded-[28px] border border-white/75 bg-white/80 p-4 shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
-      <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
+    <div className="reward-stat-card rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 shadow-[var(--ui-shadow-md)]">
+      <div className="flex items-center justify-between gap-3 text-sm text-[var(--ui-text-muted)]">
         <span>{title}</span>
         {icon}
       </div>
-      <div className="mt-3 text-3xl font-black text-slate-950">{value}</div>
-      <div className="mt-1 text-xs text-slate-500">{hint}</div>
+      <div className="mt-3 text-3xl font-black text-[var(--ui-text-primary)]">{value}</div>
+      <div className="mt-1 text-xs text-[var(--ui-text-muted)]">{hint}</div>
     </div>
   );
 }
@@ -74,20 +74,65 @@ export function EmptyState({
 export function Badge({
   children,
   tone = "slate",
+  variant = "default",
 }: {
   children: ReactNode;
   tone?: "slate" | "emerald" | "amber" | "rose" | "blue" | "time";
+  variant?: "default" | "child";
 }) {
   const toneClass: Record<typeof tone, string> = {
-    slate: "bg-slate-100 text-slate-600 ring-1 ring-slate-200/70",
-    emerald: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
-    amber: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
-    rose: "bg-rose-50 text-rose-700 ring-1 ring-rose-100",
-    blue: "bg-sky-50 text-sky-700 ring-1 ring-sky-100",
-    time: "bg-gradient-to-r from-amber-50 to-orange-50 text-orange-700 ring-1 ring-amber-100",
+    slate: "border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] text-[var(--ui-text-secondary)]",
+    emerald:
+      "border border-[color:var(--ui-success-border)] bg-[var(--ui-success-bg)] text-[var(--ui-success-text)]",
+    amber:
+      "border border-[color:var(--ui-warning-border)] bg-[var(--ui-warning-bg)] text-[var(--ui-warning-text)]",
+    rose: "border border-[color:var(--ui-danger-border)] bg-[var(--ui-danger-bg)] text-[var(--ui-danger-text)]",
+    blue: "border border-[color:var(--ui-action-blue-border)] bg-[var(--ui-action-blue-bg)] text-[var(--ui-action-blue-text)]",
+    time: "border border-[color:var(--ui-action-amber-border)] bg-[var(--ui-action-amber-bg)] text-[var(--ui-action-amber-text)]",
   };
 
-  return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${toneClass[tone]}`}>{children}</span>;
+  const childToneStyle: Record<typeof tone, CSSProperties> = {
+    slate: {
+      background: "var(--child-surface-muted)",
+      color: "var(--child-text-muted)",
+      boxShadow: "inset 0 0 0 1px var(--child-border)",
+    },
+    emerald: {
+      background: "color-mix(in srgb, var(--child-surface-strong) 72%, #059669 28%)",
+      color: "color-mix(in srgb, var(--child-text) 24%, #bbf7d0 76%)",
+      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 66%, #34d399 34%)",
+    },
+    amber: {
+      background: "color-mix(in srgb, var(--child-surface-strong) 68%, #f59e0b 32%)",
+      color: "color-mix(in srgb, var(--child-text) 20%, #fde68a 80%)",
+      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 54%, #fbbf24 46%)",
+    },
+    rose: {
+      background: "color-mix(in srgb, var(--child-surface-strong) 68%, #e11d48 32%)",
+      color: "color-mix(in srgb, var(--child-text) 18%, #fecdd3 82%)",
+      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 54%, #fb7185 46%)",
+    },
+    blue: {
+      background: "color-mix(in srgb, var(--child-surface-strong) 68%, #0ea5e9 32%)",
+      color: "color-mix(in srgb, var(--child-text) 18%, #bfdbfe 82%)",
+      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 58%, #60a5fa 42%)",
+    },
+    time: {
+      background:
+        "linear-gradient(135deg, color-mix(in srgb, var(--child-surface-strong) 64%, #f59e0b 36%) 0%, color-mix(in srgb, var(--child-surface-muted) 58%, #f97316 42%) 100%)",
+      color: "color-mix(in srgb, var(--child-text) 16%, #fde68a 84%)",
+      boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 52%, #fbbf24 48%)",
+    },
+  };
+
+  return (
+    <span
+      className={`reward-badge reward-badge-${tone} rounded-full px-2.5 py-1 text-xs font-bold ${variant === "default" ? toneClass[tone] : ""}`}
+      style={variant === "child" ? childToneStyle[tone] : undefined}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function RewardCard({
@@ -105,6 +150,7 @@ export function RewardCard({
   muted = false,
   compact = false,
   tableRow = false,
+  themeVariant = "default",
 }: {
   title: string;
   icon: ReactNode;
@@ -120,21 +166,85 @@ export function RewardCard({
   muted?: boolean;
   compact?: boolean;
   tableRow?: boolean;
+  themeVariant?: "default" | "child";
 }) {
   const rowMode = compact || tableRow;
   const descriptionText = description?.trim() || "暂无说明";
+  const childVariant = themeVariant === "child";
+  const cardStyle = childVariant
+    ? {
+        background:
+          tone === "time"
+            ? "linear-gradient(180deg, color-mix(in srgb, var(--child-surface-strong) 84%, #f59e0b 16%) 0%, color-mix(in srgb, var(--child-surface) 84%, #f97316 16%) 100%)"
+            : "linear-gradient(180deg, var(--child-surface-strong) 0%, var(--child-surface) 100%)",
+        borderColor:
+          tone === "time"
+            ? "color-mix(in srgb, var(--child-border-strong) 58%, #fbbf24 42%)"
+            : "var(--child-border)",
+        boxShadow: "var(--child-shadow-card)",
+      }
+    : undefined;
+  const glowStyle = childVariant
+    ? {
+        backgroundColor:
+          tone === "time"
+            ? "color-mix(in srgb, transparent 76%, #fbbf24 24%)"
+            : "color-mix(in srgb, transparent 78%, var(--child-primary) 22%)",
+      }
+    : undefined;
+  const iconStyle = childVariant
+    ? {
+        background: "var(--child-surface-strong)",
+        border: "1px solid var(--child-border)",
+        boxShadow: "var(--child-shadow-card)",
+      }
+    : undefined;
+  const pointsStyle = childVariant
+    ? {
+        background: "var(--child-surface-muted)",
+        border: "1px solid var(--child-border)",
+      }
+    : undefined;
+  const pointsLabelStyle = childVariant
+    ? {
+        color: "color-mix(in srgb, var(--child-text-muted) 52%, var(--child-primary) 48%)",
+      }
+    : undefined;
+  const pointsValueStyle = childVariant ? { color: "var(--child-text)" } : undefined;
+  const stockStyle = childVariant
+    ? muted
+      ? {
+          background: "var(--child-surface-muted)",
+          color: "var(--child-text-muted)",
+          boxShadow: "inset 0 0 0 1px var(--child-border)",
+        }
+      : {
+          background: "color-mix(in srgb, var(--child-surface-strong) 68%, #e11d48 32%)",
+          color: "color-mix(in srgb, var(--child-text) 18%, #fecdd3 82%)",
+          boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 56%, #fb7185 44%)",
+        }
+    : undefined;
   return (
     <div
       className={`reward-card group relative overflow-hidden rounded-[20px] border ${
-        tone === "time"
-          ? "border-amber-200/70 bg-[linear-gradient(180deg,rgba(255,251,235,0.98)_0%,rgba(255,255,255,0.96)_100%)]"
-          : "border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)]"
-      } ${rowMode ? "p-4" : "p-5"} shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(15,23,42,0.1)] ${muted ? "opacity-65" : ""}`}
+        childVariant
+          ? tone === "time"
+            ? "reward-card-time"
+            : "reward-card-default"
+          : tone === "time"
+            ? "reward-card-time border-amber-200/70 bg-[linear-gradient(180deg,rgba(255,251,235,0.98)_0%,rgba(255,255,255,0.96)_100%)]"
+            : "reward-card-default border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(248,250,252,0.96)_100%)]"
+      } ${rowMode ? "p-4" : "p-5"} ${childVariant ? "" : "shadow-[0_10px_24px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_32px_rgba(15,23,42,0.1)]"} transition duration-300 hover:-translate-y-1 ${muted ? "opacity-65" : ""}`}
+      style={cardStyle}
     >
-      <div className={`pointer-events-none absolute right-4 top-4 h-24 w-24 rounded-full blur-2xl ${tone === "time" ? "bg-amber-100/70" : "bg-sky-100/70"}`} />
+      <div
+        className={`reward-card-glow pointer-events-none absolute right-4 top-4 h-24 w-24 rounded-full blur-2xl ${childVariant ? "" : tone === "time" ? "bg-amber-100/70" : "bg-sky-100/70"}`}
+        style={glowStyle}
+      />
       <div className={`relative flex ${rowMode ? "items-start gap-4" : "items-start gap-4"} ${rowMode ? "mb-1" : ""}`}>
         <div
-          className={`flex shrink-0 items-center justify-center rounded-[28px] bg-white shadow-[0_10px_20px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-white ${rowMode ? "h-14 w-14 text-[28px]" : "h-16 w-16 text-[34px]"}`}
+          className={`reward-card-icon-surface flex shrink-0 items-center justify-center rounded-[28px] ${childVariant ? "" : "bg-white shadow-[0_10px_20px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-white"} ${rowMode ? "h-14 w-14 text-[28px]" : "h-16 w-16 text-[34px]"}`}
+          style={iconStyle}
         >
           {icon}
         </div>
@@ -146,15 +256,37 @@ export function RewardCard({
                 {descriptionText}
               </p>
             </div>
-            <div className="shrink-0 rounded-[20px] bg-slate-50 px-3 py-2 text-right ring-1 ring-slate-200/70">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">积分</div>
-              <div className="mt-0.5 text-lg font-black leading-none text-slate-900">{points}</div>
+            <div
+              className={`reward-card-points shrink-0 rounded-[20px] px-3 py-2 text-right ${childVariant ? "" : "bg-slate-50 ring-1 ring-slate-200/70"}`}
+              style={pointsStyle}
+            >
+              <div className="reward-card-points-label text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400" style={pointsLabelStyle}>
+                积分
+              </div>
+              <div className="reward-card-points-value mt-0.5 text-lg font-black leading-none text-slate-900" style={pointsValueStyle}>
+                {points}
+              </div>
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-3">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <Badge tone={tone === "time" ? "time" : "blue"}>{typeLabel}</Badge>
-              <div className={`rounded-full px-2.5 py-1 text-xs font-semibold ${muted ? "bg-slate-100 text-slate-500" : "bg-rose-50 text-rose-600"}`}>{stockLabel}</div>
+              <Badge tone={tone === "time" ? "time" : "blue"} variant={childVariant ? "child" : "default"}>
+                {typeLabel}
+              </Badge>
+              <div
+                className={`reward-card-stock rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  muted
+                    ? childVariant
+                      ? "reward-card-stock-muted"
+                      : "reward-card-stock-muted bg-slate-100 text-slate-500"
+                    : childVariant
+                      ? "reward-card-stock-live"
+                      : "reward-card-stock-live bg-rose-50 text-rose-600"
+                }`}
+                style={stockStyle}
+              >
+                {stockLabel}
+              </div>
               {meta}
               {badges}
             </div>

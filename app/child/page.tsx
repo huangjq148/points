@@ -6,7 +6,6 @@ import { useToast } from '@/components/ui/Toast';
 import Modal from '@/components/ui/Modal';
 import { Image } from '@/components/ui';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import {
   ArrowRight,
   CheckCircle2,
@@ -23,6 +22,7 @@ import {
   ChildStatCard,
   ChildStatusPill,
 } from '@/components/child/ChildUI';
+import ChildTaskSubmitModal from '@/components/child/ChildTaskSubmitModal';
 import { compressImage } from '@/utils/image';
 import request from '@/utils/request';
 import dayjs from 'dayjs';
@@ -453,12 +453,12 @@ export default function ChildHome() {
           isOpen={!!showPrivilegeDetail}
           onClose={() => setShowPrivilegeDetail(null)}
           width={480}
-          className='!bg-white !backdrop-blur-xl !border-gray-200 !rounded-[1.75rem]'
+          className='!rounded-[1.75rem] !border-[color:var(--child-border)] !bg-[color:var(--child-surface-strong)]'
         >
           {showPrivilegeDetail && (
             <div className='space-y-3'>
-              <div className='flex items-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,rgba(255,255,255,0.95)_0%,rgba(240,249,255,0.92)_100%)] px-4 py-3 ring-1 ring-sky-100'>
-                <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-white text-[26px] shadow-sm ring-1 ring-white'>
+              <div className='flex items-center gap-3 rounded-[22px] bg-[linear-gradient(135deg,var(--child-surface-muted)_0%,rgba(14,165,233,0.14)_100%)] px-4 py-3 ring-1 ring-[color:rgba(125,211,252,0.24)]'>
+                <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-[18px] bg-[var(--child-surface)] text-[26px] shadow-sm ring-1 ring-[color:var(--child-border)]'>
                   {showPrivilegeDetail.rewardIcon || '🎁'}
                 </div>
                 <div className='min-w-0 flex-1'>
@@ -474,8 +474,8 @@ export default function ChildHome() {
               </div>
 
               <div className='grid gap-2.5 sm:grid-cols-2'>
-                <div className='rounded-[18px] bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100'>
-                  <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+                <div className='rounded-[18px] bg-[var(--child-surface-muted)] px-3 py-2.5 ring-1 ring-[color:var(--child-border)]'>
+                  <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-muted)]'>
                     生效时间
                   </div>
                   <div className='mt-0.5 text-[13px] font-bold text-[var(--child-text)]'>
@@ -486,8 +486,8 @@ export default function ChildHome() {
                         : '待家长核销'}
                   </div>
                 </div>
-                <div className='rounded-[18px] bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100'>
-                  <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+                <div className='rounded-[18px] bg-[var(--child-surface-muted)] px-3 py-2.5 ring-1 ring-[color:var(--child-border)]'>
+                  <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-muted)]'>
                     截止时间
                   </div>
                   <div className='mt-0.5 text-[13px] font-bold text-[var(--child-text)]'>
@@ -498,8 +498,8 @@ export default function ChildHome() {
                 </div>
               </div>
 
-              <div className='rounded-[18px] bg-white/80 px-3 py-2.5 ring-1 ring-[var(--child-border)]'>
-                <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]'>
+              <div className='rounded-[18px] bg-[var(--child-surface-muted)] px-3 py-2.5 ring-1 ring-[color:var(--child-border)]'>
+                <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-muted)]'>
                   核销码
                 </div>
                 <div className='mt-1 font-mono text-lg font-black tracking-[0.18em] text-[var(--child-text)]'>
@@ -554,13 +554,13 @@ export default function ChildHome() {
                 />
               </div>
             </div>
-            <div className='rounded-[30px] bg-white/80 p-5 text-center shadow-sm ring-1 ring-white'>
-              <div className='inline-flex h-14 w-14 items-center justify-center rounded-[22px] bg-sky-50 text-sky-600 ring-1 ring-sky-100'>
+            <div className='rounded-[30px] bg-[var(--child-surface-muted)] p-5 text-center shadow-sm ring-1 ring-[color:var(--child-border)]'>
+              <div className='inline-flex h-14 w-14 items-center justify-center rounded-[22px] bg-[color:rgba(14,165,233,0.14)] text-sky-600 ring-1 ring-[color:rgba(125,211,252,0.24)]'>
                 <WalletCards size={28} />
               </div>
               <div className='mt-3 text-sm font-black text-[var(--child-text-muted)]'>当前积分</div>
-              <div className='mt-2 text-5xl font-black text-sky-700'>🪙 {displayPoints.toLocaleString()}</div>
-              <div className='mt-3 rounded-full bg-sky-50 px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-sky-100'>
+              <div className='mt-2 text-5xl font-black text-[var(--child-text)]'>🪙 {displayPoints.toLocaleString()}</div>
+              <div className='mt-3 rounded-full bg-[color:rgba(14,165,233,0.14)] px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-[color:rgba(125,211,252,0.24)]'>
                 完成任务就能兑换奖励
               </div>
             </div>
@@ -581,10 +581,10 @@ export default function ChildHome() {
                     key={order._id}
                     type='button'
                     onClick={() => setShowPrivilegeDetail(order)}
-                    className='w-full rounded-[22px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(248,250,252,0.92)_100%)] px-4 py-2.5 text-left shadow-[0_10px_22px_rgba(15,23,42,0.055)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'
+                    className='w-full rounded-[22px] border border-[color:var(--child-border)] bg-[var(--child-surface-muted)] px-4 py-2.5 text-left shadow-[0_10px_22px_rgba(15,23,42,0.055)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'
                   >
                     <div className='flex items-center gap-3'>
-                      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] bg-white text-[22px] shadow-[0_6px_12px_rgba(15,23,42,0.08)] ring-1 ring-white'>
+                      <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-[18px] bg-[var(--child-surface)] text-[22px] shadow-[0_6px_12px_rgba(15,23,42,0.08)] ring-1 ring-[color:var(--child-border)]'>
                         {order.rewardIcon || '🎁'}
                       </div>
                       <div className='min-w-0 flex-1'>
@@ -634,7 +634,7 @@ export default function ChildHome() {
               <button
                 type='button'
                 onClick={() => router.push('/child/task')}
-                className='rounded-full bg-white/80 px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-sky-100'
+                className='rounded-full bg-[var(--child-surface-muted)] px-4 py-2 text-sm font-black text-sky-700 ring-1 ring-[color:rgba(125,211,252,0.24)]'
               >
                 全部任务
               </button>
@@ -671,7 +671,7 @@ export default function ChildHome() {
                       }}
                       className={`child-card flex w-full items-center gap-4 text-left ${isFutureToday ? 'cursor-not-allowed opacity-60' : 'cursor-pointer focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'}`}
                     >
-                      <span className='flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-sky-50 text-3xl ring-1 ring-sky-100'>
+                      <span className='flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-[color:rgba(14,165,233,0.14)] text-3xl ring-1 ring-[color:rgba(125,211,252,0.24)]'>
                         {task.icon}
                       </span>
                       <span className='min-w-0 flex-1'>
@@ -693,7 +693,7 @@ export default function ChildHome() {
                         </span>
                       </span>
                       {isFutureToday ? (
-                        <span className='rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-500 ring-1 ring-slate-200/70'>
+                        <span className='rounded-full bg-[var(--child-surface-muted)] px-4 py-2 text-sm font-black text-[var(--child-text-muted)] ring-1 ring-[color:var(--child-border)]'>
                           未开始
                         </span>
                       ) : task.status === 'pending' || task.status === 'rejected' ? (
@@ -708,12 +708,12 @@ export default function ChildHome() {
                             event.stopPropagation();
                             handleRecallTask(task);
                           }}
-                          className='rounded-full bg-amber-50 px-4 py-2 text-sm font-black text-amber-700 ring-1 ring-amber-100 transition disabled:cursor-not-allowed disabled:opacity-60'
+                          className='rounded-full bg-[color:rgba(245,158,11,0.16)] px-4 py-2 text-sm font-black text-amber-700 ring-1 ring-[color:rgba(252,211,77,0.24)] transition disabled:cursor-not-allowed disabled:opacity-60'
                         >
                           {recallingTaskId === task._id ? '撤回中...' : '撤回'}
                         </button>
                       ) : (
-                        <span className='rounded-full bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700 ring-1 ring-emerald-100'>
+                        <span className='rounded-full bg-[color:rgba(16,185,129,0.14)] px-4 py-2 text-sm font-black text-emerald-700 ring-1 ring-[color:rgba(110,231,183,0.24)]'>
                           查看
                         </span>
                       )}
@@ -736,7 +736,7 @@ export default function ChildHome() {
               title='奖励提醒'
               description='看看有没有想兑换的奖励。'
             />
-            <div className='mt-4 rounded-[26px] bg-white/75 p-4 ring-1 ring-white'>
+            <div className='mt-4 rounded-[26px] bg-[var(--child-surface-muted)] p-4 ring-1 ring-[color:var(--child-border)]'>
               <div className='flex flex-wrap items-center gap-2'>
                 <ChildStatusPill tone={urgentPrivilegeRewards.length > 0 ? 'amber' : 'teal'}>
                   <Sparkles size={14} />
@@ -1068,117 +1068,20 @@ export default function ChildHome() {
           )}
         </Modal>
 
-        {/* 提交任务弹窗 */}
-        <Modal
+        <ChildTaskSubmitModal
           isOpen={!!showSubmitModal && !!selectedTask}
+          task={selectedTask}
+          submitting={submitting}
+          hasPhoto={!!photoFile}
+          photoPreview={photoPreview}
+          fileInputRef={fileInputRef}
           onClose={() => {
             setShowSubmitModal(false);
             setPhotoPreview('');
           }}
-          title=''
-          width={500}
-          className='!bg-white !backdrop-blur-xl !border-gray-200'
-          footer={
-            <div className='flex gap-3 w-full'>
-              <button
-                className='flex-1 py-4 !rounded-2xl font-bold bg-gray-100 text-gray-700 hover:bg-gray-200 border-none rounded-2xl transition-colors'
-                onClick={() => {
-                  setShowSubmitModal(false);
-                  setPhotoPreview('');
-                }}
-              >
-                取消
-              </button>
-              <button
-                className='flex-1 py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 shadow-xl hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-shadow'
-                onClick={handleSubmitTask}
-                disabled={
-                  submitting || (selectedTask?.requirePhoto && !photoFile)
-                }
-              >
-                {submitting ? '提交中...' : '提交审核'}
-              </button>
-            </div>
-          }
-        >
-          <div className='text-center mb-8'>
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-              className='w-28 h-28 bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 rounded-[2.5rem] flex items-center justify-center text-7xl mx-auto shadow-inner mb-4 border border-blue-200'
-            >
-              {selectedTask?.icon}
-            </motion.div>
-            <h3 className='text-2xl font-black text-gray-800'>
-              {selectedTask?.name}
-            </h3>
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className='inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full mt-4 font-black shadow-lg'
-            >
-              <span>⚡</span>
-              <span>+{selectedTask?.points} 积分</span>
-            </motion.div>
-          </div>
-
-          <div className='mb-8'>
-            <input
-              type='file'
-              accept='image/*'
-              ref={fileInputRef}
-              className='hidden'
-              onChange={handlePhotoSelect}
-            />
-            <div
-              className='group relative border-4 border-dashed border-blue-300 rounded-[2rem] p-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all'
-              onClick={() => {
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = '';
-                }
-                fileInputRef.current?.click();
-              }}
-            >
-              {photoPreview ? (
-                <div className='relative aspect-video rounded-2xl overflow-hidden'>
-                  <Image
-                    src={photoPreview}
-                    alt='照片预览'
-                    className='w-full h-full object-cover'
-                    enableZoom={false}
-                    containerClassName='w-full h-full'
-                  />
-                  <div className='absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none'>
-                    <span className='bg-white/95 backdrop-blur-sm px-5 py-2.5 rounded-full text-sm font-bold text-gray-800'>
-                      📷 更换照片
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className='flex flex-col items-center gap-4 py-10'>
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    className='w-20 h-20 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center border border-blue-200'
-                  >
-                    <span className='text-4xl'>📸</span>
-                  </motion.div>
-                  <div className='text-center'>
-                    <p className='font-black text-gray-800 text-lg'>
-                      上传任务照片
-                    </p>
-                    <p className='text-sm mt-1 text-gray-500'>
-                      {selectedTask?.requirePhoto
-                        ? '⚠️ 必须上传照片'
-                        : '✨ 上传更容易通过'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </Modal>
+          onPhotoSelect={handlePhotoSelect}
+          onSubmit={handleSubmitTask}
+        />
       </div>
     </>
   );

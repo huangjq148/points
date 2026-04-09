@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, type CSSProperties } from "react";
 import { useApp } from "@/context/AppContext";
 import { Gift, History } from "lucide-react";
 import Button from "@/components/ui/Button";
@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/Toast";
 import request from "@/utils/request";
 import dayjs from "dayjs";
 import { ChildEmptyState, ChildPanel, ChildPageTitle } from "@/components/child/ChildUI";
-import { RewardCard, SectionTitle } from "@/components/store/RewardUI";
+import { Badge, RewardCard, SectionTitle } from "@/components/store/RewardUI";
 
 export interface Reward {
   _id: string;
@@ -218,6 +218,22 @@ export default function StorePage() {
     { key: "points-desc", label: "积分降序" },
     { key: "stock-desc", label: "库存最多" },
   ] as const;
+  const pointsChipStyle = {
+    background:
+      "linear-gradient(135deg, color-mix(in srgb, var(--child-surface-strong) 78%, var(--child-sun) 22%) 0%, color-mix(in srgb, var(--child-surface-muted) 68%, var(--child-sun) 32%) 100%)",
+    color: "color-mix(in srgb, var(--child-text) 66%, #f59e0b 34%)",
+    boxShadow:
+      "0 14px 30px color-mix(in srgb, transparent 82%, var(--child-sun) 18%), inset 0 1px 0 color-mix(in srgb, transparent 72%, #ffffff 28%)",
+  } satisfies CSSProperties;
+  const orderIconStyle = {
+    background: "var(--child-surface-strong)",
+    border: "1px solid var(--child-border)",
+    boxShadow: "var(--child-shadow-card)",
+  } satisfies CSSProperties;
+  const orderMetaStyle = {
+    background: "var(--child-surface-muted)",
+    border: "1px solid var(--child-border)",
+  } satisfies CSSProperties;
 
   return (
     <div className="child-page-grid">
@@ -239,7 +255,7 @@ export default function StorePage() {
             title="奖励商店"
             description={`你现在有 ${displayedPoints} 积分，可以看看喜欢的奖励。`}
           />
-          <div className="rounded-[24px] bg-yellow-50 px-5 py-3 text-lg font-black text-yellow-800 ring-1 ring-yellow-100">
+          <div className="child-store-points-chip rounded-[24px] px-5 py-3 text-lg font-black" style={pointsChipStyle}>
             🪙 {displayedPoints}
           </div>
         </div>
@@ -287,8 +303,10 @@ export default function StorePage() {
             titleClassName="text-[var(--child-text)] text-lg font-extrabold"
             descriptionClassName="text-[var(--child-text-muted)]"
           />
-          <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-white/80 shadow-sm sm:inline-flex">
-            结果 {filteredRewards.length}
+          <div className="hidden sm:inline-flex">
+            <Badge tone="slate" variant="child">
+              结果 {filteredRewards.length}
+            </Badge>
           </div>
         </div>
 
@@ -310,34 +328,30 @@ export default function StorePage() {
                   typeLabel={reward.type === "physical" ? "实物" : "特权"}
                   description={reward.description}
                   tone={reward.type === "privilege" ? (urgent ? "time" : "default") : "default"}
-                  meta={
-                    <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200/70">
-                      {reward.type === "physical" ? "实物奖励" : "特权奖励"}
-                    </span>
-                  }
+                  themeVariant="child"
+                  meta={<Badge tone="slate" variant="child">{reward.type === "physical" ? "实物奖励" : "特权奖励"}</Badge>}
                   badges={
                     reward.type === "privilege" ? (
                       <>
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${
+                        <Badge
+                          variant="child"
+                          tone={
                             urgencyTone === "rose"
-                              ? "bg-rose-50 text-rose-700 ring-rose-100"
+                              ? "rose"
                               : urgencyTone === "amber"
-                                ? "bg-amber-50 text-amber-700 ring-amber-100"
+                                ? "amber"
                                 : urgencyTone === "blue"
-                                  ? "bg-sky-50 text-sky-700 ring-sky-100"
-                                  : "bg-emerald-50 text-emerald-700 ring-emerald-100"
-                          }`}
+                                  ? "blue"
+                                  : "emerald"
+                          }
                         >
                           {remainingLabel || "无截止日期"}
-                        </span>
-                        <span className="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
+                        </Badge>
+                        <Badge tone="blue" variant="child">
                           {formatDuration(reward.validDurationValue, reward.validDurationUnit) || "未设置有效期"}
-                        </span>
+                        </Badge>
                         {expired && (
-                          <span className="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100">
-                            已过截止日期
-                          </span>
+                          <Badge tone="rose" variant="child">已过截止日期</Badge>
                         )}
                       </>
                     ) : undefined
@@ -382,7 +396,7 @@ export default function StorePage() {
               <div key={order._id} className="child-card px-4 py-4 sm:px-5 sm:py-3.5">
                 <div className="grid gap-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-4">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[20px] bg-white text-[22px] shadow-sm ring-1 ring-white">
+                    <div className="child-store-order-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-[20px] text-[22px]" style={orderIconStyle}>
                       {order.rewardIcon || "🎁"}
                     </div>
                     <div className="min-w-0">
@@ -390,25 +404,18 @@ export default function StorePage() {
                         {order.rewardName}
                       </div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-[var(--child-text-muted)]">
-                        <span
-                          className={`rounded-full px-2.5 py-1 font-semibold ring-1 ${
-                            order.status === "verified"
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
-                              : order.status === "cancelled"
-                                ? "bg-slate-100 text-slate-500 ring-slate-200/70"
-                                : "bg-amber-50 text-amber-700 ring-amber-100"
-                          }`}
+                        <Badge
+                          tone={order.status === "verified" ? "emerald" : order.status === "cancelled" ? "slate" : "amber"}
+                          variant="child"
                         >
                           {formatStatusLabel(order.status)}
-                        </span>
-                        <span className="rounded-full bg-white/90 px-2.5 py-1 font-medium text-slate-600 ring-1 ring-slate-200/70">
-                          积分 {order.pointsSpent}
-                        </span>
+                        </Badge>
+                        <Badge tone="slate" variant="child">积分 {order.pointsSpent}</Badge>
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2.5 sm:min-w-[240px]">
-                    <div className="rounded-[18px] bg-white/80 px-3 py-2 text-right ring-1 ring-[var(--child-border)]">
+                    <div className="child-store-order-meta rounded-[18px] px-3 py-2 text-right" style={orderMetaStyle}>
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]">
                         时间
                       </div>
