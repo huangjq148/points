@@ -536,7 +536,11 @@ body {
   gap: 6px;
   border-radius: 24px;
   color: var(--child-text-muted);
-  transition: transform 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .child-nav-item:hover,
@@ -545,7 +549,9 @@ body {
   background: var(--child-nav-hover-bg);
   color: var(--child-nav-hover-text);
   outline: none;
-  box-shadow: var(--child-shadow-card), 0 0 0 4px var(--child-focus-ring);
+  box-shadow:
+    var(--child-shadow-card),
+    0 0 0 4px var(--child-focus-ring);
 }
 
 .child-nav-item-active {
@@ -558,7 +564,9 @@ body {
 .child-nav-item.child-nav-item-active:focus-visible {
   background: var(--child-nav-active-bg);
   color: var(--child-nav-active-text);
-  box-shadow: 0 14px 30px rgba(14, 165, 233, 0.26), 0 0 0 4px var(--child-focus-ring);
+  box-shadow:
+    0 14px 30px rgba(14, 165, 233, 0.26),
+    0 0 0 4px var(--child-focus-ring);
 }
 
 .child-workspace {
@@ -634,23 +642,21 @@ body {
 }
 
 .child-wallet-hero {
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--child-surface-strong) 84%, #ffffff 16%) 0%,
-      color-mix(in srgb, var(--child-surface-muted) 76%, #38bdf8 24%) 52%,
-      color-mix(in srgb, var(--child-surface-muted) 78%, #34d399 22%) 100%
-    );
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 84%, #ffffff 16%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 76%, #38bdf8 24%) 52%,
+    color-mix(in srgb, var(--child-surface-muted) 78%, #34d399 22%) 100%
+  );
 }
 
 .child-wallet-points-card {
   border: 1px solid var(--child-border);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--child-surface-strong) 88%, #ffffff 12%) 0%,
-      color-mix(in srgb, var(--child-surface-muted) 76%, #38bdf8 24%) 100%
-    );
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 88%, #ffffff 12%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 76%, #38bdf8 24%) 100%
+  );
   box-shadow: var(--child-shadow-card);
 }
 
@@ -696,6 +702,160 @@ body {
 .child-wallet-detail-close:hover {
   background: var(--ui-surface-3);
   color: var(--ui-text-primary);
+}
+
+.child-topbar-points {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 16px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(240, 249, 255, 0.92) 48%,
+    rgba(236, 254, 255, 0.94) 100%
+  );
+  padding: 6px 9px 6px 8px;
+  color: #075985;
+  box-shadow:
+    0 8px 18px rgba(14, 165, 233, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.child-topbar-points::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 56%);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.child-topbar-points:hover {
+  transform: translateY(-1px);
+  border-color: rgba(56, 189, 248, 0.38);
+  box-shadow:
+    0 12px 24px rgba(14, 165, 233, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.child-topbar-points-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  height: 24px;
+  width: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+  color: #ffffff;
+  box-shadow:
+    0 6px 12px rgba(14, 165, 233, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.child-topbar-points-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1;
+}
+
+.child-topbar-points-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0284c7;
+}
+
+.child-topbar-points-value {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.child-app.child-app-dark .child-topbar-points,
+body.child-theme-dark .child-topbar-points {
+  border-color: rgba(125, 211, 252, 0.24);
+  background: linear-gradient(
+    135deg,
+    rgba(15, 23, 42, 0.86) 0%,
+    rgba(30, 41, 59, 0.88) 55%,
+    rgba(15, 118, 110, 0.16) 100%
+  );
+  color: #dbeafe;
+  box-shadow:
+    0 12px 26px rgba(2, 6, 23, 0.3),
+    0 0 0 1px rgba(125, 211, 252, 0.08) inset;
+}
+
+.child-app.child-app-dark .child-topbar-points::before,
+body.child-theme-dark .child-topbar-points::before {
+  background: radial-gradient(circle at top left, rgba(186, 230, 253, 0.22) 0%, rgba(186, 230, 253, 0) 62%);
+  opacity: 0.8;
+}
+
+.child-app.child-app-dark .child-topbar-points:hover,
+body.child-theme-dark .child-topbar-points:hover {
+  border-color: rgba(125, 211, 252, 0.34);
+  box-shadow:
+    0 12px 24px rgba(2, 6, 23, 0.32),
+    0 0 0 1px rgba(125, 211, 252, 0.1) inset;
+}
+
+.child-app.child-app-dark .child-topbar-points-icon,
+body.child-theme-dark .child-topbar-points-icon {
+  background: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%);
+  color: #ffffff;
+  box-shadow:
+    0 8px 16px rgba(14, 165, 233, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.child-app.child-app-dark .child-topbar-points-label,
+body.child-theme-dark .child-topbar-points-label {
+  color: #7dd3fc;
+}
+
+.child-app.child-app-dark .child-topbar-points-value,
+body.child-theme-dark .child-topbar-points-value {
+  color: #f8fafc;
+}
+
+@media (max-width: 640px) {
+  .child-topbar-points {
+    gap: 5px;
+    padding: 5px 8px 5px 7px;
+  }
+
+  .child-topbar-points-icon {
+    height: 22px;
+    width: 22px;
+    border-radius: 8px;
+  }
+
+  .child-topbar-points-label {
+    font-size: 8px;
+  }
+
+  .child-topbar-points-value {
+    margin-top: 0;
+    font-size: 14px;
+  }
 }
 
 .child-two-column {
@@ -1770,7 +1930,10 @@ body.child-theme-dark {
   text-align: left;
   color: inherit;
   font: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .desktop-header-user-trigger:hover {
@@ -1871,7 +2034,9 @@ body.child-theme-dark {
   gap: 12px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .desktop-user-menu-item:hover {
@@ -2327,7 +2492,7 @@ body.child-theme-dark {
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow:
     0 4px 16px rgba(59, 130, 246, 0.08),
-  inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .logo-brand {
@@ -3670,7 +3835,6 @@ body.child-theme-dark {
     0 8px 30px rgba(0, 0, 0, 0.08),
     0 16px 48px rgba(59, 130, 246, 0.12);
 }
-
 
 /* 孩子档案卡片增强 */
 .card .text-3xl {

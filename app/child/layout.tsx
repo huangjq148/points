@@ -21,6 +21,7 @@ import {
   Star,
   MessageCircleQuestion,
   Gift,
+  Coins,
 } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
 import { useToast } from "@/components/ui/Toast";
@@ -280,6 +281,84 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
         ? savedChildSessions[savedChildSessions.length - 1]
         : null;
 
+  const topbarPointsStyle = isDarkMode
+    ? {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "5px",
+        whiteSpace: "nowrap",
+        borderRadius: "16px",
+        border: "1px solid rgba(125, 211, 252, 0.24)",
+        background: "linear-gradient(135deg, rgba(15, 23, 42, 0.86) 0%, rgba(30, 41, 59, 0.88) 55%, rgba(15, 118, 110, 0.16) 100%)",
+        padding: "5px 8px 5px 7px",
+        color: "#dbeafe",
+        boxShadow: "0 12px 24px rgba(2, 6, 23, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.08)",
+      }
+    : {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "5px",
+        whiteSpace: "nowrap",
+        borderRadius: "16px",
+        border: "1px solid rgba(125, 211, 252, 0.28)",
+        background: "linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 249, 255, 0.92) 48%, rgba(236, 254, 255, 0.94) 100%)",
+        padding: "5px 8px 5px 7px",
+        color: "#075985",
+        boxShadow: "0 8px 18px rgba(14, 165, 233, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.82)",
+      };
+
+  const topbarPointsIconStyle = isDarkMode
+    ? {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "22px",
+        height: "22px",
+        borderRadius: "8px",
+        background: "linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%)",
+        color: "#ffffff",
+        boxShadow: "0 6px 12px rgba(14, 165, 233, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.18)",
+      }
+    : {
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "22px",
+        height: "22px",
+        borderRadius: "8px",
+        background: "linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%)",
+        color: "#ffffff",
+        boxShadow: "0 6px 12px rgba(14, 165, 233, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.28)",
+      };
+
+  const topbarPointsCopyStyle = {
+    display: "inline-flex",
+    alignItems: "baseline",
+    gap: "4px",
+    lineHeight: 1,
+    whiteSpace: "nowrap",
+  };
+
+  const topbarPointsLabelStyle = {
+    fontSize: "12px",
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase" as const,
+    color: isDarkMode ? "#7dd3fc" : "#0284c7",
+  };
+
+  const topbarPointsValueStyle = {
+    fontSize: "15px",
+    fontWeight: 900,
+    color: isDarkMode ? "#f8fafc" : "#0f172a",
+  };
+
+  const topbarPointsUnitStyle = {
+    fontSize: "9px",
+    fontWeight: 800,
+    color: isDarkMode ? "#7dd3fc" : "#0284c7",
+  };
+
   const handleDropChild = (targetId: string) => {
     if (!draggingChildId) return;
     if (draggingChildId !== targetId) {
@@ -470,8 +549,14 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
             </button>
 
             <div className="flex items-center gap-2">
-              <div className="rounded-2xl bg-yellow-50 px-4 py-2 text-sm font-black text-yellow-800 ring-1 ring-yellow-100">
-                积分 {currentUser?.availablePoints || 0}
+              <div className="child-topbar-points" aria-label={`当前积分 ${currentUser?.availablePoints || 0}`} style={topbarPointsStyle}>
+                <div className="child-topbar-points-icon" aria-hidden="true" style={topbarPointsIconStyle}>
+                  <Coins size={16} strokeWidth={2.6} />
+                </div>
+                <div className="child-topbar-points-copy" style={topbarPointsCopyStyle}>
+                  <span className="child-topbar-points-label" style={topbarPointsLabelStyle}>积分</span>
+                  <span className="child-topbar-points-value" style={topbarPointsValueStyle}>{currentUser?.availablePoints || 0}</span>
+                </div>
               </div>
               <ThemeToggle
                 theme={isDarkMode ? "dark" : "light"}
