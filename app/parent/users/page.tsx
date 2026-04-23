@@ -27,7 +27,7 @@ function UsersPageContent() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   // 筛选状态
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
@@ -432,6 +432,12 @@ function UsersPageContent() {
     total,
     pageSize: limit,
     onPageChange: setPage,
+    onPageSizeChange: (nextPageSize: number) => {
+      setLimit(nextPageSize);
+      setPage(1);
+    },
+    variant: "rich" as const,
+    pageSizeOptions: [10, 20, 50],
   }), [page, total, limit]);
 
   const activeFilterCount = [searchQuery.trim(), roleFilter !== "all", genderFilter !== "all"].filter(Boolean).length;

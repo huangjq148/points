@@ -21,7 +21,7 @@ function AuditPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   const pendingTasks = tasks;
 
@@ -205,7 +205,18 @@ function AuditPage() {
       )}
       {total > limit && (
         <div className="mt-4 flex justify-end">
-          <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+          <Pagination
+            currentPage={page}
+            totalItems={total}
+            pageSize={limit}
+            onPageChange={setPage}
+            onPageSizeChange={(nextPageSize) => {
+              setLimit(nextPageSize);
+              setPage(1);
+            }}
+            variant="rich"
+            pageSizeOptions={[10, 20, 50]}
+          />
         </div>
       )}
 

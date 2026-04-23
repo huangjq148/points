@@ -93,7 +93,7 @@ export default function RewardsPage() {
   const [rewardToDelete, setRewardToDelete] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<RewardFilter>("all");
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   const fetchRewards = useCallback(async (pageNum: number = 1) => {
     setLoading(true);
@@ -387,7 +387,20 @@ export default function RewardsPage() {
         )}
       </section>
 
-      {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
+      {total > limit && (
+        <Pagination
+          currentPage={page}
+          totalItems={total}
+          pageSize={limit}
+          onPageChange={setPage}
+          onPageSizeChange={(nextPageSize) => {
+            setLimit(nextPageSize);
+            setPage(1);
+          }}
+          variant="rich"
+          pageSizeOptions={[10, 20, 50]}
+        />
+      )}
 
       <Modal
         isOpen={showAddReward}

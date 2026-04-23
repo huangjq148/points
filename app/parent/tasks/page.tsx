@@ -152,7 +152,7 @@ function TasksPage() {
   const [editingTask, setEditingTask] = useState<PlainTask | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const limit = 10;
+  const [limit, setLimit] = useState(10);
 
   const [taskData, setTaskData] = useState<TaskFormData>(() => createEmptyTaskFormData());
 
@@ -621,7 +621,7 @@ function TasksPage() {
       }
       return [];
     },
-    [activeTaskFilter, selectedChildTaskFilter, taskNameFilter],
+    [activeTaskFilter, limit, selectedChildTaskFilter, taskNameFilter],
   );
 
   useEffect(() => {
@@ -744,7 +744,18 @@ function TasksPage() {
 
           {total > limit && (
             <div className="col-span-full mt-6">
-              <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+              <Pagination
+                currentPage={page}
+                totalItems={total}
+                pageSize={limit}
+                onPageChange={setPage}
+                onPageSizeChange={(nextPageSize) => {
+                  setLimit(nextPageSize);
+                  setPage(1);
+                }}
+                variant="rich"
+                pageSizeOptions={[10, 20, 50]}
+              />
             </div>
           )}
         </div>
@@ -763,7 +774,18 @@ function TasksPage() {
 
           {total > limit && (
             <div className="mt-6">
-              <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />
+              <Pagination
+                currentPage={page}
+                totalItems={total}
+                pageSize={limit}
+                onPageChange={setPage}
+                onPageSizeChange={(nextPageSize) => {
+                  setLimit(nextPageSize);
+                  setPage(1);
+                }}
+                variant="rich"
+                pageSizeOptions={[10, 20, 50]}
+              />
             </div>
           )}
         </div>

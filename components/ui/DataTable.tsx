@@ -20,6 +20,12 @@ interface PageOptions {
   total: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+  variant?: "default" | "rich";
+  showPageSizeLabel?: boolean;
+  showQuickJumper?: boolean;
+  alwaysShow?: boolean;
+  pageSizeOptions?: number[];
 }
 
 export interface DataTableColumn<TData> {
@@ -371,6 +377,12 @@ export function DataTable<TData>({
           totalItems={pageOptions.total}
           pageSize={pageOptions.pageSize}
           onPageChange={pageOptions.onPageChange}
+          onPageSizeChange={pageOptions.onPageSizeChange}
+          variant={pageOptions.variant}
+          showPageSizeLabel={pageOptions.showPageSizeLabel}
+          showQuickJumper={pageOptions.showQuickJumper}
+          alwaysShow={pageOptions.alwaysShow}
+          pageSizeOptions={pageOptions.pageSizeOptions}
         />
       )}
     </div>

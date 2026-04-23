@@ -86,24 +86,37 @@ const Pagination: React.FC<PaginationProps> = ({
     onPageChange(Math.min(totalPages, Math.max(1, page)));
   };
 
+  const navButtonClassName =
+    'min-w-0 rounded-2xl px-3 text-[var(--ui-text-muted)] disabled:opacity-30';
+  const pageNumberClassName =
+    'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border text-base font-semibold transition-colors';
+  const pageNumberActiveClassName =
+    'border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-soft-bg)] font-bold text-[var(--ui-focus)] shadow-[var(--ui-primary-soft-shadow)]';
+  const pageNumberIdleClassName =
+    'border-transparent bg-transparent text-[var(--ui-text-muted)] hover:bg-[var(--ui-surface-3)] hover:text-[var(--ui-text-primary)]';
+  const fieldShellClassName =
+    'inline-flex h-11 items-center rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-3 shadow-[var(--ui-shadow-sm)]';
+  const fieldLabelClassName =
+    'text-sm font-medium text-[var(--ui-text-muted)]';
+
   if (variant === 'rich') {
     return (
-      <div className={`mt-4 flex flex-wrap items-center gap-3 ${className}`}>
+      <div className={`mt-4 flex flex-wrap items-center gap-2.5 md:gap-3 ${className}`}>
         <Button
           variant='secondary'
           disabled={currentPage === 1}
           onClick={handlePrev}
-          className='min-w-0 rounded-2xl px-3 text-[var(--ui-text-muted)] disabled:opacity-30'
+          className={navButtonClassName}
         >
           <ChevronLeft size={16} />
         </Button>
 
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-1.5'>
           {pageItems.map((item, index) =>
             item === 'ellipsis' ? (
               <div
                 key={`ellipsis-${index}`}
-                className='inline-flex h-11 min-w-[2.75rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-[var(--ui-text-soft)]'
+                className='inline-flex h-11 min-w-[2.5rem] items-center justify-center text-lg font-bold tracking-[0.2em] text-[var(--ui-text-soft)]'
               >
                 ...
               </div>
@@ -112,11 +125,11 @@ const Pagination: React.FC<PaginationProps> = ({
                 key={item}
                 type='button'
                 onClick={() => onPageChange(item)}
-                className={
+                className={`${pageNumberClassName} ${
                   item === currentPage
-                    ? 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-soft-bg)] text-base font-bold text-[var(--ui-focus)] shadow-[var(--ui-primary-soft-shadow)]'
-                    : 'inline-flex h-11 min-w-[2.75rem] items-center justify-center rounded-2xl border border-transparent bg-transparent text-base font-semibold text-[var(--ui-text-muted)] transition-colors hover:bg-[var(--ui-surface-3)] hover:text-[var(--ui-text-primary)]'
-                }
+                    ? pageNumberActiveClassName
+                    : pageNumberIdleClassName
+                }`}
               >
                 {item}
               </button>
@@ -128,18 +141,19 @@ const Pagination: React.FC<PaginationProps> = ({
           variant='secondary'
           disabled={currentPage >= totalPages}
           onClick={handleNext}
-          className='min-w-0 rounded-2xl px-3 text-[var(--ui-text-muted)] disabled:opacity-30'
+          className={navButtonClassName}
         >
           <ChevronRight size={16} />
         </Button>
 
         {showPageSizeLabel ? (
           onPageSizeChange ? (
-            <label className='relative inline-flex h-11 items-center rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] pr-10 shadow-[var(--ui-shadow-sm)]'>
+            <label className={`${fieldShellClassName} relative pr-9`}>
+              <span className={fieldLabelClassName}>每页</span>
               <select
                 value={pageSize}
                 onChange={(e) => onPageSizeChange(Number(e.target.value))}
-                className='h-full appearance-none rounded-2xl bg-transparent px-4 text-sm font-semibold text-[var(--ui-text-muted)] outline-none'
+                className='h-full appearance-none rounded-2xl bg-transparent px-2 text-sm font-semibold text-[var(--ui-text-primary)] outline-none'
               >
                 {pageSizeOptions.map((option) => (
                   <option key={option} value={option}>
@@ -147,13 +161,13 @@ const Pagination: React.FC<PaginationProps> = ({
                   </option>
                 ))}
               </select>
-              <span className='pointer-events-none absolute right-4 text-xs text-[var(--ui-text-soft)]'>
+              <span className='pointer-events-none absolute right-3 text-xs text-[var(--ui-text-soft)]'>
                 ▼
               </span>
             </label>
           ) : (
-            <div className='inline-flex h-11 items-center rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 text-sm font-semibold text-[var(--ui-text-muted)] shadow-[var(--ui-shadow-sm)]'>
-              {pageSize} 条/页
+            <div className={`${fieldShellClassName} px-4 text-sm font-semibold text-[var(--ui-text-muted)]`}>
+              每页 {pageSize} 条
             </div>
           )
         ) : null}
@@ -161,7 +175,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {showQuickJumper ? (
           <>
             <div className='flex items-center gap-2 text-sm font-medium text-[var(--ui-text-muted)]'>
-              <span>跳至</span>
+              <span>跳至第</span>
               <input
                 key={`${currentPage}-${totalPages}`}
                 type='number'
@@ -181,7 +195,7 @@ const Pagination: React.FC<PaginationProps> = ({
               variant='secondary'
               onClick={handleJump}
               disabled={!jumpValue.trim()}
-              className='rounded-2xl px-4 text-[var(--ui-text-muted)] disabled:opacity-30'
+              className={navButtonClassName}
             >
               跳转
             </Button>
@@ -192,12 +206,12 @@ const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div className={`mt-6 flex items-center justify-center gap-4 ${className}`}>
+    <div className={`mt-6 flex flex-wrap items-center justify-center gap-2.5 md:gap-3 ${className}`}>
         <Button
           variant='secondary'
           disabled={currentPage === 1}
           onClick={handlePrev}
-          className='text-[var(--ui-text-muted)] disabled:opacity-30'
+          className={navButtonClassName}
       >
         <ChevronLeft size={16} />
         上一页
@@ -211,7 +225,7 @@ const Pagination: React.FC<PaginationProps> = ({
           variant='secondary'
           disabled={currentPage >= totalPages}
           onClick={handleNext}
-          className='text-[var(--ui-text-muted)] disabled:opacity-30'
+          className={navButtonClassName}
       >
         下一页
         <ChevronRight size={16} />

@@ -55,7 +55,7 @@ export default function StorePage() {
   const [total, setTotal] = useState(0);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
-  const limit = SHOP_LIMIT;
+  const [limit, setLimit] = useState(SHOP_LIMIT);
 
   const fetchRewards = useCallback(
     async (pageNum: number = 1) => {
@@ -438,7 +438,20 @@ export default function StorePage() {
         </div>
       </ChildPanel>
 
-      {total > limit && <Pagination currentPage={page} totalItems={total} pageSize={limit} onPageChange={setPage} />}
+      {total > limit && (
+        <Pagination
+          currentPage={page}
+          totalItems={total}
+          pageSize={limit}
+          onPageChange={setPage}
+          onPageSizeChange={(nextPageSize) => {
+            setLimit(nextPageSize);
+            setPage(1);
+          }}
+          variant="rich"
+          pageSizeOptions={[12, 24, 48]}
+        />
+      )}
     </div>
   );
 }
