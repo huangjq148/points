@@ -141,6 +141,48 @@ async function createTask(parentToken, childId, overrides = {}) {
   });
 }
 
+async function createPrivilegeRewardOrder(parentLogin, childToken, childId, nameSuffix, points = 5) {
+  await api('/api/points/reward', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      childId,
+      points: 10,
+      reason: `dark theme privilege setup ${nameSuffix}`,
+    }),
+  });
+
+  const rewardData = await api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      name: `折叠特权 ${nameSuffix}`,
+      description: '测试首页特权折叠',
+      points,
+      type: 'privilege',
+      icon: '📺',
+      stock: 5,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      validDurationValue: 2,
+      validDurationUnit: 'day',
+    }),
+  });
+
+  return api('/api/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${childToken}`,
+    },
+    body: JSON.stringify({
+      rewardId: rewardData.reward._id,
+    }),
+  });
+}
+
 async function openDarkChildHome(user) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -215,47 +257,12 @@ test('child homepage keeps submit task modal dark in dark theme', { timeout: 120
 
 test('child homepage keeps privilege reward cards dark in dark theme', { timeout: 120000 }, async () => {
   const { parentLogin, childUsername, childId } = await createParentAndChild('privilege');
+  const childLoginForOrders = await loginChild(childUsername);
 
-  await api('/api/points/reward', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${parentLogin.token}`,
-    },
-    body: JSON.stringify({
-      childId,
-      points: 40,
-      reason: 'dark theme privilege setup',
-    }),
-  });
-
-  const rewardData = await api('/api/rewards', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${parentLogin.token}`,
-    },
-    body: JSON.stringify({
-      name: '夜间平板特权',
-      description: '测试首页暗色卡片',
-      points: 20,
-      type: 'privilege',
-      icon: '📺',
-      stock: 5,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      validDurationValue: 2,
-      validDurationUnit: 'day',
-    }),
-  });
-
-  const childLoginForOrder = await loginChild(childUsername);
-  await api('/api/orders', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${childLoginForOrder.token}`,
-    },
-    body: JSON.stringify({
-      rewardId: rewardData.reward._id,
-    }),
-  });
+  await createPrivilegeRewardOrder(parentLogin, childLoginForOrders.token, childId, '1');
+  await createPrivilegeRewardOrder(parentLogin, childLoginForOrders.token, childId, '2');
+  await createPrivilegeRewardOrder(parentLogin, childLoginForOrders.token, childId, '3');
+  await createPrivilegeRewardOrder(parentLogin, childLoginForOrders.token, childId, '4');
 
   const childLogin = await loginChild(childUsername);
   const { browser, context, page } = await openDarkChildHome({
@@ -264,9 +271,20 @@ test('child homepage keeps privilege reward cards dark in dark theme', { timeout
   });
 
   try {
-    const privilegeCard = page.getByRole('button', { name: /夜间平板特权/ });
+    const privilegePanel = page.locator('section.child-panel').filter({ hasText: '特权奖励' }).first();
+    await expectDarkSurface(privilegePanel, 'Privilege reward panel');
+    assert.equal(await privilegePanel.getByRole('button', { name: /折叠特权/ }).count(), 2);
+    await privilegePanel.getByRole('button', { name: '展开剩余 2 个特权奖励' }).waitFor();
+
+    const privilegeCard = privilegePanel.getByRole('button', { name: /折叠特权 1|折叠特权 2|折叠特权 3|折叠特权 4/ }).first();
     await expectDarkSurface(privilegeCard, 'Privilege reward card');
     await expectDarkSurface(privilegeCard.locator('div').nth(1), 'Privilege reward icon surface');
+    await page.getByRole('button', { name: '展开剩余 2 个特权奖励' }).click();
+    assert.equal(await privilegePanel.getByRole('button', { name: /折叠特权/ }).count(), 4);
+    assert.equal(await privilegePanel.getByRole('button', { name: '收起特权奖励，当前显示 4 个' }).count(), 1);
+    await page.getByRole('button', { name: '收起特权奖励，当前显示 4 个' }).click();
+    assert.equal(await privilegePanel.getByRole('button', { name: /折叠特权/ }).count(), 2);
+
     await privilegeCard.click();
     await page.getByText('特权详情').waitFor();
     await expectDarkSurface(

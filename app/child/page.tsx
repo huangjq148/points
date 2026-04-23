@@ -106,6 +106,7 @@ export default function ChildHome() {
   const [rewardSummary, setRewardSummary] = useState<RewardSummary[]>([]);
   const [privilegeOrders, setPrivilegeOrders] = useState<ChildPrivilegeOrder[]>([]);
   const [showPrivilegeDetail, setShowPrivilegeDetail] = useState<ChildPrivilegeOrder | null>(null);
+  const [showAllPrivilegeOrders, setShowAllPrivilegeOrders] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -341,6 +342,11 @@ export default function ChildHome() {
         return dayjs(b.verifiedAt || b.createdAt).valueOf() - dayjs(a.verifiedAt || a.createdAt).valueOf();
       });
   }, [privilegeOrders]);
+  const visiblePrivilegeOrders = useMemo(
+    () => (showAllPrivilegeOrders ? activePrivilegeOrders : activePrivilegeOrders.slice(0, 2)),
+    [activePrivilegeOrders, showAllPrivilegeOrders],
+  );
+  const collapsedPrivilegeCount = Math.max(activePrivilegeOrders.length - visiblePrivilegeOrders.length, 0);
   const totalTasks = tasks.length;
   const completedTaskCount = completedTasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTaskCount / totalTasks) * 100) : 0;
@@ -564,7 +570,7 @@ export default function ChildHome() {
           />
           {activePrivilegeOrders.length > 0 ? (
             <div className='mt-3 grid gap-2.5'>
-              {activePrivilegeOrders.map((order) => {
+              {visiblePrivilegeOrders.map((order) => {
                 const timing = getPrivilegeTimingText(order);
                 return (
                   <button
@@ -591,6 +597,28 @@ export default function ChildHome() {
                   </button>
                 );
               })}
+              {activePrivilegeOrders.length > 2 && (
+                <button
+                  type='button'
+                  onClick={() => setShowAllPrivilegeOrders((current) => !current)}
+                  aria-expanded={showAllPrivilegeOrders}
+                  className='flex items-center justify-between gap-3 rounded-[22px] border border-dashed border-[color:var(--child-border)] bg-[color:rgba(148,163,184,0.1)] px-4 py-2.5 text-left shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:bg-[color:rgba(148,163,184,0.14)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'
+                >
+                  <div className='min-w-0'>
+                    <div className='text-[12px] font-black leading-4 text-[var(--child-text)]'>
+                      {showAllPrivilegeOrders
+                        ? `收起特权奖励，当前显示 ${activePrivilegeOrders.length} 个`
+                        : `展开剩余 ${collapsedPrivilegeCount} 个特权奖励`}
+                    </div>
+                    <div className='mt-0.5 text-[11px] font-semibold text-[var(--child-text-muted)]'>
+                      {showAllPrivilegeOrders ? '只保留最重要的前两个在上面' : '点一下就能看到全部特权'}
+                    </div>
+                  </div>
+                  <ChildStatusPill tone='slate'>
+                    {showAllPrivilegeOrders ? '收起' : '展开'}
+                  </ChildStatusPill>
+                </button>
+              )}
             </div>
           ) : (
             <div className='mt-4'>
