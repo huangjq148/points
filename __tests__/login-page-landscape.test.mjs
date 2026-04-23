@@ -21,6 +21,7 @@ test('login page shows the unified login copy and removes role/register controls
   const { browser, context, page } = await openLoginPage({ width: 1440, height: 900 });
 
   try {
+    await page.getByRole('heading', { name: '小小奋斗者' }).waitFor({ state: 'visible' });
     assert.equal(
       await page.getByRole('button', { name: '家长登录' }).count(),
       0,
