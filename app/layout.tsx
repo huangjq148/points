@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./styles/parent.css";
+import "./styles/child.css";
+import "./styles/login.css";
+import "./styles/dashboard-base.css";
+import "./styles/parent-dark.css";
 import { AppProvider } from "../context/AppContext";
 import { ToastProvider } from "@/components/ui/Toast";
 

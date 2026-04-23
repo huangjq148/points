@@ -1,0 +1,170 @@
+.parent-theme {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%);
+}
+
+.child-theme {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+}
+
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.78) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 28px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 8px 28px rgba(59, 130, 246, 0.1),
+    0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 44px rgba(59, 130, 246, 0.14),
+    0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+@media (min-width: 768px) {
+  .card {
+    border-radius: 28px;
+    padding: 28px;
+  }
+}
+
+.card-parent {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.88) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 28px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow:
+    0 8px 24px rgba(59, 130, 246, 0.08),
+    0 2px 8px rgba(15, 23, 42, 0.03);
+  transition: all 0.28s ease;
+}
+
+.card-parent:hover {
+  background: rgba(255, 255, 255, 0.98);
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 36px rgba(59, 130, 246, 0.12),
+    0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.select-surface .react-select__control {
+  min-height: 44px;
+  border-radius: 18px;
+  background: var(--control-surface-bg);
+  border-color: var(--control-border-color);
+  box-shadow: var(--control-box-shadow);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.select-surface .react-select__control:hover {
+  background: var(--control-surface-bg-hover);
+  border-color: var(--control-border-color-hover);
+  box-shadow: var(--control-box-shadow-hover);
+}
+
+.select-surface .react-select__control--is-focused,
+.select-surface .react-select__control--menu-is-open {
+  background: var(--control-surface-bg-hover);
+  border-color: var(--control-border-color-focus);
+  box-shadow:
+    0 0 0 4px var(--ui-focus-ring),
+    var(--control-box-shadow-focus);
+}
+
+.select-surface .react-select__value-container {
+  padding-left: 12px;
+}
+
+.select-surface .react-select__placeholder {
+  color: var(--ui-text-muted);
+  font-weight: 500;
+}
+
+.select-surface .react-select__single-value {
+  color: var(--ui-text-primary);
+  font-weight: 600;
+}
+
+.select-surface .react-select__dropdown-indicator {
+  color: var(--ui-text-soft);
+  padding-right: 10px;
+}
+
+.select-surface .react-select__dropdown-indicator:hover {
+  color: var(--ui-focus);
+}
+
+.select-surface .react-select__indicator-separator {
+  display: none;
+}
+
+.select-surface .react-select__menu {
+  margin-top: 8px;
+  border-radius: 20px;
+  padding: 8px;
+  border: 1px solid var(--ui-border);
+  background: var(--control-panel-bg);
+  box-shadow: var(--ui-shadow-md);
+  overflow: hidden;
+}
+
+.select-surface .react-select__menu-list {
+  padding: 0;
+}
+
+.select-surface .react-select__option {
+  border-radius: 14px;
+  margin-bottom: 2px;
+  padding: 10px 12px;
+  font-weight: 500;
+  color: var(--ui-text-secondary);
+}
+
+.select-surface .react-select__option--is-focused {
+  background: var(--ui-option-hover-bg);
+}
+
+.select-surface .react-select__option--is-selected {
+  background: var(--ui-option-selected-bg);
+  color: var(--ui-focus);
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .card-parent {
+    border-radius: 24px;
+    padding: 20px;
+  }
+}
+
+.card-child {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(239, 246, 255, 0.72) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 30px;
+  padding: 24px;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  box-shadow:
+    0 14px 42px rgba(59, 130, 246, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+@media (min-width: 768px) {
+  .card-child {
+    border-radius: 32px;
+    padding: 32px;
+  }
+}
