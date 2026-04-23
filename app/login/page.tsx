@@ -18,7 +18,6 @@ export default function Login() {
     if (typeof window === 'undefined') return;
 
     setThemeStorage('parent', theme);
-    setThemeStorage('child', theme);
     applyDocumentTheme(theme);
   }, [theme]);
 
