@@ -10,9 +10,8 @@ async function openLoginPage(viewport) {
   const page = await context.newPage();
   page.setDefaultTimeout(5000);
 
-  await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle', timeout: 30000 });
   assert.equal(page.url(), `${BASE_URL}/login`);
-  await page.locator('body').waitFor({ state: 'visible' });
 
   return { browser, context, page };
 }
@@ -33,8 +32,8 @@ test('login page shows the unified login copy and removes role/register controls
       await page.getByRole('button', { name: /点击注册|已有账号/ }).count(),
       0,
     );
-    assert.ok((await page.getByRole('heading', { name: '欢迎登录' }).count()) > 0);
-    assert.ok((await page.getByText('账号统一登录，系统会自动进入对应身份页面').count()) > 0);
+    await page.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' });
+    await page.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' });
   } finally {
     await context.close();
     await browser.close();
