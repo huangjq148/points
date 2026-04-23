@@ -1874,8 +1874,8 @@ body.child-theme-dark {
   z-index: var(--z-login-card);
   display: grid;
   grid-template-columns: var(--login-shell-columns);
-  width: min(100%, 1120px);
-  max-width: 1120px;
+  width: min(100%, 920px);
+  max-width: 920px;
   overflow: hidden;
   border: 1px solid var(--login-shell-border);
   border-radius: 32px;
@@ -1930,6 +1930,19 @@ body.child-theme-dark {
   margin: 12px 0 0;
   font-size: 16px;
   color: var(--login-brand-subtitle);
+}
+
+.login-brand-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 126px;
+}
+
+.login-brand-icon {
+  width: 126px;
+  height: 126px;
+  color: #ccc;
 }
 
 .login-rule-chips {
@@ -2036,8 +2049,8 @@ body.child-theme-dark {
   }
 
   .login-shell {
-    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-    min-height: min(680px, calc(100vh - 80px));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: min(380px, calc(100vh - 80px));
   }
 
   .login-brand-panel {
