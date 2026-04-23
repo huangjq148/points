@@ -13,19 +13,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isWideLayout, setIsWideLayout] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQuery = window.matchMedia('(min-width: 960px)');
-    const syncLayout = () => setIsWideLayout(mediaQuery.matches);
-
-    syncLayout();
-    mediaQuery.addEventListener('change', syncLayout);
-
-    return () => mediaQuery.removeEventListener('change', syncLayout);
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -64,13 +51,11 @@ export default function Login() {
         flexDirection: 'column',
         justifyContent: 'space-between',
         gap: '24px',
-        padding: isWideLayout ? '48px' : '32px 24px',
+        padding: '40px 32px',
         background: isDark
           ? 'linear-gradient(160deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.88) 100%)'
           : 'linear-gradient(160deg, rgba(219, 234, 254, 0.96) 0%, rgba(239, 246, 255, 0.92) 100%)',
-        borderRight: isWideLayout
-          ? (isDark ? '1px solid rgba(71, 85, 105, 0.64)' : '1px solid rgba(191, 219, 254, 0.9)')
-          : 'none',
+        borderRight: isDark ? '1px solid rgba(71, 85, 105, 0.64)' : '1px solid rgba(191, 219, 254, 0.9)',
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -89,7 +74,7 @@ export default function Login() {
           <h1
             style={{
               margin: 0,
-              fontSize: isWideLayout ? '48px' : '36px',
+              fontSize: '48px',
               lineHeight: 1,
               fontWeight: 800,
               color: isDark ? '#f8fafc' : '#0f172a',
@@ -147,7 +132,7 @@ export default function Login() {
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
-        padding: isWideLayout ? '48px' : '32px 24px',
+        padding: '40px 32px',
         background: isDark ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.88)',
       }}
     >
@@ -234,8 +219,8 @@ export default function Login() {
         style={{
           position: 'relative',
           zIndex: 'var(--z-login-card)',
-          display: isWideLayout ? 'grid' : 'none',
-          gridTemplateColumns: isWideLayout ? 'minmax(0, 1.08fr) minmax(0, 0.92fr)' : '1fr',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.08fr) minmax(0, 0.92fr)',
           width: '100%',
           maxWidth: '1120px',
           overflow: 'hidden',
@@ -249,26 +234,6 @@ export default function Login() {
         {brandPanel}
         {formPanel}
       </div>
-
-      {!isWideLayout && (
-        <div
-          style={{
-            position: 'relative',
-            zIndex: 'var(--z-login-card)',
-            width: '100%',
-            maxWidth: '560px',
-            overflow: 'hidden',
-            borderRadius: '28px',
-            border: isDark ? '1px solid rgba(71, 85, 105, 0.82)' : '1px solid rgba(191, 219, 254, 0.72)',
-            background: isDark ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.82)',
-            boxShadow: isDark ? '0 24px 64px rgba(2, 6, 23, 0.4)' : '0 24px 64px rgba(37, 99, 235, 0.16)',
-            backdropFilter: 'blur(18px)',
-          }}
-        >
-          {brandPanel}
-          {formPanel}
-        </div>
-      )}
     </div>
   );
 }
