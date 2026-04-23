@@ -66,36 +66,115 @@ test('login shell adapts between landscape and portrait layouts', { timeout: 120
   try {
     const landscapeShellLocator = landscapePage.locator('.login-shell');
     const portraitShellLocator = portraitPage.locator('.login-shell');
+    const landscapeBrandLocator = landscapePage.locator('.login-brand-panel');
+    const landscapeFormLocator = landscapePage.locator('.login-form-panel');
+    const portraitBrandLocator = portraitPage.locator('.login-brand-panel');
+    const portraitFormLocator = portraitPage.locator('.login-form-panel');
 
     await Promise.all([
       landscapeShellLocator.waitFor({ state: 'attached' }),
       portraitShellLocator.waitFor({ state: 'attached' }),
+      landscapeBrandLocator.waitFor({ state: 'attached' }),
+      landscapeFormLocator.waitFor({ state: 'attached' }),
+      portraitBrandLocator.waitFor({ state: 'attached' }),
+      portraitFormLocator.waitFor({ state: 'attached' }),
     ]);
 
-    const landscapeShell = await landscapeShellLocator.evaluate((element) => {
-      const style = window.getComputedStyle(element);
+    const landscapeLayout = await landscapePage.evaluate(() => {
+      const shell = document.querySelector('.login-shell');
+      const brand = document.querySelector('.login-brand-panel');
+      const form = document.querySelector('.login-form-panel');
+      if (!shell || !brand || !form) {
+        return null;
+      }
+
+      const shellStyle = window.getComputedStyle(shell);
+      const brandRect = brand.getBoundingClientRect();
+      const formRect = form.getBoundingClientRect();
+
       return {
-        display: style.display,
-        gridTemplateColumns: style.gridTemplateColumns,
+        display: shellStyle.display,
+        brand: {
+          left: brandRect.left,
+          top: brandRect.top,
+          right: brandRect.right,
+          bottom: brandRect.bottom,
+          width: brandRect.width,
+          height: brandRect.height,
+        },
+        form: {
+          left: formRect.left,
+          top: formRect.top,
+          right: formRect.right,
+          bottom: formRect.bottom,
+          width: formRect.width,
+          height: formRect.height,
+        },
       };
     });
 
-    const portraitShell = await portraitShellLocator.evaluate((element) => {
-      const style = window.getComputedStyle(element);
+    const portraitLayout = await portraitPage.evaluate(() => {
+      const shell = document.querySelector('.login-shell');
+      const brand = document.querySelector('.login-brand-panel');
+      const form = document.querySelector('.login-form-panel');
+      if (!shell || !brand || !form) {
+        return null;
+      }
+
+      const shellStyle = window.getComputedStyle(shell);
+      const brandRect = brand.getBoundingClientRect();
+      const formRect = form.getBoundingClientRect();
+
       return {
-        display: style.display,
-        gridTemplateColumns: style.gridTemplateColumns,
+        display: shellStyle.display,
+        brand: {
+          left: brandRect.left,
+          top: brandRect.top,
+          right: brandRect.right,
+          bottom: brandRect.bottom,
+          width: brandRect.width,
+          height: brandRect.height,
+        },
+        form: {
+          left: formRect.left,
+          top: formRect.top,
+          right: formRect.right,
+          bottom: formRect.bottom,
+          width: formRect.width,
+          height: formRect.height,
+        },
       };
     });
+
+    assert.ok(landscapeLayout, 'landscape layout should be measurable');
+    assert.ok(portraitLayout, 'portrait layout should be measurable');
 
     assert.notEqual(
-      landscapeShell.display,
+      landscapeLayout.display,
       'none',
-      `landscape shell should be visible, got ${JSON.stringify(landscapeShell)}`,
+      `landscape shell should be visible, got ${JSON.stringify(landscapeLayout)}`,
     );
     assert.ok(
-      portraitShell.display === 'none' || portraitShell.gridTemplateColumns.startsWith('1fr'),
-      `portrait shell should hide or collapse to a single column, got ${JSON.stringify(portraitShell)}`,
+      landscapeLayout.form.left >= landscapeLayout.brand.right - 2,
+      `landscape panels should sit side by side, got ${JSON.stringify(landscapeLayout)}`,
+    );
+    assert.ok(
+      Math.abs(landscapeLayout.form.top - landscapeLayout.brand.top) <= 2,
+      `landscape panels should start on the same row, got ${JSON.stringify(landscapeLayout)}`,
+    );
+
+    assert.notEqual(
+      portraitLayout.display,
+      'none',
+      `portrait shell should stay usable, got ${JSON.stringify(portraitLayout)}`,
+    );
+    assert.ok(
+      Math.abs(portraitLayout.form.left - portraitLayout.brand.left) <= 2,
+      `portrait panels should align to one column, got ${JSON.stringify(portraitLayout)}`,
+    );
+    assert.ok(
+      portraitLayout.form.top >= portraitLayout.brand.bottom - 2,
+      `portrait form should stack below the brand panel, got ${JSON.stringify(portraitLayout)}`,
     );
   } finally {
     await portraitContext.close();
