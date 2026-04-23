@@ -60,7 +60,15 @@ test('login shell adapts between landscape and portrait layouts', { timeout: 120
   ]);
 
   try {
-    const landscapeShell = await landscapePage.locator('.login-shell').evaluate((element) => {
+    const landscapeShellLocator = landscapePage.locator('.login-shell');
+    const portraitShellLocator = portraitPage.locator('.login-shell');
+
+    await Promise.all([
+      landscapeShellLocator.waitFor({ state: 'attached' }),
+      portraitShellLocator.waitFor({ state: 'attached' }),
+    ]);
+
+    const landscapeShell = await landscapeShellLocator.evaluate((element) => {
       const style = window.getComputedStyle(element);
       return {
         display: style.display,
@@ -68,7 +76,7 @@ test('login shell adapts between landscape and portrait layouts', { timeout: 120
       };
     });
 
-    const portraitShell = await portraitPage.locator('.login-shell').evaluate((element) => {
+    const portraitShell = await portraitShellLocator.evaluate((element) => {
       const style = window.getComputedStyle(element);
       return {
         display: style.display,
