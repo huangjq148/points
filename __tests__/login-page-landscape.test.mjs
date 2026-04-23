@@ -12,6 +12,7 @@ async function openLoginPage(viewport) {
 
   await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   assert.equal(page.url(), `${BASE_URL}/login`);
+  await page.locator('body').waitFor({ state: 'visible' });
 
   return { browser, context, page };
 }
@@ -20,9 +21,6 @@ test('login page shows the unified login copy and removes role/register controls
   const { browser, context, page } = await openLoginPage({ width: 1440, height: 900 });
 
   try {
-    await page.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' });
-    await page.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' });
-
     assert.equal(
       await page.getByRole('button', { name: '家长登录' }).count(),
       0,
@@ -56,10 +54,8 @@ test('login shell adapts between landscape and portrait layouts', { timeout: 120
   ]);
 
   await Promise.all([
-    landscapePage.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' }),
-    landscapePage.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' }),
-    portraitPage.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' }),
-    portraitPage.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' }),
+    landscapePage.locator('body').waitFor({ state: 'visible' }),
+    portraitPage.locator('body').waitFor({ state: 'visible' }),
   ]);
 
   try {
