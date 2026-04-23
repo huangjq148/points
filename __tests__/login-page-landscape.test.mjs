@@ -20,6 +20,9 @@ test('login page shows the unified login copy and removes role/register controls
   const { browser, context, page } = await openLoginPage({ width: 1440, height: 900 });
 
   try {
+    await page.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' });
+    await page.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' });
+
     assert.equal(
       await page.getByRole('button', { name: '家长登录' }).count(),
       0,
@@ -41,35 +44,78 @@ test('login page shows the unified login copy and removes role/register controls
 });
 
 test('login shell adapts between landscape and portrait layouts', { timeout: 120000 }, async () => {
-  const landscape = await openLoginPage({ width: 1440, height: 900 });
-  const portrait = await openLoginPage({ width: 430, height: 932 });
+  const browser = await chromium.launch({ headless: true });
+  const landscapeContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const portraitContext = await browser.newContext({ viewport: { width: 430, height: 932 } });
+  const landscapePage = await landscapeContext.newPage();
+  const portraitPage = await portraitContext.newPage();
+  landscapePage.setDefaultTimeout(5000);
+  portraitPage.setDefaultTimeout(5000);
+
+  await Promise.all([
+    landscapePage.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 }),
+    portraitPage.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 }),
+  ]);
+
+  await Promise.all([
+    landscapePage.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' }),
+    landscapePage.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' }),
+    portraitPage.getByRole('heading', { name: '欢迎登录' }).waitFor({ state: 'visible' }),
+    portraitPage.getByText('账号统一登录，系统会自动进入对应身份页面').waitFor({ state: 'visible' }),
+  ]);
 
   try {
-    const landscapeShell = await landscape.page.locator('.login-shell').evaluate((element) => {
+    const landscapeShell = await landscapePage.locator('.login-shell').evaluate((element) => {
       const style = window.getComputedStyle(element);
+      const columns = style.gridTemplateColumns
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
       return {
         display: style.display,
         gridTemplateColumns: style.gridTemplateColumns,
+        columns,
       };
     });
 
-    const portraitShell = await portrait.page.locator('.login-shell').evaluate((element) => {
+    const portraitShell = await portraitPage.locator('.login-shell').evaluate((element) => {
       const style = window.getComputedStyle(element);
+      const columns = style.gridTemplateColumns
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
       return {
         display: style.display,
         gridTemplateColumns: style.gridTemplateColumns,
+        columns,
       };
     });
 
-    assert.notEqual(landscapeShell.display, 'none');
+    assert.equal(
+      landscapeShell.display,
+      'grid',
+      `landscape shell should use grid layout, got ${JSON.stringify(landscapeShell)}`,
+    );
     assert.ok(
-      portraitShell.display === 'none' || portraitShell.gridTemplateColumns.startsWith('1fr'),
-      `portrait shell should collapse to a single column or hide entirely, got ${JSON.stringify(portraitShell)}`,
+      landscapeShell.columns.length >= 2,
+      `landscape shell should split into at least two columns, got ${JSON.stringify(landscapeShell)}`,
+    );
+
+    assert.equal(
+      portraitShell.display,
+      'grid',
+      `portrait shell should remain visible, got ${JSON.stringify(portraitShell)}`,
+    );
+    assert.equal(
+      portraitShell.columns.length,
+      1,
+      `portrait shell should collapse to one stacked column, got ${JSON.stringify(portraitShell)}`,
     );
   } finally {
-    await portrait.context.close();
-    await portrait.browser.close();
-    await landscape.context.close();
-    await landscape.browser.close();
+    await portraitContext.close();
+    await landscapeContext.close();
+    await browser.close();
   }
 });
