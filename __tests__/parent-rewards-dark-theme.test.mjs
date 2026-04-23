@@ -157,6 +157,43 @@ async function createParent(prefix) {
   });
 }
 
+async function createReward(token, name) {
+  return api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      name,
+      description: '父母页商城暗色主题布局回归测试',
+      points: 30,
+      type: 'physical',
+      icon: '🎁',
+      stock: 8,
+    }),
+  });
+}
+
+async function createPrivilegeReward(token, name) {
+  return api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      name,
+      description: '父母页商城特权布局回归测试',
+      points: 36,
+      type: 'privilege',
+      icon: '⭐',
+      stock: 6,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      validDurationValue: 3,
+      validDurationUnit: 'day',
+    }),
+  });
+}
+
 async function openDarkParentRewards(user) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
@@ -192,12 +229,42 @@ async function openDarkParentRewards(user) {
 
 test('parent rewards add modal keeps key surfaces dark in dark theme', { timeout: 120000 }, async () => {
   const parentLogin = await createParent('parent_rewards_dark');
+  const rewardName = `暗色布局奖励_${Date.now()}`;
+  await createReward(parentLogin.token, rewardName);
+  const privilegeRewardName = `暗色特权奖励_${Date.now()}`;
+  await createPrivilegeReward(parentLogin.token, privilegeRewardName);
   const { browser, context, page } = await openDarkParentRewards({
     ...parentLogin.user,
     token: parentLogin.token,
   });
 
   try {
+    const rewardCard = page
+      .getByText(rewardName)
+      .locator('xpath=ancestor::div[contains(@class,"reward-card")][1]');
+    await rewardCard.waitFor({ state: 'visible' });
+    const rewardCardLayout = await rewardCard.evaluate((element) => {
+      const style = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        display: style.display,
+        width: rect.width,
+      };
+    });
+
+    assert.equal(rewardCardLayout.display, 'block', 'Reward card should not inherit the child flex layout');
+    assert.ok(rewardCardLayout.width > 1000, `Reward card should stretch across the page, got ${rewardCardLayout.width}`);
+
+    await expectDarkSurface(page.getByText('30 积分').locator('xpath=ancestor::div[contains(@class,"reward-card-points")][1]'), 'Reward points chip');
+    await expectDarkSurface(page.getByText('库存 8').locator('xpath=ancestor::div[contains(@class,"reward-card-stock")][1]'), 'Reward stock chip');
+
+    const privilegeRewardCard = page
+      .getByText(privilegeRewardName)
+      .locator('xpath=ancestor::div[contains(@class,"reward-card")][1]');
+    await privilegeRewardCard.waitFor({ state: 'visible' });
+    await expectDarkSurface(page.locator('.reward-card-meta-chip-deadline').first(), 'Reward deadline chip');
+    await expectDarkSurface(page.locator('.reward-card-meta-chip-duration').first(), 'Reward duration chip');
+
     await page.getByRole('button', { name: '添加奖励' }).click();
 
     const modal = page

@@ -948,6 +948,117 @@
   color: var(--parent-text-4) !important;
 }
 
+.parent-theme-dark .rewards-page .rewards-toolbar {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.94) 0%, rgba(30, 41, 59, 0.82) 100%) !important;
+  border-color: var(--parent-border-1) !important;
+  box-shadow:
+    0 18px 38px rgba(2, 6, 23, 0.24),
+    inset 0 1px 0 rgba(148, 163, 184, 0.06) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-filter-group {
+  gap: 8px;
+}
+
+.parent-theme-dark .rewards-page .rewards-filter-label {
+  background: rgba(30, 41, 59, 0.96) !important;
+  color: var(--parent-text-3) !important;
+  border: 1px solid var(--parent-border-1) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-filter-button {
+  border: 1px solid transparent;
+  color: var(--parent-text-4) !important;
+  background: rgba(30, 41, 59, 0.82) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.04),
+    0 6px 14px rgba(2, 6, 23, 0.08) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-filter-button:hover {
+  color: var(--parent-text-1) !important;
+  background: rgba(51, 65, 85, 0.86) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-filter-button-active {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.98) 0%, rgba(30, 64, 175, 0.94) 100%) !important;
+  color: #fff !important;
+  border-color: rgba(147, 197, 253, 0.24) !important;
+  box-shadow:
+    0 10px 22px rgba(37, 99, 235, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-filter-button-idle {
+  background: rgba(30, 41, 59, 0.82) !important;
+  border-color: rgba(71, 85, 105, 0.72) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-loading {
+  background: rgba(30, 41, 59, 0.94) !important;
+  border-color: rgba(71, 85, 105, 0.72) !important;
+  color: var(--parent-text-4) !important;
+}
+
+.parent-theme-dark .rewards-page .rewards-list {
+  gap: 18px;
+}
+
+.parent-theme-dark .rewards-page .reward-card-meta-chip {
+  background: rgba(30, 41, 59, 0.94) !important;
+  border-color: rgba(71, 85, 105, 0.8) !important;
+  color: var(--parent-text-2) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.08),
+    0 8px 16px rgba(2, 6, 23, 0.12) !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-meta-chip-deadline {
+  background: linear-gradient(135deg, rgba(146, 64, 14, 0.34) 0%, rgba(30, 41, 59, 0.96) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.28) !important;
+  color: #fde68a !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-meta-chip-duration {
+  background: linear-gradient(135deg, rgba(6, 95, 70, 0.34) 0%, rgba(30, 41, 59, 0.96) 100%) !important;
+  border-color: rgba(52, 211, 153, 0.28) !important;
+  color: #a7f3d0 !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-points {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.98) 100%) !important;
+  border: 1px solid rgba(71, 85, 105, 0.78) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.08),
+    0 8px 16px rgba(2, 6, 23, 0.14) !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-points-label {
+  color: var(--parent-text-4) !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-points-value {
+  color: var(--parent-text-1) !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-stock.reward-card-stock-live {
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.28) 0%, rgba(15, 23, 42, 0.96) 100%) !important;
+  border: 1px solid rgba(96, 165, 250, 0.22) !important;
+  color: #bfdbfe !important;
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.08),
+    0 8px 16px rgba(2, 6, 23, 0.12) !important;
+}
+
+.parent-theme-dark .rewards-page .reward-card-stock.reward-card-stock-muted {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(71, 85, 105, 0.76) !important;
+  color: var(--parent-text-4) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.06),
+    0 8px 16px rgba(2, 6, 23, 0.1) !important;
+}
+
 .parent-theme-dark .data-table-panel {
   background: rgba(15, 23, 42, 0.9) !important;
   border-color: var(--parent-border-1) !important;

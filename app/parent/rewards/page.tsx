@@ -52,6 +52,28 @@ const rewardEditPrivilegePanelClassName =
   "grid gap-4 rounded-[28px] border border-[color:var(--ui-action-blue-border)] bg-[linear-gradient(135deg,var(--ui-action-blue-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 md:grid-cols-2";
 const rewardSelectClassName =
   "rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 py-3 text-sm text-[var(--ui-text-primary)] outline-none transition focus:border-[color:var(--ui-focus)] focus:ring-2 focus:ring-[var(--ui-focus-ring)]";
+const rewardMetaChipBaseClassName =
+  "reward-card-meta-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1";
+const rewardMetaPointsChipClassName =
+  `${rewardMetaChipBaseClassName} bg-white/90 text-slate-500 ring-slate-200/70`;
+const rewardMetaDeadlineChipClassName =
+  `${rewardMetaChipBaseClassName} reward-card-meta-chip-deadline bg-amber-50 text-amber-700 ring-amber-100`;
+const rewardMetaDurationChipClassName =
+  `${rewardMetaChipBaseClassName} reward-card-meta-chip-duration bg-emerald-50 text-emerald-700 ring-emerald-100`;
+const rewardToolbarClassName =
+  "rewards-toolbar rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl";
+const rewardFilterGroupClassName = "rewards-filter-group flex flex-wrap items-center gap-2";
+const rewardFilterLabelClassName =
+  "inline-flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-2 text-sm text-slate-500";
+const rewardFilterButtonBaseClassName =
+  "rewards-filter-button rounded-full px-4 py-2 text-sm font-semibold transition";
+const rewardFilterButtonActiveClassName =
+  "rewards-filter-button-active bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]";
+const rewardFilterButtonIdleClassName =
+  "rewards-filter-button-idle bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50";
+const rewardListClassName = "rewards-list grid gap-5";
+const rewardLoadingClassName =
+  "rewards-loading inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/85 px-3 py-2 text-xs font-medium text-slate-500 shadow-sm backdrop-blur";
 
 function formatDuration(value?: number | null, unit?: "day" | "hour" | null) {
   if (!value || !unit) return "未设置有效期";
@@ -272,7 +294,7 @@ export default function RewardsPage() {
         <StatCard title="特权奖励" value={stats.privilegeCount} hint="看电视、免任务等非实物奖励" />
       </section>
 
-      <section className="rewards-toolbar rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+      <section className={rewardToolbarClassName}>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
             <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -283,8 +305,8 @@ export default function RewardsPage() {
               className="pl-11"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-2 text-sm text-slate-500">
+          <div className={rewardFilterGroupClassName}>
+            <div className={rewardFilterLabelClassName}>
               <SlidersHorizontal size={16} />
               筛选
             </div>
@@ -299,8 +321,8 @@ export default function RewardsPage() {
               <button
                 key={item.key}
                 onClick={() => setFilter(item.key as RewardFilter)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  filter === item.key ? "bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]" : "bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50"
+                className={`${rewardFilterButtonBaseClassName} ${
+                  filter === item.key ? rewardFilterButtonActiveClassName : rewardFilterButtonIdleClassName
                 }`}
               >
                 {item.label}
@@ -310,9 +332,9 @@ export default function RewardsPage() {
         </div>
       </section>
 
-      <section className="space-y-2">
+      <section className="space-y-3">
         {loading && (
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/85 px-3 py-2 text-xs font-medium text-slate-500 shadow-sm backdrop-blur">
+          <div className={rewardLoadingClassName}>
             <RefreshCw size={14} className="animate-spin" />
             刷新中
           </div>
@@ -321,7 +343,7 @@ export default function RewardsPage() {
         {filteredRewards.length === 0 ? (
           <EmptyState title="还没有奖励配置" hint="先添加第一个商品，让孩子能看到可兑换的内容。" />
         ) : (
-          <div className="grid gap-4">
+          <div className={rewardListClassName}>
             {filteredRewards.map((reward) => (
               <RewardCard
                 key={reward._id.toString()}
@@ -336,15 +358,15 @@ export default function RewardsPage() {
                 tableRow
                 meta={
                   <>
-                    <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200/70">
+                    <span className={rewardMetaPointsChipClassName}>
                       {reward.points} 积分
                     </span>
                     {reward.type === "privilege" && (
                       <>
-                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-100">
+                        <span className={rewardMetaDeadlineChipClassName}>
                           {reward.expiresAt ? `截止 ${dayjs(reward.expiresAt).format("MM-DD")}` : "需设置截止日期"}
                         </span>
-                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                        <span className={rewardMetaDurationChipClassName}>
                           {formatDuration(reward.validDurationValue, reward.validDurationUnit)}
                         </span>
                       </>
