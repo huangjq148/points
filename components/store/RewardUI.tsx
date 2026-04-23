@@ -99,28 +99,28 @@ export function Badge({
     },
     emerald: {
       background: "color-mix(in srgb, var(--child-surface-strong) 72%, #059669 28%)",
-      color: "color-mix(in srgb, var(--child-text) 24%, #bbf7d0 76%)",
+      color: "color-mix(in srgb, var(--child-text) 68%, #bbf7d0 32%)",
       boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 66%, #34d399 34%)",
     },
     amber: {
       background: "color-mix(in srgb, var(--child-surface-strong) 68%, #f59e0b 32%)",
-      color: "color-mix(in srgb, var(--child-text) 20%, #fde68a 80%)",
+      color: "color-mix(in srgb, var(--child-text) 68%, #fde68a 32%)",
       boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 54%, #fbbf24 46%)",
     },
     rose: {
       background: "color-mix(in srgb, var(--child-surface-strong) 68%, #e11d48 32%)",
-      color: "color-mix(in srgb, var(--child-text) 18%, #fecdd3 82%)",
+      color: "color-mix(in srgb, var(--child-text) 68%, #fecdd3 32%)",
       boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 54%, #fb7185 46%)",
     },
     blue: {
       background: "color-mix(in srgb, var(--child-surface-strong) 68%, #0ea5e9 32%)",
-      color: "color-mix(in srgb, var(--child-text) 18%, #bfdbfe 82%)",
+      color: "color-mix(in srgb, var(--child-text) 70%, #bfdbfe 30%)",
       boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 58%, #60a5fa 42%)",
     },
     time: {
       background:
         "linear-gradient(135deg, color-mix(in srgb, var(--child-surface-strong) 64%, #f59e0b 36%) 0%, color-mix(in srgb, var(--child-surface-muted) 58%, #f97316 42%) 100%)",
-      color: "color-mix(in srgb, var(--child-text) 16%, #fde68a 84%)",
+      color: "color-mix(in srgb, var(--child-text) 68%, #fde68a 32%)",
       boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 52%, #fbbf24 48%)",
     },
   };
@@ -214,14 +214,14 @@ export function RewardCard({
   const stockStyle = childVariant
     ? muted
       ? {
-          background: "var(--child-surface-muted)",
-          color: "var(--child-text-muted)",
+          background: "color-mix(in srgb, var(--child-surface-muted) 92%, var(--child-text-muted) 8%)",
+          color: "color-mix(in srgb, var(--child-text-muted) 78%, var(--child-primary) 22%)",
           boxShadow: "inset 0 0 0 1px var(--child-border)",
         }
       : {
-          background: "color-mix(in srgb, var(--child-surface-strong) 68%, #e11d48 32%)",
-          color: "color-mix(in srgb, var(--child-text) 18%, #fecdd3 82%)",
-          boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 56%, #fb7185 44%)",
+          background: "color-mix(in srgb, var(--child-surface-strong) 84%, var(--child-primary) 16%)",
+          color: "color-mix(in srgb, var(--child-text-muted) 70%, var(--child-primary-strong) 30%)",
+          boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--child-border-strong) 68%, var(--child-primary) 32%)",
         }
     : undefined;
   return (
