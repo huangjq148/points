@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ZoomIn } from "lucide-react";
 
@@ -36,19 +37,52 @@ export default function Image({
   ...rest
 }: ImageProps) {
   const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [transformOrigin, setTransformOrigin] = useState("center center");
+  const zoomImageRef = useRef<HTMLImageElement | null>(null);
 
   const handleOpenZoom = useCallback(() => {
     if (!enableZoom || !src) return;
     setIsZoomed(true);
+    setZoomScale(1);
+    setTransformOrigin("center center");
     onZoomOpen?.();
     document.body.style.overflow = "hidden";
   }, [enableZoom, src, onZoomOpen]);
 
   const handleCloseZoom = useCallback(() => {
     setIsZoomed(false);
+    setZoomScale(1);
+    setTransformOrigin("center center");
     onZoomClose?.();
     document.body.style.overflow = "unset";
   }, [onZoomClose]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  const handleWheelZoom = useCallback(
+    (e: React.WheelEvent<HTMLElement>) => {
+      if (!isZoomed) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const direction = e.deltaY > 0 ? -1 : 1;
+      const nextScale = Math.min(4, Math.max(0.5, zoomScale + direction * 0.15));
+      setZoomScale(nextScale);
+
+      const rect = zoomImageRef.current?.getBoundingClientRect();
+      if (rect) {
+        const originX = ((e.clientX - rect.left) / rect.width) * 100;
+        const originY = ((e.clientY - rect.top) / rect.height) * 100;
+        setTransformOrigin(`${originX}% ${originY}%`);
+      }
+    },
+    [isZoomed, zoomScale]
+  );
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLImageElement>) => {
@@ -67,9 +101,78 @@ export default function Image({
     [handleCloseZoom]
   );
 
+  const zoomLayer =
+    typeof document !== "undefined" ? (
+      ReactDOM.createPortal(
+        <AnimatePresence>
+          {isZoomed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className={`fixed inset-0 flex items-center justify-center ${overlayClassName}`}
+              style={{
+                backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})`,
+                zIndex: "var(--z-image-viewer)",
+              }}
+              onClick={handleCloseZoom}
+              onWheelCapture={handleWheelZoom}
+              onKeyDown={handleKeyDown}
+              tabIndex={0}
+              role="dialog"
+              aria-modal="true"
+            >
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: 0.1 }}
+                className="absolute top-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCloseZoom();
+                }}
+                aria-label="关闭"
+              >
+                <X size={24} />
+              </motion.button>
+
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute left-1/2 top-4 -translate-x-1/2 text-sm font-medium text-white/70"
+              >
+                点击任意处关闭
+              </motion.div>
+
+              <motion.img
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: zoomScale, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                src={src}
+                alt={alt}
+                ref={zoomImageRef}
+                className="max-h-[90vh] max-w-[90vw] cursor-grab active:cursor-grabbing rounded-lg object-contain shadow-2xl"
+                style={{ transformOrigin }}
+                drag
+                dragMomentum={false}
+                dragElastic={0.12}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                draggable={false}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
+      )
+    ) : null;
+
   return (
     <>
-      {/* 图片容器 */}
       <div
         className={`relative inline-block ${enableZoom ? "cursor-zoom-in" : ""} ${containerClassName}`}
         onClick={enableZoom ? handleOpenZoom : undefined}
@@ -82,10 +185,9 @@ export default function Image({
           {...rest}
         />
 
-        {/* 悬停提示 */}
         {enableZoom && zoomHint && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-all duration-300 opacity-0 hover:opacity-100 pointer-events-none">
-            <div className="flex items-center gap-1.5 text-white text-xs font-medium bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-sm">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 hover:bg-black/20 hover:opacity-100">
+            <div className="flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
               <ZoomIn size={14} />
               <span>{zoomHint}</span>
             </div>
@@ -93,62 +195,7 @@ export default function Image({
         )}
       </div>
 
-      {/* 全屏放大视图 */}
-      <AnimatePresence>
-        {isZoomed && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className={`fixed inset-0 flex items-center justify-center ${overlayClassName}`}
-            style={{ backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})`, zIndex: "var(--z-image-viewer)" }}
-            onClick={handleCloseZoom}
-            onKeyDown={handleKeyDown}
-            tabIndex={0}
-            role="dialog"
-            aria-modal="true"
-          >
-            {/* 关闭按钮 */}
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ delay: 0.1 }}
-              className="absolute top-4 right-4 z-10 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseZoom();
-              }}
-              aria-label="关闭"
-            >
-              <X size={24} />
-            </motion.button>
-
-            {/* 提示文字 */}
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium"
-            >
-              点击任意处关闭
-            </motion.div>
-
-            {/* 放大的图片 */}
-            <motion.img
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              src={src}
-              alt={alt}
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl cursor-zoom-out"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {zoomLayer}
     </>
   );
 }
