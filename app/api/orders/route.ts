@@ -6,10 +6,6 @@ import User from '@/models/User';
 import mongoose from 'mongoose';
 import { getTokenPayload, getUserIdFromToken } from '@/lib/auth';
 
-function generateCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 interface OrderPostRequest {
   userId: mongoose.Types.ObjectId;
   childId: mongoose.Types.ObjectId;
@@ -233,8 +229,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: '积分不足' }, { status: 400 });
     }
 
-    const verificationCode: string = generateCode();
-
     const order: IOrder = await Order.create({
       userId,
       childId,
@@ -243,7 +237,6 @@ export async function POST(request: NextRequest) {
       rewardIcon: reward.icon,
       pointsSpent: reward.points,
       status: 'pending',
-      verificationCode,
       validUntil: null,
     });
 
@@ -260,7 +253,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       order,
-      verificationCode
     });
   } catch (error: unknown) {
     if (error instanceof Error) {

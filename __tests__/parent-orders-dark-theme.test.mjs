@@ -415,7 +415,7 @@ test('parent orders page keeps main panels dark in dark theme', { timeout: 12000
 
     const toolbarPanel = page
       .locator('section')
-      .filter({ has: page.getByPlaceholder('搜索孩子、商品或核销码') })
+      .filter({ has: page.getByPlaceholder('搜索孩子或商品') })
       .first();
     await expectDarkSurface(toolbarPanel, 'Orders toolbar panel');
 
@@ -423,11 +423,6 @@ test('parent orders page keeps main panels dark in dark theme', { timeout: 12000
       .getByText(rewardName)
       .locator('xpath=ancestor::div[contains(@class,"group")][1]');
     await expectDarkSurface(orderCard, 'Pending order card');
-
-    const verificationCodePanel = page
-      .getByText('Verification Code')
-      .locator('xpath=ancestor::div[contains(@class,"rounded-[24px]")][1]');
-    await expectDarkSurface(verificationCodePanel, 'Verification code panel');
 
     const pendingStatValue = page.locator('.reward-stat-card').first().locator('.text-3xl').first();
     await expectLightText(pendingStatValue, 'Top stat card value');

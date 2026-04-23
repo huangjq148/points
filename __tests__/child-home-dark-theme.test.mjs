@@ -273,10 +273,6 @@ test('child homepage keeps privilege reward cards dark in dark theme', { timeout
       page.getByText('特权详情').locator('xpath=ancestor::div[contains(@class,"w-full") and contains(@class,"overflow-hidden")]').first(),
       'Privilege detail modal panel',
     );
-    await expectDarkSurface(
-      page.getByText('核销码').locator('xpath=ancestor::div[contains(@class,"space-y-3")]/div[1]'),
-      'Privilege detail summary surface',
-    );
   } finally {
     await context.close();
     await browser.close();

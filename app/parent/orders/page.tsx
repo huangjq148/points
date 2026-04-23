@@ -179,8 +179,7 @@ function OrdersPage() {
     return pendingOrders.filter((order) => {
       return (
         order.rewardName.toLowerCase().includes(keyword) ||
-        order.childName.toLowerCase().includes(keyword) ||
-        order.verificationCode.toLowerCase().includes(keyword)
+        order.childName.toLowerCase().includes(keyword)
       );
     });
   }, [pendingOrders, searchQuery]);
@@ -191,8 +190,7 @@ function OrdersPage() {
     return verifiedOrders.filter((order) => {
       return (
         order.rewardName.toLowerCase().includes(keyword) ||
-        order.childName.toLowerCase().includes(keyword) ||
-        order.verificationCode.toLowerCase().includes(keyword)
+        order.childName.toLowerCase().includes(keyword)
       );
     });
   }, [verifiedOrders, searchQuery]);
@@ -203,8 +201,7 @@ function OrdersPage() {
     return cancelledOrders.filter((order) => {
       return (
         order.rewardName.toLowerCase().includes(keyword) ||
-        order.childName.toLowerCase().includes(keyword) ||
-        order.verificationCode.toLowerCase().includes(keyword)
+        order.childName.toLowerCase().includes(keyword)
       );
     });
   }, [cancelledOrders, searchQuery]);
@@ -263,7 +260,7 @@ function OrdersPage() {
             <div className='w-[300px] shrink-0'>
               <Input
                 type='text'
-                placeholder='搜索孩子、商品或核销码'
+                placeholder='搜索孩子或商品'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 isSearch
@@ -528,10 +525,10 @@ function OrderCard({
               className={`rounded-[24px] border px-4 py-4 ${accentClassMap[statusTone]}`}
             >
               <div className='text-[11px] font-semibold uppercase tracking-[0.18em] opacity-75'>
-                Verification Code
+                兑换状态
               </div>
               <div className='mt-2 font-mono text-lg font-black tracking-[0.22em] text-current sm:text-[20px]'>
-                {order.verificationCode}
+                {order.status === 'pending' ? '待核销' : order.status === 'verified' ? '已核销' : '已取消'}
               </div>
             </div>
           </div>

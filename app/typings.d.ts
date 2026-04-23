@@ -61,7 +61,6 @@ export interface PlainOrder {
   rewardIcon?: string;
   pointsSpent: number;
   status: "pending" | "verified" | "cancelled";
-  verificationCode: string;
   verifiedAt?: string;
   validUntil?: string | null;
   privilegeMeta?: {

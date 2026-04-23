@@ -11,7 +11,6 @@ export interface IOrder extends Document {
   rewardIcon?: string;
   pointsSpent: number;
   status: OrderStatus;
-  verificationCode: string;
   verifiedAt?: Date;
   validUntil?: Date | null;
   createdAt: Date;
@@ -29,7 +28,6 @@ const OrderSchema = new Schema<IOrder>(
     rewardIcon: { type: String, default: '🎁' },
     pointsSpent: { type: Number, required: true },
     status: { type: String, enum: ['pending', 'verified', 'cancelled'], default: 'pending' },
-    verificationCode: { type: String, required: true },
     verifiedAt: { type: Date },
     validUntil: { type: Date, default: null },
     type: { type: String, enum: ['reward', 'deduction'], default: 'reward' },
@@ -38,6 +36,10 @@ const OrderSchema = new Schema<IOrder>(
   { timestamps: true }
 );
 
-const OrderModel = mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema);
+if (mongoose.models.Order) {
+  mongoose.deleteModel('Order');
+}
+
+const OrderModel = mongoose.model<IOrder>('Order', OrderSchema);
 
 export default OrderModel;

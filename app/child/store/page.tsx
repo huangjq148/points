@@ -33,7 +33,6 @@ interface OrderRecord {
   rewardIcon?: string;
   pointsSpent: number;
   status: "pending" | "verified" | "cancelled";
-  verificationCode: string;
   createdAt: string;
   updatedAt: string;
   verifiedAt?: string;
@@ -193,7 +192,7 @@ export default function StorePage() {
         origin: { y: 0.6 },
         colors: ["#22c55e", "#fde047", "#fbbf24"],
       });
-      toast.success(`兑换成功！找爸妈领取吧~\n核销码: ${data.verificationCode}`);
+      toast.success("兑换成功！找爸妈领取吧~");
       await Promise.all([fetchRewards(page), fetchOrders()]);
     } else {
       toast.error(data.message || "兑换失败");
@@ -424,9 +423,9 @@ export default function StorePage() {
                       </div>
                     </div>
                     <div className="rounded-[18px] bg-[linear-gradient(135deg,#0f766e_0%,#0ea5a4_100%)] px-3 py-2 text-right text-white shadow-sm">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">核销码</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">兑换状态</div>
                       <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">
-                        {order.verificationCode}
+                        等待处理
                       </div>
                     </div>
                   </div>

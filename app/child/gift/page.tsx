@@ -8,7 +8,6 @@ import {
   Gift,
   BadgeCheck,
   Clock3,
-  Sparkles,
 } from "lucide-react";
 import { Button, DatePicker, Input, Modal, TabFilter } from "@/components/ui";
 import { formatDate } from "@/utils/date";
@@ -27,7 +26,6 @@ export interface Order {
   rewardIcon: string;
   pointsSpent: number;
   status: "pending" | "verified" | "cancelled";
-  verificationCode: string;
   createdAt: string;
   verifiedAt?: string;
 }
@@ -178,22 +176,22 @@ export default function GiftPage() {
       >
         {showOrderDetail && (
           <div className="flex flex-col overflow-hidden bg-[linear-gradient(180deg,rgba(248,251,255,0.98)_0%,rgba(255,255,255,0.98)_100%)]">
-            <div className="relative overflow-hidden bg-[linear-gradient(135deg,rgba(219,234,254,0.92)_0%,rgba(255,251,235,0.92)_100%)] px-6 pb-5 pt-6">
-              <div className="absolute right-[-32px] top-[-24px] h-24 w-24 rounded-full bg-sky-200/40 blur-2xl" />
-              <div className="absolute bottom-[-30px] left-[-18px] h-20 w-20 rounded-full bg-amber-200/40 blur-2xl" />
-              <div className="relative text-center">
+            <div className="rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(224,242,254,0.94)_48%,rgba(254,249,195,0.85)_100%)] px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                 {showOrderDetail.rewardIcon ? (
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-white text-3xl shadow-[0_10px_24px_rgba(59,130,246,0.12)] ring-1 ring-sky-100">
+                  <div className="flex h-14 w-14 flex-none items-center justify-center rounded-[1.4rem] border border-amber-200/70 bg-white/90 text-3xl shadow-[0_12px_30px_rgba(251,146,60,0.15)] sm:h-16 sm:w-16 sm:text-4xl">
                     {showOrderDetail.rewardIcon}
                   </div>
                 ) : null}
-                <h3 className="text-2xl font-black tracking-tight text-slate-900">
-                  {showOrderDetail.rewardName}
-                </h3>
-                <div className="mt-3 flex flex-wrap justify-center gap-2">
-                  <ChildStatusPill tone="sky">
-                    <Sparkles size={12} /> -{showOrderDetail.pointsSpent} 积分
-                  </ChildStatusPill>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-lg font-black leading-tight text-slate-950 sm:text-xl">
+                    {showOrderDetail.rewardName}
+                  </h3>
+                </div>
+                <div className="flex flex-none items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-sm font-black text-amber-700">
+                    -{showOrderDetail.pointsSpent} 积分
+                  </span>
                   <ChildStatusPill tone={statusToneMap[showOrderDetail.status]}>
                     {getStatusIcon(showOrderDetail.status)}
                     {getStatusLabel(showOrderDetail.status)}
@@ -206,10 +204,10 @@ export default function GiftPage() {
               {showOrderDetail.status === "pending" && (
                 <div className="rounded-[1.5rem] border border-amber-100 bg-amber-50/80 p-4">
                   <p className="mb-1 text-sm font-bold text-amber-800">
-                    请向家长出示核销码
+                    等待家长处理
                   </p>
-                  <p className="font-mono text-3xl font-black tracking-[0.28em] text-amber-900">
-                    {showOrderDetail.verificationCode}
+                  <p className="text-sm font-semibold leading-6 text-amber-900">
+                    兑换后会出现在这里，等待家长确认即可。
                   </p>
                 </div>
               )}
@@ -237,24 +235,24 @@ export default function GiftPage() {
             </div>
 
             <div className="border-t border-slate-100 px-6 py-5">
-              <Button
-                onClick={() => setShowOrderDetail(null)}
-                variant="secondary"
-                fullWidth
-                className="rounded-full border-none bg-slate-100 py-3 text-slate-700 shadow-none hover:bg-slate-200"
-              >
-                关闭
-              </Button>
-              {showOrderDetail.status === "pending" && (
+              <div className="flex gap-3">
                 <Button
-                  onClick={() => handleCancelOrder(showOrderDetail)}
+                  onClick={() => setShowOrderDetail(null)}
                   variant="secondary"
-                  fullWidth
-                  className="mt-3 rounded-full border-none bg-rose-50 py-3 text-rose-600 shadow-none hover:bg-rose-100"
+                  className="flex-1 rounded-full border-none bg-slate-100 py-3 text-slate-700 shadow-none hover:bg-slate-200"
                 >
-                  撤销兑换
+                  关闭
                 </Button>
-              )}
+                {showOrderDetail.status === "pending" && (
+                  <Button
+                    onClick={() => handleCancelOrder(showOrderDetail)}
+                    variant="secondary"
+                    className="flex-1 rounded-full border-none bg-rose-50 py-3 text-rose-600 shadow-none hover:bg-rose-100"
+                  >
+                    撤销兑换
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -321,7 +319,7 @@ export default function GiftPage() {
                 礼物卡片
               </div>
               <p className="mt-1 text-sm font-semibold text-[var(--child-text-muted)]">
-                轻触任意礼物可以查看兑换详情和核销码。
+                轻触任意礼物可以查看兑换详情。
               </p>
             </div>
             <div className="hidden rounded-full bg-white/70 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-white/80 shadow-sm sm:inline-flex">
@@ -386,10 +384,10 @@ export default function GiftPage() {
                     </div>
                     <div className="rounded-[18px] bg-[linear-gradient(135deg,#0f766e_0%,#0ea5a4_100%)] px-3 py-2 text-right text-white shadow-sm">
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">
-                        核销码
+                        兑换状态
                       </div>
                       <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">
-                        {order.verificationCode}
+                        {order.status === "pending" ? "待处理" : order.status === "verified" ? "已完成" : "已取消"}
                       </div>
                     </div>
                   </div>

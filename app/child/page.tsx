@@ -69,7 +69,6 @@ interface ChildPrivilegeOrder {
   rewardName: string;
   rewardIcon?: string;
   status: 'pending' | 'verified' | 'cancelled';
-  verificationCode: string;
   createdAt: string;
   verifiedAt?: string;
   validUntil?: string | null;
@@ -495,15 +494,6 @@ export default function ChildHome() {
                       ? formatPrivilegeTime(showPrivilegeDetail.privilegeMeta.endsAt)
                       : '长期有效'}
                   </div>
-                </div>
-              </div>
-
-              <div className='rounded-[18px] bg-[var(--child-surface-muted)] px-3 py-2.5 ring-1 ring-[color:var(--child-border)]'>
-                <div className='text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-muted)]'>
-                  核销码
-                </div>
-                <div className='mt-1 font-mono text-lg font-black tracking-[0.18em] text-[var(--child-text)]'>
-                  {showPrivilegeDetail.verificationCode}
                 </div>
               </div>
 
