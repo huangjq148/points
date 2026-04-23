@@ -10,8 +10,9 @@ async function openLoginPage(viewport) {
   const page = await context.newPage();
   page.setDefaultTimeout(5000);
 
-  await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   assert.equal(page.url(), `${BASE_URL}/login`);
+  await page.locator('body').waitFor({ state: 'visible' });
 
   return { browser, context, page };
 }
@@ -53,6 +54,8 @@ test('login shell adapts between landscape and portrait layouts', { timeout: 120
     landscapePage.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 }),
     portraitPage.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 30000 }),
   ]);
+  assert.equal(landscapePage.url(), `${BASE_URL}/login`);
+  assert.equal(portraitPage.url(), `${BASE_URL}/login`);
 
   await Promise.all([
     landscapePage.locator('body').waitFor({ state: 'visible' }),
