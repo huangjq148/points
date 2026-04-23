@@ -130,8 +130,8 @@
   --child-primary-strong: #0284c7;
   --child-secondary: #14b8a6;
   --child-sun: #facc15;
-  --child-nav-hover-bg: rgba(255, 255, 255, 0.82);
-  --child-nav-hover-text: #0369a1;
+  --child-nav-hover-bg: linear-gradient(135deg, rgba(191, 219, 254, 0.98) 0%, rgba(224, 242, 254, 0.98) 100%);
+  --child-nav-hover-text: #075985;
   --child-focus-ring: rgba(56, 189, 248, 0.32);
   --child-nav-active-bg: linear-gradient(135deg, #0369a1 0%, #0f766e 100%);
   --child-nav-active-text: #ffffff;
