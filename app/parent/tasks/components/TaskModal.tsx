@@ -3,7 +3,7 @@
 import { Button, Drawer, DatePicker, Image } from '@/components/ui';
 import Input from '@/components/ui/Input';
 import { User } from '@/context/AppContext';
-import { CalendarDays, Camera, Sparkles, Users } from 'lucide-react';
+import { Camera } from 'lucide-react';
 
 export type ExpiryPolicyType = 'auto_close' | 'keep' | 'rollover';
 
@@ -47,12 +47,8 @@ const SCHEDULE_MODES: { value: TaskFormData["scheduleMode"]; label: string }[] =
   { value: "week", label: "按周排期" },
 ];
 
-const drawerSurfaceClass =
-  "rounded-[28px] border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] p-4 shadow-[var(--ui-shadow-sm)]";
 const sectionCardClass =
   "rounded-2xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 py-4 shadow-[var(--ui-shadow-sm)]";
-const heroCardClass =
-  "relative overflow-hidden rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(135deg,rgba(59,130,246,0.14),transparent_52%),var(--ui-surface-1)] p-5 shadow-[var(--ui-shadow-md)]";
 const labelClass = "block text-sm font-semibold text-[var(--ui-text-primary)]";
 const helperClass = "text-xs text-[var(--ui-text-muted)]";
 const inputClass =
@@ -90,55 +86,17 @@ export default function TaskModal({
   const rangeModeActive = mode === "add" && scheduleMode === "range";
   const weekModeActive = mode === "add" && scheduleMode === "week";
   const weekBounds = taskData.weekReference ? getWeekBounds(taskData.weekReference) : null;
-  const modeTitle = mode === "add" ? "创建新任务" : "编辑任务配置";
-  const modeDescription =
-    mode === "add"
-      ? "为孩子快速布置一个清晰可执行的新任务，支持按日期范围和按周排期。"
-      : "更新任务内容、时间安排和提交要求，变更会立即同步到任务列表。";
 
   const formBody = (
-    <div className={drawerSurfaceClass}>
-      <div className='space-y-5'>
-        <div className={heroCardClass}>
-          <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(96,165,250,0.22)_0%,transparent_72%)]" />
-          <div className="relative flex items-start gap-4">
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl border border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-soft-bg)] text-[var(--ui-action-blue-text)] shadow-[var(--ui-primary-shadow)]">
-              <Sparkles size={24} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--ui-primary-border)] bg-[var(--ui-primary-soft-bg)] px-2.5 py-1 text-[11px] font-semibold text-[var(--ui-action-blue-text)]">
-                  <Sparkles size={12} />
-                  {mode === "add" ? "新增任务" : "任务编辑"}
-                </span>
-                {mode === "add" && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] px-2.5 py-1 text-[11px] font-medium text-[var(--ui-text-secondary)]">
-                    <CalendarDays size={12} />
-                    支持多种排期
-                  </span>
-                )}
-              </div>
-              <h3 className="mt-3 text-xl font-black tracking-tight text-[var(--ui-text-primary)]">{modeTitle}</h3>
-              <p className="mt-2 text-sm leading-6 text-[var(--ui-text-muted)]">{modeDescription}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--ui-text-secondary)]">
-                  <Users size={13} />
-                  {mode === "add" ? "可批量分配给孩子" : "保留当前执行对象"}
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] px-3 py-1.5 text-xs font-medium text-[var(--ui-text-secondary)]">
-                  <CalendarDays size={13} />
-                  {mode === "add" ? "截止时间与排期可同时配置" : "支持调整起止时间"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <div className='space-y-5 p-1'>
         {mode === 'add' && childList && toggleChild && (
-          <div className={sectionCardClass}>
-            <label className={`${labelClass} mb-3`}>
+          <div className={`${sectionCardClass} space-y-3`}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">分配对象</p>
+              <label className={`${labelClass} mt-2`}>
               选择孩子
-            </label>
+              </label>
+            </div>
             <div className='flex flex-wrap gap-2'>
               {childList.map((child: User) => (
                 <div
@@ -160,7 +118,10 @@ export default function TaskModal({
 
         {mode === 'add' && (
           <div className={`${sectionCardClass} space-y-3`}>
-            <label className={labelClass}>排期方式</label>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">时间安排</p>
+              <label className={`${labelClass} mt-2`}>排期方式</label>
+            </div>
             <div className='flex gap-2'>
               {SCHEDULE_MODES.map((option) => {
                 const isActive = scheduleMode === option.value;
@@ -243,7 +204,7 @@ export default function TaskModal({
         )}
 
         {rangeModeActive && (
-          <div className={`${sectionCardClass} grid grid-cols-1 md:grid-cols-2 gap-4`}>
+          <div className={`${sectionCardClass} grid grid-cols-1 gap-4 md:grid-cols-2`}>
             <div>
               <label className={`${labelClass} mb-2`}>
                 起始日期
@@ -302,6 +263,10 @@ export default function TaskModal({
         )}
 
         <div className={`${sectionCardClass} space-y-4`}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">任务内容</p>
+            <p className="mt-2 text-sm text-[var(--ui-text-muted)]">先填写任务标题，再补充说明和奖励信息。</p>
+          </div>
           <Input
             label='任务名称'
             value={taskData.name}
@@ -323,39 +288,6 @@ export default function TaskModal({
               className={textareaClass}
               rows={3}
             />
-          </div>
-
-          <div>
-            <label className={`${labelClass} mb-2`}>
-              任务配图（可选）
-            </label>
-            <label className='relative flex flex-col items-center justify-center p-4 border-2 border-dashed border-[color:var(--ui-border-strong)] rounded-2xl bg-[var(--ui-surface-2)] hover:border-[color:var(--ui-focus)] hover:bg-[var(--ui-surface-3)] transition-all cursor-pointer group'>
-              <input
-                type='file'
-                accept='image/*'
-                onChange={onPhotoSelect}
-                className='hidden'
-              />
-              <div className='flex flex-col items-center gap-2'>
-                <div className='w-10 h-10 rounded-full bg-[var(--ui-surface-1)] flex items-center justify-center ring-1 ring-[color:var(--ui-border)] group-hover:scale-110 transition-transform shadow-[var(--ui-shadow-sm)]'>
-                  <Camera className='text-[var(--ui-text-secondary)]' size={20} />
-                </div>
-                <span className='text-xs font-medium text-[var(--ui-text-muted)]'>
-                  {mode === 'add' ? '点击上传或拖拽图片' : '点击上传或更换图片'}
-                </span>
-              </div>
-            </label>
-            {photoPreview && (
-              <div className='mt-3 relative rounded-xl overflow-hidden border border-[color:var(--ui-border)] shadow-[var(--ui-shadow-sm)]'>
-                <Image
-                  src={photoPreview}
-                  alt='预览'
-                  className='w-full h-32 object-cover'
-                  enableZoom={false}
-                  containerClassName='w-full h-32'
-                />
-              </div>
-            )}
           </div>
 
           <div className='grid grid-cols-2 gap-4'>
@@ -405,8 +337,44 @@ export default function TaskModal({
         </div>
 
         {mode === 'add' && (
-          <div className='space-y-3 pt-2'>
-              <label className='flex items-center gap-3 p-3 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] hover:bg-[var(--ui-surface-3)] transition-colors cursor-pointer'>
+          <div className={`${sectionCardClass} space-y-3`}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">补充设置</p>
+              <p className="mt-2 text-sm text-[var(--ui-text-muted)]">这些选项不是必填，按需开启即可。</p>
+            </div>
+            <div>
+              <label className={`${labelClass} mb-2`}>
+                任务配图（可选）
+              </label>
+              <label className='relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[color:var(--ui-border-strong)] bg-[var(--ui-surface-2)] p-4 transition-all cursor-pointer group hover:border-[color:var(--ui-focus)] hover:bg-[var(--ui-surface-3)]'>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={onPhotoSelect}
+                  className='hidden'
+                />
+                <div className='flex flex-col items-center gap-2'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ui-surface-1)] ring-1 ring-[color:var(--ui-border)] transition-transform group-hover:scale-110 shadow-[var(--ui-shadow-sm)]'>
+                    <Camera className='text-[var(--ui-text-secondary)]' size={20} />
+                  </div>
+                  <span className='text-xs font-medium text-[var(--ui-text-muted)]'>
+                    点击上传或拖拽图片
+                  </span>
+                </div>
+              </label>
+              {photoPreview && (
+                <div className='relative mt-3 overflow-hidden rounded-xl border border-[color:var(--ui-border)] shadow-[var(--ui-shadow-sm)]'>
+                  <Image
+                    src={photoPreview}
+                    alt='预览'
+                    className='h-32 w-full object-cover'
+                    enableZoom={false}
+                    containerClassName='w-full h-32'
+                  />
+                </div>
+              )}
+            </div>
+            <label className='flex items-center gap-3 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] p-3 transition-colors cursor-pointer hover:bg-[var(--ui-surface-3)]'>
               <input
                 type='checkbox'
                 checked={taskData.requirePhoto}
@@ -424,7 +392,7 @@ export default function TaskModal({
                 </span>
               </div>
             </label>
-              <label className='flex items-center gap-3 p-3 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] hover:bg-[var(--ui-surface-3)] transition-colors cursor-pointer'>
+            <label className='flex items-center gap-3 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] p-3 transition-colors cursor-pointer hover:bg-[var(--ui-surface-3)]'>
               <input
                 type='checkbox'
                 checked={taskData.saveAsTemplate}
@@ -444,8 +412,43 @@ export default function TaskModal({
         )}
 
         {mode === 'edit' && (
-          <div className='pt-2'>
-            <label className='flex items-center gap-3 p-3 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] hover:bg-[var(--ui-surface-3)] transition-colors cursor-pointer'>
+          <div className={`${sectionCardClass} space-y-3`}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">补充设置</p>
+            </div>
+            <div>
+              <label className={`${labelClass} mb-2`}>
+                任务配图（可选）
+              </label>
+              <label className='relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[color:var(--ui-border-strong)] bg-[var(--ui-surface-2)] p-4 transition-all cursor-pointer group hover:border-[color:var(--ui-focus)] hover:bg-[var(--ui-surface-3)]'>
+                <input
+                  type='file'
+                  accept='image/*'
+                  onChange={onPhotoSelect}
+                  className='hidden'
+                />
+                <div className='flex flex-col items-center gap-2'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-[var(--ui-surface-1)] ring-1 ring-[color:var(--ui-border)] transition-transform group-hover:scale-110 shadow-[var(--ui-shadow-sm)]'>
+                    <Camera className='text-[var(--ui-text-secondary)]' size={20} />
+                  </div>
+                  <span className='text-xs font-medium text-[var(--ui-text-muted)]'>
+                    点击上传或更换图片
+                  </span>
+                </div>
+              </label>
+              {photoPreview && (
+                <div className='relative mt-3 overflow-hidden rounded-xl border border-[color:var(--ui-border)] shadow-[var(--ui-shadow-sm)]'>
+                  <Image
+                    src={photoPreview}
+                    alt='预览'
+                    className='h-32 w-full object-cover'
+                    enableZoom={false}
+                    containerClassName='w-full h-32'
+                  />
+                </div>
+              )}
+            </div>
+            <label className='flex items-center gap-3 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] p-3 transition-colors cursor-pointer hover:bg-[var(--ui-surface-3)]'>
               <input
                 type='checkbox'
                 checked={taskData.requirePhoto}
@@ -489,7 +492,6 @@ export default function TaskModal({
             )}
           </div>
         </div>
-      </div>
       </div>
   );
 
