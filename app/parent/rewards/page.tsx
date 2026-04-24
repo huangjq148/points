@@ -1,14 +1,11 @@
 "use client";
 
 import { PlainReward } from "@/app/typings";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import Modal from "@/components/ui/Modal";
+import { Button, DatePicker, Input, Modal, Pagination, Select } from "@/components/ui";
 import { useToast } from "@/components/ui/Toast";
-import { Edit2, Eye, EyeOff, Gift, Plus, Search, SlidersHorizontal, Trash2, RefreshCw } from "lucide-react";
+import { Edit2, Eye, EyeOff, Plus, Search, SlidersHorizontal, Trash2, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ConfirmModal from "@/components/ConfirmModal";
-import { Pagination } from "@/components/ui";
 import request from "@/utils/request";
 import { StatCard, EmptyState, RewardCard } from "@/components/store/RewardUI";
 import dayjs from "dayjs";
@@ -50,8 +47,6 @@ const rewardAddPrivilegePanelClassName =
   "grid gap-4 rounded-[28px] border border-[color:var(--ui-action-amber-border)] bg-[linear-gradient(135deg,var(--ui-warning-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 md:grid-cols-2";
 const rewardEditPrivilegePanelClassName =
   "grid gap-4 rounded-[28px] border border-[color:var(--ui-action-blue-border)] bg-[linear-gradient(135deg,var(--ui-action-blue-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 md:grid-cols-2";
-const rewardSelectClassName =
-  "rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] px-4 py-3 text-sm text-[var(--ui-text-primary)] outline-none transition focus:border-[color:var(--ui-focus)] focus:ring-2 focus:ring-[var(--ui-focus-ring)]";
 const rewardMetaChipBaseClassName =
   "reward-card-meta-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1";
 const rewardMetaPointsChipClassName =
@@ -61,16 +56,16 @@ const rewardMetaDeadlineChipClassName =
 const rewardMetaDurationChipClassName =
   `${rewardMetaChipBaseClassName} reward-card-meta-chip-duration bg-emerald-50 text-emerald-700 ring-emerald-100`;
 const rewardToolbarClassName =
-  "rewards-toolbar rounded-[28px] border border-white/65 bg-white/72 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl";
+  "rewards-toolbar rounded-[28px] border border-white/65 bg-white/72 p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl md:p-4";
 const rewardFilterGroupClassName = "rewards-filter-group flex flex-wrap items-center gap-2";
 const rewardFilterLabelClassName =
-  "inline-flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-2 text-sm text-slate-500";
+  "inline-flex items-center gap-2 rounded-full bg-slate-100/75 px-3 py-1.5 text-sm text-slate-500";
 const rewardFilterButtonBaseClassName =
-  "rewards-filter-button rounded-full px-4 py-2 text-sm font-semibold transition";
+  "rewards-filter-button rounded-full px-3.5 py-1.5 text-sm font-medium transition";
 const rewardFilterButtonActiveClassName =
-  "rewards-filter-button-active bg-slate-900 text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]";
+  "rewards-filter-button-active bg-slate-900 text-white shadow-[0_8px_18px_rgba(15,23,42,0.1)]";
 const rewardFilterButtonIdleClassName =
-  "rewards-filter-button-idle bg-white/85 text-slate-500 ring-1 ring-slate-200/70 hover:bg-slate-50";
+  "rewards-filter-button-idle bg-white/65 text-slate-500 ring-1 ring-slate-200/55 hover:bg-white/85 hover:text-slate-700";
 const rewardListClassName = "rewards-list grid gap-5";
 const rewardLoadingClassName =
   "rewards-loading inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-white/85 px-3 py-2 text-xs font-medium text-slate-500 shadow-sm backdrop-blur";
@@ -78,6 +73,15 @@ const rewardLoadingClassName =
 function formatDuration(value?: number | null, unit?: "day" | "hour" | null) {
   if (!value || !unit) return "未设置有效期";
   return `${value} ${unit === "day" ? "天" : "小时"}`;
+}
+
+function parseDateInput(value: string) {
+  if (!value) return null;
+  return new Date(`${value}T00:00:00`);
+}
+
+function formatDateInput(date: Date | null) {
+  return date ? dayjs(date).format("YYYY-MM-DD") : "";
 }
 
 export default function RewardsPage() {
@@ -268,42 +272,22 @@ export default function RewardsPage() {
   const iconChoices = ["🎁", "🍦", "📚", "🧸", "📺", "⏰", "🚲", "⭐"];
 
   return (
-    <div className="rewards-page space-y-6">
-      <section className="rewards-hero rounded-[28px] border border-white/65 bg-white/72 p-5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700 ring-1 ring-sky-100">
-              <Gift size={14} />
-              商城管理
-            </div>
-            <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950">管理孩子可以兑换的奖品</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              在这里统一管理商品名称、积分、库存和上架状态。库存低的商品会更容易被发现。
-            </p>
-          </div>
-          <Button onClick={() => setShowAddReward(true)} className="min-w-[140px]">
-            <Plus size={18} /> 添加奖励
-          </Button>
-        </div>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="上架中" value={stats.activeCount} hint="正在对孩子展示的商品" />
-        <StatCard title="库存预警" value={stats.lowStockCount} hint="库存少于 3 的商品" />
-        <StatCard title="实物奖励" value={stats.physicalCount} hint="可发放的实体奖品" />
-        <StatCard title="特权奖励" value={stats.privilegeCount} hint="看电视、免任务等非实物奖励" />
-      </section>
-
+    <div className="rewards-page space-y-5">
       <section className={rewardToolbarClassName}>
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-md">
-            <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜索奖励名称或说明"
-              className="pl-11"
-            />
+        <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative w-full lg:max-w-md">
+              <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="搜索奖励名称或说明"
+                className="pl-11"
+              />
+            </div>
+            <Button onClick={() => setShowAddReward(true)} className="min-w-[140px] self-start lg:self-auto">
+              <Plus size={18} /> 添加奖励
+            </Button>
           </div>
           <div className={rewardFilterGroupClassName}>
             <div className={rewardFilterLabelClassName}>
@@ -330,6 +314,13 @@ export default function RewardsPage() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard title="上架中" value={stats.activeCount} hint="正在对孩子展示的商品" className="p-3.5" />
+        <StatCard title="库存预警" value={stats.lowStockCount} hint="库存少于 3 的商品" className="p-3.5" />
+        <StatCard title="实物奖励" value={stats.physicalCount} hint="可发放的实体奖品" className="p-3.5" />
+        <StatCard title="特权奖励" value={stats.privilegeCount} hint="看电视、免任务等非实物奖励" className="p-3.5" />
       </section>
 
       <section className="space-y-3">
@@ -429,6 +420,7 @@ export default function RewardsPage() {
         onClose={() => setShowAddReward(false)}
         title="添加新奖励"
         width={760}
+        noInternalScroll
         className={`add-reward-modal ${rewardModalClassName}`}
         footer={
           <>
@@ -502,12 +494,14 @@ export default function RewardsPage() {
 
           {newReward.type === "privilege" && (
             <div className={rewardAddPrivilegePanelClassName}>
-              <Input
-                label="兑换截止日期"
-                type="date"
-                value={newReward.expiresAt}
-                onChange={(e) => setNewReward({ ...newReward, expiresAt: e.target.value })}
-              />
+              <div>
+                <label className={rewardFieldLabelClassName}>兑换截止日期</label>
+                <DatePicker
+                  selected={parseDateInput(newReward.expiresAt)}
+                  onChange={(date: Date | null) => setNewReward({ ...newReward, expiresAt: formatDateInput(date) })}
+                  placeholderText="选择日期"
+                />
+              </div>
               <div>
                 <label className={rewardFieldLabelClassName}>有效期长度</label>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -517,17 +511,14 @@ export default function RewardsPage() {
                     onChange={(e) => setNewReward({ ...newReward, validDurationValue: parseInt(e.target.value) || 0 })}
                     min={1}
                   />
-                  <select
+                  <Select
                     value={newReward.validDurationUnit}
-                    onChange={(e) => setNewReward({ ...newReward, validDurationUnit: e.target.value as "day" | "hour" })}
-                    className={rewardSelectClassName}
-                  >
-                    {durationOptions.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) =>
+                      setNewReward({ ...newReward, validDurationUnit: (value as "day" | "hour") ?? "day" })
+                    }
+                    options={durationOptions.map((item) => ({ value: item.value, label: item.label }))}
+                    placeholder="选择单位"
+                  />
                 </div>
                 <p className={rewardHelperTextClassName}>兑换后从领取时间开始计算，孩子可在这段时间内使用该特权。</p>
               </div>
@@ -543,6 +534,7 @@ export default function RewardsPage() {
         onClose={() => setShowEditRewardModal(false)}
         title="编辑奖励"
         width={760}
+        noInternalScroll
         className={`edit-reward-modal ${rewardModalClassName}`}
         footer={
           <>
@@ -623,12 +615,16 @@ export default function RewardsPage() {
 
           {editingRewardData.type === "privilege" && (
             <div className={rewardEditPrivilegePanelClassName}>
-              <Input
-                label="兑换截止日期"
-                type="date"
-                value={editingRewardData.expiresAt}
-                onChange={(e) => setEditingRewardData({ ...editingRewardData, expiresAt: e.target.value })}
-              />
+              <div>
+                <label className={rewardFieldLabelClassName}>兑换截止日期</label>
+                <DatePicker
+                  selected={parseDateInput(editingRewardData.expiresAt)}
+                  onChange={(date: Date | null) =>
+                    setEditingRewardData({ ...editingRewardData, expiresAt: formatDateInput(date) })
+                  }
+                  placeholderText="选择日期"
+                />
+              </div>
               <div>
                 <label className={rewardFieldLabelClassName}>有效期长度</label>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -638,17 +634,14 @@ export default function RewardsPage() {
                     onChange={(e) => setEditingRewardData({ ...editingRewardData, validDurationValue: parseInt(e.target.value) || 0 })}
                     min={1}
                   />
-                  <select
+                  <Select
                     value={editingRewardData.validDurationUnit}
-                    onChange={(e) => setEditingRewardData({ ...editingRewardData, validDurationUnit: e.target.value as "day" | "hour" })}
-                    className={rewardSelectClassName}
-                  >
-                    {durationOptions.map((item) => (
-                      <option key={item.value} value={item.value}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) =>
+                      setEditingRewardData({ ...editingRewardData, validDurationUnit: (value as "day" | "hour") ?? "day" })
+                    }
+                    options={durationOptions.map((item) => ({ value: item.value, label: item.label }))}
+                    placeholder="选择单位"
+                  />
                 </div>
                 <p className={rewardHelperTextClassName}>兑换后从领取时间开始计算，孩子可在这段时间内使用该特权。</p>
               </div>

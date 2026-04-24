@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Button, Input, Select } from "@/components/ui";
+import dayjs from "dayjs";
+import { Button, DatePicker, Select } from "@/components/ui";
 
 export type TimeRange = "today" | "week" | "month" | "year" | "custom";
 
@@ -19,6 +20,15 @@ const options: { value: TimeRange; label: string }[] = [
   { value: "year", label: "本年" },
   { value: "custom", label: "自定义" },
 ];
+
+function parseDateInput(value: string) {
+  if (!value) return null;
+  return new Date(`${value}T00:00:00`);
+}
+
+function formatDateInput(date: Date | null) {
+  return date ? dayjs(date).format("YYYY-MM-DD") : "";
+}
 
 export default function TimeRangeFilter({
   value,
@@ -100,20 +110,20 @@ export default function TimeRangeFilter({
           <div className="space-y-3">
             <div>
               <label className="mb-1 block text-xs text-[var(--ui-text-muted)]">开始日期</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
+              <DatePicker
+                selected={parseDateInput(startDate)}
+                onChange={(date: Date | null) => setStartDate(formatDateInput(date))}
+                placeholderText="选择开始日期"
+                isClearable={false}
               />
             </div>
             <div>
               <label className="mb-1 block text-xs text-[var(--ui-text-muted)]">结束日期</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
+              <DatePicker
+                selected={parseDateInput(endDate)}
+                onChange={(date: Date | null) => setEndDate(formatDateInput(date))}
+                placeholderText="选择结束日期"
+                isClearable={false}
               />
             </div>
             <div className="flex gap-2 pt-2">

@@ -392,7 +392,7 @@ function UsersPageContent() {
   const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
     key: "actions",
     title: "操作",
-    width: 120,
+    width: 92,
     render: (_, row) => (
       <TableActionGroup>
         {row.role !== "child" && (

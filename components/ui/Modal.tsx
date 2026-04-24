@@ -72,7 +72,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className={`w-full max-w-sm transform overflow-hidden p-6 transition-all ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS}`}
+      className={`modal-content w-full max-w-sm transform overflow-hidden p-6 transition-all ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS}`}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="text-center">
@@ -93,7 +93,7 @@ export default function Modal({
       animate={{ scale: 1, y: 0, opacity: 1 }}
       exit={{ scale: 0.8, y: 50, opacity: 0 }}
       transition={{ type: "spring", damping: 20 }}
-      className={`w-full overflow-hidden ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS} ${className}`}
+      className={`modal-content w-full overflow-hidden ${CONTROL_PANEL_RADIUS_CLASS} ${CONTROL_PANEL_CLASS} ${className}`}
       style={{
         maxWidth: typeof width === "number" ? width : undefined,
         width: "100%",

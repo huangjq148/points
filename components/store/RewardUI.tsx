@@ -34,14 +34,16 @@ export function StatCard({
   value,
   hint,
   icon,
+  className = "",
 }: {
   title: string;
   value: string | number;
   hint: string;
   icon?: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="reward-stat-card rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 shadow-[var(--ui-shadow-md)]">
+    <div className={`reward-stat-card rounded-[28px] border border-[color:var(--ui-border)] bg-[linear-gradient(180deg,var(--ui-panel-bg)_0%,var(--ui-panel-bg-subtle)_100%)] p-4 shadow-[var(--ui-shadow-md)] ${className}`}>
       <div className="flex items-center justify-between gap-3 text-sm text-[var(--ui-text-muted)]">
         <span>{title}</span>
         {icon}
@@ -287,15 +289,19 @@ export function RewardCard({
               >
                 {stockLabel}
               </div>
-              {meta}
               {badges}
             </div>
-            {(primaryAction || secondaryActions) && (
-              <div className="flex w-full shrink-0 items-stretch gap-2">
-                {primaryAction}
-                {secondaryActions}
+
+            {(meta || secondaryActions) && (
+              <div className="flex w-full items-center justify-between gap-3">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  {meta}
+                </div>
+                {secondaryActions && <div className="flex shrink-0 items-center gap-2">{secondaryActions}</div>}
               </div>
             )}
+
+            {primaryAction && <div className="w-full">{primaryAction}</div>}
           </div>
         </div>
       </div>

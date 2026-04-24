@@ -7,7 +7,7 @@ import Modal from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { useApp } from "@/context/AppContext";
 import type { DataTableColumn } from "@/components/ui";
-import { Copy, Settings, Trash2, Users, MinusCircle, PlusCircle } from "lucide-react";
+import { Copy, Settings, Trash2, Users, MinusCircle, PlusCircle, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import request from "@/utils/request";
 import DeductPointsModal from "@/components/parent/modals/DeductPointsModal";
@@ -24,6 +24,7 @@ export default function FamilyPage() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const limit = 10;
 
   const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
@@ -53,6 +54,7 @@ export default function FamilyPage() {
 
   const fetchFamilyMembers = useCallback(async (pageNum: number = 1) => {
     if (!token) return;
+    setLoading(true);
     try {
       const data = await request("/api/family", {
         params: {
@@ -73,8 +75,15 @@ export default function FamilyPage() {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setLoading(false);
     }
   }, [token, logout, limit]);
+
+  const handleRefresh = useCallback(() => {
+    fetchFamilyMembers(page);
+    toast.success("数据已刷新");
+  }, [fetchFamilyMembers, page, toast]);
 
   useEffect(() => {
     if (!token) return;
@@ -251,7 +260,7 @@ export default function FamilyPage() {
   const actionColumn = useMemo<DataTableColumn<FamilyMember>>(() => ({
     key: "actions",
     title: "操作",
-    width: 172,
+    width: 148,
     render: (_, row) => {
       const hasActions = row.type === "child" || row.type === "parent";
 
@@ -354,7 +363,17 @@ export default function FamilyPage() {
         <p className="text-sm text-slate-600">确定将该成员移出家庭吗？</p>
       </Modal>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button
+          variant="secondary"
+          onClick={handleRefresh}
+          disabled={loading}
+          className="flex items-center gap-2"
+          title="刷新数据"
+        >
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          <span>刷新</span>
+        </Button>
         {!currentUser?.familyId ? (
           <Button onClick={handleCreateFamily} className="flex items-center gap-2">
             <Users size={20} /> 创建家庭
@@ -371,7 +390,7 @@ export default function FamilyPage() {
           columns={columns}
           dataSource={familyMembers}
           actionColumn={actionColumn}
-          actionColumnWidth={172}
+          actionColumnWidth={148}
           fixedColumns={{ left: ["username"], right: ["actions"] }}
           pageOptions={pageOptions}
           minWidth={600}
