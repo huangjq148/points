@@ -728,7 +728,7 @@ function TasksPage() {
 
       {/* 任务列表 - 根据视图模式切换 - 优化样式 */}
       {viewMode === "card" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5 p-1 pb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 p-1 pb-8">
           {tasks.map((task) => (
             <TaskCard key={task._id} task={task} now={now} onEdit={handleEditTask} onDelete={setTaskToDelete} />
           ))}
