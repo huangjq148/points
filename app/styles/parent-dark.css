@@ -833,6 +833,10 @@
   color: var(--parent-text-2);
 }
 
+.parent-theme-dark .audit-swipe-card {
+  border-color: rgba(148, 163, 184, 0.56) !important;
+}
+
 .parent-theme-dark .overview-page .card,
 .parent-theme-dark .reward-stat-card,
 .parent-theme-dark .reward-empty-state,

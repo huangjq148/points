@@ -410,7 +410,7 @@ function SwipeableAuditCard({ task, onApprove, onReject, onClick, index }: Swipe
           x: dragX,
           backgroundColor: getBackgroundColor()
         }}
-        className="relative bg-white border border-slate-100 shadow-sm cursor-grab active:cursor-grabbing p-4 flex items-center gap-4"
+        className="audit-swipe-card relative flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm cursor-grab active:cursor-grabbing"
         onClick={handleClick}
         style={{ touchAction: 'pan-y' }}
       >
