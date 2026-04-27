@@ -31,10 +31,6 @@
   height: 100px;
 }
 
-.sidebar.collapsed ~ .main-wrapper .desktop-header {
-  left: 80px;
-}
-
 .desktop-header-inner {
   background: rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(18px);
