@@ -827,6 +827,9 @@
 
 .parent-theme-dark .modal-content,
 .parent-theme-dark [role="dialog"] > div {
+  background: var(--ui-panel-bg) !important;
+  border-color: var(--ui-border) !important;
+  box-shadow: var(--ui-shadow-md) !important;
   color: var(--parent-text-2);
 }
 

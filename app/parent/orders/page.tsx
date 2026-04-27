@@ -5,8 +5,10 @@ import ConfirmModal from '@/components/ConfirmModal';
 import ChildFilterSelect from '@/components/parent/ChildFilterSelect';
 import { Badge, EmptyState, StatCard } from '@/components/store/RewardUI';
 import { Button, Input, Pagination, TabFilter } from '@/components/ui';
+import { useToast } from '@/components/ui/Toast';
 import { useApp } from '@/context/AppContext';
 import { formatDate } from '@/utils/date';
+import { resolveOrderActionResult } from '@/utils/orderActions.mjs';
 import request from '@/utils/request';
 import {
   BadgeCheck,
@@ -38,6 +40,7 @@ function OrdersPage() {
         : 'pending';
   const initialChildFilter = searchParams.get('childId') || 'all';
   const { childList } = useApp();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<
     'pending' | 'verified' | 'cancelled'
   >(initialActiveTab);
@@ -127,15 +130,25 @@ function OrdersPage() {
   const handleVerifyOrder = async (orderId: string) => {
     try {
       setActionLoading(true);
-      await request('/api/orders', {
+      const data = (await request('/api/orders', {
         method: 'PUT',
         body: { orderId, action: 'verify' },
-      });
+      })) as { success: boolean; message?: string };
+      const result = resolveOrderActionResult(data, '核销成功', '核销失败');
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(result.message);
       await refreshPending();
       await refreshVerified();
       if (activeTab === 'cancelled') {
         await refreshCancelled();
       }
+    } catch {
+      toast.error('核销失败');
     } finally {
       setActionLoading(false);
     }
@@ -144,14 +157,24 @@ function OrdersPage() {
   const handleCancelOrder = async (orderId: string) => {
     try {
       setActionLoading(true);
-      await request('/api/orders', {
+      const data = (await request('/api/orders', {
         method: 'PUT',
         body: { orderId, action: 'cancel' },
-      });
+      })) as { success: boolean; message?: string };
+      const result = resolveOrderActionResult(data, '取消成功', '取消失败');
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(result.message);
       await refreshPending();
       await refreshCancelled();
       if (activeTab === 'verified') await refreshVerified();
       setCancelOrderId(null);
+    } catch {
+      toast.error('取消失败');
     } finally {
       setActionLoading(false);
     }

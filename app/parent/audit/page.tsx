@@ -89,7 +89,7 @@ function AuditPage() {
   const renderAuditHistory = (task: IDisplayedTask) => {
     if (!task.auditHistory || task.auditHistory.length === 0) {
       return (
-        <div className="text-center py-6 text-slate-400 bg-slate-50 rounded-xl">
+        <div className="rounded-xl bg-[var(--ui-surface-2)] py-6 text-center text-[var(--ui-text-soft)]">
           <History size={24} className="mx-auto mb-2 opacity-50" />
           <p className="text-sm">暂无历史记录</p>
         </div>
@@ -104,22 +104,22 @@ function AuditPage() {
         {allAudits.map((record: AuditRecord, index: number) => (
           <div
             key={record._id || index}
-            className="bg-white border border-slate-200 rounded-xl p-4 text-sm"
+            className="rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-1)] p-4 text-sm shadow-[var(--ui-shadow-sm)]"
           >
             {/* 提交信息 */}
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                <span className="rounded-full border border-[color:var(--ui-action-blue-border)] bg-[var(--ui-surface-2)] px-2 py-0.5 text-xs font-bold text-[var(--ui-text-secondary)]">
                   第 {index + 1} 次操作 · 提交
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-[var(--ui-text-soft)]">
                   {formatDate(record.submittedAt)}
                 </span>
               </div>
               {record.photoUrl && (
                 <div className="mt-2">
-                  <p className="text-xs text-slate-500 mb-1">提交的照片：</p>
-                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-200">
+                  <p className="mb-1 text-xs text-[var(--ui-text-muted)]">提交的照片：</p>
+                  <div className="h-24 w-24 overflow-hidden rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)]">
                     <ZoomImage
                       src={record.photoUrl}
                       alt={`第 ${index + 1} 次提交的照片`}
@@ -134,31 +134,31 @@ function AuditPage() {
 
             {/* 审核信息 */}
             {record.status ? (
-              <div className="border-t border-slate-100 pt-3">
+              <div className="border-t border-[color:var(--ui-border)] pt-3">
                 <div className="flex items-center gap-2 mb-2">
                   {record.status === 'approved' ? (
-                    <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                    <span className="rounded-full border border-[color:var(--ui-success-border)] bg-[var(--ui-success-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ui-success-text)]">
                       ✓ 审核通过
                     </span>
                   ) : (
-                    <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                    <span className="rounded-full border border-[color:var(--ui-danger-border)] bg-[var(--ui-danger-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ui-danger-text)]">
                       ✗ 审核驳回
                     </span>
                   )}
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs text-[var(--ui-text-soft)]">
                     {record.auditedAt && formatDate(record.auditedAt)}
                   </span>
                 </div>
                 {record.auditNote && (
-                  <div className="bg-slate-50 rounded-xl p-2 mt-2">
-                    <p className="text-xs text-slate-500 mb-1">审核意见：</p>
-                    <p className="text-xs text-slate-700">{record.auditNote}</p>
+                  <div className="mt-2 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] p-2">
+                    <p className="mb-1 text-xs text-[var(--ui-text-muted)]">审核意见：</p>
+                    <p className="text-xs text-[var(--ui-text-secondary)]">{record.auditNote}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="border-t border-slate-100 pt-3">
-                <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+              <div className="border-t border-[color:var(--ui-border)] pt-3">
+                <span className="rounded-full border border-[color:var(--ui-warning-border)] bg-[var(--ui-warning-bg)] px-2 py-0.5 text-xs font-bold text-[var(--ui-warning-text)]">
                   ⏳ 待审核
                 </span>
               </div>
@@ -235,7 +235,7 @@ function AuditPage() {
               <Button
                 onClick={() => handleApproveTask(selectedTask._id, "rejected", rejectionReason)}
                 variant="secondary"
-                className="bg-red-50 text-red-600 hover:bg-red-100 border-none shadow-none"
+                className="border-[color:var(--ui-danger-border)] bg-[var(--ui-danger-bg)] text-[var(--ui-danger-text)] shadow-none hover:bg-[var(--ui-danger-bg-hover)]"
               >
                 驳回
               </Button>
@@ -252,14 +252,14 @@ function AuditPage() {
         {selectedTask && (
           <div className="space-y-4">
             {/* 顶部固定区域 - 任务信息 */}
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+            <div className="flex items-center gap-4 rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] p-4 shadow-[var(--ui-shadow-sm)]">
               <div className="text-5xl">{selectedTask.icon}</div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-slate-800 truncate">{selectedTask.name}</h3>
-                <p className="text-blue-600 font-bold">+{selectedTask.points} 积分</p>
+                <h3 className="truncate text-xl font-bold text-[var(--ui-text-primary)]">{selectedTask.name}</h3>
+                <p className="font-bold text-[var(--ui-text-secondary)]">+{selectedTask.points} 积分</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-slate-500">申请人:</span>
-                  <span className="flex items-center gap-1 text-sm bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+                  <span className="text-sm text-[var(--ui-text-muted)]">申请人:</span>
+                  <span className="flex items-center gap-1 rounded-full border border-[color:var(--ui-warning-border)] bg-[var(--ui-surface-1)] px-2 py-0.5 text-sm text-[var(--ui-text-secondary)]">
                     {selectedTask.childAvatar} {selectedTask.childName}
                   </span>
                 </div>
@@ -269,21 +269,21 @@ function AuditPage() {
             {/* 滚动内容区域 */}
             <div className="max-h-[35vh] overflow-y-auto hide-scrollbar pr-1 space-y-4">
               <div>
-                <h4 className="font-bold text-slate-700 mb-2">提交时间</h4>
-                <p className="text-slate-600">{formatDate(selectedTask.submittedAt)}</p>
+                <h4 className="mb-2 font-bold text-[var(--ui-text-primary)]">提交时间</h4>
+                <p className="text-[var(--ui-text-secondary)]">{formatDate(selectedTask.submittedAt)}</p>
               </div>
 
               {selectedTask.description && (
                 <div>
-                  <h4 className="font-bold text-slate-700 mb-2">任务描述</h4>
-                  <p className="text-slate-600">{selectedTask.description}</p>
+                  <h4 className="mb-2 font-bold text-[var(--ui-text-primary)]">任务描述</h4>
+                  <p className="text-[var(--ui-text-secondary)]">{selectedTask.description}</p>
                 </div>
               )}
 
               {selectedTask.photoUrl ? (
                 <div>
-                  <h4 className="font-bold text-slate-700 mb-2">照片凭证</h4>
-                  <div className="relative w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                  <h4 className="mb-2 font-bold text-[var(--ui-text-primary)]">照片凭证</h4>
+                  <div className="relative w-full overflow-hidden rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)]">
                     <ZoomImage
                       src={selectedTask.photoUrl}
                       alt="任务照片"
@@ -295,15 +295,15 @@ function AuditPage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-4 bg-slate-50 rounded-xl text-center text-slate-500 text-sm">无照片凭证</div>
+                <div className="rounded-xl border border-[color:var(--ui-border)] bg-[var(--ui-surface-2)] p-4 text-center text-sm text-[var(--ui-text-muted)]">无照片凭证</div>
               )}
 
               {/* 历史操作记录 */}
               {selectedTask.auditHistory && selectedTask.auditHistory.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <History size={16} className="text-blue-500" />
-                    <h4 className="font-bold text-slate-700">历史操作记录</h4>
+                    <History size={16} className="text-[var(--ui-text-secondary)]" />
+                    <h4 className="font-bold text-[var(--ui-text-primary)]">历史操作记录</h4>
                   </div>
                   {renderAuditHistory(selectedTask)}
                 </div>
@@ -311,8 +311,8 @@ function AuditPage() {
             </div>
 
             {/* 底部固定区域 - 审核意见 */}
-            <div className="pt-4 border-t border-slate-100">
-              <h4 className="font-bold text-slate-700 mb-2">本次审核意见</h4>
+            <div className="border-t border-[color:var(--ui-border)] pt-4">
+              <h4 className="mb-2 font-bold text-[var(--ui-text-primary)]">本次审核意见</h4>
               <Input
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
