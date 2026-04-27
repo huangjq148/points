@@ -328,6 +328,7 @@ export default function StorePage() {
                   description={reward.description}
                   tone={reward.type === "privilege" ? (urgent ? "time" : "default") : "default"}
                   themeVariant="child"
+                  pointsPlacement="right"
                   meta={<Badge tone="slate" variant="child">{reward.type === "physical" ? "实物奖励" : "特权奖励"}</Badge>}
                   badges={
                     reward.type === "privilege" ? (

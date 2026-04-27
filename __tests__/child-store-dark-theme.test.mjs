@@ -236,9 +236,23 @@ test('child store keeps shop surfaces dark in dark theme', { timeout: 120000 }, 
 
   try {
     await expectDarkSurface(page.locator('.child-store-points-chip'), 'Store points chip');
-    await expectDarkSurface(
-      page.getByText('暗色奖励卡').locator('xpath=ancestor::div[contains(@class,"reward-card")]').first(),
-      'Store reward card',
+    const rewardCard = page.getByText('暗色奖励卡').locator('xpath=ancestor::div[contains(@class,"reward-card")]').first();
+    await expectDarkSurface(rewardCard, 'Store reward card');
+    const rewardTitle = rewardCard.getByRole('heading', { name: '暗色奖励卡' });
+    const rewardPoints = rewardCard.locator('.reward-card-points').first();
+    const [cardBox, titleBox, pointsBox] = await Promise.all([
+      rewardCard.boundingBox(),
+      rewardTitle.boundingBox(),
+      rewardPoints.boundingBox(),
+    ]);
+    assert.ok(cardBox && titleBox && pointsBox, 'Reward card layout boxes should be available');
+    assert.ok(
+      pointsBox.x + pointsBox.width >= cardBox.x + cardBox.width - 16,
+      `Reward points should stay pinned to the right side: ${JSON.stringify({ cardBox, titleBox, pointsBox })}`,
+    );
+    assert.ok(
+      pointsBox.y <= titleBox.y + 24,
+      `Reward points should stay aligned with the title row: ${JSON.stringify({ cardBox, titleBox, pointsBox })}`,
     );
     await expectDarkSurface(page.getByText('2天').first(), 'Store duration badge');
     await expectDarkSurface(

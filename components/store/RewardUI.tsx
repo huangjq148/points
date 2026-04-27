@@ -153,6 +153,7 @@ export function RewardCard({
   compact = false,
   tableRow = false,
   themeVariant = "default",
+  pointsPlacement = "inline",
 }: {
   title: string;
   icon: ReactNode;
@@ -169,10 +170,12 @@ export function RewardCard({
   compact?: boolean;
   tableRow?: boolean;
   themeVariant?: "default" | "child";
+  pointsPlacement?: "inline" | "right";
 }) {
   const rowMode = compact || tableRow;
   const descriptionText = description?.trim() || "暂无说明";
   const childVariant = themeVariant === "child";
+  const splitHeader = pointsPlacement === "right";
   const cardStyle = childVariant
     ? {
         background:
@@ -228,7 +231,7 @@ export function RewardCard({
     : undefined;
   return (
     <div
-      className={`reward-card group relative overflow-hidden rounded-[20px] border ${
+      className={`reward-card group relative w-full overflow-hidden rounded-[20px] border ${
         childVariant
           ? tone === "time"
             ? "reward-card-time"
@@ -243,7 +246,7 @@ export function RewardCard({
         className={`reward-card-glow pointer-events-none absolute right-4 top-4 h-24 w-24 rounded-full blur-2xl ${childVariant ? "" : tone === "time" ? "bg-amber-100/70" : "bg-sky-100/70"}`}
         style={glowStyle}
       />
-      <div className={`relative flex ${rowMode ? "items-start gap-4" : "items-start gap-4"} ${rowMode ? "mb-1" : ""}`}>
+      <div className={`relative flex w-full ${rowMode ? "items-start gap-4" : "items-start gap-4"} ${rowMode ? "mb-1" : ""}`}>
         <div
           className={`reward-card-icon-surface flex shrink-0 items-center justify-center rounded-[28px] ${childVariant ? "" : "bg-white shadow-[0_10px_20px_rgba(15,23,42,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] ring-1 ring-white"} ${rowMode ? "h-14 w-14 text-[28px]" : "h-16 w-16 text-[34px]"}`}
           style={iconStyle}
@@ -251,7 +254,7 @@ export function RewardCard({
           {icon}
         </div>
         <div className="min-w-0 flex-1 pt-0.5">
-          <div className="flex items-start justify-between gap-3">
+          <div className={splitHeader ? "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3" : "flex items-start justify-between gap-3"}>
             <div className="min-w-0">
               <h3 className={`${rowMode ? "text-[17px]" : "text-[18px]"} truncate font-bold tracking-tight text-slate-900 leading-none`}>{title}</h3>
               <p className={`${rowMode ? "mt-1 line-clamp-1 text-xs leading-5" : "mt-2 line-clamp-2 text-sm leading-6"} max-w-[34rem] ${description ? "text-slate-600" : "text-slate-400"}`}>
@@ -259,7 +262,7 @@ export function RewardCard({
               </p>
             </div>
             <div
-              className={`reward-card-points shrink-0 rounded-[20px] px-3 py-2 text-right ${childVariant ? "" : "bg-slate-50 ring-1 ring-slate-200/70"}`}
+              className={`reward-card-points shrink-0 rounded-[20px] px-3 py-2 text-right ${splitHeader ? "justify-self-end self-start" : ""} ${childVariant ? "" : "bg-slate-50 ring-1 ring-slate-200/70"}`}
               style={pointsStyle}
             >
               <div className="reward-card-points-label text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400" style={pointsLabelStyle}>
