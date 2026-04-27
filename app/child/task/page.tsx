@@ -78,6 +78,7 @@ function TaskPage() {
   const statusFromQuery = searchParams.get('status');
   const normalizedStatusFromQuery =
     statusFromQuery === 'all' ? '' : statusFromQuery;
+  const initialStatusFilter = normalizedStatusFromQuery ?? 'in_progress';
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,7 +87,7 @@ function TaskPage() {
   const limit = 10;
 
   const [searchName, setSearchName] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(initialStatusFilter);
   const [typeFilter, setTypeFilter] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
