@@ -42,13 +42,28 @@ test('login page shows the unified login copy and removes role/register controls
   }
 });
 
-test('login page presents an immersive family growth entry visual', { timeout: 120000 }, async () => {
+test('login page stays concise without decorative growth content', { timeout: 120000 }, async () => {
   const { browser, context, page } = await openLoginPage({ width: 1440, height: 900 });
 
   try {
-    await page.locator('.login-hero-stage').waitFor({ state: 'visible' });
-    await page.locator('.login-growth-art').waitFor({ state: 'visible' });
     await page.getByText('家庭积分成长入口').waitFor({ state: 'visible' });
+    await page.locator('.login-rule-chip', { hasText: '首次家长登录自动注册' }).waitFor({ state: 'visible' });
+    await page.locator('.login-rule-chip', { hasText: '孩子账号由家长创建' }).waitFor({ state: 'visible' });
+    assert.equal(
+      await page.locator('.login-hero-stage').count(),
+      0,
+      'decorative growth visual should not be rendered in the simplified login page',
+    );
+    assert.equal(
+      await page.locator('.login-growth-art').count(),
+      0,
+      'large SVG growth art should not be rendered',
+    );
+    assert.equal(
+      await page.locator('.login-form-assurance').count(),
+      0,
+      'the simplified form should not include a separate explanatory card',
+    );
     assert.equal(
       await page.locator('.login-visual-row').count(),
       0,
