@@ -11,7 +11,13 @@ import React, {
 import { useApp } from '@/context/AppContext';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Filter, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import {
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  RefreshCw,
+} from 'lucide-react';
 import { Button, Modal, Image, Input, FilterSelect } from '@/components/ui';
 import {
   ChildEmptyState,
@@ -235,6 +241,10 @@ function TaskPage() {
 
   const handlePageChange = (newPage: number) => {
     fetchTasks(newPage, currentFilters);
+  };
+
+  const handleRefreshTasks = () => {
+    fetchTasks(1, currentFilters);
   };
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -501,11 +511,26 @@ function TaskPage() {
 
       <div className='child-page-grid'>
         <ChildPanel className='child-filter-panel'>
-          <ChildPageTitle
-            icon={<Filter size={22} />}
-            title='任务工作台'
-            description='筛选任务，找到今天要完成的事情。'
-          />
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <ChildPageTitle
+              icon={<Filter size={22} />}
+              title='任务工作台'
+              description='筛选任务，找到今天要完成的事情。'
+            />
+            <Button
+              type='button'
+              onClick={handleRefreshTasks}
+              disabled={loading || !initialFilterApplied}
+              variant='secondary'
+              className='min-h-11 rounded-2xl !border-none !bg-[var(--child-surface-muted)] !px-4 !py-2 !text-sm !font-black !text-sky-700 ring-1 ring-[color:rgba(125,211,252,0.24)] hover:!bg-[color:rgba(14,165,233,0.12)] hover:!text-sky-800 disabled:!cursor-not-allowed disabled:!opacity-60'
+            >
+              <RefreshCw
+                size={16}
+                className={`mr-2 ${loading ? 'animate-spin' : ''}`}
+              />
+              {loading ? '刷新中' : '刷新'}
+            </Button>
+          </div>
           <div className='mt-4 grid gap-3 lg:grid-cols-[minmax(0,300px)_180px_180px] xl:grid-cols-[minmax(0,300px)_180px_180px_minmax(280px,1fr)]'>
             <Input
               allowClear

@@ -126,7 +126,7 @@ async function createParentAndChild(prefix) {
     }),
   });
 
-  await api('/api/children', {
+  const childCreate = await api('/api/children', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${parentLogin.token}`,
@@ -139,7 +139,11 @@ async function createParentAndChild(prefix) {
     }),
   });
 
-  return { childUsername };
+  return {
+    parentLogin,
+    childUsername,
+    childId: childCreate.child.id,
+  };
 }
 
 async function loginChild(childUsername) {
@@ -197,6 +201,63 @@ test('child gift date picker popup stays readable in dark theme', { timeout: 120
         .first(),
       'Gift date picker day text',
     );
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+test('child gift shows kid-friendly collection sections', { timeout: 120000 }, async () => {
+  const { parentLogin, childUsername, childId } = await createParentAndChild('child_gift_story');
+
+  await api('/api/points/reward', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      childId,
+      points: 80,
+      reason: 'child gift storytelling setup',
+    }),
+  });
+
+  const rewardData = await api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      name: '星星枕头',
+      description: '测试孩子端奖品页',
+      points: 18,
+      type: 'physical',
+      icon: '🛏️',
+      stock: 6,
+    }),
+  });
+
+  const childLogin = await loginChild(childUsername);
+  await api('/api/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${childLogin.token}`,
+    },
+    body: JSON.stringify({
+      rewardId: rewardData.reward._id,
+    }),
+  });
+
+  const { browser, context, page } = await openDarkChildGift({
+    ...childLogin.user,
+    token: childLogin.token,
+  });
+
+  try {
+    await page.getByText('我的奖品收藏册').waitFor();
+    await page.getByText('待领取宝贝').waitFor();
+    await page.getByText('已经带回家').waitFor();
+    await page.getByText('奖品展示墙').waitFor();
   } finally {
     await context.close();
     await browser.close();
