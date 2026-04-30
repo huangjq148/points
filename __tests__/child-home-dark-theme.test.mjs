@@ -218,7 +218,7 @@ test('child homepage keeps nested cards dark in dark theme', { timeout: 120000 }
 
   try {
     await expectDarkSurface(page.getByText('当前积分').locator('xpath=..'), 'Current points card');
-    await expectDarkSurface(page.getByText('还没有可用特权').locator('xpath=..'), 'Privilege empty state');
+    assert.equal(await page.getByText('还没有可用特权').count(), 0);
     await expectDarkSurface(page.getByText('今天很轻松').locator('xpath=..'), 'Task empty state');
     await expectDarkSurface(page.getByRole('button', { name: '去奖励商店' }).locator('xpath=..'), 'Reward reminder panel');
   } finally {

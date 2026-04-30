@@ -563,12 +563,12 @@ export default function ChildHome() {
           </div>
         </ChildPanel>
 
-        <ChildPanel>
-          <ChildPageTitle
-            icon={<Clock3 size={22} />}
-            title='特权奖励'
-          />
-          {activePrivilegeOrders.length > 0 ? (
+        {activePrivilegeOrders.length > 0 && (
+          <ChildPanel>
+            <ChildPageTitle
+              icon={<Clock3 size={22} />}
+              title='特权奖励'
+            />
             <div className='mt-3 grid gap-2.5'>
               {visiblePrivilegeOrders.map((order) => {
                 const timing = getPrivilegeTimingText(order);
@@ -620,26 +620,8 @@ export default function ChildHome() {
                 </button>
               )}
             </div>
-          ) : (
-            <div className='mt-4'>
-              <ChildEmptyState
-                title='还没有可用特权'
-                hint='去奖励商店兑换特权后，家长确认时会在这里显示。'
-                icon='✨'
-                action={
-                  <button
-                    type='button'
-                    onClick={() => handleNavigate('/child/store?category=privilege')}
-                    className='inline-flex min-h-11 items-center gap-2 rounded-2xl bg-teal-500 px-4 py-2 text-sm font-black text-white'
-                  >
-                    去兑换特权
-                    <ArrowRight size={16} />
-                  </button>
-                }
-              />
-            </div>
-          )}
-        </ChildPanel>
+          </ChildPanel>
+        )}
 
         <div className='child-page-grid child-two-column'>
           <ChildPanel>
