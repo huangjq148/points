@@ -38,7 +38,7 @@ export default function ChildTaskSubmitModal({
       isOpen={isOpen}
       onClose={onClose}
       width={520}
-      className="overflow-hidden !rounded-[2rem] shadow-[0_24px_80px_rgba(14,116,144,0.22)]"
+      className="child-task-submit-modal overflow-hidden !rounded-[2rem] shadow-[0_24px_80px_rgba(14,116,144,0.22)]"
       showCloseButton={false}
       footer={
         <div className="flex w-full gap-3">
@@ -60,7 +60,7 @@ export default function ChildTaskSubmitModal({
     >
       {task && (
         <div className="space-y-4">
-          <div className="rounded-[1.75rem] border border-[var(--child-border)] bg-[linear-gradient(135deg,var(--child-surface-strong)_0%,rgba(56,189,248,0.14)_48%,rgba(250,204,21,0.14)_100%)] px-4 py-4 shadow-sm sm:px-5 sm:py-5">
+          <div className="child-task-submit-hero rounded-[1.75rem] px-4 py-4 shadow-sm sm:px-5 sm:py-5">
             <div className="flex min-w-0 items-center gap-3 sm:gap-4">
               <div className="flex h-14 w-14 flex-none items-center justify-center rounded-[1.4rem] border border-[color:var(--child-border)] bg-[var(--child-surface)] text-3xl shadow-[0_12px_30px_rgba(59,130,246,0.12)] sm:h-16 sm:w-16 sm:text-4xl">
                 {task.icon}
@@ -78,7 +78,7 @@ export default function ChildTaskSubmitModal({
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] border border-[var(--child-border)] bg-[var(--child-surface)] p-3 shadow-sm sm:p-4">
+          <div className="child-task-submit-surface rounded-[1.5rem] p-3 shadow-sm sm:p-4">
             <input
               type="file"
               accept="image/*"
@@ -87,7 +87,7 @@ export default function ChildTaskSubmitModal({
               onChange={onPhotoSelect}
             />
             <div
-              className="group relative cursor-pointer rounded-[2rem] border-2 border-dashed border-[color:var(--child-border)] bg-[linear-gradient(180deg,var(--child-surface-muted)_0%,var(--child-surface-strong)_100%)] p-1.5 transition-all hover:border-[color:var(--child-border-strong)] hover:bg-[var(--child-surface-strong)]"
+              className="child-task-submit-upload group relative cursor-pointer rounded-[2rem] border-2 border-dashed p-1.5 transition-all"
               onClick={() => {
                 if (fileInputRef.current) {
                   fileInputRef.current.value = "";

@@ -151,6 +151,58 @@
   gap: 16px;
 }
 
+.child-heading-page {
+  font-size: 1.875rem;
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--child-text);
+}
+
+.child-heading-section {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--child-text);
+}
+
+.child-copy-muted {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  font-weight: 600;
+  color: var(--child-text-muted);
+}
+
+.child-card-title {
+  font-size: 0.95rem;
+  line-height: 1.35;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--child-text);
+}
+
+.child-card-meta {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--child-text-muted);
+}
+
+.child-card-kicker {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+  .child-heading-page {
+    font-size: 2.25rem;
+  }
+}
+
 .child-wallet-hero {
   background: linear-gradient(
     135deg,
@@ -438,6 +490,36 @@
 .child-gift-detail-card {
   border: 1px solid var(--ui-border);
   background: var(--ui-surface-1);
+}
+
+.child-task-submit-modal {
+  border: 1px solid rgba(71, 85, 105, 0.72) !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+.child-task-submit-hero {
+  border: 1px solid rgba(71, 85, 105, 0.72);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.96) 0%,
+    rgba(14, 165, 233, 0.16) 52%,
+    rgba(250, 204, 21, 0.14) 100%
+  );
+}
+
+.child-task-submit-surface {
+  border: 1px solid rgba(71, 85, 105, 0.72);
+  background: rgba(30, 41, 59, 0.92);
+}
+
+.child-task-submit-upload {
+  border-color: rgba(100, 116, 139, 0.72);
+  background: linear-gradient(180deg, rgba(51, 65, 85, 0.94) 0%, rgba(30, 41, 59, 0.96) 100%);
+}
+
+.child-task-submit-upload:hover {
+  border-color: rgba(125, 211, 252, 0.48);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(30, 41, 59, 0.96) 100%);
 }
 
 .child-wallet-detail-close {

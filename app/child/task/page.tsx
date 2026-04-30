@@ -568,6 +568,7 @@ function TaskPage() {
             <ChildPageTitle
               title={loading ? '正在更新任务' : '任务列表'}
               description={`共 ${total} 个任务`}
+              level='section'
             />
             <ChildStatusPill tone='sky'>第 {page} 页</ChildStatusPill>
           </div>
@@ -627,10 +628,10 @@ function TaskPage() {
                         <div className='min-w-0 flex-1'>
                           <div className='flex items-start justify-between gap-3'>
                             <div className='min-w-0'>
-                              <h3 className='truncate text-[15px] font-extrabold text-[var(--child-text)] md:text-base'>
+                              <h3 className='child-card-title truncate'>
                                 {task.name}
                               </h3>
-                              <p className='mt-1 line-clamp-2 text-xs font-medium text-[var(--child-text-muted)]'>
+                              <p className='child-card-meta mt-1 line-clamp-2'>
                                 {task.description || '暂无描述'}
                               </p>
                             </div>

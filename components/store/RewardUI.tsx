@@ -7,8 +7,8 @@ export function SectionTitle({
   icon,
   title,
   description,
-  titleClassName = "text-white",
-  descriptionClassName = "text-sky-100",
+  titleClassName = "child-heading-section",
+  descriptionClassName = "child-copy-muted",
 }: {
   icon: ReactNode;
   title: string;
@@ -19,11 +19,11 @@ export function SectionTitle({
   return (
     <div className="flex flex-row gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <div>
-        <div className={`flex gap-2 text-base font-extrabold ${titleClassName}`}>
+        <div className={`flex items-center gap-2 ${titleClassName}`}>
           {icon}
           {title}
         </div>
-        {description && <p className={`mt-1 text-sm text-left ${descriptionClassName}`}>{description}</p>}
+        {description && <p className={`mt-1 text-left ${descriptionClassName}`}>{description}</p>}
       </div>
     </div>
   );

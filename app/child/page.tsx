@@ -568,6 +568,7 @@ export default function ChildHome() {
             <ChildPageTitle
               icon={<Clock3 size={22} />}
               title='特权奖励'
+              level='section'
             />
             <div className='mt-3 grid gap-2.5'>
               {visiblePrivilegeOrders.map((order) => {
@@ -584,12 +585,12 @@ export default function ChildHome() {
                         {order.rewardIcon || '🎁'}
                       </div>
                       <div className='min-w-0 flex-1'>
-                        <h3 className='truncate text-[15px] font-black leading-5 tracking-tight text-[var(--child-text)]'>
+                        <h3 className='child-card-title truncate'>
                           {order.rewardName}
                         </h3>
                       </div>
                       <div className='ml-auto min-w-0 text-right'>
-                        <div className='truncate text-[12px] font-bold leading-4 text-[var(--child-text)]'>
+                        <div className='child-card-meta truncate !font-bold !text-[var(--child-text)]'>
                           {timing.startValue} - {timing.endValue}
                         </div>
                       </div>
@@ -605,12 +606,12 @@ export default function ChildHome() {
                   className='flex items-center justify-between gap-3 rounded-[22px] border border-dashed border-[color:var(--child-border)] bg-[color:rgba(148,163,184,0.1)] px-4 py-2.5 text-left shadow-[0_8px_18px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:bg-[color:rgba(148,163,184,0.14)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200'
                 >
                   <div className='min-w-0'>
-                    <div className='text-[12px] font-black leading-4 text-[var(--child-text)]'>
+                    <div className='child-card-meta !font-black !text-[var(--child-text)]'>
                       {showAllPrivilegeOrders
                         ? `收起特权奖励，当前显示 ${activePrivilegeOrders.length} 个`
                         : `展开剩余 ${collapsedPrivilegeCount} 个特权奖励`}
                     </div>
-                    <div className='mt-0.5 text-[11px] font-semibold text-[var(--child-text-muted)]'>
+                    <div className='child-card-meta mt-0.5 opacity-90'>
                       {showAllPrivilegeOrders ? '只保留最重要的前两个在上面' : '点一下就能看到全部特权'}
                     </div>
                   </div>
@@ -630,6 +631,7 @@ export default function ChildHome() {
                 icon={<ListChecks size={22} />}
                 title='今天要做'
                 description='点开任务，完成后提交给家长。'
+                level='section'
               />
               <button
                 type='button'
@@ -675,10 +677,10 @@ export default function ChildHome() {
                         {task.icon}
                       </span>
                       <span className='min-w-0 flex-1'>
-                        <span className='block truncate text-base font-black text-[var(--child-text)]'>
+                        <span className='child-card-title block truncate'>
                           {task.name}
                         </span>
-                        <span className='mt-1 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--child-text-muted)]'>
+                        <span className='child-card-meta mt-1 flex flex-wrap items-center gap-2'>
                           <ChildStatusPill tone={tone}>{stateLabel}</ChildStatusPill>
                           <span className='inline-flex items-center gap-1'>
                             <Clock3 size={14} />
@@ -735,6 +737,7 @@ export default function ChildHome() {
               icon={<Gift size={22} />}
               title='奖励提醒'
               description='看看有没有想兑换的奖励。'
+              level='section'
             />
             <div className='mt-4 rounded-[26px] bg-[var(--child-surface-muted)] p-4 ring-1 ring-[color:var(--child-border)]'>
               <div className='flex flex-wrap items-center gap-2'>

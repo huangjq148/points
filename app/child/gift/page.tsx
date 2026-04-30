@@ -362,6 +362,7 @@ export default function GiftPage() {
               icon={<Gift size={22} />}
               title="翻翻奖品柜"
               description="按名字、日期或状态查找你兑换过的奖品。"
+              level="section"
             />
             <div className="flex flex-wrap gap-2 xl:justify-end">
               <ChildStatusPill tone="sky">全部 {orderStats.all}</ChildStatusPill>
@@ -410,15 +411,12 @@ export default function GiftPage() {
 
         <ChildPanel className="space-y-4">
           <div className="flex items-end justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 text-lg font-extrabold text-[var(--child-text)]">
-                <Gift size={16} className="text-sky-500" />
-                奖品展示墙
-              </div>
-              <p className="mt-1 text-sm font-semibold text-[var(--child-text-muted)]">
-                轻触任意奖品卡片可以查看详情。
-              </p>
-            </div>
+            <ChildPageTitle
+              icon={<Gift size={16} className="text-sky-500" />}
+              title="奖品展示墙"
+              description="轻触任意奖品卡片可以查看详情。"
+              level="section"
+            />
             <div className="child-gift-result-chip hidden rounded-full px-3 py-1 text-xs font-bold sm:inline-flex">
               结果 {displayedOrders.length}
             </div>
@@ -443,7 +441,7 @@ export default function GiftPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h3 className="truncate text-[16px] font-black tracking-tight text-[var(--child-text)]">
+                          <h3 className="child-card-title truncate">
                             {order.rewardName}
                           </h3>
                           <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -455,7 +453,7 @@ export default function GiftPage() {
                               积分 {order.pointsSpent}
                             </span>
                           </div>
-                          <p className="mt-2 text-xs font-semibold text-[var(--child-text-muted)]">
+                          <p className="child-card-meta mt-2">
                             {getStatusStory(order.status)}
                           </p>
                         </div>
@@ -469,7 +467,7 @@ export default function GiftPage() {
 
                   <div className="mt-4 grid grid-cols-2 gap-2.5">
                     <div className="child-gift-card-note rounded-[18px] px-3 py-2 text-right">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]">
+                      <div className="child-card-kicker text-[var(--child-text-soft)]">
                         兑换时间
                       </div>
                       <div className="mt-0.5 text-[13px] font-bold leading-4 text-[var(--child-text)]">

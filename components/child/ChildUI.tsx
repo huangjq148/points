@@ -35,25 +35,38 @@ export function ChildPageTitle({
   description,
   action,
   className = "",
+  level = "page",
 }: {
   icon?: ReactNode;
   title: string;
   description?: string;
   action?: ReactNode;
   className?: string;
+  level?: "page" | "section";
 }) {
+  const isSection = level === "section";
+
   return (
     <div className={cx("flex flex-wrap items-start justify-between gap-3", className)}>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {icon && (
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--child-surface-muted)] text-xl shadow-sm ring-1 ring-[color:var(--child-border)]">
+            <span
+              className={cx(
+                "flex items-center justify-center rounded-2xl bg-[var(--child-surface-muted)] shadow-sm ring-1 ring-[color:var(--child-border)]",
+                isSection ? "h-9 w-9 text-lg" : "h-10 w-10 text-xl",
+              )}
+            >
               {icon}
             </span>
           )}
-          <h1 className="text-2xl font-black tracking-tight text-[var(--child-text)] md:text-3xl">{title}</h1>
+          {isSection ? (
+            <h2 className="child-heading-section">{title}</h2>
+          ) : (
+            <h1 className="child-heading-page">{title}</h1>
+          )}
         </div>
-        {description && <p className="mt-1 text-sm font-semibold text-[var(--child-text-muted)]">{description}</p>}
+        {description && <p className={cx("mt-1 child-copy-muted", isSection && "max-w-[42rem]")}>{description}</p>}
       </div>
       {action}
     </div>

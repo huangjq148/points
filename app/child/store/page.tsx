@@ -299,8 +299,8 @@ export default function StorePage() {
             icon={<Gift size={16} className="text-blue-500" />}
             title="商品列表"
             description="按库存状态筛选，再按积分或库存排序。"
-            titleClassName="text-[var(--child-text)] text-lg font-extrabold"
-            descriptionClassName="text-[var(--child-text-muted)]"
+            titleClassName="child-heading-section"
+            descriptionClassName="child-copy-muted"
           />
           <div className="hidden sm:inline-flex">
             <Badge tone="slate" variant="child">
@@ -382,8 +382,8 @@ export default function StorePage() {
             icon={<History size={16} className="text-violet-500" />}
             title="我的兑换记录"
             description="最近 5 条记录，方便查看爸妈是否已经处理。"
-            titleClassName="text-[var(--child-text)] text-lg font-extrabold"
-            descriptionClassName="text-[var(--child-text-muted)]"
+            titleClassName="child-heading-section"
+            descriptionClassName="child-copy-muted"
           />
           <Button variant="secondary" size="sm" onClick={() => void fetchOrders()} loading={ordersLoading}>
             刷新记录
@@ -400,10 +400,10 @@ export default function StorePage() {
                       {order.rewardIcon || "🎁"}
                     </div>
                     <div className="min-w-0">
-                      <div className="truncate text-[15px] font-bold leading-5 text-[var(--child-text)]">
+                      <div className="child-card-title truncate">
                         {order.rewardName}
                       </div>
-                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-[var(--child-text-muted)]">
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 child-card-meta">
                         <Badge
                           tone={order.status === "verified" ? "emerald" : order.status === "cancelled" ? "slate" : "amber"}
                           variant="child"
@@ -416,7 +416,7 @@ export default function StorePage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2.5 sm:min-w-[240px]">
                     <div className="child-store-order-meta rounded-[18px] px-3 py-2 text-right" style={orderMetaStyle}>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--child-text-soft)]">
+                      <div className="child-card-kicker text-[var(--child-text-soft)]">
                         时间
                       </div>
                       <div className="mt-0.5 text-[13px] font-bold leading-4 text-[var(--child-text)]">

@@ -299,6 +299,7 @@ export default function WalletPage() {
           icon={<CalendarDays size={22} />}
           title="翻翻记录地图"
           description={`当前页找到 ${ledgerData.length} 条足迹`}
+          level="section"
         />
         <div className="mt-4 flex flex-wrap gap-2">
           {quickRanges.map((item) => (
@@ -356,6 +357,7 @@ export default function WalletPage() {
           <ChildPageTitle
             title={ledgerLoading ? "正在整理冒险记录" : "积分冒险记录"}
             description={`共 ${ledgerTotal} 条记录，点开卡片可以看详情`}
+            level="section"
           />
           {ledgerLoading ? (
             <div className="child-wallet-loading-chip flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold text-sky-700">
@@ -417,11 +419,11 @@ export default function WalletPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate font-semibold text-[var(--child-text)]">{displayName}</p>
+                      <p className="child-card-title truncate">{displayName}</p>
                       <ChildStatusPill tone={badgeTone}>{badgeText}</ChildStatusPill>
                     </div>
-                    <p className="mt-1 text-xs font-semibold text-[var(--child-text-muted)]">{getLedgerStory(item)}</p>
-                    <p className="mt-1 text-[11px] text-[var(--child-text-muted)]/80">{formatDate(item.date)}</p>
+                    <p className="child-card-meta mt-1">{getLedgerStory(item)}</p>
+                    <p className="child-card-meta mt-1 opacity-80">{formatDate(item.date)}</p>
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-black ${textColor}`}>
