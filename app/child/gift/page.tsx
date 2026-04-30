@@ -194,7 +194,7 @@ export default function GiftPage() {
         isOpen={!!showOrderDetail}
         onClose={() => setShowOrderDetail(null)}
         width={560}
-        className="overflow-hidden !rounded-[2rem] !p-0 shadow-[0_24px_80px_rgba(15,23,42,0.24)]"
+        className="child-gift-modal-shell overflow-hidden !rounded-[2rem] !p-0 shadow-[0_24px_80px_rgba(15,23,42,0.24)]"
         showCloseButton
       >
         {showOrderDetail && (
@@ -465,20 +465,20 @@ export default function GiftPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-2.5">
-                    <div className="child-gift-card-note rounded-[18px] px-3 py-2 text-left">
-                      <div className="child-card-kicker text-[var(--child-text-soft)]">
+                  <div className="mt-4 grid gap-2.5">
+                    <div className="child-gift-card-note flex min-h-[48px] items-center gap-2 rounded-[18px] px-3 py-2 text-left">
+                      <div className="child-card-kicker shrink-0 text-[var(--child-text-soft)]">
                         兑换时间
                       </div>
-                      <div className="mt-0.5 text-[13px] font-bold leading-4 text-[var(--child-text)]">
+                      <div className="truncate text-[13px] font-bold leading-4 text-[var(--child-text)]">
                         {formatDate(order.createdAt)}
                       </div>
                     </div>
-                    <div className="child-gift-card-status rounded-[18px] px-3 py-2 text-left shadow-sm">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">
+                    <div className="child-gift-card-status flex min-h-[48px] items-center gap-2 rounded-[18px] px-3 py-2 text-left shadow-sm">
+                      <div className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">
                         兑换状态
                       </div>
-                      <div className="font-mono text-[13px] font-black leading-4 tracking-[0.14em]">
+                      <div className="truncate font-mono text-[13px] font-black leading-4 tracking-[0.14em]">
                         {order.status === "pending" ? "待处理" : order.status === "verified" ? "已完成" : "已取消"}
                       </div>
                     </div>

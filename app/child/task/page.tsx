@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button, Modal, Image, Input, FilterSelect } from '@/components/ui';
 import {
+  ChildCard,
   ChildEmptyState,
   ChildPanel,
   ChildPageTitle,
@@ -365,6 +366,20 @@ function TaskPage() {
     setShowTaskDetail(null);
   };
 
+  const handleTaskCardClick = (task: Task) => {
+    if (task.status === 'pending') {
+      openTaskDetail(task);
+      return;
+    }
+
+    if (task.status === 'rejected') {
+      openSubmitModal(task);
+      return;
+    }
+
+    openTaskDetail(task);
+  };
+
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'in_progress':
@@ -606,152 +621,146 @@ function TaskPage() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`child-card group cursor-pointer transition hover:-translate-y-0.5 md:p-5 ${statusInfo.card}`}
-                      onClick={() => {
-                        if (
-                          task.status === 'pending' ||
-                          task.status === 'rejected'
-                        ) {
-                          openSubmitModal(task);
-                        } else {
-                          openTaskDetail(task);
-                        }
-                      }}
                     >
-                      <div className='flex items-start gap-4'>
-                        <div
-                          className={`flex h-12 w-12 items-center justify-center rounded-[18px] text-2xl font-bold shadow-sm md:h-14 md:w-14 ${statusInfo.iconWrap}`}
-                        >
-                          {task.status === 'approved' ? '✓' : task.icon}
-                        </div>
-
-                        <div className='min-w-0 flex-1'>
-                          <div className='flex items-start justify-between gap-3'>
-                            <div className='min-w-0'>
-                              <h3 className='child-card-title truncate'>
-                                {task.name}
-                              </h3>
-                              <p className='child-card-meta mt-1 line-clamp-2'>
-                                {task.description || '暂无描述'}
-                              </p>
-                            </div>
-                            <span className='shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-100'>
-                              +{task.points} 分
-                            </span>
+                      <ChildCard
+                        onClick={() => handleTaskCardClick(task)}
+                        className={`group md:p-5 ${statusInfo.card}`}
+                      >
+                        <div className='flex items-start gap-4'>
+                          <div
+                            className={`flex h-12 w-12 items-center justify-center rounded-[18px] text-2xl font-bold shadow-sm md:h-14 md:w-14 ${statusInfo.iconWrap}`}
+                          >
+                            {task.status === 'approved' ? '✓' : task.icon}
                           </div>
 
-                          <div className='mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--child-text-muted)]'>
-                            <ChildStatusPill tone={statusInfo.tone}>
-                              {statusInfo.label}
-                            </ChildStatusPill>
+                          <div className='min-w-0 flex-1'>
+                            <div className='flex items-start justify-between gap-3'>
+                              <div className='min-w-0'>
+                                <h3 className='child-card-title truncate'>
+                                  {task.name}
+                                </h3>
+                                <p className='child-card-meta mt-1 line-clamp-2'>
+                                  {task.description || '暂无描述'}
+                                </p>
+                              </div>
+                              <span className='shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-black text-amber-700 ring-1 ring-amber-100'>
+                                +{task.points} 分
+                              </span>
+                            </div>
 
-                            {deadlineInfo && (
-                              <span
-                                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${deadlineInfo.className}`}
+                            <div className='mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--child-text-muted)]'>
+                              <ChildStatusPill tone={statusInfo.tone}>
+                                {statusInfo.label}
+                              </ChildStatusPill>
+
+                              {deadlineInfo && (
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${deadlineInfo.className}`}
+                                >
+                                  <Calendar size={12} />
+                                  {deadlineInfo.label}
+                                </span>
+                              )}
+
+                              {task.startDate && (
+                                <span className='inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100'>
+                                  <span className='h-1.5 w-1.5 rounded-full bg-indigo-500' />
+                                  开始 {dayjs(task.startDate).format('MM/DD')}
+                                </span>
+                              )}
+
+                              {task.deadline && (
+                                <span className='inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100'>
+                                  <span className='h-1.5 w-1.5 rounded-full bg-rose-500' />
+                                  截止 {dayjs(task.deadline).format('MM/DD')}
+                                </span>
+                              )}
+
+                              {task.updatedAt && (
+                                <span className='text-xs font-medium text-slate-400'>
+                                  更新于{' '}
+                                  {dayjs(task.updatedAt).format('YYYY/MM/DD')}
+                                </span>
+                              )}
+                            </div>
+
+                            {parentFeedback ? (
+                              <div
+                                className={`mt-3 rounded-[1rem] border px-3 py-2 text-xs ${parentFeedback.className}`}
                               >
-                                <Calendar size={12} />
-                                {deadlineInfo.label}
-                              </span>
-                            )}
-
-                            {task.startDate && (
-                              <span className='inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100'>
-                                <span className='h-1.5 w-1.5 rounded-full bg-indigo-500' />
-                                开始 {dayjs(task.startDate).format('MM/DD')}
-                              </span>
-                            )}
-
-                            {task.deadline && (
-                              <span className='inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 ring-1 ring-rose-100'>
-                                <span className='h-1.5 w-1.5 rounded-full bg-rose-500' />
-                                截止 {dayjs(task.deadline).format('MM/DD')}
-                              </span>
-                            )}
-
-                            {task.updatedAt && (
-                              <span className='text-xs font-medium text-slate-400'>
-                                更新于{' '}
-                                {dayjs(task.updatedAt).format('YYYY/MM/DD')}
-                              </span>
-                            )}
+                                <span className='font-bold'>
+                                  {parentFeedback.label}：
+                                </span>
+                                <span className='ml-1 font-medium'>
+                                  {parentFeedback.text}
+                                </span>
+                              </div>
+                            ) : task.rejectionReason ? (
+                              <p className='mt-3 rounded-[1rem] bg-rose-50/80 px-3 py-2 text-xs font-medium text-rose-600 ring-1 ring-rose-100'>
+                                ✏️ {task.rejectionReason}
+                              </p>
+                            ) : null}
                           </div>
-
-                          {parentFeedback ? (
-                            <div
-                              className={`mt-3 rounded-[1rem] border px-3 py-2 text-xs ${parentFeedback.className}`}
-                            >
-                              <span className='font-bold'>
-                                {parentFeedback.label}：
-                              </span>
-                              <span className='ml-1 font-medium'>
-                                {parentFeedback.text}
-                              </span>
-                            </div>
-                          ) : task.rejectionReason ? (
-                            <p className='mt-3 rounded-[1rem] bg-rose-50/80 px-3 py-2 text-xs font-medium text-rose-600 ring-1 ring-rose-100'>
-                              ✏️ {task.rejectionReason}
-                            </p>
-                          ) : null}
                         </div>
-                      </div>
 
-                      <div className='mt-4 flex justify-end'>
-                        {isPending && (
-                          <Button
-                            type='button'
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStartTask(task);
-                            }}
-                            variant='secondary'
-                            className='!border-none !shadow-none !bg-slate-900 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-slate-800 hover:!text-white'
-                          >
-                            开始任务
-                          </Button>
-                        )}
-                        {isRejected && (
-                          <Button
-                            type='button'
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openSubmitModal(task);
-                            }}
-                            variant='secondary'
-                            className='!border-none !shadow-none !bg-rose-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-rose-600 hover:!text-white'
-                          >
-                            重新提交
-                          </Button>
-                        )}
-                        {isInProgress && (
-                          <Button
-                            type='button'
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openSubmitModal(task);
-                            }}
-                            variant='secondary'
-                            className='!border-none !shadow-none !bg-teal-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-teal-600 hover:!text-white'
-                          >
-                            提交审核
-                          </Button>
-                        )}
-                        {isSubmitted && (
-                          <Button
-                            type='button'
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRecallTask(task);
-                            }}
-                            disabled={recallingTaskId === task._id}
-                            variant='secondary'
-                            className='!border-none !shadow-none !bg-amber-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-amber-600 hover:!text-white disabled:!cursor-not-allowed disabled:!opacity-50'
-                          >
-                            {recallingTaskId === task._id
-                              ? '撤回中...'
-                              : '撤回修改'}
-                          </Button>
-                        )}
-                      </div>
+                        <div className='mt-4 flex justify-end'>
+                          {isPending && (
+                            <Button
+                              type='button'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStartTask(task);
+                              }}
+                              variant='secondary'
+                              className='!border-none !shadow-none !bg-slate-900 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-slate-800 hover:!text-white'
+                            >
+                              开始任务
+                            </Button>
+                          )}
+                          {isRejected && (
+                            <Button
+                              type='button'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openSubmitModal(task);
+                              }}
+                              variant='secondary'
+                              className='!border-none !shadow-none !bg-rose-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-rose-600 hover:!text-white'
+                            >
+                              重新提交
+                            </Button>
+                          )}
+                          {isInProgress && (
+                            <Button
+                              type='button'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openSubmitModal(task);
+                              }}
+                              variant='secondary'
+                              className='!border-none !shadow-none !bg-teal-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-teal-600 hover:!text-white'
+                            >
+                              提交审核
+                            </Button>
+                          )}
+                          {isSubmitted && (
+                            <Button
+                              type='button'
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRecallTask(task);
+                              }}
+                              disabled={recallingTaskId === task._id}
+                              variant='secondary'
+                              className='!border-none !shadow-none !bg-amber-500 !px-4 !py-2 !text-sm !font-black !text-white hover:!bg-amber-600 hover:!text-white disabled:!cursor-not-allowed disabled:!opacity-50'
+                            >
+                              {recallingTaskId === task._id
+                                ? '撤回中...'
+                                : '撤回修改'}
+                            </Button>
+                          )}
+                        </div>
+                      </ChildCard>
                     </motion.div>
                   );
                 })}

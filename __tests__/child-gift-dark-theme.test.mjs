@@ -86,6 +86,26 @@ async function expectTextAlign(locator, expected, label) {
   assert.equal(textAlign, expected, `${label} should use ${expected} alignment, got ${textAlign}`);
 }
 
+async function expectInlineText(locator, label) {
+  await locator.waitFor({ state: 'visible' });
+  const positions = await locator.evaluate((element) => {
+    const children = Array.from(element.children);
+    return children.slice(0, 2).map((child) => child.getBoundingClientRect().top);
+  });
+  assert.equal(positions.length, 2, `${label} should contain two text rows`);
+  assert.ok(Math.abs(positions[1] - positions[0]) <= 3, `${label} should keep label and value on one line, got positions ${positions.join(', ')}`);
+}
+
+async function expectBlocksStacked(topLocator, bottomLocator, label) {
+  await topLocator.waitFor({ state: 'visible' });
+  await bottomLocator.waitFor({ state: 'visible' });
+  const [topBottom, bottomTop] = await Promise.all([
+    topLocator.evaluate((element) => element.getBoundingClientRect().bottom),
+    bottomLocator.evaluate((element) => element.getBoundingClientRect().top),
+  ]);
+  assert.ok(bottomTop >= topBottom, `${label} should stack in separate rows, got ${topBottom} then ${bottomTop}`);
+}
+
 async function expectDarkSurface(locator, label) {
   const surface = await readSurface(locator);
   const brightness = getBrightness(surface.backgroundColor);
@@ -318,7 +338,72 @@ test('child gift exchange time block aligns with card content', { timeout: 12000
 
   try {
     const timeBlock = page.locator('.child-gift-card-note').first();
+    const statusBlock = page.locator('.child-gift-card-status').first();
     await expectTextAlign(timeBlock, 'left', 'Gift exchange time block');
+    await expectTextAlign(statusBlock, 'left', 'Gift exchange status block');
+    await expectInlineText(timeBlock, 'Gift exchange time block');
+    await expectInlineText(statusBlock, 'Gift exchange status block');
+    await expectBlocksStacked(timeBlock, statusBlock, 'Gift exchange info blocks');
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+test('child gift detail modal stays dark in dark theme', { timeout: 120000 }, async () => {
+  const { parentLogin, childUsername, childId } = await createParentAndChild('child_gift_modal');
+
+  await api('/api/points/reward', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      childId,
+      points: 80,
+      reason: 'child gift modal setup',
+    }),
+  });
+
+  const rewardData = await api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      name: '暗色弹框礼物',
+      description: '测试奖品详情弹框暗色主题',
+      points: 16,
+      type: 'physical',
+      icon: '🎮',
+      stock: 4,
+    }),
+  });
+
+  const childLogin = await loginChild(childUsername);
+  await api('/api/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${childLogin.token}`,
+    },
+    body: JSON.stringify({
+      rewardId: rewardData.reward._id,
+    }),
+  });
+
+  const { browser, context, page } = await openDarkChildGift({
+    ...childLogin.user,
+    token: childLogin.token,
+  });
+
+  try {
+    await page.getByText('暗色弹框礼物').first().click();
+    await page.getByText('兑换详情').waitFor();
+    await expectDarkSurface(
+      page.locator('.modal-content').filter({ has: page.getByText('兑换详情') }).first(),
+      'Gift detail modal panel',
+    );
+    await expectDarkSurface(page.locator('.child-gift-detail-modal').first(), 'Gift detail modal inner surface');
   } finally {
     await context.close();
     await browser.close();

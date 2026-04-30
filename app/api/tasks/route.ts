@@ -70,6 +70,18 @@ function appendOverlapDateFilter(
   query.$and.push(...andConditions);
 }
 
+function canAccessTask(task: ITask, authUserId: string, authRole: string) {
+  if (authRole === "parent") {
+    return task.userId.toString() === authUserId;
+  }
+
+  if (authRole === "child") {
+    return task.childId.toString() === authUserId;
+  }
+
+  return false;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get("Authorization");
@@ -328,8 +340,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get("Authorization");
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authUserId = payload.userId;
+    const authRole = payload.role;
 
     await connectDB();
     const body = await request.json();
@@ -343,6 +357,9 @@ export async function PUT(request: NextRequest) {
     const existingTask = await Task.findById(taskId);
     if (!existingTask) {
       return NextResponse.json({ success: false, message: "任务不存在" }, { status: 404 });
+    }
+    if (!canAccessTask(existingTask, authUserId, authRole)) {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
     }
 
     const updateData: Partial<ITask> = {};
@@ -501,8 +518,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const authHeader = request.headers.get("Authorization");
-    const authUserId = getUserIdFromToken(authHeader);
-    if (!authUserId) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const payload = getTokenPayload(authHeader);
+    if (!payload) return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    const authUserId = payload.userId;
+    const authRole = payload.role;
 
     await connectDB();
     const { searchParams } = new URL(request.url);
@@ -512,11 +531,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, message: "缺少taskId" }, { status: 400 });
     }
 
-    const task = await Task.findByIdAndDelete(taskId);
+    const existingTask = await Task.findById(taskId);
 
-    if (!task) {
+    if (!existingTask) {
       return NextResponse.json({ success: false, message: "任务不存在" }, { status: 404 });
     }
+    if (!canAccessTask(existingTask, authUserId, authRole)) {
+      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    }
+
+    await Task.findByIdAndDelete(taskId);
 
     return NextResponse.json({ success: true, message: "任务删除成功" });
   } catch (error: unknown) {
