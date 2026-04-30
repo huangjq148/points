@@ -80,6 +80,12 @@ async function readSurface(locator) {
   });
 }
 
+async function expectTextAlign(locator, expected, label) {
+  await locator.waitFor({ state: 'visible' });
+  const textAlign = await locator.evaluate((element) => window.getComputedStyle(element).textAlign);
+  assert.equal(textAlign, expected, `${label} should use ${expected} alignment, got ${textAlign}`);
+}
+
 async function expectDarkSurface(locator, label) {
   const surface = await readSurface(locator);
   const brightness = getBrightness(surface.backgroundColor);
@@ -258,6 +264,61 @@ test('child gift shows kid-friendly collection sections', { timeout: 120000 }, a
     await page.getByText(/待领取宝贝\s+\d+/).waitFor();
     await page.getByText(/已经带回家\s+\d+/).waitFor();
     await page.getByText('奖品展示墙').waitFor();
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+test('child gift exchange time block aligns with card content', { timeout: 120000 }, async () => {
+  const { parentLogin, childUsername, childId } = await createParentAndChild('child_gift_align');
+
+  await api('/api/points/reward', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      childId,
+      points: 80,
+      reason: 'child gift alignment setup',
+    }),
+  });
+
+  const rewardData = await api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      name: '对齐测试礼物',
+      description: '测试奖品墙时间对齐',
+      points: 12,
+      type: 'physical',
+      icon: '🧸',
+      stock: 3,
+    }),
+  });
+
+  const childLogin = await loginChild(childUsername);
+  await api('/api/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${childLogin.token}`,
+    },
+    body: JSON.stringify({
+      rewardId: rewardData.reward._id,
+    }),
+  });
+
+  const { browser, context, page } = await openDarkChildGift({
+    ...childLogin.user,
+    token: childLogin.token,
+  });
+
+  try {
+    const timeBlock = page.locator('.child-gift-card-note').first();
+    await expectTextAlign(timeBlock, 'left', 'Gift exchange time block');
   } finally {
     await context.close();
     await browser.close();

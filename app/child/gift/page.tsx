@@ -466,7 +466,7 @@ export default function GiftPage() {
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-2.5">
-                    <div className="child-gift-card-note rounded-[18px] px-3 py-2 text-right">
+                    <div className="child-gift-card-note rounded-[18px] px-3 py-2 text-left">
                       <div className="child-card-kicker text-[var(--child-text-soft)]">
                         兑换时间
                       </div>
@@ -474,7 +474,7 @@ export default function GiftPage() {
                         {formatDate(order.createdAt)}
                       </div>
                     </div>
-                    <div className="child-gift-card-status rounded-[18px] px-3 py-2 text-right shadow-sm">
+                    <div className="child-gift-card-status rounded-[18px] px-3 py-2 text-left shadow-sm">
                       <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/65">
                         兑换状态
                       </div>
