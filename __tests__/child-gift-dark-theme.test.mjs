@@ -255,8 +255,8 @@ test('child gift shows kid-friendly collection sections', { timeout: 120000 }, a
 
   try {
     await page.getByText('我的奖品收藏册').waitFor();
-    await page.getByText('待领取宝贝').waitFor();
-    await page.getByText('已经带回家').waitFor();
+    await page.getByText(/待领取宝贝\s+\d+/).waitFor();
+    await page.getByText(/已经带回家\s+\d+/).waitFor();
     await page.getByText('奖品展示墙').waitFor();
   } finally {
     await context.close();
