@@ -42,6 +42,29 @@ test('login page shows the unified login copy and removes role/register controls
   }
 });
 
+test('login page presents an immersive family growth entry visual', { timeout: 120000 }, async () => {
+  const { browser, context, page } = await openLoginPage({ width: 1440, height: 900 });
+
+  try {
+    await page.locator('.login-hero-stage').waitFor({ state: 'visible' });
+    await page.locator('.login-growth-art').waitFor({ state: 'visible' });
+    await page.getByText('家庭积分成长入口').waitFor({ state: 'visible' });
+    assert.equal(
+      await page.locator('.login-visual-row').count(),
+      0,
+      'old stacked status-card visual should not be used',
+    );
+    assert.equal(
+      await page.locator('.login-mobile-summary').count(),
+      0,
+      'mobile-only fallback text should not leak into desktop layout',
+    );
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
 test('login shell adapts between landscape and portrait layouts', { timeout: 120000 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const landscapeContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
