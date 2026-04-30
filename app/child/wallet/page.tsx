@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/context/AppContext";
 import {
   CalendarDays,
-  ArrowUpRight,
-  ArrowDownLeft,
   Award,
   Wallet,
   ExternalLink,
@@ -13,6 +11,9 @@ import {
   MessageSquareQuote,
   ClipboardList,
   Image as ImageIcon,
+  Sparkles,
+  Compass,
+  Star,
 } from "lucide-react";
 import { Button, DatePicker, Input, TabFilter } from "@/components/ui";
 import Image from "@/components/ui/Image";
@@ -125,6 +126,42 @@ export default function WalletPage() {
     return { income, expense };
   }, [ledgerData]);
 
+  const adventureSummary = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfToday.getDate() - 6);
+
+    let todayIncome = 0;
+    let weekIncome = 0;
+
+    ledgerData.forEach((item) => {
+      const isIncome = item.type === "income" || item.type === "reward";
+      if (!isIncome) return;
+
+      const itemDate = new Date(item.date);
+      if (itemDate >= startOfToday) todayIncome += item.points;
+      if (itemDate >= startOfWeek) weekIncome += item.points;
+    });
+
+    const availablePoints = currentUser?.availablePoints || 0;
+    const currentLevel = Math.max(1, Math.floor(availablePoints / 50) + 1);
+    const currentLevelBase = (currentLevel - 1) * 50;
+    const nextLevelTarget = currentLevel * 50;
+    const progress = Math.min(
+      100,
+      Math.round(((availablePoints - currentLevelBase) / Math.max(1, nextLevelTarget - currentLevelBase)) * 100),
+    );
+
+    return {
+      todayIncome,
+      weekIncome,
+      currentLevel,
+      nextLevelTarget,
+      progress,
+    };
+  }, [currentUser?.availablePoints, ledgerData]);
+
   const quickRanges = [
     {
       label: "近7天",
@@ -167,42 +204,91 @@ export default function WalletPage() {
 
   const hasLedgerData = ledgerData.length > 0;
 
+  const getLedgerStory = (item: LedgerItem) => {
+    if (item.type === "deduction") return "这次被家长扣掉了一些积分";
+    if (item.type === "expense") {
+      if (item.sourceType === "order") return "你用积分兑换了一个奖励";
+      return "这次花掉了一些积分";
+    }
+    if (item.type === "income") return "完成任务后收进了宝箱";
+    if (item.type === "reward") {
+      if (item.sourceType === "task") return "完成任务后收进了宝箱";
+      return "家长给你加了一份惊喜奖励";
+    }
+    return "这是一条新的积分记录";
+  };
+
   return (
     <div className="child-page-grid child-wallet-page">
       <ChildPanel className="child-wallet-hero overflow-hidden">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.75fr)] lg:items-center">
-          <ChildPageTitle
-            icon={<Wallet size={24} />}
-            title="积分钱包"
-            description="看看积分从哪里来，又花到哪里去。"
-          />
-          <div className="child-wallet-points-card rounded-[30px] p-5 text-center">
-            <div className="text-sm font-black text-[var(--child-text-muted)]">当前可用积分</div>
-            <div className="mt-2 text-5xl font-black text-sky-700">
-              🪙 {currentUser?.availablePoints || 0}
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.82fr)] lg:items-center">
+          <div className="space-y-4">
+            <ChildPageTitle
+              icon={<Wallet size={24} />}
+              title="我的积分宝箱"
+              description="每次完成任务，宝箱都会亮一点。来看看你最近收集了多少能量吧。"
+            />
+            <div className="flex flex-wrap gap-2">
+              <span className="child-wallet-hero-chip">
+                <Sparkles size={14} />
+                做任务收金币
+              </span>
+              <span className="child-wallet-hero-chip">
+                <Compass size={14} />
+                看清每一笔去向
+              </span>
+              <span className="child-wallet-hero-chip">
+                <Star size={14} />
+                朝下一级宝箱出发
+              </span>
+            </div>
+          </div>
+          <div className="child-wallet-points-card rounded-[30px] p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-sm font-black text-[var(--child-text-muted)]">宝箱能量</div>
+                <div className="mt-2 text-5xl font-black text-[var(--child-text)]">
+                  🪙 {currentUser?.availablePoints || 0}
+                </div>
+              </div>
+              <div className="child-wallet-level-badge">
+                Lv.{adventureSummary.currentLevel}
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex items-center justify-between gap-3 text-xs font-bold text-[var(--child-text-muted)]">
+                <span>离下一等级还有 {Math.max(0, adventureSummary.nextLevelTarget - (currentUser?.availablePoints || 0))} 积分</span>
+                <span>{adventureSummary.progress}%</span>
+              </div>
+              <div className="child-wallet-progress-track mt-2">
+                <div
+                  className="child-wallet-progress-bar"
+                  style={{ width: `${adventureSummary.progress}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <ChildStatCard
-            label="收入"
-            value={`+${summary.income}`}
-            hint="最近记录"
+            label="今天收集"
+            value={`+${adventureSummary.todayIncome}`}
+            hint="按当前记录页统计"
             tone="emerald"
-            icon={<ArrowUpRight size={18} />}
+            icon={<Sparkles size={18} />}
           />
           <ChildStatCard
-            label="支出"
-            value={`-${summary.expense}`}
-            hint="兑换和扣除"
-            tone="rose"
-            icon={<ArrowDownLeft size={18} />}
-          />
-          <ChildStatCard
-            label="记录"
-            value={ledgerTotal}
-            hint="账本条数"
+            label="本周收集"
+            value={`+${adventureSummary.weekIncome}`}
+            hint="最近 7 天"
             tone="sky"
+            icon={<Compass size={18} />}
+          />
+          <ChildStatCard
+            label="宝箱足迹"
+            value={ledgerTotal}
+            hint={`收入 ${summary.income} / 支出 ${summary.expense}`}
+            tone="amber"
             icon={<Award size={18} />}
           />
         </div>
@@ -211,8 +297,8 @@ export default function WalletPage() {
       <ChildPanel className="child-filter-panel">
         <ChildPageTitle
           icon={<CalendarDays size={22} />}
-          title="筛选记录"
-          description={`当前页 ${ledgerData.length} 条记录`}
+          title="翻翻记录地图"
+          description={`当前页找到 ${ledgerData.length} 条足迹`}
         />
         <div className="mt-4 flex flex-wrap gap-2">
           {quickRanges.map((item) => (
@@ -268,8 +354,8 @@ export default function WalletPage() {
       <ChildPanel className="space-y-4">
         <div className="flex items-end justify-between gap-3">
           <ChildPageTitle
-            title={ledgerLoading ? "正在更新结果" : "结果列表"}
-            description={`共 ${ledgerTotal} 条记录`}
+            title={ledgerLoading ? "正在整理冒险记录" : "积分冒险记录"}
+            description={`共 ${ledgerTotal} 条记录，点开卡片可以看详情`}
           />
           {ledgerLoading ? (
             <div className="child-wallet-loading-chip flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold text-sky-700">
@@ -295,10 +381,10 @@ export default function WalletPage() {
               const isDeduction = item.type === "deduction";
               const isReward = item.type === "reward";
               const tone = isIncome
-                ? "bg-sky-50 border-sky-200"
+                ? "child-wallet-ledger-card-income"
                 : isExpense
-                  ? "bg-rose-50 border-rose-200"
-                  : "bg-emerald-50 border-emerald-200";
+                  ? "child-wallet-ledger-card-expense"
+                  : "child-wallet-ledger-card-reward";
               const textColor = isIncome
                 ? "text-sky-600"
                 : isExpense
@@ -324,24 +410,25 @@ export default function WalletPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") setSelectedLedgerItem(item);
                   }}
-                  className={`child-card group flex cursor-pointer items-center gap-4 transition hover:-translate-y-0.5 ${ledgerLoading ? "opacity-90" : ""} ${tone}`}
+                  className={`child-card child-wallet-ledger-card group flex cursor-pointer items-center gap-4 transition hover:-translate-y-0.5 ${ledgerLoading ? "opacity-90" : ""} ${tone}`}
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-2xl shadow-sm">
+                  <div className="child-wallet-ledger-icon flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-sm">
                     {item.icon || "🪙"}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate font-semibold text-slate-800">{displayName}</p>
+                      <p className="truncate font-semibold text-[var(--child-text)]">{displayName}</p>
                       <ChildStatusPill tone={badgeTone}>{badgeText}</ChildStatusPill>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{formatDate(item.date)}</p>
+                    <p className="mt-1 text-xs font-semibold text-[var(--child-text-muted)]">{getLedgerStory(item)}</p>
+                    <p className="mt-1 text-[11px] text-[var(--child-text-muted)]/80">{formatDate(item.date)}</p>
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-black ${textColor}`}>
                       {sign}
                       {item.points}
                     </p>
-                    <p className="text-[11px] text-slate-400">积分</p>
+                    <p className="text-[11px] text-[var(--child-text-muted)]/80">积分</p>
                   </div>
                 </div>
               );
@@ -366,7 +453,7 @@ export default function WalletPage() {
             >
               上一页
             </Button>
-            <span className="rounded-full bg-white/80 px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+            <span className="child-wallet-pagination-chip rounded-full px-4 py-2 text-sm font-semibold text-[var(--child-text-muted)] shadow-sm">
               {ledgerPage} / {totalPages}
             </span>
             <Button
@@ -395,8 +482,8 @@ export default function WalletPage() {
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="mb-4 flex items-start justify-between gap-4 px-5 pt-5">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">账单详情</p>
-                  <h3 className="mt-1 text-xl font-black text-slate-900">{selectedLedgerItem.name}</h3>
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--child-text-muted)]/80">冒险详情</p>
+                  <h3 className="mt-1 text-xl font-black text-[var(--ui-text-primary)]">{selectedLedgerItem.name}</h3>
                 </div>
                 <button
                   onClick={() => setSelectedLedgerItem(null)}
@@ -410,18 +497,18 @@ export default function WalletPage() {
                 <div className="child-wallet-detail-surface space-y-4 rounded-[1.5rem] p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
+                      <div className="child-wallet-detail-icon flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm">
                         {selectedLedgerItem.icon || "🪙"}
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-700">
+                        <p className="font-semibold text-[var(--ui-text-primary)]">
                           {selectedLedgerItem.type === "income"
                             ? "任务奖励"
                             : selectedLedgerItem.type === "expense"
                               ? "兑换礼物"
                               : "家长反馈"}
                         </p>
-                        <p className="text-xs text-slate-500">{formatDate(selectedLedgerItem.date)}</p>
+                        <p className="text-xs text-[var(--ui-text-muted)]">{formatDate(selectedLedgerItem.date)}</p>
                       </div>
                     </div>
                     <p
@@ -438,36 +525,36 @@ export default function WalletPage() {
 
                   {selectedLedgerItem.sourceType === "task" && selectedLedgerItem.taskDetail ? (
                     <div className="space-y-4">
-                      <div className="rounded-2xl bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <div className="child-wallet-detail-card rounded-2xl p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[var(--ui-text-primary)]">
                           <ClipboardList size={16} className="text-blue-600" />
                           任务内容
                         </div>
-                        <p className="text-sm leading-6 text-slate-600">
+                        <p className="text-sm leading-6 text-[var(--ui-text-secondary)]">
                           {selectedLedgerItem.taskDetail.description || "暂无任务描述"}
                         </p>
                         {selectedLedgerItem.taskDetail.imageUrl && (
-                          <div className="mt-3 flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                            <ImageIcon size={15} className="text-slate-400" />
+                          <div className="child-wallet-detail-note mt-3 flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-[var(--ui-text-secondary)]">
+                            <ImageIcon size={15} className="text-[var(--ui-text-muted)]" />
                             任务包含图片说明
                           </div>
                         )}
                       </div>
 
-                      <div className="rounded-2xl bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <div className="child-wallet-detail-card rounded-2xl p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[var(--ui-text-primary)]">
                           <MessageSquareQuote size={16} className="text-violet-600" />
                           审核过程
                         </div>
                         {selectedLedgerItem.taskDetail.auditHistory.length > 0 ? (
                           <div className="space-y-3">
                             {selectedLedgerItem.taskDetail.auditHistory.map((record, index) => (
-                              <div key={`${record.submittedAt}-${index}`} className="rounded-2xl bg-slate-50 p-3">
+                              <div key={`${record.submittedAt}-${index}`} className="child-wallet-detail-note rounded-2xl p-3">
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="text-xs font-bold text-slate-500">
+                                  <span className="text-xs font-bold text-[var(--ui-text-muted)]">
                                     第 {index + 1} 次提交
                                   </span>
-                                  <span className="rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600">
+                                  <span className="child-wallet-detail-mini-pill rounded-full px-2 py-1 text-[10px] font-bold text-[var(--ui-text-secondary)]">
                                     {record.status === "approved"
                                       ? "通过"
                                       : record.status === "rejected"
@@ -475,11 +562,11 @@ export default function WalletPage() {
                                         : "审核中"}
                                   </span>
                                 </div>
-                                <p className="mt-2 text-xs text-slate-500">提交时间: {formatDate(record.submittedAt)}</p>
+                                <p className="mt-2 text-xs text-[var(--ui-text-muted)]">提交时间: {formatDate(record.submittedAt)}</p>
                                 {record.photoUrl && (
                                   <div className="mt-2">
-                                    <p className="mb-1 text-xs text-slate-500">提交的照片：</p>
-                                    <div className="h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                                    <p className="mb-1 text-xs text-[var(--ui-text-muted)]">提交的照片：</p>
+                                    <div className="child-wallet-photo-frame h-24 w-24 overflow-hidden rounded-xl shadow-sm">
                                       <Image
                                         src={record.photoUrl}
                                         alt={`第 ${index + 1} 次提交的照片`}
@@ -490,12 +577,12 @@ export default function WalletPage() {
                                     </div>
                                   </div>
                                 )}
-                                {record.auditNote && <p className="mt-2 text-sm text-slate-700">{record.auditNote}</p>}
+                                {record.auditNote && <p className="mt-2 text-sm text-[var(--ui-text-primary)]">{record.auditNote}</p>}
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-slate-500">暂无审核记录</p>
+                          <p className="text-sm text-[var(--ui-text-muted)]">暂无审核记录</p>
                         )}
                       </div>
 
@@ -506,12 +593,12 @@ export default function WalletPage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="rounded-2xl bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <div className="child-wallet-detail-card rounded-2xl p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[var(--ui-text-primary)]">
                           <MessageSquareQuote size={16} className="text-rose-600" />
                           家长反馈
                         </div>
-                        <p className="text-sm leading-6 text-slate-600">
+                        <p className="text-sm leading-6 text-[var(--ui-text-secondary)]">
                           {selectedLedgerItem.feedback || "暂无反馈内容"}
                         </p>
                       </div>
@@ -542,8 +629,8 @@ export default function WalletPage() {
           >
             <div className="mb-4 flex items-start justify-between gap-4 px-5 pt-5">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">任务详情</p>
-                <h3 className="mt-1 text-xl font-black text-slate-900">{selectedLedgerItem.taskDetail.name}</h3>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--child-text-muted)]/80">任务详情</p>
+                <h3 className="mt-1 text-xl font-black text-[var(--ui-text-primary)]">{selectedLedgerItem.taskDetail.name}</h3>
               </div>
               <button
                 onClick={() => setShowTaskDetailModal(false)}
@@ -557,39 +644,39 @@ export default function WalletPage() {
               <div className="child-wallet-detail-surface rounded-[1.5rem] p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm">
+                    <div className="child-wallet-detail-icon flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm">
                       {selectedLedgerItem.taskDetail.icon || "⭐"}
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-700">任务内容</p>
-                      <p className="text-xs text-slate-500">{formatDate(selectedLedgerItem.date)}</p>
+                      <p className="font-semibold text-[var(--ui-text-primary)]">任务内容</p>
+                      <p className="text-xs text-[var(--ui-text-muted)]">{formatDate(selectedLedgerItem.date)}</p>
                     </div>
                   </div>
                   <p className="text-2xl font-black text-sky-600">+{selectedLedgerItem.taskDetail.points}</p>
                 </div>
-                <p className="mt-4 text-sm leading-6 text-slate-600">
+                <p className="mt-4 text-sm leading-6 text-[var(--ui-text-secondary)]">
                   {selectedLedgerItem.taskDetail.description || "暂无任务描述"}
                 </p>
                 {selectedLedgerItem.taskDetail.imageUrl && (
-                  <div className="mt-3 flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm text-slate-600">
-                    <ImageIcon size={15} className="text-slate-400" />
+                  <div className="child-wallet-detail-note mt-3 flex items-center gap-2 rounded-2xl px-3 py-2 text-sm text-[var(--ui-text-secondary)]">
+                    <ImageIcon size={15} className="text-[var(--ui-text-muted)]" />
                     任务包含图片说明
                   </div>
                 )}
               </div>
 
-              <div className="rounded-[1.5rem] bg-white p-4 shadow-sm">
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <div className="child-wallet-detail-card rounded-[1.5rem] p-4 shadow-sm">
+                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-[var(--ui-text-primary)]">
                   <MessageSquareQuote size={16} className="text-violet-600" />
                   审核过程
                 </div>
                 {selectedLedgerItem.taskDetail.auditHistory.length > 0 ? (
                   <div className="space-y-3">
                     {selectedLedgerItem.taskDetail.auditHistory.map((record, index) => (
-                      <div key={`${record.submittedAt}-${index}`} className="rounded-2xl bg-slate-50 p-3">
+                      <div key={`${record.submittedAt}-${index}`} className="child-wallet-detail-note rounded-2xl p-3">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-slate-500">第 {index + 1} 次提交</span>
-                          <span className="rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-600">
+                          <span className="text-xs font-bold text-[var(--ui-text-muted)]">第 {index + 1} 次提交</span>
+                          <span className="child-wallet-detail-mini-pill rounded-full px-2 py-1 text-[10px] font-bold text-[var(--ui-text-secondary)]">
                             {record.status === "approved"
                               ? "通过"
                               : record.status === "rejected"
@@ -597,11 +684,11 @@ export default function WalletPage() {
                                 : "审核中"}
                           </span>
                         </div>
-                        <p className="mt-2 text-xs text-slate-500">提交时间: {formatDate(record.submittedAt)}</p>
+                        <p className="mt-2 text-xs text-[var(--ui-text-muted)]">提交时间: {formatDate(record.submittedAt)}</p>
                         {record.photoUrl && (
                           <div className="mt-2">
-                            <p className="mb-1 text-xs text-slate-500">提交的照片：</p>
-                            <div className="h-24 w-24 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                            <p className="mb-1 text-xs text-[var(--ui-text-muted)]">提交的照片：</p>
+                            <div className="child-wallet-photo-frame h-24 w-24 overflow-hidden rounded-xl shadow-sm">
                               <Image
                                 src={record.photoUrl}
                                 alt={`第 ${index + 1} 次提交的照片`}
@@ -612,12 +699,12 @@ export default function WalletPage() {
                             </div>
                           </div>
                         )}
-                        {record.auditNote && <p className="mt-2 text-sm text-slate-700">{record.auditNote}</p>}
+                        {record.auditNote && <p className="mt-2 text-sm text-[var(--ui-text-primary)]">{record.auditNote}</p>}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500">暂无审核记录</p>
+                  <p className="text-sm text-[var(--ui-text-muted)]">暂无审核记录</p>
                 )}
               </div>
             </div>

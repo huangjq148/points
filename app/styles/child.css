@@ -170,6 +170,46 @@
   box-shadow: var(--child-shadow-card);
 }
 
+.child-wallet-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--child-border) 88%, #ffffff 12%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--child-surface-strong) 82%, #ffffff 18%);
+  padding: 8px 12px;
+  color: var(--child-text);
+  box-shadow: var(--ui-shadow-sm);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.child-wallet-level-badge {
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(254, 240, 138, 0.9), rgba(251, 191, 36, 0.88));
+  color: #7c2d12;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 12px 24px rgba(245, 158, 11, 0.18);
+}
+
+.child-wallet-progress-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid var(--child-border);
+  background: color-mix(in srgb, var(--child-surface-muted) 88%, #ffffff 12%);
+}
+
+.child-wallet-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e 0%, #38bdf8 52%, #fbbf24 100%);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.22);
+}
+
 .child-wallet-range-button {
   border: 1px solid var(--child-border);
   background: var(--child-surface-strong);
@@ -190,6 +230,45 @@
   box-shadow: var(--ui-shadow-sm);
 }
 
+.child-wallet-ledger-card {
+  border-width: 1px;
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-wallet-ledger-card-income {
+  border-color: color-mix(in srgb, #38bdf8 34%, var(--child-border) 66%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 82%, #ffffff 18%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 80%, #38bdf8 20%) 100%
+  );
+}
+
+.child-wallet-ledger-card-expense {
+  border-color: color-mix(in srgb, #fb7185 30%, var(--child-border) 70%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 82%, #ffffff 18%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 82%, #fb7185 18%) 100%
+  );
+}
+
+.child-wallet-ledger-card-reward {
+  border-color: color-mix(in srgb, #34d399 34%, var(--child-border) 66%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 82%, #ffffff 18%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 78%, #34d399 22%) 100%
+  );
+}
+
+.child-wallet-ledger-icon,
+.child-wallet-detail-icon {
+  border: 1px solid var(--child-border);
+  background: color-mix(in srgb, var(--child-surface-strong) 90%, #ffffff 10%);
+  color: var(--child-text);
+}
+
 .child-wallet-detail-modal {
   border: 1px solid var(--ui-border);
   background: var(--ui-panel-bg);
@@ -201,6 +280,26 @@
   border: 1px solid var(--child-border);
   background: var(--child-surface-muted);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.child-wallet-detail-card {
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface-1);
+}
+
+.child-wallet-detail-note {
+  border: 1px solid color-mix(in srgb, var(--ui-border) 88%, transparent 12%);
+  background: var(--ui-surface-2);
+}
+
+.child-wallet-detail-mini-pill {
+  border: 1px solid color-mix(in srgb, var(--ui-border) 88%, transparent 12%);
+  background: var(--ui-surface-1);
+}
+
+.child-wallet-photo-frame {
+  border: 1px solid color-mix(in srgb, var(--ui-border) 88%, transparent 12%);
+  background: var(--ui-surface-1);
 }
 
 .child-wallet-detail-close {

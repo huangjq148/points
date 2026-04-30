@@ -286,9 +286,70 @@ test('child wallet keeps wallet surfaces dark in dark theme', { timeout: 120000 
     );
 
     await page.getByText('暗色钱包奖励').first().click();
-    await page.getByText('账单详情').waitFor();
+    await page.getByText('冒险详情').waitFor();
     await expectDarkSurface(page.locator('.child-wallet-detail-modal').first(), 'Wallet detail modal');
     await expectDarkSurface(page.locator('.child-wallet-detail-surface').first(), 'Wallet detail inner surface');
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+test('child wallet shows kid-friendly wallet storytelling sections', { timeout: 120000 }, async () => {
+  const { parentLogin, childUsername, childId } = await createParentAndChild('child_wallet_story');
+
+  await api('/api/points/reward', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      childId,
+      points: 66,
+      reason: 'child wallet storytelling setup',
+    }),
+  });
+
+  const childLogin = await loginChild(childUsername);
+  const rewardData = await api('/api/rewards', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${parentLogin.token}`,
+    },
+    body: JSON.stringify({
+      name: '故事测试奖励',
+      description: '测试钱包文案映射',
+      points: 12,
+      type: 'privilege',
+      icon: '🎈',
+      stock: 3,
+      expiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      validDurationValue: 2,
+      validDurationUnit: 'day',
+    }),
+  });
+
+  await api('/api/orders', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${childLogin.token}`,
+    },
+    body: JSON.stringify({
+      rewardId: rewardData.reward._id,
+    }),
+  });
+
+  const { browser, context, page } = await openDarkChildWallet({
+    ...childLogin.user,
+    token: childLogin.token,
+  });
+
+  try {
+    await page.getByText('我的积分宝箱').waitFor();
+    await page.getByText('今天收集').waitFor();
+    await page.getByText('本周收集').waitFor();
+    await page.getByText('积分冒险记录').waitFor();
+    await page.getByText('你用积分兑换了一个奖励').waitFor();
   } finally {
     await context.close();
     await browser.close();
