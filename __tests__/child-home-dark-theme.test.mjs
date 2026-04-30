@@ -23,6 +23,26 @@ async function api(path, options = {}) {
 }
 
 function getBrightness(backgroundColor) {
+  const hexMatch = backgroundColor.match(/^#([0-9a-f]{3,8})$/i);
+  if (hexMatch) {
+    const hex = hexMatch[1];
+    const expand = (value) => value.split('').map((char) => char + char).join('');
+    const normalizedHex =
+      hex.length === 3 || hex.length === 4 ? expand(hex) : hex;
+
+    const hasAlpha = normalizedHex.length === 8;
+    const rgbHex = hasAlpha ? normalizedHex.slice(0, 6) : normalizedHex;
+    const alphaHex = hasAlpha ? normalizedHex.slice(6, 8) : null;
+    const r = Number.parseInt(rgbHex.slice(0, 2), 16);
+    const g = Number.parseInt(rgbHex.slice(2, 4), 16);
+    const b = Number.parseInt(rgbHex.slice(4, 6), 16);
+    const alpha = alphaHex ? Number.parseInt(alphaHex, 16) / 255 : 1;
+
+    if ([r, g, b].some((value) => Number.isNaN(value)) || alpha <= 0) return null;
+
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+
   const rgbMatch = backgroundColor.match(/rgba?\(([^)]+)\)/);
   if (rgbMatch) {
     const [r, g, b] = rgbMatch[1]
@@ -39,6 +59,14 @@ function getBrightness(backgroundColor) {
     const lightness = Number.parseFloat(oklabMatch[1]);
     if (Number.isNaN(lightness)) return null;
     return lightness * 255;
+  }
+
+  const srgbMatch = backgroundColor.match(/color\(srgb\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)(?:\s*\/\s*([0-9.]+))?/);
+  if (srgbMatch) {
+    const [, r, g, b, a] = srgbMatch.map((value) => (value === undefined ? value : Number.parseFloat(value)));
+    if ([r, g, b].some((value) => Number.isNaN(value))) return null;
+    if (a !== undefined && !Number.isNaN(a) && a <= 0) return null;
+    return 0.299 * r * 255 + 0.587 * g * 255 + 0.114 * b * 255;
   }
 
   return null;
@@ -255,6 +283,48 @@ test('child homepage keeps submit task modal dark in dark theme', { timeout: 120
   }
 });
 
+test('child homepage keeps task detail modal dark in dark theme', { timeout: 120000 }, async () => {
+  const { parentLogin, childUsername, childId } = await createParentAndChild('task_detail');
+
+  const task = await createTask(parentLogin.token, childId, {
+    name: '夜间任务详情',
+    description: '测试任务详情弹窗暗色样式',
+  });
+
+  const childLogin = await loginChild(childUsername);
+  await api('/api/tasks', {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${childLogin.token}`,
+    },
+    body: JSON.stringify({
+      taskId: task.task._id,
+      status: 'submitted',
+    }),
+  });
+
+  const { browser, context, page } = await openDarkChildHome({
+    ...childLogin.user,
+    token: childLogin.token,
+  });
+
+  try {
+    await page.getByRole('button', { name: /夜间任务详情/ }).click();
+    await page.getByText('测试任务详情弹窗暗色样式').waitFor();
+    await expectDarkSurface(
+      page.getByText('测试任务详情弹窗暗色样式').locator('xpath=ancestor::div[contains(@class,"modal-content")]').first(),
+      'Task detail modal panel',
+    );
+    await expectDarkSurface(
+      page.getByText('任务描述').locator('xpath=ancestor::div[contains(@class,"rounded-2xl")]').first(),
+      'Task detail content block',
+    );
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
 test('child homepage keeps privilege reward cards dark in dark theme', { timeout: 120000 }, async () => {
   const { parentLogin, childUsername, childId } = await createParentAndChild('privilege');
   const childLoginForOrders = await loginChild(childUsername);
@@ -290,6 +360,34 @@ test('child homepage keeps privilege reward cards dark in dark theme', { timeout
     await expectDarkSurface(
       page.getByText('特权详情').locator('xpath=ancestor::div[contains(@class,"w-full") and contains(@class,"overflow-hidden")]').first(),
       'Privilege detail modal panel',
+    );
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
+test('child homepage keeps child switcher and child sign-in modals dark in dark theme', { timeout: 120000 }, async () => {
+  const { childUsername } = await createParentAndChild('child_switcher');
+  const childLogin = await loginChild(childUsername);
+  const { browser, context, page } = await openDarkChildHome({
+    ...childLogin.user,
+    token: childLogin.token,
+  });
+
+  try {
+    await page.getByRole('button', { name: '切换孩子' }).click();
+    await page.getByText('选择要切换的孩子').waitFor();
+    await expectDarkSurface(
+      page.getByText('选择要切换的孩子').locator('xpath=ancestor::div[contains(@class,"max-w-sm")]').first(),
+      'Child switcher modal panel',
+    );
+
+    await page.getByRole('button', { name: '添加/切换孩子账号' }).click();
+    await page.getByText('登录后会保留之前已登录的孩子账号').waitFor();
+    await expectDarkSurface(
+      page.getByText('登录后会保留之前已登录的孩子账号').locator('xpath=ancestor::div[contains(@class,"max-w-sm")]').first(),
+      'Child sign-in modal panel',
     );
   } finally {
     await context.close();

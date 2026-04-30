@@ -780,12 +780,12 @@ export default function ChildHome() {
           onClose={() => setShowTaskDetail(null)}
           showCloseButton={false}
           width={500}
-          className='!bg-white !backdrop-blur-xl !border-gray-200'
+          className='child-task-detail-modal !backdrop-blur-xl'
           footer={
             selectedTask?.status === 'pending' ||
               selectedTask?.status === 'rejected' ? (
               <button
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 shadow-xl hover:shadow-blue-500/25 transition-shadow'
+                className='w-full rounded-2xl border border-[color:var(--child-border-strong)] bg-[linear-gradient(90deg,#0ea5e9_0%,#2563eb_52%,#4f46e5_100%)] py-4 text-lg font-black text-white shadow-[0_18px_38px_rgba(37,99,235,0.26)] transition hover:brightness-105'
                 onClick={() => openSubmitModal(selectedTask!)}
               >
                 {selectedTask?.status === 'rejected'
@@ -795,14 +795,14 @@ export default function ChildHome() {
             ) : selectedTask?.status === 'submitted' ? (
               <button
                 disabled={!!selectedTask && recallingTaskId === selectedTask._id}
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-xl hover:shadow-orange-500/25 transition-shadow disabled:cursor-not-allowed disabled:opacity-60'
+                className='w-full rounded-2xl border border-[color:rgba(251,191,36,0.34)] bg-[linear-gradient(90deg,#f59e0b_0%,#f97316_50%,#fb7185_100%)] py-4 text-lg font-black text-white shadow-[0_18px_38px_rgba(249,115,22,0.24)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60'
                 onClick={() => handleRecallTask(selectedTask!)}
               >
                 {selectedTask && recallingTaskId === selectedTask._id ? '🔙 撤回中...' : '🔙 撤回修改'}
               </button>
             ) : (
               <button
-                className='w-full py-4 !rounded-2xl font-bold text-lg text-white bg-gradient-to-r from-slate-600 to-slate-800 shadow-xl'
+                className='w-full rounded-2xl border border-[color:var(--child-border)] bg-[var(--child-surface-muted)] py-4 text-lg font-black text-[var(--child-text)] shadow-[var(--child-shadow-card)]'
                 onClick={() => setShowTaskDetail(null)}
               >
                 知道啦
@@ -814,25 +814,25 @@ export default function ChildHome() {
             <>
               {/* 任务基本信息 - 固定在顶部 */}
               <div className='flex items-center gap-5 mb-6'>
-                <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-[2rem] flex items-center justify-center text-6xl shadow-inner border border-blue-200'>
+                <div className='child-task-detail-hero flex h-24 w-24 items-center justify-center rounded-[2rem] text-6xl shadow-inner'>
                   {selectedTask.icon}
                 </div>
                 <div className='flex-1'>
-                  <h3 className='text-2xl font-black text-gray-800 leading-tight'>
+                  <h3 className='text-2xl font-black text-[var(--child-text)] leading-tight'>
                     {selectedTask.name}
                   </h3>
                   <div className='flex items-center gap-2 mt-2 flex-wrap'>
-                    <span className='text-amber-500 font-black text-lg'>
+                    <span className='text-lg font-black text-amber-500'>
                       +{selectedTask.points}
                     </span>
                     <span
-                      className={`text-xs px-3 py-1.5 rounded-full font-black flex items-center gap-1 ${selectedTask.status === 'approved'
-                          ? 'bg-green-100 text-green-600'
+                      className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-black ${selectedTask.status === 'approved'
+                          ? 'bg-[color:rgba(16,185,129,0.14)] text-emerald-700 ring-1 ring-[color:rgba(110,231,183,0.24)]'
                           : selectedTask.status === 'submitted'
-                            ? 'bg-blue-100 text-blue-600'
+                            ? 'bg-[color:rgba(14,165,233,0.14)] text-sky-700 ring-1 ring-[color:rgba(125,211,252,0.24)]'
                             : selectedTask.status === 'rejected'
-                              ? 'bg-red-100 text-red-600'
-                              : 'bg-slate-100 text-slate-600'
+                              ? 'bg-[color:rgba(244,63,94,0.14)] text-rose-700 ring-1 ring-[color:rgba(253,164,175,0.24)]'
+                              : 'bg-[var(--child-surface-muted)] text-[var(--child-text-muted)] ring-1 ring-[color:var(--child-border)]'
                         }`}
                     >
                       {selectedTask.status === 'approved'
@@ -852,10 +852,10 @@ export default function ChildHome() {
                 {selectedTask.imageUrl ||
                   selectedTask.description ||
                   selectedTask.requirePhoto ? (
-                  <div className='bg-gray-50 p-5 rounded-2xl border border-gray-200'>
+                  <div className='child-task-detail-surface rounded-2xl p-5'>
                     {selectedTask.imageUrl ? (
                       <>
-                        <h4 className='text-xs font-black text-gray-500 uppercase tracking-wider mb-2'>
+                        <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-[var(--child-text-muted)]'>
                           任务图片
                         </h4>
                         <div className='relative aspect-video rounded-xl overflow-hidden mb-6'>
@@ -873,19 +873,19 @@ export default function ChildHome() {
 
                     {selectedTask.description ? (
                       <>
-                        <h4 className='text-xs font-black text-gray-500 uppercase tracking-wider mb-2'>
+                        <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-[var(--child-text-muted)]'>
                           任务描述
                         </h4>
-                        <p className='text-gray-700 font-medium leading-relaxed'>
+                        <p className='font-medium leading-relaxed text-[var(--child-text)]'>
                           {selectedTask.description || '快去完成这个任务吧！'}
                         </p>
                       </>
                     ) : null}
 
                     {selectedTask.requirePhoto && (
-                      <div className='mt-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-xl border border-amber-200'>
-                        <span className='text-amber-500'>📸</span>
-                        <span className='text-sm font-bold text-amber-600'>
+                      <div className='child-task-detail-tip mt-3 flex items-center gap-2 rounded-xl px-3 py-2'>
+                        <span>📸</span>
+                        <span className='text-sm font-bold'>
                           需要上传照片才能完成
                         </span>
                       </div>
@@ -902,8 +902,8 @@ export default function ChildHome() {
                           selectedTask.status === 'submitted' ||
                           selectedTask.status === 'rejected') &&
                           selectedTask.photoUrl && (
-                            <div className='bg-blue-50 p-5 rounded-2xl mb-4 border border-blue-200'>
-                              <h4 className='text-xs font-black text-blue-600 uppercase tracking-wider mb-2'>
+                            <div className='child-task-detail-card child-task-detail-photo-card mb-4 rounded-2xl p-5'>
+                              <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-sky-700'>
                                 📸 提交的照片
                               </h4>
                               <div className='relative aspect-video rounded-xl overflow-hidden'>
@@ -919,8 +919,8 @@ export default function ChildHome() {
                             </div>
                           )}
 
-                        <div className='bg-green-50 p-5 rounded-2xl border border-green-200'>
-                          <h4 className='text-xs font-black text-green-600 uppercase tracking-wider mb-2'>
+                        <div className='child-task-detail-card child-task-detail-audit-card rounded-2xl p-5'>
+                          <h4 className='mb-2 text-xs font-black uppercase tracking-wider text-emerald-700'>
                             {selectedTask.status === 'approved'
                               ? '✅ 审核通过'
                               : selectedTask.status === 'rejected'
@@ -930,10 +930,10 @@ export default function ChildHome() {
                           <div className='space-y-2'>
                             {selectedTask.submittedAt && (
                               <div className='flex justify-between items-center'>
-                                <span className='text-sm text-gray-500'>
+                                <span className='text-sm text-[var(--child-text-muted)]'>
                                   提交时间
                                 </span>
-                                <span className='text-sm font-bold text-gray-800'>
+                                <span className='text-sm font-bold text-[var(--child-text)]'>
                                   {dayjs(selectedTask.submittedAt).format(
                                     'M月D日 HH:mm',
                                   )}
@@ -943,7 +943,7 @@ export default function ChildHome() {
                             {selectedTask.status === 'approved' &&
                               selectedTask.approvedAt && (
                                 <div className='flex justify-between items-center'>
-                                  <span className='text-sm text-gray-500'>
+                                  <span className='text-sm text-[var(--child-text-muted)]'>
                                     审核时间
                                   </span>
                                   <span className='text-sm font-bold text-green-600'>
@@ -955,7 +955,7 @@ export default function ChildHome() {
                               )}
                             {selectedTask.rejectionReason && (
                               <div className='flex justify-between items-center'>
-                                <span className='text-sm text-gray-500'>
+                                <span className='text-sm text-[var(--child-text-muted)]'>
                                   审核意见
                                 </span>
                                 <span className='text-sm font-bold text-red-600'>
@@ -973,19 +973,19 @@ export default function ChildHome() {
                 {selectedTask.auditHistory &&
                   selectedTask.auditHistory.length > 0 && (
                     <div>
-                      <div className='bg-gray-50 p-5 rounded-2xl border border-gray-200'>
-                        <h4 className='text-xs font-black text-gray-500 uppercase tracking-wider mb-4'>
+                      <div className='child-task-detail-surface rounded-2xl p-5'>
+                        <h4 className='mb-4 text-xs font-black uppercase tracking-wider text-[var(--child-text-muted)]'>
                           📋 操作记录 ({selectedTask.auditHistory.length})
                         </h4>
                         <div className='space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar'>
                           {selectedTask.auditHistory.map((record, index) => (
                             <div
                               key={record._id || index}
-                              className={`relative pl-4 pb-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-gray-200' : ''}`}
+                              className={`child-task-detail-timeline relative rounded-[18px] pl-4 pb-3 pt-3 pr-3 ${index !== selectedTask.auditHistory!.length - 1 ? 'border-l-2 border-[color:var(--child-border)]' : ''}`}
                             >
                               {/* 时间线节点 */}
                               <div
-                                className={`absolute left-0 top-0 w-3 h-3 rounded-full border-2 border-white shadow-sm ${record.status === 'approved'
+                                className={`absolute left-0 top-3 h-3 w-3 rounded-full border-2 border-white shadow-sm ${record.status === 'approved'
                                     ? 'bg-green-500'
                                     : record.status === 'rejected'
                                       ? 'bg-red-500'
@@ -996,33 +996,33 @@ export default function ChildHome() {
 
                               <div className='ml-2'>
                                 <div className='flex items-center gap-2 mb-1'>
-                                  <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                  <span className='rounded-full bg-[color:rgba(14,165,233,0.14)] px-2 py-0.5 text-xs font-bold text-sky-700'>
                                     第{' '}
                                     {selectedTask.auditHistory!.length - index}{' '}
                                     次操作
                                   </span>
                                   {record.status === 'approved' ? (
-                                    <span className='text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full'>
+                                    <span className='rounded-full bg-[color:rgba(16,185,129,0.14)] px-2 py-0.5 text-xs font-bold text-emerald-700'>
                                       通过
                                     </span>
                                   ) : record.status === 'rejected' ? (
-                                    <span className='text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full'>
+                                    <span className='rounded-full bg-[color:rgba(244,63,94,0.14)] px-2 py-0.5 text-xs font-bold text-rose-700'>
                                       驳回
                                     </span>
                                   ) : (
-                                    <span className='text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full'>
+                                    <span className='rounded-full bg-[color:rgba(14,165,233,0.14)] px-2 py-0.5 text-xs font-bold text-sky-700'>
                                       审核中
                                     </span>
                                   )}
                                 </div>
-                                <p className='text-xs text-gray-500 mb-1'>
+                                <p className='mb-1 text-xs text-[var(--child-text-muted)]'>
                                   提交:{' '}
                                   {dayjs(record.submittedAt).format(
                                     'M月D日 HH:mm',
                                   )}
                                 </p>
                                 {record.auditedAt && (
-                                  <p className='text-xs text-gray-500 mb-1'>
+                                  <p className='mb-1 text-xs text-[var(--child-text-muted)]'>
                                     审核:{' '}
                                     {dayjs(record.auditedAt).format(
                                       'M月D日 HH:mm',
@@ -1032,10 +1032,10 @@ export default function ChildHome() {
                                 {/* 提交的照片 */}
                                 {record.photoUrl && (
                                   <div className='mt-2'>
-                                    <p className='text-xs text-gray-500 mb-1'>
+                                    <p className='mb-1 text-xs text-[var(--child-text-muted)]'>
                                       提交的照片：
                                     </p>
-                                    <div className='w-24 h-24 rounded-xl overflow-hidden border-2 border-blue-200 shadow-sm'>
+                                    <div className='h-24 w-24 overflow-hidden rounded-xl border-2 border-[color:rgba(96,165,250,0.34)] shadow-sm'>
                                       <Image
                                         src={record.photoUrl}
                                         alt={`第 ${index + 1} 次提交的照片`}
@@ -1049,11 +1049,11 @@ export default function ChildHome() {
 
                                 {/* 审核意见 */}
                                 {record.auditNote && (
-                                  <div className='mt-2 bg-white rounded-lg p-2 border border-gray-200'>
-                                    <p className='text-xs text-gray-500 mb-1'>
+                                  <div className='child-task-detail-comment mt-2 rounded-lg p-2'>
+                                    <p className='mb-1 text-xs text-[var(--child-text-muted)]'>
                                       家长意见：
                                     </p>
-                                    <p className='text-xs text-gray-700'>
+                                    <p className='text-xs text-[var(--child-text)]'>
                                       {record.auditNote}
                                     </p>
                                   </div>

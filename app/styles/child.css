@@ -462,8 +462,13 @@
   color: #fff;
 }
 
+.child-gift-modal-shell {
+  border: 1px solid rgba(71, 85, 105, 0.72) !important;
+  background: rgba(15, 23, 42, 0.96) !important;
+}
+
 .child-gift-detail-modal {
-  background: var(--ui-panel-bg);
+  background: rgba(15, 23, 42, 0.96);
 }
 
 .child-gift-detail-hero {
@@ -484,12 +489,12 @@
 
 .child-gift-detail-callout {
   border: 1px solid color-mix(in srgb, #fbbf24 32%, var(--ui-border) 68%);
-  background: color-mix(in srgb, var(--ui-surface-1) 84%, #fef3c7 16%);
+  background: rgba(51, 65, 85, 0.88);
 }
 
 .child-gift-detail-card {
-  border: 1px solid var(--ui-border);
-  background: var(--ui-surface-1);
+  border: 1px solid rgba(71, 85, 105, 0.72);
+  background: rgba(30, 41, 59, 0.92);
 }
 
 .child-task-submit-modal {
@@ -700,6 +705,163 @@ body.child-theme-dark .child-topbar-points-value {
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 800;
+}
+
+.child-overlay-panel {
+  border: 1px solid var(--child-border);
+  background: var(--child-surface-strong);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-soft);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.child-overlay-panel-soft {
+  border: 1px solid var(--child-border);
+  background: var(--child-surface-muted);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-overlay-icon {
+  border: 1px solid var(--child-border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 82%, #ffffff 18%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 76%, var(--child-primary) 24%) 100%
+  );
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-overlay-note {
+  border: 1px solid color-mix(in srgb, var(--child-border) 88%, transparent 12%);
+  background: color-mix(in srgb, var(--child-surface-strong) 90%, #ffffff 10%);
+  color: var(--child-text-muted);
+}
+
+.child-overlay-action {
+  border: 1px solid var(--child-border);
+  background: var(--child-surface-muted);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-overlay-action:hover {
+  background: color-mix(in srgb, var(--child-surface-muted) 82%, var(--child-primary) 18%);
+}
+
+.child-overlay-action-danger {
+  border-color: color-mix(in srgb, var(--child-border-strong) 56%, #fb7185 44%);
+  background: color-mix(in srgb, var(--child-surface-strong) 72%, #fb7185 28%);
+  color: color-mix(in srgb, var(--child-text) 72%, #fecdd3 28%);
+}
+
+.child-settings-modal {
+  border: 1px solid var(--child-border);
+  background: var(--child-surface-strong);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-soft);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+.child-settings-hero {
+  border-bottom: 1px solid color-mix(in srgb, var(--child-border) 78%, transparent 22%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 84%, #ffffff 16%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 72%, #38bdf8 28%) 54%,
+    color-mix(in srgb, var(--child-surface-muted) 72%, #2dd4bf 28%) 100%
+  );
+}
+
+.child-settings-tile {
+  border: 1px solid var(--child-border);
+  background: color-mix(in srgb, var(--child-surface-strong) 90%, #ffffff 10%);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-settings-tile:hover {
+  background: color-mix(in srgb, var(--child-surface-muted) 82%, var(--child-primary) 18%);
+}
+
+.child-settings-section {
+  border: 1px solid var(--child-border);
+  background: color-mix(in srgb, var(--child-surface-strong) 92%, #ffffff 8%);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-settings-row {
+  border: 1px solid color-mix(in srgb, var(--child-border) 88%, transparent 12%);
+  background: color-mix(in srgb, var(--child-surface-strong) 94%, #ffffff 6%);
+  color: var(--child-text);
+}
+
+.child-task-detail-modal {
+  border: 1px solid var(--child-border) !important;
+  background: var(--child-surface-strong) !important;
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-soft);
+}
+
+.child-task-detail-hero {
+  border: 1px solid var(--child-border);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--child-surface-strong) 84%, #ffffff 16%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 76%, #38bdf8 24%) 52%,
+    color-mix(in srgb, var(--child-surface-muted) 78%, #fbbf24 22%) 100%
+  );
+}
+
+.child-task-detail-surface {
+  border: 1px solid var(--child-border);
+  background: color-mix(in srgb, var(--child-surface-strong) 92%, #ffffff 8%);
+  color: var(--child-text);
+  box-shadow: var(--child-shadow-card);
+}
+
+.child-task-detail-card {
+  border: 1px solid color-mix(in srgb, var(--child-border) 88%, transparent 12%);
+  background: color-mix(in srgb, var(--child-surface-strong) 94%, #ffffff 6%);
+  color: var(--child-text);
+}
+
+.child-task-detail-photo-card {
+  border-color: color-mix(in srgb, var(--child-border-strong) 62%, #60a5fa 38%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--child-surface-strong) 84%, #dbeafe 16%) 0%,
+    color-mix(in srgb, var(--child-surface) 92%, #ffffff 8%) 100%
+  );
+}
+
+.child-task-detail-audit-card {
+  border-color: color-mix(in srgb, var(--child-border-strong) 62%, #34d399 38%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--child-surface-strong) 84%, #d1fae5 16%) 0%,
+    color-mix(in srgb, var(--child-surface) 92%, #ffffff 8%) 100%
+  );
+}
+
+.child-task-detail-tip {
+  border: 1px solid color-mix(in srgb, var(--child-border-strong) 58%, #fbbf24 42%);
+  background: color-mix(in srgb, var(--child-surface-strong) 76%, #f59e0b 24%);
+  color: color-mix(in srgb, var(--child-text) 72%, #fde68a 28%);
+}
+
+.child-task-detail-timeline {
+  border: 1px solid color-mix(in srgb, var(--child-border) 88%, transparent 12%);
+  background: color-mix(in srgb, var(--child-surface-strong) 94%, #ffffff 6%);
+}
+
+.child-task-detail-comment {
+  border: 1px solid color-mix(in srgb, var(--child-border) 88%, transparent 12%);
+  background: color-mix(in srgb, var(--child-surface-muted) 88%, #ffffff 12%);
 }
 
 .child-app .hide-scrollbar::-webkit-scrollbar {

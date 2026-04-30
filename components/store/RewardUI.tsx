@@ -216,6 +216,14 @@ export function RewardCard({
       }
     : undefined;
   const pointsValueStyle = childVariant ? { color: "var(--child-text)" } : undefined;
+  const titleClassName = childVariant ? "text-[var(--child-text)]" : "text-slate-900";
+  const descriptionClassName = childVariant
+    ? description
+      ? "text-[var(--child-text-muted)]"
+      : "text-[color:color-mix(in_srgb,var(--child-text-muted)_72%,#ffffff_28%)]"
+    : description
+      ? "text-slate-600"
+      : "text-slate-400";
   const stockStyle = childVariant
     ? muted
       ? {
@@ -256,8 +264,8 @@ export function RewardCard({
         <div className="min-w-0 flex-1 pt-0.5">
           <div className={splitHeader ? "grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3" : "flex items-start justify-between gap-3"}>
             <div className="min-w-0">
-              <h3 className={`${rowMode ? "text-[17px]" : "text-[18px]"} truncate font-bold tracking-tight text-slate-900 leading-none`}>{title}</h3>
-              <p className={`${rowMode ? "mt-1 line-clamp-1 text-xs leading-5" : "mt-2 line-clamp-2 text-sm leading-6"} max-w-[34rem] ${description ? "text-slate-600" : "text-slate-400"}`}>
+              <h3 className={`${rowMode ? "text-[17px]" : "text-[18px]"} truncate font-bold tracking-tight leading-none ${titleClassName}`}>{title}</h3>
+              <p className={`${rowMode ? "mt-1 line-clamp-1 text-xs leading-5" : "mt-2 line-clamp-2 text-sm leading-6"} max-w-[34rem] ${descriptionClassName}`}>
                 {descriptionText}
               </p>
             </div>

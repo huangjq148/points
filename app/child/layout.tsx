@@ -106,11 +106,11 @@ function ChildAccountSignIn({
 
   return (
     <div className="fixed inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: "var(--z-child-overlay)" }} onClick={onClose}>
-      <div className="w-full max-w-sm rounded-[28px] border border-white/70 bg-white/95 p-6 text-slate-800 shadow-[0_24px_70px_rgba(15,23,42,0.22)]" onClick={(e) => e.stopPropagation()}>
+      <div className="child-overlay-panel w-full max-w-sm rounded-[28px] p-6" onClick={(e) => e.stopPropagation()}>
         <div className="text-center mb-5">
           <div className="text-4xl mb-2">👶</div>
-          <h3 className="text-xl font-bold text-gray-800">添加/切换孩子账号</h3>
-          <p className="text-gray-600 text-sm">登录后会保留之前已登录的孩子账号</p>
+          <h3 className="text-xl font-black text-[var(--child-text)]">添加/切换孩子账号</h3>
+          <p className="text-sm font-semibold text-[var(--child-text-muted)]">登录后会保留之前已登录的孩子账号</p>
         </div>
 
         <div className="space-y-4">
@@ -118,7 +118,7 @@ function ChildAccountSignIn({
           <PasswordInput label="密码" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="请输入密码" />
         </div>
 
-        {error && <div className="mt-4 rounded-xl bg-red-100 px-4 py-2 text-center text-sm text-red-600">{error}</div>}
+        {error && <div className="child-overlay-action-danger mt-4 rounded-[18px] px-4 py-2 text-center text-sm font-semibold">{error}</div>}
 
         <div className="mt-5 flex gap-3">
           <Button variant="secondary" fullWidth onClick={onClose}>
@@ -353,12 +353,6 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
     color: isDarkMode ? "#f8fafc" : "#0f172a",
   };
 
-  const topbarPointsUnitStyle = {
-    fontSize: "9px",
-    fontWeight: 800,
-    color: isDarkMode ? "#7dd3fc" : "#0284c7",
-  };
-
   const handleDropChild = (targetId: string) => {
     if (!draggingChildId) return;
     if (draggingChildId !== targetId) {
@@ -375,24 +369,24 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           style={{ zIndex: "var(--z-child-overlay)" }}
           onClick={() => setShowChildSwitcher(false)}
         >
-          <div className="w-full max-w-sm rounded-[32px] border border-slate-200/70 bg-white/95 p-6 text-slate-800 shadow-[0_24px_70px_rgba(15,23,42,0.2)] backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="child-overlay-panel w-full max-w-sm rounded-[32px] p-6" onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-4">
               <div className="text-4xl mb-2">🔄</div>
-              <h3 className="text-xl font-bold text-gray-800">切换孩子</h3>
-              <p className="text-gray-600">选择要切换的孩子</p>
+              <h3 className="text-xl font-black text-[var(--child-text)]">切换孩子</h3>
+              <p className="text-sm font-semibold text-[var(--child-text-muted)]">选择要切换的孩子</p>
             </div>
-            <div className="mb-4 rounded-[22px] border border-slate-200/70 bg-slate-50/90 p-4 text-slate-800">
+            <div className="child-overlay-panel-soft mb-4 rounded-[22px] p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">已登录孩子</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-xs font-black uppercase tracking-wide text-[var(--child-text-muted)]">已登录孩子</p>
+                  <p className="text-sm font-semibold text-[var(--child-text-muted)]">
                     {savedChildSessions.length > 0 ? `${savedChildSessions.length} 个账号可切换` : "当前设备还没有其他孩子账号"}
                   </p>
                 </div>
                 <Button
                   onClick={resetChildOrder}
                   variant="secondary"
-                className="h-9 rounded-full border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none ring-1 ring-slate-200/70"
+                  className="h-9 rounded-full border-none bg-[var(--child-surface)] px-3 text-xs font-semibold text-[var(--child-text-muted)] shadow-none ring-1 ring-[color:var(--child-border)]"
               >
                 恢复顺序
               </Button>
@@ -402,7 +396,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   onClick={() => previousSession && switchToChild(previousSession)}
                   variant="secondary"
                   disabled={!previousSession}
-                  className="h-10 rounded-full border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none ring-1 ring-slate-200/70 disabled:opacity-40"
+                  className="h-10 rounded-full border-none bg-[var(--child-surface)] px-3 text-xs font-semibold text-[var(--child-text-muted)] shadow-none ring-1 ring-[color:var(--child-border)] disabled:opacity-40"
                 >
                   上一个
                 </Button>
@@ -410,7 +404,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   onClick={() => nextSession && switchToChild(nextSession)}
                   variant="secondary"
                   disabled={!nextSession}
-                  className="h-10 rounded-full border-none bg-white px-3 text-xs font-semibold text-slate-600 shadow-none ring-1 ring-slate-200/70 disabled:opacity-40"
+                  className="h-10 rounded-full border-none bg-[var(--child-surface)] px-3 text-xs font-semibold text-[var(--child-text-muted)] shadow-none ring-1 ring-[color:var(--child-border)] disabled:opacity-40"
                 >
                   下一个
                 </Button>
@@ -432,22 +426,24 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDropChild(child.id)}
                     className={`w-full flex items-center gap-4 rounded-[22px] border p-4 text-left transition ${
-                      isActive ? "border-sky-200 bg-sky-50/90" : "border-slate-200/70 bg-white hover:bg-slate-50"
+                      isActive
+                        ? "border-[color:var(--child-border-strong)] bg-[color:rgba(14,165,233,0.14)]"
+                        : "border-[color:var(--child-border)] bg-[var(--child-surface)] hover:bg-[var(--child-surface-muted)]"
                     } ${draggingChildId === child.id ? "scale-[0.99] opacity-70" : ""}`}
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-gradient-to-br from-amber-100 to-orange-100 text-2xl shadow-[0_10px_18px_rgba(15,23,42,0.08)]">
+                    <div className="child-overlay-icon flex h-12 w-12 items-center justify-center rounded-[18px] text-2xl">
                       {child.avatar || "👶"}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="truncate font-bold text-gray-800">{child.username}</p>
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200/70">#{index + 1}</span>
+                        <p className="truncate font-bold text-[var(--child-text)]">{child.username}</p>
+                        <span className="rounded-full bg-[var(--child-surface-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--child-text-muted)] ring-1 ring-[color:var(--child-border)]">#{index + 1}</span>
                       </div>
-                      <p className="text-sm text-gray-500">🪙 {child.availablePoints} 积分</p>
+                      <p className="text-sm font-semibold text-[var(--child-text-muted)]">🪙 {child.availablePoints} 积分</p>
                       <div className="mt-1 flex items-center gap-2">
-                        {isActive && <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-bold text-sky-700 ring-1 ring-sky-100">当前</span>}
-                        {isFavorite && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-amber-100">常用</span>}
-                        <span className="text-[10px] font-medium text-slate-400">拖动可排序</span>
+                        {isActive && <span className="rounded-full bg-[color:rgba(14,165,233,0.14)] px-2 py-0.5 text-[10px] font-bold text-sky-700 ring-1 ring-[color:rgba(125,211,252,0.24)]">当前</span>}
+                        {isFavorite && <span className="rounded-full bg-[color:rgba(245,158,11,0.16)] px-2 py-0.5 text-[10px] font-bold text-amber-700 ring-1 ring-[color:rgba(252,211,77,0.24)]">常用</span>}
+                        <span className="text-[10px] font-medium text-[var(--child-text-muted)]">拖动可排序</span>
                       </div>
                     </div>
                     <button
@@ -456,7 +452,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                         e.stopPropagation();
                         toggleFavoriteChild(child.id);
                       }}
-                      className="rounded-full p-2 text-gray-400 transition hover:bg-amber-50 hover:text-amber-500"
+                      className="rounded-full p-2 text-[var(--child-text-muted)] transition hover:bg-[color:rgba(245,158,11,0.16)] hover:text-amber-500"
                       aria-label={isFavorite ? "取消常用" : "设为常用"}
                     >
                       <Star size={16} fill={isFavorite ? "currentColor" : "none"} />
@@ -465,7 +461,7 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 );
               })}
             </div>
-            <div className="mb-4 rounded-[22px] border border-sky-100 bg-sky-50/80 px-4 py-3 text-sm text-sky-700">
+            <div className="child-overlay-note mb-4 rounded-[22px] px-4 py-3 text-sm font-semibold text-sky-700">
               只要该孩子账号在本设备上登录过，就可以直接切换。
             </div>
             <Button onClick={() => setShowChildAccountSignIn(true)} variant="secondary" fullWidth className="mb-3">
@@ -605,26 +601,26 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
           onClick={() => setShowSettingsModal(false)}
         >
           <div
-            className="flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-[2rem] bg-white text-slate-800 shadow-[0_28px_90px_rgba(15,23,42,0.28)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
+            className="child-settings-modal flex max-h-[calc(100dvh-1rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-[2rem] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[2rem]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative overflow-hidden bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-6 py-5 text-white">
+            <div className="child-settings-hero relative overflow-hidden px-6 py-5 text-[var(--child-text)]">
               <div className="absolute inset-0 opacity-30">
                 <div className="absolute -right-8 -top-10 h-28 w-28 rounded-full bg-white/30 blur-2xl" />
                 <div className="absolute left-4 bottom-0 h-20 w-20 rounded-full bg-cyan-300/30 blur-2xl" />
               </div>
               <div className="relative flex items-start justify-between gap-4">
                 <div>
-                  <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
+                  <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[color:rgba(255,255,255,0.16)] px-3 py-1 text-xs font-bold backdrop-blur">
                     <Sparkles size={14} />
                     孩子设置
                   </div>
                   <h3 className="text-2xl font-black">个人中心</h3>
-                  <p className="mt-1 text-sm text-white/80">管理提醒、主题和使用帮助</p>
+                  <p className="mt-1 text-sm text-[var(--child-text-muted)]">管理提醒、主题和使用帮助</p>
                 </div>
                 <button
                   onClick={() => setShowSettingsModal(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:rgba(255,255,255,0.14)] text-[var(--child-text)] transition hover:bg-[color:rgba(255,255,255,0.22)]"
                 >
                   ✕
                 </button>
@@ -638,11 +634,11 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                     setShowSettingsModal(false);
                     router.push("/child/wallet");
                   }}
-                  className="rounded-3xl border border-sky-100 bg-sky-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-sky-50"
+                  className="child-settings-tile rounded-3xl p-4 text-left transition hover:-translate-y-0.5"
                 >
                   <UserIcon size={20} className="text-sky-600" />
-                  <p className="mt-3 text-sm font-bold">个人信息</p>
-                  <p className="mt-1 text-[11px] text-slate-500">资料与积分</p>
+                  <p className="mt-3 text-sm font-bold text-[var(--child-text)]">个人信息</p>
+                  <p className="mt-1 text-[11px] text-[var(--child-text-muted)]">资料与积分</p>
                 </button>
                 <button
                   onClick={() => {
@@ -650,11 +646,11 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                     setNotificationsEnabled(next);
                     toast.info(next ? "通知已开启" : "通知已关闭");
                   }}
-                  className="rounded-3xl border border-violet-100 bg-violet-50/80 p-4 text-left transition hover:-translate-y-0.5 hover:bg-violet-50"
+                  className="child-settings-tile rounded-3xl p-4 text-left transition hover:-translate-y-0.5"
                 >
                   <Bell size={20} className="text-violet-600" />
-                  <p className="mt-3 text-sm font-bold">通知</p>
-                  <p className="mt-1 text-[11px] text-slate-500">{notificationsEnabled ? "已开启" : "已关闭"}</p>
+                  <p className="mt-3 text-sm font-bold text-[var(--child-text)]">通知</p>
+                  <p className="mt-1 text-[11px] text-[var(--child-text-muted)]">{notificationsEnabled ? "已开启" : "已关闭"}</p>
                 </button>
                 <ThemeToggle
                   theme={isDarkMode ? "dark" : "light"}
@@ -664,12 +660,12 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                     toast.success(next ? "已切换到深色主题" : "已切换到浅色主题");
                   }}
                   variant="tile"
-                  className="border-amber-100 bg-amber-50/80 hover:bg-amber-50"
+                  className="child-settings-tile border-[color:var(--child-border)] bg-[var(--child-surface)] hover:bg-[var(--child-surface-muted)]"
                 />
               </div>
 
-              <div className="rounded-[1.5rem] border border-slate-100 bg-slate-50/80 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <div className="child-settings-section rounded-[1.5rem] p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--child-text)]">
                   <ShieldCheck size={18} className="text-emerald-600" />
                   快捷偏好
                 </div>
@@ -682,11 +678,11 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                         return next;
                       });
                     }}
-                    className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm transition hover:bg-slate-50"
+                    className="child-settings-row flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition"
                   >
                     <div>
-                      <p className="font-semibold text-slate-800">专注提醒</p>
-                      <p className="text-xs text-slate-500">提醒我按时查看任务和奖励</p>
+                      <p className="font-semibold text-[var(--child-text)]">专注提醒</p>
+                      <p className="text-xs text-[var(--child-text-muted)]">提醒我按时查看任务和奖励</p>
                     </div>
                     <span
                       className={`relative h-7 w-12 rounded-full transition ${
@@ -702,11 +698,11 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                   </button>
                   <button
                     onClick={() => setReducedMotion((v) => !v)}
-                    className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm transition hover:bg-slate-50"
+                    className="child-settings-row flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left transition"
                   >
                     <div>
-                      <p className="font-semibold text-slate-800">减少动画</p>
-                      <p className="text-xs text-slate-500">降低弹窗与页面动画强度</p>
+                      <p className="font-semibold text-[var(--child-text)]">减少动画</p>
+                      <p className="text-xs text-[var(--child-text-muted)]">降低弹窗与页面动画强度</p>
                     </div>
                     <span className={`text-sm font-bold ${reducedMotion ? "text-emerald-600" : "text-slate-400"}`}>
                       {reducedMotion ? "开启" : "关闭"}
@@ -715,8 +711,8 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                 </div>
               </div>
 
-              <div className="rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-sm">
-                <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <div className="child-settings-section rounded-[1.5rem] p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-bold text-[var(--child-text)]">
                   <MessageCircleQuestion size={18} className="text-blue-600" />
                   帮助与支持
                 </div>
@@ -727,35 +723,35 @@ export default function ChildLayout({ children }: ChildLayoutProps) {
                       setShowSettingsModal(false);
                       router.push("/child/wallet");
                     }}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100"
+                    className="child-settings-row flex items-center justify-between rounded-2xl px-4 py-3 text-left transition"
                   >
                     <div>
-                      <p className="font-semibold text-slate-800">查看使用指南</p>
-                      <p className="text-xs text-slate-500">从钱包页查看积分和记录</p>
+                      <p className="font-semibold text-[var(--child-text)]">查看使用指南</p>
+                      <p className="text-xs text-[var(--child-text-muted)]">从钱包页查看积分和记录</p>
                     </div>
-                    <ArrowRight size={18} className="text-slate-400" />
+                    <ArrowRight size={18} className="text-[var(--child-text-muted)]" />
                   </button>
                   <button
                     onClick={copySupportText}
-                    className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-left transition hover:bg-slate-100"
+                    className="child-settings-row flex items-center justify-between rounded-2xl px-4 py-3 text-left transition"
                   >
                     <div>
-                      <p className="font-semibold text-slate-800">复制求助消息</p>
-                      <p className="text-xs text-slate-500">可直接发给家长或管理员</p>
+                      <p className="font-semibold text-[var(--child-text)]">复制求助消息</p>
+                      <p className="text-xs text-[var(--child-text-muted)]">可直接发给家长或管理员</p>
                     </div>
-                    <Volume2 size={18} className="text-slate-400" />
+                    <Volume2 size={18} className="text-[var(--child-text-muted)]" />
                   </button>
                 </div>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="flex w-full items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-4 text-rose-600 transition hover:bg-rose-100"
+                className="child-overlay-action-danger flex w-full items-center gap-3 rounded-2xl px-4 py-4 transition"
               >
                 <LogOut size={18} />
                 <div className="flex-1 text-left">
                   <p className="font-bold">退出登录</p>
-                  <p className="text-xs text-rose-500/80">切换到其他账号</p>
+                  <p className="text-xs opacity-80">切换到其他账号</p>
                 </div>
                 <Star size={16} className="opacity-60" />
               </button>
