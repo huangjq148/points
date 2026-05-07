@@ -526,33 +526,43 @@
 }
 
 .child-task-submit-modal {
-  border: 1px solid rgba(71, 85, 105, 0.72) !important;
-  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid var(--child-border) !important;
+  background: var(--child-surface-strong) !important;
+  color: var(--child-text);
 }
 
 .child-task-submit-hero {
-  border: 1px solid rgba(71, 85, 105, 0.72);
+  border: 1px solid var(--child-border);
   background: linear-gradient(
     135deg,
-    rgba(30, 41, 59, 0.96) 0%,
-    rgba(14, 165, 233, 0.16) 52%,
-    rgba(250, 204, 21, 0.14) 100%
+    color-mix(in srgb, var(--child-surface-strong) 84%, #ffffff 16%) 0%,
+    color-mix(in srgb, var(--child-surface-muted) 76%, #38bdf8 24%) 52%,
+    color-mix(in srgb, var(--child-surface-muted) 78%, #fbbf24 22%) 100%
   );
 }
 
 .child-task-submit-surface {
-  border: 1px solid rgba(71, 85, 105, 0.72);
-  background: rgba(30, 41, 59, 0.92);
+  border: 1px solid var(--child-border);
+  background: color-mix(in srgb, var(--child-surface-strong) 92%, #ffffff 8%);
+  color: var(--child-text);
 }
 
 .child-task-submit-upload {
-  border-color: rgba(100, 116, 139, 0.72);
-  background: linear-gradient(180deg, rgba(51, 65, 85, 0.94) 0%, rgba(30, 41, 59, 0.96) 100%);
+  border-color: color-mix(in srgb, var(--child-border-strong) 64%, #38bdf8 36%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--child-surface-strong) 84%, #dbeafe 16%) 0%,
+    color-mix(in srgb, var(--child-surface) 92%, #ffffff 8%) 100%
+  );
 }
 
 .child-task-submit-upload:hover {
-  border-color: rgba(125, 211, 252, 0.48);
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(30, 41, 59, 0.96) 100%);
+  border-color: color-mix(in srgb, var(--child-border-strong) 52%, #38bdf8 48%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--child-surface-muted) 80%, #38bdf8 20%) 0%,
+    color-mix(in srgb, var(--child-surface) 92%, #ffffff 8%) 100%
+  );
 }
 
 .child-wallet-detail-close {
