@@ -146,6 +146,34 @@
   padding: 16px;
 }
 
+.child-task-filter-layout {
+  display: grid;
+  gap: 12px;
+  align-items: stretch;
+  grid-template-columns:
+    minmax(220px, 1.3fr)
+    minmax(320px, 1fr)
+    minmax(320px, 1fr);
+}
+
+.child-task-filter-selects,
+.child-task-filter-dates {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.child-task-filter-selects .select-surface .react-select__control {
+  border-radius: 14px;
+}
+
+@media (max-width: 1180px) {
+  .child-task-filter-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .child-page-grid {
   display: grid;
   gap: 16px;

@@ -546,34 +546,37 @@ function TaskPage() {
               {loading ? '刷新中' : '刷新'}
             </Button>
           </div>
-          <div className='mt-4 grid gap-3 lg:grid-cols-[minmax(0,300px)_180px_180px] xl:grid-cols-[minmax(0,300px)_180px_180px_minmax(280px,1fr)]'>
+          <div className='child-task-filter-layout mt-4'>
             <Input
               allowClear
               isSearch
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
               placeholder='搜索任务名称...'
+              containerClassName='w-full'
             />
-            <FilterSelect
-              options={STATUS_OPTIONS}
-              value={statusFilter}
-              onChange={(value) => setStatusFilter(String(value ?? ''))}
-              placeholder='筛选状态'
-              wrapperClassName='rounded-[18px]'
-            />
-            <FilterSelect
-              options={TYPE_OPTIONS}
-              value={typeFilter}
-              onChange={(value) => setTypeFilter(String(value ?? ''))}
-              placeholder='类型'
-              wrapperClassName='rounded-[18px]'
-            />
+            <div className='child-task-filter-selects'>
+              <FilterSelect
+                options={STATUS_OPTIONS}
+                value={statusFilter}
+                onChange={(value) => setStatusFilter(String(value ?? ''))}
+                placeholder='筛选状态'
+                wrapperClassName='w-full rounded-[14px]'
+              />
+              <FilterSelect
+                options={TYPE_OPTIONS}
+                value={typeFilter}
+                onChange={(value) => setTypeFilter(String(value ?? ''))}
+                placeholder='类型'
+                wrapperClassName='w-full rounded-[14px]'
+              />
+            </div>
             <TaskDateRangeFilter
               startDate={startDate}
               endDate={endDate}
               onStartDateChange={setStartDate}
               onEndDateChange={setEndDate}
-              className='xl:col-span-1'
+              className='child-task-filter-dates'
             />
           </div>
         </ChildPanel>

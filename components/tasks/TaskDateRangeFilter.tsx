@@ -1,6 +1,5 @@
 'use client';
 
-import { Calendar } from 'lucide-react';
 import DatePicker from '@/components/ui/DatePicker';
 
 interface TaskDateRangeFilterProps {
@@ -23,7 +22,7 @@ export default function TaskDateRangeFilter({
   endPlaceholder = '结束日期',
 }: TaskDateRangeFilterProps) {
   return (
-    <div className='grid min-w-0 flex-1 grid-cols-2 gap-2'>
+    <div className={`grid min-w-0 flex-1 grid-cols-2 gap-2 ${className}`.trim()}>
       <DatePicker
         selected={startDate}
         onChange={onStartDateChange}
