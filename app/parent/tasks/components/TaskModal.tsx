@@ -263,10 +263,6 @@ export default function TaskModal({
         )}
 
         <div className={`${sectionCardClass} space-y-4`}>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">任务内容</p>
-            <p className="mt-2 text-sm text-[var(--ui-text-muted)]">先填写任务标题，再补充说明和奖励信息。</p>
-          </div>
           <Input
             label='任务名称'
             value={taskData.name}
@@ -338,10 +334,6 @@ export default function TaskModal({
 
         {mode === 'add' && (
           <div className={`${sectionCardClass} space-y-3`}>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--ui-text-soft)]">补充设置</p>
-              <p className="mt-2 text-sm text-[var(--ui-text-muted)]">这些选项不是必填，按需开启即可。</p>
-            </div>
             <div>
               <label className={`${labelClass} mb-2`}>
                 任务配图（可选）
