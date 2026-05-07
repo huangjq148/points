@@ -138,7 +138,7 @@ function TasksPage() {
           ? "submitted"
           : statusFromQuery === "rejected"
             ? "rejected"
-            : "all";
+            : "uncompleted";
 
   const [selectedChildTaskFilter, setSelectedChildTaskFilter] = useState<string>(initialChildTaskFilter);
   const { currentUser, childList } = useApp();
