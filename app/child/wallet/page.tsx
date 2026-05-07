@@ -312,7 +312,7 @@ export default function WalletPage() {
             </button>
           ))}
         </div>
-        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,240px)_minmax(0,360px)_max-content] xl:items-end">
+        <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,240px)_minmax(0,360px)_max-content] md:items-end">
           <div className="min-w-0">
             <Input
               allowClear
